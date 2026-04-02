@@ -47,13 +47,18 @@ donateToggle.addEventListener('click', () => {
 
 ## 3. 방문자 통계 시스템
 
-### A. 간이 방문자 뱃지 (hits.seeyoufarm.com)
-- 별도 가입 없이 무료 누적 카운터 뱃지 제공
-- 도움말(HELP) 모달 하단에 삽입됨
-- 정밀도 낮음 (새로고침마다 카운트 증가) → 참고용
+## 3. 방문자 통계 및 동기 부여( gamification ) 시스템
 
-### B. Google Analytics 4 (GA4) ← 핵심 통계 수단
+### A. Firebase + Chart.js 직접 연동 시스템 (현재 주력 모니터링 수단)
+경쟁 심리 자극을 위해 **모달(`🔥 현황`)에 시각화된 그래프**를 제공합니다.
+- **실시간 활성 사용자수 (현재 접속자):** Firebase의 `presence` 기능 (`.info/connected`)을 통해 앱을 열고 있는 유저를 실제 초 단위로 추적합니다. 연결이 끊기면 즉각 삭제됩니다.
+- **최근 7일 누적 접속자 추세:** LocalStorage를 활용하여 1일 1회만 Firebase `daily_visits` 카운터를 증가시킵니다. `Chart.js`를 이용한 반응형 꺾은선 그래프가 자동 생성됩니다.
+- **운영 팁:** 데이터를 확인하거나 강제로 숫자를 변경하고 싶다면, [Firebase 콘솔](https://console.firebase.google.com/)의 `Realtime Database -> daily_visits` 트리에서 값을 직접 조작하실 수도 있습니다!
 
+### B. 간이 방문자 총합 뱃지 (hits.seeyoufarm.com)
+- 2026-04-02 이후의 **전체 역대 누적 접속자**를 보여주는 용도로 통계 모달창 하단에 남아있습니다.
+
+### C. Google Analytics 4 (GA4) ← 상세 통계 전문
 | 항목 | 내용 |
 |---|---|
 | 측정 ID | G-ZLHB1RM91X |
