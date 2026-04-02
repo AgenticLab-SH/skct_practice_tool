@@ -889,20 +889,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Developer Notice System - fetches notice.json from GitHub raw URL for real-time updates
+    // Developer Notice System - 실시간 공지 업데이트 기능 (캐시 무효화 적용)
     (async () => {
         try {
-            // GitHub raw URL로 직접 가져오되, 캐시 무효화를 위해 timestamp 추가
-            const githubRawUrl = 'https://raw.githubusercontent.com/AgenticLab-SH/skct_tool/main/notice.json';
-            const res = await fetch(githubRawUrl + '?t=' + Date.now());
-            if (!res.ok) {
-                // fallback: 로컬 notice.json 시도
-                const localRes = await fetch('notice.json?' + Date.now());
-                if (!localRes.ok) return;
-                const data = await localRes.json();
-                renderNotice(data);
-                return;
-            }
+            // Github Pages 서버에서 최대한 최신 버전을 가져오기 위해 타임스탬프 추가
+            // (주의: GitHub 커밋 후 Pages 배포가 완료되는 1~2분 뒤부터 실시간 갱신됨)
+            const res = await fetch('notice.json?t=' + Date.now());
+            if (!res.ok) return;
             const data = await res.json();
             renderNotice(data);
         } catch (e) {
