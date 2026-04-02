@@ -743,23 +743,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // 간단한 알람 비프음 (Web Audio API)
-    const playBeep = (freq = 800, duration = 150, count = 1) => {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            for (let i = 0; i < count; i++) {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.frequency.value = freq;
-                osc.type = 'sine';
-                gain.gain.value = 0.3;
-                const startTime = audioCtx.currentTime + i * (duration / 1000 + 0.1);
-                osc.start(startTime);
-                osc.stop(startTime + duration / 1000);
-            }
-        } catch(e) { /* audio not supported */ }
+    // 부드러운 알람 비프음 (Web Audio API)
+    let audioCtx = null;
+    const initAudio = () => {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    };
+
+    const playBeep = (freq = 600, durationMs = 300, count = 1) => {
+        if (!audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const playSingle = (startTime) => {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'triangle'; // 부드러운 소리
+            osc.frequency.setValueAtTime(freq, startTime);
+            
+            // Envelope: 부드럽게 커지고 서서히 작아짐 (팝 노이즈 방지)
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + durationMs / 1000);
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.start(startTime);
+            osc.stop(startTime + durationMs / 1000);
+        };
+
+        const now = audioCtx.currentTime;
+        for (let i = 0; i < count; i++) {
+            playSingle(now + i * (durationMs / 1000 + 0.2)); // 간격 추가
+        }
     };
 
     updateTimerUI();
@@ -787,15 +808,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentPhaseIdx < phases.length) {
                     currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
                     if (endedPhase.type === 'subject') {
-                        playBeep(880, 150, 2); // 과목 종료: 높은 더블 비프
+                        playBeep(659, 400, 2); // 과목 종료: 부드러운 더블 차임 (E5)
                     } else {
-                        playBeep(660, 200, 1); // 쉬는시간 종료: 낮은 싱글 비프
+                        playBeep(523, 400, 1); // 쉬는시간 종료: 단일 차임 (C5)
                     }
                 } else {
                     clearInterval(timerInterval);
                     timerIsRunning = false;
                     timerPlayBtn.innerText = '▶';
-                    playBeep(440, 300, 3); // 전체 종료: 3회 비프
+                    playBeep(440, 500, 3); // 전체 종료: 길고 깊은 3회 알람 (A4)
                 }
             }
         }
@@ -804,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if(timerPlayBtn) {
         timerPlayBtn.addEventListener('click', () => {
+            initAudio(); // 사용자 인터랙션 시 AudioContext 활성화
             if (currentPhaseIdx >= phases.length && totalSeconds <= 0) return;
             if (timerIsRunning) {
                 clearInterval(timerInterval);
