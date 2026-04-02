@@ -967,11 +967,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // 초기 로드
+        // 초기 로드 시 딱 한 번만 호출하여 진짜 방문 1회만 카운트
         await fetchVisitorCount();
-
-        // 60초마다 실시간 업데이트
-        setInterval(fetchVisitorCount, 60000);
     })();
 
     // Disable implicit focusing on calcDisplay
