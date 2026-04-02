@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Layout Ratios Settings
-    const savedRatios = JSON.parse(localStorage.getItem('skct_layout_ratios')) || { timer: 1, utils: 3, calc: 2 };
+    const savedRatios = JSON.parse(localStorage.getItem('skct_layout_ratios')) || { timer: 0.2, utils: 1, calc: 2 };
     document.documentElement.style.setProperty('--timer-ratio', savedRatios.timer);
     document.documentElement.style.setProperty('--utils-ratio', savedRatios.utils);
     document.documentElement.style.setProperty('--calc-ratio', savedRatios.calc);

@@ -16,8 +16,8 @@
     --calc-op-bg: #e0f2fe;
     --ui-radius: 4px;
     /* Layout Ratios */
-    --timer-ratio: 1;
-    --utils-ratio: 3;
+    --timer-ratio: 0.2;
+    --utils-ratio: 1;
     --calc-ratio: 2;
 }
 
