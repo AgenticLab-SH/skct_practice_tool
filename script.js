@@ -6,6 +6,43 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--omr-width', `${savedOmrWidth}px`);
     }
 
+    // Layout Ratios Settings
+    const savedRatios = JSON.parse(localStorage.getItem('skct_layout_ratios')) || { timer: 1, utils: 3, calc: 2 };
+    document.documentElement.style.setProperty('--timer-ratio', savedRatios.timer);
+    document.documentElement.style.setProperty('--utils-ratio', savedRatios.utils);
+    document.documentElement.style.setProperty('--calc-ratio', savedRatios.calc);
+    
+    const ratioTimer = document.getElementById('ratioTimer');
+    const ratioUtils = document.getElementById('ratioUtils');
+    const ratioCalc = document.getElementById('ratioCalc');
+    
+    if (ratioTimer) ratioTimer.value = savedRatios.timer;
+    if (ratioUtils) ratioUtils.value = savedRatios.utils;
+    if (ratioCalc) ratioCalc.value = savedRatios.calc;
+
+    const applyRatios = () => {
+        if (!ratioTimer) return;
+        const tR = parseFloat(ratioTimer.value) || 0;
+        const uR = parseFloat(ratioUtils.value) || 0;
+        const cR = parseFloat(ratioCalc.value) || 0;
+        
+        document.documentElement.style.setProperty('--timer-ratio', tR);
+        document.documentElement.style.setProperty('--utils-ratio', uR);
+        document.documentElement.style.setProperty('--calc-ratio', cR);
+        
+        localStorage.setItem('skct_layout_ratios', JSON.stringify({ timer: tR, utils: uR, calc: cR }));
+        // flex가 변경되면 utils 영역 높이가 바뀌므로 캔버스 리사이즈
+        if (typeof resizeCanvas === 'function') {
+            requestAnimationFrame(resizeCanvas);
+        }
+    };
+
+    if (ratioTimer) {
+        ratioTimer.addEventListener('input', applyRatios);
+        ratioUtils.addEventListener('input', applyRatios);
+        ratioCalc.addEventListener('input', applyRatios);
+    }
+
     // Save window size if we are in popup mode
     let winResizeTimeout = null;
     window.addEventListener('resize', () => {

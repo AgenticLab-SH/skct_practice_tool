@@ -15,6 +15,10 @@
     --calc-btn-hover: #e2e8f0;
     --calc-op-bg: #e0f2fe;
     --ui-radius: 4px;
+    /* Layout Ratios */
+    --timer-ratio: 1;
+    --utils-ratio: 3;
+    --calc-ratio: 2;
 }
 
 * {
@@ -147,6 +151,29 @@ body {
 .omr-body::-webkit-scrollbar { width: 6px; }
 .omr-body::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
 
+.omr-next-control {
+    display: flex;
+    gap: 5px;
+    padding-bottom: 8px;
+}
+.omr-next-control button {
+    flex: 1;
+    padding: 6px;
+    border-radius: var(--ui-radius);
+    border: none;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+}
+.reset-btn {
+    background: #64748b;
+    transition: background 0.2s;
+}
+.reset-btn:hover {
+    background: #475569;
+}
+
 /* OMR specific styling */
 .subject-group {
     background: rgba(255,255,255,0.05);
@@ -242,11 +269,43 @@ body {
 }
 .stat-line:last-child {
     margin-bottom: 0;
-    padding-top: 6px;
+    padding-top: 4px;
     border-top: 1px dashed rgba(255, 255, 255, 0.2);
     color: #4ade80;
     font-weight: bold;
 }
+
+/* Layout Settings in OMR */
+.layout-settings {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(255,255,255,0.2);
+    font-size: 11px;
+    color: var(--omr-text);
+}
+.settings-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #93c5fd;
+    text-align: center;
+}
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 3px;
+    align-items: center;
+}
+.settings-row input {
+    width: 40px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+    text-align: center;
+}
+.settings-row input:focus { outline: 1px solid var(--primary-color); }
 
 /* --- Main Layout --- */
 .main-content {
@@ -259,13 +318,14 @@ body {
 
 /* Top Bar */
 .top-bar {
-    height: 40px;
     background-color: var(--panel-bg);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 10px;
+    flex: var(--timer-ratio) 1 0;
+    min-height: 40px;
 }
 
 .timer-container {
@@ -325,7 +385,7 @@ body {
 
 /* Utility Section (Notepad/Canvas) */
 .utility-section {
-    flex: 1.5;
+    flex: var(--utils-ratio) 1 0;
     display: flex;
     flex-direction: column;
     border-bottom: 1px solid var(--border-color);
@@ -405,8 +465,7 @@ body {
 
 /* Calculator Section */
 .calculator-section {
-    flex: 1;
-    min-height: 220px; /* Base minimum for calculator */
+    flex: var(--calc-ratio) 1 0;
     background-color: var(--calc-bg);
     display: flex;
     flex-direction: column;
