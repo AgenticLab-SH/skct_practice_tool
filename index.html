@@ -402,12 +402,16 @@
             }).catch(console.error);
         }
 
+        // 어제(4월 2일) Google Analytics 기준 방문자 380명 초기값 설정
+        const BASE_YESTERDAY_VISITS = 380;
+
         // 총 통계 UI 표시
         onValue(totalRef, (snap) => {
             const displayEl = document.getElementById('visitorCountDisplay');
             if(displayEl) {
-                // snap.val()이 없으면 0부터 시작
-                displayEl.textContent = (snap.val() || 0).toLocaleString() + " 명";
+                // Firebase 상 카운트(어제 이후 순수 집계) + 초기 설정값(380)을 합산하여 표시
+                const currentFbTotal = snap.val() || 0;
+                displayEl.textContent = (currentFbTotal + BASE_YESTERDAY_VISITS).toLocaleString() + " 명";
             }
         });
 
@@ -434,7 +438,14 @@
 
                 try {
                     const snapshots = await Promise.all(promises);
-                    const data = snapshots.map(snap => snap.val() || 0);
+                    const data = snapshots.map((snap, index) => {
+                        let val = snap.val() || 0;
+                        // labels[index] 가 '04-02'인 곳에 기본 방문자 수 380 추가 반영!
+                        if (labels[index] === '04-02') {
+                            val += BASE_YESTERDAY_VISITS;
+                        }
+                        return val;
+                    });
 
                     const ctx = document.getElementById('visitorChart').getContext('2d');
                     
