@@ -68,9 +68,40 @@ body {
     cursor: col-resize;
     background: transparent;
     transition: background 0.2s;
+    position: relative;
 }
 .omr-resizer:hover, .omr-resizer:active {
     background: var(--primary-color);
+}
+
+/* Resizer 안내 애니메이션 */
+.omr-resizer.hint-active {
+    animation: resizer-blink 0.5s ease-in-out 6;
+}
+.omr-resizer.hint-active::after {
+    content: '⟷';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(59,130,246,0.9), 0 0 16px rgba(59,130,246,0.5);
+    animation: resizer-slide 1s ease-in-out 3;
+    pointer-events: none;
+    white-space: nowrap;
+}
+@keyframes resizer-blink {
+    0%, 100% { background: transparent; }
+    50% { background: var(--primary-color); box-shadow: 0 0 10px rgba(59,130,246,0.6); }
+}
+@keyframes resizer-slide {
+    0% { transform: translate(-50%, -50%) translateX(-8px); opacity: 0.3; }
+    25% { transform: translate(-50%, -50%) translateX(8px); opacity: 1; }
+    50% { transform: translate(-50%, -50%) translateX(-8px); opacity: 1; }
+    75% { transform: translate(-50%, -50%) translateX(8px); opacity: 0.7; }
+    100% { transform: translate(-50%, -50%) translateX(0); opacity: 0; }
 }
 
 .omr-toggle {

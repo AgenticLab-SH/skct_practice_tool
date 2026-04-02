@@ -110,6 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     omrToggleBtn.addEventListener('click', () => {
         omrSidebar.classList.remove('collapsed');
         omrContent.classList.remove('hidden');
+        // 리사이저 힌트 애니메이션 표시
+        const resizer = document.getElementById('omrResizer');
+        if (resizer) {
+            resizer.classList.add('hint-active');
+            setTimeout(() => resizer.classList.remove('hint-active'), 3000);
+        }
     });
 
     document.getElementById('omrCollapseBtn').addEventListener('click', () => {
@@ -867,14 +873,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     // SVG 텍스트에서 숫자 추출 시도
                     const match = text.match(/(\d[\d,]+)\s*<\/text>\s*<\/g>\s*<\/svg>\s*$/);
                     if (match) {
-                        visitorDisplay.textContent = '~' + match[1] + ' visit';
+                        visitorDisplay.textContent = match[1] + ' visit';
                         return;
                     }
                     // 다른 패턴 시도
                     const allNumbers = text.match(/(\d[\d,]+)/g);
                     if (allNumbers && allNumbers.length > 0) {
                         const lastNum = allNumbers[allNumbers.length - 1];
-                        visitorDisplay.textContent = '~' + lastNum + ' visit';
+                        visitorDisplay.textContent = lastNum + ' visit';
                         return;
                     }
                 }
