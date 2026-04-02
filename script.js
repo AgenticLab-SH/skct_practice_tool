@@ -633,9 +633,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* --- Multi-Phase Timer Logic --- */
     let timerInterval = null;
-    let totalSeconds = 100 * 60;
+    let totalSeconds = 75 * 60;
     
-    let cfgTotalMins = 100;
+    let cfgTotalMins = 75;
     let cfgSubjMins = 15;
     let cfgBreakMins = 1;
     
@@ -660,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const savedTimerCfg = JSON.parse(localStorage.getItem('skct_timer_cfg'));
     if (savedTimerCfg) {
-        cfgTotalMins = savedTimerCfg.total || 100;
+        cfgTotalMins = savedTimerCfg.total || 75;
         cfgSubjMins = savedTimerCfg.subj || 15;
         cfgBreakMins = savedTimerCfg.brk || 1;
     }
@@ -765,7 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerApplyBtn = document.getElementById('timerApplyBtn');
     if (timerApplyBtn) {
         timerApplyBtn.addEventListener('click', () => {
-            cfgTotalMins = parseInt(document.getElementById('cfgTotal').value) || 100;
+            cfgTotalMins = parseInt(document.getElementById('cfgTotal').value) || 75;
             cfgSubjMins = parseInt(document.getElementById('cfgSubj').value) || 15;
             cfgBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
             localStorage.setItem('skct_timer_cfg', JSON.stringify({total: cfgTotalMins, subj: cfgSubjMins, brk: cfgBreakMins}));
