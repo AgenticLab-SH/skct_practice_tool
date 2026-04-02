@@ -743,6 +743,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // 간단한 알람 비프음 (Web Audio API)
+    const playBeep = (freq = 800, duration = 150, count = 1) => {
+        try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            for (let i = 0; i < count; i++) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+                gain.gain.value = 0.3;
+                const startTime = audioCtx.currentTime + i * (duration / 1000 + 0.1);
+                osc.start(startTime);
+                osc.stop(startTime + duration / 1000);
+            }
+        } catch(e) { /* audio not supported */ }
+    };
+
     updateTimerUI();
 
     const timerTick = () => {
@@ -754,7 +773,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timerPlayBtn.innerText = '▶';
             currentPhaseIdx = phases.length;
             updateTimerUI();
-            alert("전체 제한 시간이 모두 종료되었습니다!");
+            playBeep(440, 300, 3); // 전체 시간 종료
             return;
         }
 
@@ -762,14 +781,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentPhaseSeconds > 0) {
                 currentPhaseSeconds--;
             } else {
+                // 페이즈 종료 → 알람음 재생
+                const endedPhase = phases[currentPhaseIdx];
                 currentPhaseIdx++;
                 if (currentPhaseIdx < phases.length) {
                     currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
+                    if (endedPhase.type === 'subject') {
+                        playBeep(880, 150, 2); // 과목 종료: 높은 더블 비프
+                    } else {
+                        playBeep(660, 200, 1); // 쉬는시간 종료: 낮은 싱글 비프
+                    }
                 } else {
                     clearInterval(timerInterval);
                     timerIsRunning = false;
                     timerPlayBtn.innerText = '▶';
-                    alert("모든 과목 세션이 종료되었습니다!");
+                    playBeep(440, 300, 3); // 전체 종료: 3회 비프
                 }
             }
         }
