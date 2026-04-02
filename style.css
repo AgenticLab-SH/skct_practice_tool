@@ -28,6 +28,19 @@
     font-family: 'Pretendard', sans-serif;
 }
 
+/* 화면엔 안 보이지만 검색엔진 봇과 스크린 리더는 읽는 클래스 (SEO 핵심) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
 body {
     background-color: var(--bg-color);
     color: var(--text-main);
