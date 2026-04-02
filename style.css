@@ -135,6 +135,25 @@ body {
     border-radius: 4px;
 }
 
+.stats-toggle {
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    background-color: #ef4444;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 0;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.4);
+    transition: background-color 0.2s;
+}
+.stats-toggle:hover { background-color: #dc2626; }
+
 .help-toggle {
     width: 30px;
     display: flex;
