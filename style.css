@@ -86,10 +86,31 @@ body {
     color: white;
     cursor: pointer;
     user-select: none;
+    padding: 10px 0;
+    border-radius: 4px;
 }
 
-.omr-sidebar:not(.collapsed) .omr-toggle {
-    display: none; /* Hide toggle bar when open */
+.help-toggle {
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 4px;
+    background-color: #a855f7;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px 0;
+    border-radius: 4px;
+}
+.help-toggle:hover { background-color: #9333ea; }
+.omr-toggle:hover { background-color: var(--primary-hover); }
+
+.omr-sidebar:not(.collapsed) .sidebar-controls {
+    display: none !important; /* Hide toggle bars when open */
 }
 
 .omr-content {
@@ -524,3 +545,40 @@ body {
 /* Responsive Adjustments for Extreme Scaling */
 .top-bar { font-size: 12px; }
 .timer-display { width: 50px; font-size: 16px; }
+
+/* Modal Overlays */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-overlay.hidden { display: none; }
+.modal-content {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    color: var(--text-main);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+.modal-header h3 { margin: 0; color: #1e293b; font-size: 16px; }
+.btn-close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #64748b;
+}

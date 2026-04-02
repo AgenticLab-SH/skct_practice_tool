@@ -596,74 +596,173 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    /* --- Timer Logic --- */
+    /* --- Multi-Phase Timer Logic --- */
     let timerInterval = null;
-    let timeRemaining = 75 * 60; // 75 mins
-    const timerInput = document.getElementById('timerInput');
-    const timerToggle = document.getElementById('timerToggle');
-    const timerSet = document.getElementById('timerSet');
+    let totalSeconds = 100 * 60;
+    
+    let cfgTotalMins = 100;
+    let cfgSubjMins = 15;
+    let cfgBreakMins = 5;
+    
+    let phases = [];
+    let currentPhaseIdx = 0;
+    let currentPhaseSeconds = 0;
+    let timerIsRunning = false;
 
-    function updateTimerDisplay() {
-        const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
-        const s = (timeRemaining % 60).toString().padStart(2, '0');
-        timerInput.value = `${m}:${s}`;
-    }
-
-    timerToggle.addEventListener('click', () => {
-        if (timerInterval) {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            timerToggle.innerText = '▶';
-        } else {
-            // parse manual input if applicable
-            if (!timerInput.readOnly) {
-                const parts = timerInput.value.split(':');
-                if(parts.length === 2) {
-                    timeRemaining = parseInt(parts[0])*60 + parseInt(parts[1]);
-                }
-                timerInput.readOnly = true;
-                timerInput.style.borderBottom = 'none';
+    const buildPhases = () => {
+        phases = [];
+        subjects.forEach((subj, idx) => {
+            phases.push({ type: 'subject', name: `${idx+1}과목 ${subj.name}`, mins: cfgSubjMins });
+            if (idx < subjects.length - 1) {
+                phases.push({ type: 'break', name: '쉬는 시간', mins: cfgBreakMins });
             }
+        });
+        currentPhaseIdx = 0;
+        if (phases.length > 0) {
+            currentPhaseSeconds = phases[0].mins * 60;
+        }
+    };
+    
+    const savedTimerCfg = JSON.parse(localStorage.getItem('skct_timer_cfg'));
+    if (savedTimerCfg) {
+        cfgTotalMins = savedTimerCfg.total || 100;
+        cfgSubjMins = savedTimerCfg.subj || 15;
+        cfgBreakMins = savedTimerCfg.brk || 5;
+    }
+    const cTotal = document.getElementById('cfgTotal');
+    const cSubj = document.getElementById('cfgSubj');
+    const cBreak = document.getElementById('cfgBreak');
+    if(cTotal) cTotal.value = cfgTotalMins;
+    if(cSubj) cSubj.value = cfgSubjMins;
+    if(cBreak) cBreak.value = cfgBreakMins;
+    
+    totalSeconds = cfgTotalMins * 60;
+    buildPhases();
 
-            timerToggle.innerText = '⏸';
-            timerInterval = setInterval(() => {
-                if (timeRemaining > 0) {
-                    timeRemaining--;
-                    updateTimerDisplay();
+    const displayTotal = document.getElementById('displayTotalTime');
+    const displayPName = document.getElementById('displayPhaseName');
+    const displayPTime = document.getElementById('displayPhaseTime');
+    const timerPlayBtn = document.getElementById('timerPlayBtn');
+    
+    const formatTime = (totalSecs) => {
+        if (totalSecs < 0) totalSecs = 0;
+        const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+        const s = (totalSecs % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    };
+
+    const updateTimerUI = () => {
+        if(!displayTotal) return;
+        displayTotal.innerText = `Total ${formatTime(totalSeconds)}`;
+        if (currentPhaseIdx < phases.length) {
+            const p = phases[currentPhaseIdx];
+            displayPName.innerText = `[${p.name}]`;
+            displayPTime.innerText = formatTime(currentPhaseSeconds);
+            if (p.type === 'break') {
+                displayPName.style.color = '#fb923c'; 
+                displayPTime.style.color = '#fb923c';
+            } else {
+                displayPName.style.color = '#60a5fa'; 
+                displayPTime.style.color = '#4ade80';
+            }
+        } else {
+            displayPName.innerText = '[시험 종료]';
+            displayPTime.innerText = '00:00';
+            displayPName.style.color = '#ef4444';
+            displayPTime.style.color = '#ef4444';
+        }
+    };
+
+    updateTimerUI();
+
+    const timerTick = () => {
+        if (totalSeconds > 0) {
+            totalSeconds--;
+        } else {
+            clearInterval(timerInterval);
+            timerIsRunning = false;
+            timerPlayBtn.innerText = '▶';
+            currentPhaseIdx = phases.length;
+            updateTimerUI();
+            alert("전체 제한 시간이 모두 종료되었습니다!");
+            return;
+        }
+
+        if (currentPhaseIdx < phases.length) {
+            if (currentPhaseSeconds > 0) {
+                currentPhaseSeconds--;
+            } else {
+                currentPhaseIdx++;
+                if (currentPhaseIdx < phases.length) {
+                    currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
                 } else {
                     clearInterval(timerInterval);
-                    timerInterval = null;
-                    timerToggle.innerText = '▶';
-                    alert("시간 종료!");
+                    timerIsRunning = false;
+                    timerPlayBtn.innerText = '▶';
+                    alert("모든 과목 세션이 종료되었습니다!");
                 }
-            }, 1000);
-        }
-    });
-
-    timerSet.addEventListener('click', () => {
-        if (timerInterval) {
-            timerToggle.click(); // pause
-        }
-        timerInput.readOnly = false;
-        timerInput.focus();
-        timerInput.select();
-    });
-
-    // Handle manual entry finishing
-    timerInput.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter') {
-            const parts = timerInput.value.split(':');
-            if(parts.length === 2) {
-                timeRemaining = parseInt(parts[0])*60 + parseInt(parts[1]);
             }
-            timerInput.readOnly = true;
-            updateTimerDisplay();
-            timerInput.blur();
         }
+        updateTimerUI();
+    };
+
+    if(timerPlayBtn) {
+        timerPlayBtn.addEventListener('click', () => {
+            if (currentPhaseIdx >= phases.length && totalSeconds <= 0) return;
+            if (timerIsRunning) {
+                clearInterval(timerInterval);
+                timerIsRunning = false;
+                timerPlayBtn.innerText = '▶';
+            } else {
+                timerInterval = setInterval(timerTick, 1000);
+                timerIsRunning = true;
+                timerPlayBtn.innerText = '❚❚';
+            }
+        });
+    }
+
+    const timerConfigBtn = document.getElementById('timerConfigBtn');
+    const timerModal = document.getElementById('timerModal');
+    if(timerConfigBtn && timerModal) {
+        timerConfigBtn.addEventListener('click', () => timerModal.classList.remove('hidden'));
+    }
+
+    const timerApplyBtn = document.getElementById('timerApplyBtn');
+    if (timerApplyBtn) {
+        timerApplyBtn.addEventListener('click', () => {
+            cfgTotalMins = parseInt(document.getElementById('cfgTotal').value) || 100;
+            cfgSubjMins = parseInt(document.getElementById('cfgSubj').value) || 15;
+            cfgBreakMins = parseInt(document.getElementById('cfgBreak').value) || 5;
+            localStorage.setItem('skct_timer_cfg', JSON.stringify({total: cfgTotalMins, subj: cfgSubjMins, brk: cfgBreakMins}));
+            
+            if (timerIsRunning) {
+                clearInterval(timerInterval);
+                timerIsRunning = false;
+                timerPlayBtn.innerText = '▶';
+            }
+            totalSeconds = cfgTotalMins * 60;
+            buildPhases();
+            updateTimerUI();
+            timerModal.classList.add('hidden');
+        });
+    }
+
+    // Modal & Help Controls
+    const helpToggle = document.getElementById('helpToggle');
+    const helpModal = document.getElementById('helpModal');
+    if(helpToggle && helpModal) {
+        helpToggle.addEventListener('click', () => helpModal.classList.remove('hidden'));
+    }
+    
+    document.querySelectorAll('.close-modal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.target.closest('.modal-overlay').classList.add('hidden');
+        });
     });
 
     // Disable implicit focusing on calcDisplay
-    calcDisplay.addEventListener('mousedown', (e) => e.preventDefault());
+    const calcDisplayEl = document.getElementById('calcDisplay');
+    if(calcDisplayEl) calcDisplayEl.addEventListener('mousedown', (e) => e.preventDefault());
 
     /* --- Window Popup Mode Logic --- */
     const popupBtn = document.getElementById('popupBtn');
