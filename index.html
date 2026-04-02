@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKCT Practice Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts & Pretendard -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="icon" href="sk_ci.png">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- OMR Sidebar (Left) -->
+        <aside class="omr-sidebar collapsed" id="omrSidebar">
+            <div class="omr-toggle" id="omrToggleBtn">
+                <span>O</span><span>M</span><span>R</span>
+            </div>
+            <div class="omr-content hidden" id="omrContent">
+                <div class="omr-header">
+                    <h2>OMR & 채점</h2>
+                    <div class="omr-modes">
+                        <button id="modeAnswer" class="active">내 답안</button>
+                        <button id="modeScore">정답 입력</button>
+                    </div>
+                </div>
+
+                <div class="omr-next-control" style="padding-bottom: 10px;">
+                    <button id="globalClearBtn" class="danger-btn" style="width: 100%; padding: 8px; margin-bottom: 5px;">다음 문제 (건너뛰기 및 화면비움)</button>
+                    <button id="omrResetBtn" style="width: 100%; padding: 8px; background: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; transition: background 0.2s;" onmouseover="this.style.background='#475569'" onmouseout="this.style.background='#64748b'">답안 전체 초기화 (리셋)</button>
+                </div>
+
+                <div class="omr-body" id="omrBody">
+                    <!-- Sections will be injected via JS -->
+                </div>
+
+                <div class="omr-footer">
+                    <button id="scoreBtn" class="score-btn">채점 및 통계 확인</button>
+                    <div id="scoreResult" class="score-result hidden">
+                        <div class="stat-line"><span>푼 문제</span> <strong id="statAttempted">0 / 100</strong></div>
+                        <div class="stat-line"><span>맞은 개수</span> <strong id="statCorrect">0</strong></div>
+                        <div class="stat-line"><span>정답률(푼 문제 대비)</span> <strong id="statRate">0%</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="omr-resizer" id="omrResizer"></div>
+        </aside>
+
+        <!-- Main View (Right Side Tools) -->
+        <main class="main-content">
+            
+            <!-- Top / Timer Bar -->
+            <header class="top-bar">
+                <button id="popupBtn" class="popup-btn" title="가로폭을 더 얇게 줄일 수 있는 팝업 모드로 열기">창 제한 해제</button>
+                <div class="timer-container" style="margin-left:auto;">
+                    <input type="text" id="timerInput" class="timer-display" value="75:00" readonly>
+                    <div class="timer-controls">
+                        <button id="timerToggle">▶</button>
+                        <button id="timerSet">설정</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tools Grid -->
+            <div class="tools-layout">
+                
+                <!-- Utilities (Top right area in layout logic, but here taking upper flow) -->
+                <section class="utility-section">
+                    <div class="tool-header">
+                        <div class="tool-tabs">
+                            <button id="tabNotepad" class="tab-btn active">메모장</button>
+                            <button id="tabCanvas" class="tab-btn">그림판</button>
+                        </div>
+                        <button id="clearCurrentToolBtn" class="clear-btn">지우기</button>
+                    </div>
+                    
+                    <div class="tool-body">
+                        <!-- Notepad -->
+                        <div id="notepadWrapper" class="tool-wrapper">
+                            <textarea id="notepad" placeholder="이곳에 텍스트를 입력하거나 붙여넣기(Ctrl+V) 하세요..."></textarea>
+                        </div>
+                        
+                        <!-- Drawing Board -->
+                        <div id="canvasWrapper" class="tool-wrapper hidden">
+                            <canvas id="drawingBoard"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calculator (Bottom right area in layout logic) -->
+                <section class="calculator-section">
+                    <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+                    <div class="calc-keys">
+                        <button class="calc-btn fn-btn" data-val="C">C</button>
+                        <button class="calc-btn op-btn" data-val="/">÷</button>
+                        <button class="calc-btn op-btn" data-val="*">×</button>
+                        <button class="calc-btn op-btn" data-val="-">-</button>
+                        
+                        <button class="calc-btn num-btn" data-val="7">7</button>
+                        <button class="calc-btn num-btn" data-val="8">8</button>
+                        <button class="calc-btn num-btn" data-val="9">9</button>
+                        <button class="calc-btn op-btn grid-row-span" data-val="+">+</button>
+                        
+                        <button class="calc-btn num-btn" data-val="4">4</button>
+                        <button class="calc-btn num-btn" data-val="5">5</button>
+                        <button class="calc-btn num-btn" data-val="6">6</button>
+                        
+                        <button class="calc-btn num-btn" data-val="1">1</button>
+                        <button class="calc-btn num-btn" data-val="2">2</button>
+                        <button class="calc-btn num-btn" data-val="3">3</button>
+                        <button class="calc-btn fn-btn grid-row-span equal-btn" data-val="=">=</button>
+
+                        <button class="calc-btn num-btn grid-col-span-2" data-val="0">0</button>
+                        <button class="calc-btn num-btn" data-val=".">.</button>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

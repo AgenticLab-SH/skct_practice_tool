@@ -1,0 +1,467 @@
+:root {
+    --bg-color: #f8f9fa;
+    --panel-bg: #ffffff;
+    --text-main: #212529;
+    --text-muted: #6c757d;
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --danger-color: #ef4444;
+    --danger-hover: #dc2828;
+    --border-color: #dee2e6;
+    --omr-bg: #1e293b;
+    --omr-text: #f8fafc;
+    --calc-bg: #f1f5f9;
+    --calc-btn-bg: #ffffff;
+    --calc-btn-hover: #e2e8f0;
+    --calc-op-bg: #e0f2fe;
+    --ui-radius: 4px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Pretendard', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden; /* Prevent scrolling, strict app feel */
+}
+
+/* App Container */
+.app-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+/* --- OMR Sidebar --- */
+.omr-sidebar {
+    background-color: var(--omr-bg);
+    color: var(--omr-text);
+    display: flex;
+    transition: width 0.3s ease;
+    border-right: 1px solid var(--border-color);
+    z-index: 10;
+}
+
+.omr-sidebar.collapsed {
+    width: 30px;
+    cursor: pointer;
+}
+
+.omr-sidebar:not(.collapsed) {
+    width: var(--omr-width, 320px);
+    position: relative;
+}
+
+.omr-resizer {
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.2s;
+}
+.omr-resizer:hover, .omr-resizer:active {
+    background: var(--primary-color);
+}
+
+.omr-toggle {
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 4px;
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    user-select: none;
+}
+
+.omr-sidebar:not(.collapsed) .omr-toggle {
+    display: none; /* Hide toggle bar when open */
+}
+
+.omr-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.omr-content.hidden {
+    display: none;
+}
+
+.omr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.omr-header h2 {
+    font-size: 14px;
+    margin: 0;
+    cursor: pointer; /* Click to close */
+}
+
+.omr-modes {
+    display: flex;
+    gap: 3px;
+}
+
+.omr-modes button {
+    background: transparent;
+    color: var(--omr-text);
+    border: 1px solid var(--omr-text);
+    padding: 2px 4px;
+    font-size: 11px;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.omr-modes button.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    opacity: 1;
+}
+
+.omr-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+    font-size: 12px;
+}
+
+/* Custom scrollbar for OMR */
+.omr-body::-webkit-scrollbar { width: 6px; }
+.omr-body::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+/* OMR specific styling */
+.subject-group {
+    background: rgba(255,255,255,0.05);
+    padding: 4px;
+    margin-bottom: 8px;
+    border-radius: var(--ui-radius);
+}
+.subject-title {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #93c5fd;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 2px;
+    font-size: 12px;
+}
+.q-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2px;
+    padding: 1px 0;
+    transition: background 0.2s;
+}
+.q-row.current-q {
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: var(--ui-radius);
+}
+.q-row.past-q {
+    opacity: 0.6;
+}
+.q-num {
+    width: 18px;
+    text-align: right;
+    margin-right: 4px;
+    font-weight: 600;
+    font-size: 11px;
+}
+.q-options {
+    display: flex;
+    gap: 2px;
+}
+.q-opt {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+    border-radius: 50%;
+    border: 1px solid #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.1s;
+    color: var(--omr-text);
+}
+.q-opt:hover:not(:disabled) { background: rgba(255,255,255,0.1); }
+.q-opt.selected { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+.q-opt:disabled { cursor: not-allowed; opacity: 0.5; border-color: #334155; }
+/* Score mode visualization */
+.q-opt.correct { background: #22c55e !important; border-color: #22c55e !important; }
+.q-opt.wrong { background: #ef4444 !important; border-color: #ef4444 !important; }
+
+.omr-footer {
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.score-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.score-result {
+    margin-top: 10px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--ui-radius);
+    font-size: 13px;
+    color: var(--omr-text);
+}
+.stat-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.stat-line:last-child {
+    margin-bottom: 0;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.2);
+    color: #4ade80;
+    font-weight: bold;
+}
+
+/* --- Main Layout --- */
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 100px; /* 극단적 축소를 위해 최소폭 제한 하향 */
+    overflow-x: hidden; /* 우측 잘림 방지용 숨김 처리 보조 */
+}
+
+/* Top Bar */
+.top-bar {
+    height: 40px;
+    background-color: var(--panel-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.timer-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.timer-display {
+    width: 60px;
+    font-size: 18px;
+    font-weight: bold;
+    border: none;
+    background: transparent;
+    color: var(--primary-color);
+    outline: none;
+    text-align: center;
+}
+
+.timer-display:not([readonly]) {
+    border-bottom: 1px solid var(--primary-color);
+}
+
+.timer-controls button, .global-controls button {
+    background: #e2e8f0;
+    border: none;
+    padding: 4px 8px;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+    font-size: 12px;
+}
+.timer-controls button:hover { background: #cbd5e1; }
+
+.popup-btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--ui-radius);
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.popup-btn:hover { background: #059669; }
+
+.danger-btn { background: var(--danger-color) !important; color: white !important; }
+.danger-btn:hover { background: var(--danger-hover) !important; }
+
+/* Tools Layout (Notepad + Calc) */
+.tools-layout {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0; /* No margin requested */
+}
+
+/* Utility Section (Notepad/Canvas) */
+.utility-section {
+    flex: 1.5;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--panel-bg);
+}
+
+.tool-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f1f5f9;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tool-tabs {
+    display: flex;
+}
+
+.tab-btn {
+    padding: 6px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+.tab-btn.active {
+    background: var(--panel-bg);
+    color: var(--primary-color);
+    box-shadow: inset 0 2px 0 var(--primary-color);
+}
+
+.clear-btn {
+    margin-right: 5px;
+    padding: 3px 8px;
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-radius: var(--ui-radius);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.tool-body {
+    flex: 1;
+    position: relative;
+}
+
+.tool-wrapper {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+.tool-wrapper.hidden {
+    display: none;
+}
+
+#notepad {
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    padding: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    outline: none;
+    background: var(--panel-bg);
+    color: var(--text-main);
+}
+
+#canvasWrapper {
+    background: var(--panel-bg);
+    cursor: crosshair;
+}
+#drawingBoard {
+    display: block;
+}
+
+/* Calculator Section */
+.calculator-section {
+    flex: 1;
+    min-height: 220px; /* Base minimum for calculator */
+    background-color: var(--calc-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+}
+
+.calc-display {
+    width: 100%;
+    text-align: right;
+    font-size: 24px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--ui-radius);
+    background: var(--panel-bg);
+    margin-bottom: 5px;
+    font-family: monospace;
+    font-weight: bold;
+    outline: none;
+    color: var(--text-main);
+}
+
+.calc-keys {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 4px;
+}
+
+.calc-btn {
+    border: 1px solid var(--border-color);
+    border-radius: var(--ui-radius);
+    background-color: var(--calc-btn-bg);
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+    color: var(--text-main);
+    font-weight: 600;
+}
+
+.calc-btn:hover { background-color: var(--calc-btn-hover); }
+
+.op-btn { background-color: var(--calc-op-bg); color: var(--primary-hover); }
+.op-btn:hover { background-color: #bae6fd; }
+
+.fn-btn { background-color: #fee2e2; color: var(--danger-color); }
+.fn-btn:hover { background-color: #fecaca; }
+
+.equal-btn { background-color: var(--primary-color); color: white; border: none; }
+.equal-btn:hover { background-color: var(--primary-hover); }
+
+.grid-col-span-2 { grid-column: span 2; }
+.grid-row-span { grid-row: span 2; }
+
+/* Responsive Adjustments for Extreme Scaling */
+.top-bar { font-size: 12px; }
+.timer-display { width: 50px; font-size: 16px; }

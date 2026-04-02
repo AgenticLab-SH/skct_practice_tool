@@ -1,0 +1,661 @@
+document.addEventListener('DOMContentLoaded', () => {
+
+    /* --- State Restoration from LocalStorage --- */
+    const savedOmrWidth = localStorage.getItem('skct_omr_width');
+    if (savedOmrWidth) {
+        document.documentElement.style.setProperty('--omr-width', `${savedOmrWidth}px`);
+    }
+
+    // Save window size if we are in popup mode
+    let winResizeTimeout = null;
+    window.addEventListener('resize', () => {
+        if (!window.opener && window.name === 'skct_popup_mode') {
+            clearTimeout(winResizeTimeout);
+            winResizeTimeout = setTimeout(() => {
+                localStorage.setItem('skct_popup_width', window.outerWidth);
+                localStorage.setItem('skct_popup_height', window.outerHeight);
+                localStorage.setItem('skct_popup_left', window.screenX);
+                localStorage.setItem('skct_popup_top', window.screenY);
+            }, 500);
+        }
+    });
+
+    // Auto-launch popup logic
+    if (!window.opener && window.name !== 'skct_popup_mode') {
+        const w = parseInt(localStorage.getItem('skct_popup_width')) || 350;
+        const h = parseInt(localStorage.getItem('skct_popup_height')) || 800;
+        let left = parseInt(localStorage.getItem('skct_popup_left'));
+        let top = parseInt(localStorage.getItem('skct_popup_top'));
+        if (isNaN(left)) left = Math.round((screen.width - w) / 2);
+        if (isNaN(top)) top = Math.round((screen.height - h) / 2);
+
+        const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+        
+        // Attempt to auto-open
+        const newWin = window.open(window.location.href, 'skct_popup_mode', popupParams);
+        
+        // 창이 즉시 꺼져버려 팝업 차단을 해제하지 못하는 현상을 방지
+        document.body.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f1f5f9; text-align:center;">
+                <h1 style="color:#334155; margin-bottom: 10px;">팝업 모드 실행 중...</h1>
+                <h3 style="color:#ef4444;">만약 우측 상단 주소창에 [팝업 차단됨] 마크가 떴다면, <br>반드시 클릭하여 <b>"항상 허용"</b>으로 변경하고 아래 버튼을 누르세요.</h3>
+                <button onclick="location.reload()" style="margin-top:20px; padding:10px 30px; font-size:18px; font-weight:bold; background:#3b82f6; color:white; border:none; border-radius:5px; cursor:pointer;">허용 후 다시 시도 (새로고침)</button>
+                <p style="margin-top:20px; color:#64748b;">이 원본 창은 5초 후 자동으로 닫힙니다.</p>
+            </div>
+        `;
+        
+        setTimeout(() => { window.close(); }, 5000);
+        return; // 중복 실행 방지를 위해 아래 로직 스킵
+    }
+
+    /* --- OMR & Scoring Logic --- */
+    const subjects = [
+        { id: 'lang_und', name: '언어이해', count: 20 },
+        { id: 'data_ana', name: '자료해석', count: 20 },
+        { id: 'crea_math', name: '창의수리', count: 20 },
+        { id: 'lang_rea', name: '언어추리', count: 20 },
+        { id: 'seq_rea', name: '수열추리', count: 20 }
+    ];
+
+    const omrState = {
+        myAnswers: {},
+        correctAnswers: {},
+        mode: 'answer', // 'answer' | 'score'
+        currentGlobalIndex: 0
+    };
+
+    const omrSidebar = document.getElementById('omrSidebar');
+    const omrToggleBtn = document.getElementById('omrToggleBtn');
+    const omrContent = document.getElementById('omrContent');
+    const omrBody = document.getElementById('omrBody');
+    
+    // Toggle OMR Sidebar
+    omrToggleBtn.addEventListener('click', () => {
+        omrSidebar.classList.remove('collapsed');
+        omrContent.classList.remove('hidden');
+    });
+
+    document.querySelector('.omr-header h2').addEventListener('click', () => {
+        omrSidebar.classList.add('collapsed');
+        omrContent.classList.add('hidden');
+    });
+
+    // OMR Drag Resizer
+    const omrResizer = document.getElementById('omrResizer');
+    let isResizingOmr = false;
+
+    omrResizer.addEventListener('mousedown', (e) => {
+        isResizingOmr = true;
+        document.body.style.cursor = 'col-resize';
+        // 방해 방지용
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizingOmr) return;
+        let newWidth = e.clientX;
+        if (newWidth < 130) newWidth = 130; // 좁혀진 레이아웃에 맞춰 최소폭 하향
+        if (newWidth > document.body.clientWidth * 0.8) newWidth = document.body.clientWidth * 0.8; // 최대폭
+        document.documentElement.style.setProperty('--omr-width', `${newWidth}px`);
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizingOmr) {
+            isResizingOmr = false;
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+            const currentWidth = getComputedStyle(document.documentElement).getPropertyValue('--omr-width').replace('px', '').trim();
+            localStorage.setItem('skct_omr_width', currentWidth);
+            resizeCanvas(); // OMR 너비 변동으로 캔버스 폭 변경 대응
+        }
+    });
+
+    // Render OMR
+    function renderOMR() {
+        let globalIndex = 0;
+        omrBody.innerHTML = '';
+        subjects.forEach(subj => {
+            const group = document.createElement('div');
+            group.className = 'subject-group';
+            group.innerHTML = `<div class="subject-title">${subj.name}</div>`;
+            
+            for (let i = 1; i <= subj.count; i++) {
+                const qRow = document.createElement('div');
+                qRow.className = 'q-row';
+                const currentIdx = globalIndex;
+                const isCurrent = (currentIdx === omrState.currentGlobalIndex);
+                const isPast = (currentIdx < omrState.currentGlobalIndex);
+
+                if (omrState.mode === 'answer') {
+                    if (isCurrent) qRow.classList.add('current-q');
+                    else if (isPast) qRow.classList.add('past-q');
+                }
+                
+                let optionsHtml = '';
+                for (let opt = 1; opt <= 5; opt++) {
+                    const qKey = `${subj.id}_${i}`;
+                    const isMyAnswer = omrState.myAnswers[qKey] === opt;
+                    const isCorrectAnswer = omrState.correctAnswers[qKey] === opt;
+                    
+                    let extraClass = '';
+                    if (omrState.mode === 'answer' && isMyAnswer) {
+                        extraClass = 'selected';
+                    } else if (omrState.mode === 'score') {
+                        if (isCorrectAnswer) {
+                            extraClass = 'selected correct'; // Green
+                        } else if (isMyAnswer) {
+                            extraClass = 'selected wrong'; // Red (Wrong guess)
+                        }
+                    }
+
+                    let disabledAttr = '';
+                    if (omrState.mode === 'answer' && !isCurrent) {
+                        disabledAttr = 'disabled';
+                    }
+
+                    optionsHtml += `<button class="q-opt ${extraClass}" data-key="${qKey}" data-opt="${opt}" ${disabledAttr}>${opt}</button>`;
+                }
+
+                qRow.innerHTML = `
+                    <div class="q-num">${i}.</div>
+                    <div class="q-options">${optionsHtml}</div>
+                `;
+                group.appendChild(qRow);
+                globalIndex++;
+            }
+            omrBody.appendChild(group);
+        });
+
+        // Let's add scroll auto-focus right after render
+        requestAnimationFrame(() => {
+            const currentEl = document.querySelector('.q-row.current-q');
+            if (currentEl) {
+                currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        // Attach events
+        document.querySelectorAll('.q-opt').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const key = e.target.dataset.key;
+                const opt = parseInt(e.target.dataset.opt);
+                
+                if (omrState.mode === 'answer') {
+                    if (!e.target.disabled) {
+                        omrState.myAnswers[key] = (omrState.myAnswers[key] === opt) ? null : opt;
+                        // Trigger next question advance
+                        document.getElementById('globalClearBtn').click();
+                    }
+                } else {
+                    omrState.correctAnswers[key] = (omrState.correctAnswers[key] === opt) ? null : opt;
+                    renderOMR();
+                }
+            });
+        });
+    }
+
+    renderOMR();
+
+    // Mode Toggle
+    document.getElementById('modeAnswer').addEventListener('click', (e) => {
+        omrState.mode = 'answer';
+        e.target.classList.add('active');
+        document.getElementById('modeScore').classList.remove('active');
+        document.getElementById('scoreResult').classList.add('hidden');
+        renderOMR();
+    });
+
+    document.getElementById('modeScore').addEventListener('click', (e) => {
+        omrState.mode = 'score';
+        e.target.classList.add('active');
+        document.getElementById('modeAnswer').classList.remove('active');
+        renderOMR();
+    });
+
+    document.getElementById('scoreBtn').addEventListener('click', () => {
+        if (omrState.mode !== 'score') {
+            document.getElementById('modeScore').click();
+            alert("정답 입력 모드로 전환되었습니다. 정답을 입력 후 탭 내의 문항 요소들이 채점 결과처럼 보이게 됩니다.\n(녹색: 정답, 적색: 오답체크)");
+            return;
+        }
+
+        let totalScore = 0;
+        let totalInputtedAnswers = 0;
+        let attemptedCount = 0;
+
+        subjects.forEach(subj => {
+            for (let i=1; i<=subj.count; i++) {
+                const qKey = `${subj.id}_${i}`;
+                if (omrState.myAnswers[qKey]) {
+                    attemptedCount++;
+                }
+
+                if (omrState.correctAnswers[qKey]) {
+                    totalInputtedAnswers++;
+                    if (omrState.myAnswers[qKey] === omrState.correctAnswers[qKey]) {
+                        totalScore++;
+                    }
+                }
+            }
+        });
+        
+        const maxQ = subjects.reduce((sum, s) => sum + s.count, 0);
+        document.getElementById('statAttempted').innerText = `${attemptedCount} / ${maxQ}`;
+        document.getElementById('statCorrect').innerText = `${totalScore} 개`;
+        
+        const rate = attemptedCount > 0 ? ((totalScore / attemptedCount) * 100).toFixed(1) : 0;
+        document.getElementById('statRate').innerText = `${rate}%`;
+        
+        const resEl = document.getElementById('scoreResult');
+        resEl.classList.remove('hidden');
+        renderOMR();
+    });
+
+
+    /* --- Notepad / Canvas Toggle --- */
+    const tabNotepad = document.getElementById('tabNotepad');
+    const tabCanvas = document.getElementById('tabCanvas');
+    const notepadWrapper = document.getElementById('notepadWrapper');
+    const canvasWrapper = document.getElementById('canvasWrapper');
+    const notepad = document.getElementById('notepad');
+
+    tabNotepad.addEventListener('click', () => {
+        tabNotepad.classList.add('active');
+        tabCanvas.classList.remove('active');
+        notepadWrapper.classList.remove('hidden');
+        canvasWrapper.classList.add('hidden');
+    });
+
+    tabCanvas.addEventListener('click', () => {
+        tabCanvas.classList.add('active');
+        tabNotepad.classList.remove('active');
+        canvasWrapper.classList.remove('hidden');
+        notepadWrapper.classList.add('hidden');
+        resizeCanvas(); // Ensure canvas fits when revealed
+    });
+
+    /* --- Drawing Board (Canvas) Logic --- */
+    const canvas = document.getElementById('drawingBoard');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+
+    // Resize canvas safely
+    function resizeCanvas() {
+        if (canvasWrapper.classList.contains('hidden')) return;
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(canvas, 0, 0);
+
+        canvas.width = canvasWrapper.clientWidth;
+        canvas.height = canvasWrapper.clientHeight;
+        
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        // 흐물흐물한 크레용 느낌 모방 (투명도 + 굵기)
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(40, 40, 60, 0.9)';
+
+        ctx.drawImage(tempCanvas, 0, 0);
+    }
+
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(resizeCanvas, 50);
+    });
+    
+    // Initial size
+    setTimeout(() => { if (!canvasWrapper.classList.contains('hidden')) resizeCanvas(); }, 100);
+
+    function getMousePos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function startDrawing(e) {
+        if(e.type === 'mousedown' && e.button !== 0) return; // Only left click
+        isDrawing = true;
+        const pos = getMousePos(e);
+        lastX = pos.x;
+        lastY = pos.y;
+        e.preventDefault(); // prevent touch scroll
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const pos = getMousePos(e);
+        
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        
+        lastX = pos.x;
+        lastY = pos.y;
+        e.preventDefault();
+    }
+
+    function stopDrawing() {
+        isDrawing = false;
+    }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    /* --- global Utilities --- */
+    document.getElementById('clearCurrentToolBtn').addEventListener('click', () => {
+        if (!canvasWrapper.classList.contains('hidden')) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        } else {
+            notepad.value = '';
+        }
+    });
+
+    document.getElementById('globalClearBtn').addEventListener('click', () => {
+        // Clear all states across problems
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        notepad.value = '';
+        // Note: SKCT initializes Calculator as well, so we can init it too.
+        calcState.current = '0';
+        calcState.previous = null;
+        calcState.operator = null;
+        calcState.waitingNew = false;
+        updateCalcDisplay();
+        
+        // Advance question
+        if (omrState.mode === 'answer') {
+            const maxQ = subjects.reduce((sum, s) => sum + s.count, 0);
+            if (omrState.currentGlobalIndex < maxQ - 1) {
+                omrState.currentGlobalIndex++;
+            }
+            renderOMR();
+        }
+    });
+
+    const omrResetBtn = document.getElementById('omrResetBtn');
+    if (omrResetBtn) {
+        omrResetBtn.addEventListener('click', () => {
+            if (confirm("입력한 내 답안과 정답 모두를 완전히 초기화하시겠습니까? (복구할 수 없습니다)")) {
+                omrState.myAnswers = {};
+                omrState.correctAnswers = {};
+                omrState.currentGlobalIndex = 0;
+                
+                if (!canvasWrapper.classList.contains('hidden')) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                notepad.value = '';
+                calcState.current = '0';
+                calcState.previous = null;
+                calcState.operator = null;
+                calcState.waitingNew = false;
+                updateCalcDisplay();
+                
+                document.getElementById('scoreResult').classList.add('hidden');
+                renderOMR();
+                
+                requestAnimationFrame(() => {
+                    omrBody.scrollTop = 0;
+                });
+            }
+        });
+    }
+
+    /* --- Calculator Logic --- */
+    const calcDisplay = document.getElementById('calcDisplay');
+    const calcState = {
+        current: '0',
+        previous: null,
+        operator: null,
+        waitingNew: false
+    };
+
+    function updateCalcDisplay() {
+        // Prevent display of extremely long decimals
+        let displayStr = calcState.current;
+        if(displayStr.length > 12) {
+            // Very hacky display fit
+            displayStr = displayStr.substring(0, 12);
+        }
+        calcDisplay.value = displayStr;
+    }
+
+    function handleNumber(numStr) {
+        if (calcState.waitingNew) {
+            calcState.current = numStr;
+            calcState.waitingNew = false;
+        } else {
+            if (calcState.current === '0') {
+                calcState.current = numStr;
+            } else {
+                calcState.current += numStr;
+            }
+        }
+        updateCalcDisplay();
+    }
+
+    function handleOperator(op) {
+        if (calcState.operator && !calcState.waitingNew) {
+            calculateResult();
+        }
+        calcState.previous = calcState.current;
+        calcState.operator = op;
+        calcState.waitingNew = true;
+    }
+
+    function calculateResult() {
+        if (!calcState.operator || calcState.previous === null) return;
+        
+        let prev = parseFloat(calcState.previous);
+        let curr = parseFloat(calcState.current);
+        let res = 0;
+
+        switch (calcState.operator) {
+            case '+': res = prev + curr; break;
+            case '-': res = prev - curr; break;
+            case '*': res = prev * curr; break;
+            case '/': res = curr !== 0 ? prev / curr : 'Error'; break;
+        }
+
+        // Float accuracy precision
+        if(res !== 'Error') {
+            res = Math.round(res * 100000000) / 100000000;
+        }
+
+        calcState.current = String(res);
+        calcState.operator = null;
+        calcState.previous = null;
+        calcState.waitingNew = true;
+        updateCalcDisplay();
+    }
+
+    function handleFn(fnStr) {
+        if (fnStr === 'C') {
+            calcState.current = '0';
+            calcState.previous = null;
+            calcState.operator = null;
+            calcState.waitingNew = false;
+        } else if (fnStr === '=') {
+            calculateResult();
+        }
+        updateCalcDisplay();
+    }
+
+    // UI Buttons
+    document.querySelectorAll('.calc-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const val = e.target.dataset.val;
+            if (e.target.classList.contains('num-btn')) {
+                handleNumber(val);
+            } else if (e.target.classList.contains('op-btn')) {
+                handleOperator(val);
+            } else if (e.target.classList.contains('fn-btn')) {
+                // If it's pure C/Equal
+                handleFn(val);
+            }
+        });
+    });
+
+    // Keyboard Support
+    window.addEventListener('keydown', (e) => {
+        // Prevent if user is typing in notepad or timer
+        if (document.activeElement === notepad || document.activeElement.tagName === 'INPUT') {
+            return;
+        }
+
+        const key = e.key;
+
+        // Numbers
+        if (/[0-9\.]/.test(key)) {
+            handleNumber(key);
+            e.preventDefault();
+        } 
+        // Operators
+        else if (['+', '-', '*', '/'].includes(key)) {
+            handleOperator(key);
+            e.preventDefault();
+        } 
+        else if (key === 'Enter' || key === '=') {
+            calculateResult();
+            e.preventDefault();
+        }
+        else if (key === 'Backspace') {
+            if (!calcState.waitingNew && calcState.current !== '0') {
+                calcState.current = calcState.current.slice(0, -1);
+                if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
+                updateCalcDisplay();
+            }
+            e.preventDefault();
+        }
+        // Explicitly block Delete, Escape from clearing the calc as requested
+        else if (key === 'Delete' || key === 'Escape') {
+            // Do nothing intentionally
+            e.preventDefault();
+        }
+    });
+
+
+    /* --- Timer Logic --- */
+    let timerInterval = null;
+    let timeRemaining = 75 * 60; // 75 mins
+    const timerInput = document.getElementById('timerInput');
+    const timerToggle = document.getElementById('timerToggle');
+    const timerSet = document.getElementById('timerSet');
+
+    function updateTimerDisplay() {
+        const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+        const s = (timeRemaining % 60).toString().padStart(2, '0');
+        timerInput.value = `${m}:${s}`;
+    }
+
+    timerToggle.addEventListener('click', () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerToggle.innerText = '▶';
+        } else {
+            // parse manual input if applicable
+            if (!timerInput.readOnly) {
+                const parts = timerInput.value.split(':');
+                if(parts.length === 2) {
+                    timeRemaining = parseInt(parts[0])*60 + parseInt(parts[1]);
+                }
+                timerInput.readOnly = true;
+                timerInput.style.borderBottom = 'none';
+            }
+
+            timerToggle.innerText = '⏸';
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    timerToggle.innerText = '▶';
+                    alert("시간 종료!");
+                }
+            }, 1000);
+        }
+    });
+
+    timerSet.addEventListener('click', () => {
+        if (timerInterval) {
+            timerToggle.click(); // pause
+        }
+        timerInput.readOnly = false;
+        timerInput.focus();
+        timerInput.select();
+    });
+
+    // Handle manual entry finishing
+    timerInput.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter') {
+            const parts = timerInput.value.split(':');
+            if(parts.length === 2) {
+                timeRemaining = parseInt(parts[0])*60 + parseInt(parts[1]);
+            }
+            timerInput.readOnly = true;
+            updateTimerDisplay();
+            timerInput.blur();
+        }
+    });
+
+    // Disable implicit focusing on calcDisplay
+    calcDisplay.addEventListener('mousedown', (e) => e.preventDefault());
+
+    /* --- Window Popup Mode Logic --- */
+    const popupBtn = document.getElementById('popupBtn');
+    if (popupBtn) {
+        popupBtn.addEventListener('click', () => {
+            alert("팝업창이 탭 형태로 열리지 않고, 독립된 창으로 열립니다.\n창 테두리를 드래그하시면 일반 브라우저의 한계를 무시하고 폭을 아주 얇게 조절할 수 있습니다!\n\n새 창이 뜨면, 이 기존 창은 닫으시면 됩니다.");
+            
+            // 기존 스토리지 값
+            let w = parseInt(localStorage.getItem('skct_popup_width')) || 350;
+            let h = parseInt(localStorage.getItem('skct_popup_height')) || 800;
+            let left = parseInt(localStorage.getItem('skct_popup_left'));
+            let top = parseInt(localStorage.getItem('skct_popup_top'));
+            
+            if (isNaN(left)) left = Math.round((screen.width - w) / 2);
+            if (isNaN(top)) top = Math.round((screen.height - h) / 2);
+
+            const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+            const newWin = window.open(window.location.href, 'skct_popup_mode', popupParams);
+            
+            if (newWin) {
+                document.body.innerHTML = '<h2 style="padding: 20px; color: #64748b; text-align: center;">팝업 모드로 이동되었습니다.<br><br>이 창은 자동으로 닫히거나 무시하시면 됩니다.</h2>';
+                setTimeout(() => { window.close(); }, 100);
+            }
+        });
+        
+        // Hide button if we are already in a small popup or opened by opener
+        if (window.opener || window.innerWidth <= 400 || window.name === 'skct_popup_mode') {
+            popupBtn.style.display = 'none';
+        }
+    }
+
+});
