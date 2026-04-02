@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://agenticlab-sh.github.io/skct_tool/sitemap.xml
