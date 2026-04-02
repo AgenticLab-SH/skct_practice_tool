@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         omrContent.classList.remove('hidden');
     });
 
-    document.querySelector('.omr-header h2').addEventListener('click', () => {
+    document.getElementById('omrCollapseBtn').addEventListener('click', () => {
         omrSidebar.classList.add('collapsed');
         omrContent.classList.add('hidden');
     });
@@ -806,35 +806,89 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Developer Notice System - fetches notice.json from the same directory
+    // Developer Notice System - fetches notice.json from GitHub raw URL for real-time updates
     (async () => {
         try {
-            const res = await fetch('notice.json?' + Date.now()); // cache bust
-            if (!res.ok) return;
+            // GitHub raw URL로 직접 가져오되, 캐시 무효화를 위해 timestamp 추가
+            const githubRawUrl = 'https://raw.githubusercontent.com/AgenticLab-SH/skct_tool/main/notice.json';
+            const res = await fetch(githubRawUrl + '?t=' + Date.now());
+            if (!res.ok) {
+                // fallback: 로컬 notice.json 시도
+                const localRes = await fetch('notice.json?' + Date.now());
+                if (!localRes.ok) return;
+                const data = await localRes.json();
+                renderNotice(data);
+                return;
+            }
             const data = await res.json();
-            if (!data.show) return;
-
-            const noticeContainer = document.getElementById('devNotice');
-            if (!noticeContainer) return;
-
-            const typeColors = {
-                info: { bg: '#eff6ff', border: '#3b82f6', icon: '💡' },
-                warning: { bg: '#fffbeb', border: '#f59e0b', icon: '⚠️' },
-                update: { bg: '#f0fdf4', border: '#22c55e', icon: '🆕' },
-                event: { bg: '#fdf4ff', border: '#a855f7', icon: '🎉' }
-            };
-            const style = typeColors[data.type] || typeColors.info;
-
-            noticeContainer.innerHTML = `
-                <div style="background: ${style.bg}; border: 1px solid ${style.border}; border-left: 4px solid ${style.border}; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px;">
-                    <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px;">${style.icon} ${data.title || '공지'}</div>
-                    <div style="color: #475569; line-height: 1.5;">${data.message}</div>
-                    ${data.updated ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: right;">📅 ${data.updated}</div>` : ''}
-                </div>
-            `;
+            renderNotice(data);
         } catch (e) {
             // notice.json이 없거나 파싱 실패 시 조용히 무시
         }
+    })();
+
+    function renderNotice(data) {
+        if (!data.show) return;
+        const noticeContainer = document.getElementById('devNotice');
+        if (!noticeContainer) return;
+
+        const typeColors = {
+            info: { bg: '#eff6ff', border: '#3b82f6', icon: '💡' },
+            warning: { bg: '#fffbeb', border: '#f59e0b', icon: '⚠️' },
+            update: { bg: '#f0fdf4', border: '#22c55e', icon: '🆕' },
+            event: { bg: '#fdf4ff', border: '#a855f7', icon: '🎉' }
+        };
+        const style = typeColors[data.type] || typeColors.info;
+
+        // message에서 줄바꿈을 <br>로 변환
+        const formattedMessage = (data.message || '').replace(/\n/g, '<br>');
+
+        noticeContainer.innerHTML = `
+            <div style="background: ${style.bg}; border: 1px solid ${style.border}; border-left: 4px solid ${style.border}; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px;">
+                <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px;">${style.icon} ${data.title || '공지'}</div>
+                <div style="color: #475569; line-height: 1.5;">${formattedMessage}</div>
+                ${data.updated ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: right;">📅 ${data.updated}</div>` : ''}
+            </div>
+        `;
+    }
+
+    // Visitor Counter - 실시간 업데이트 (hitscounter.dev API 활용)
+    (async () => {
+        const visitorDisplay = document.getElementById('visitorCountDisplay');
+        if (!visitorDisplay) return;
+
+        const fetchVisitorCount = async () => {
+            try {
+                // hitscounter.dev의 JSON API endpoint 사용
+                const res = await fetch('https://hitscounter.dev/api/hit?url=https%3A%2F%2Fagenticlab-sh.github.io%2Fskct_tool&label=visitors&icon=people-fill&color=%233b82f6&t=' + Date.now());
+                if (res.ok) {
+                    // img 태그로 hit 카운트를 증가시키고, SVG 응답에서 숫자를 파싱
+                    const text = await res.text();
+                    // SVG 텍스트에서 숫자 추출 시도
+                    const match = text.match(/(\d[\d,]+)\s*<\/text>\s*<\/g>\s*<\/svg>\s*$/);
+                    if (match) {
+                        visitorDisplay.textContent = '~' + match[1] + ' visit';
+                        return;
+                    }
+                    // 다른 패턴 시도
+                    const allNumbers = text.match(/(\d[\d,]+)/g);
+                    if (allNumbers && allNumbers.length > 0) {
+                        const lastNum = allNumbers[allNumbers.length - 1];
+                        visitorDisplay.textContent = '~' + lastNum + ' visit';
+                        return;
+                    }
+                }
+                visitorDisplay.textContent = '방문자 수 로드 중...';
+            } catch (e) {
+                visitorDisplay.textContent = '방문자 수 확인 불가';
+            }
+        };
+
+        // 초기 로드
+        await fetchVisitorCount();
+
+        // 60초마다 실시간 업데이트
+        setInterval(fetchVisitorCount, 60000);
     })();
 
     // Disable implicit focusing on calcDisplay

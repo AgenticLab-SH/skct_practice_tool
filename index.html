@@ -41,8 +41,8 @@
                 <div class="help-toggle" id="helpToggle">
                     <span>H</span><span>E</span><span>L</span><span>P</span>
                 </div>
-                <div class="omr-toggle" id="omrToggleBtn" title="OMR 탭 열기/닫기">
-                    <span>O</span><span>M</span><span>R</span>
+                <div class="omr-toggle" id="omrToggleBtn" title="연습용 OMR 탭 열기/닫기">
+                    <span style="font-size:9px; letter-spacing:0; line-height:1.2;">연습용</span><span style="font-size:9px; letter-spacing:0; line-height:1.2;">OMR</span>
                 </div>
                 <div class="settings-toggle" id="settingsToggle" title="타이머 & 레이아웃 설정">
                     <span style="font-size:14px;">⚙</span>
@@ -55,7 +55,7 @@
             </div>
             <div class="omr-content hidden" id="omrContent">
                 <div class="omr-header">
-                    <h2>탭 접기</h2>
+                    <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 탭 접기</button>
                     <div class="omr-modes">
                         <button id="modeAnswer" class="active">내 답안</button>
                         <button id="modeScore">정답 입력</button>
@@ -220,9 +220,7 @@
                 
                 <div style="margin-top: 15px; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
                     <span style="font-size: 12px; color: #64748b; margin-bottom: 5px; display: block;">누적 방문자</span>
-                    <a href="https://hitscounter.dev" target="_blank" rel="noopener">
-                        <img src="https://hitscounter.dev/api/hit?url=https%3A%2F%2Fagenticlab-sh.github.io%2Fskct_tool&label=visitors&icon=people-fill&color=%233b82f6" alt="Hits" style="display:inline-block;"/>
-                    </a>
+                    <div id="visitorCountDisplay" style="font-size: 16px; font-weight: bold; color: #3b82f6;">loading...</div>
                 </div>
             </div>
         </div>
