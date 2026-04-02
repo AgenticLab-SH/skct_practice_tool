@@ -928,41 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Visitor Counter - 실시간 업데이트 (hitscounter.dev API 활용)
-    (async () => {
-        const visitorDisplay = document.getElementById('visitorCountDisplay');
-        if (!visitorDisplay) return;
-
-        const fetchVisitorCount = async () => {
-            try {
-                // hitscounter.dev의 JSON API endpoint 사용
-                const res = await fetch('https://hitscounter.dev/api/hit?url=https%3A%2F%2Fagenticlab-sh.github.io%2Fskct_tool&label=visitors&icon=people-fill&color=%233b82f6&t=' + Date.now());
-                if (res.ok) {
-                    // img 태그로 hit 카운트를 증가시키고, SVG 응답에서 숫자를 파싱
-                    const text = await res.text();
-                    // SVG 텍스트에서 숫자 추출 시도
-                    const match = text.match(/(\d[\d,]+)\s*<\/text>\s*<\/g>\s*<\/svg>\s*$/);
-                    if (match) {
-                        visitorDisplay.textContent = match[1] + ' visit';
-                        return;
-                    }
-                    // 다른 패턴 시도
-                    const allNumbers = text.match(/(\d[\d,]+)/g);
-                    if (allNumbers && allNumbers.length > 0) {
-                        const lastNum = allNumbers[allNumbers.length - 1];
-                        visitorDisplay.textContent = lastNum + ' visit';
-                        return;
-                    }
-                }
-                visitorDisplay.textContent = '방문자 수 로드 중...';
-            } catch (e) {
-                visitorDisplay.textContent = '방문자 수 확인 불가';
-            }
-        };
-
-        // 초기 로드 시 딱 한 번만 호출하여 진짜 방문 1회만 카운트
-        await fetchVisitorCount();
-    })();
+    // (hitscounter.dev 로직이 Firebase total_visits로 대체되어 완전히 제거됨)
 
     // Disable implicit focusing on calcDisplay
     const calcDisplayEl = document.getElementById('calcDisplay');

@@ -385,15 +385,31 @@
         const tzDate = new Date();
         const todayDateStr = tzDate.getFullYear() + '-' + String(tzDate.getMonth()+1).padStart(2, '0') + '-' + String(tzDate.getDate()).padStart(2, '0');
         const dailyRef = ref(db, `daily_visits/${todayDateStr}`);
+        const totalRef = ref(db, 'total_visits');
         const visitedKey = `skct_visited_${todayDateStr}`;
 
         if (!localStorage.getItem(visitedKey)) {
+            // 일일 카운터 거래
             runTransaction(dailyRef, (currentCount) => {
+                return (currentCount || 0) + 1;
+            }).catch(console.error);
+
+            // 누적 카운터 거래 (과거 오류 리셋 효과: Firebase 상 0부터 새롭게 집계 시작됨!)
+            runTransaction(totalRef, (currentCount) => {
                 return (currentCount || 0) + 1;
             }).then(() => {
                 localStorage.setItem(visitedKey, "true");
             }).catch(console.error);
         }
+
+        // 총 통계 UI 표시
+        onValue(totalRef, (snap) => {
+            const displayEl = document.getElementById('visitorCountDisplay');
+            if(displayEl) {
+                // snap.val()이 없으면 0부터 시작
+                displayEl.textContent = (snap.val() || 0).toLocaleString() + " 명";
+            }
+        });
 
         // 2. 모달창 열릴 때 7일 데이터 불러오기 및 차트 렌더링
         const statsToggleBtn = document.getElementById('statsToggle');
