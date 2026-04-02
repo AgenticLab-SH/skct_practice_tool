@@ -114,7 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const resizer = document.getElementById('omrResizer');
         if (resizer) {
             resizer.classList.add('hint-active');
-            setTimeout(() => resizer.classList.remove('hint-active'), 3000);
+            // 플로팅 힌트 배지 생성
+            const badge = document.createElement('div');
+            badge.className = 'resizer-hint-badge';
+            badge.innerHTML = '<span class="arrows">◀▶</span> 드래그하여 폭 조절';
+            document.body.appendChild(badge);
+            // 리사이저 위치에 배지 배치
+            requestAnimationFrame(() => {
+                const rect = resizer.getBoundingClientRect();
+                badge.style.top = (rect.top + rect.height / 2 - 15) + 'px';
+                badge.style.left = (rect.right + 8) + 'px';
+            });
+            // 3초 후 정리
+            setTimeout(() => {
+                resizer.classList.remove('hint-active');
+                if (badge.parentNode) badge.parentNode.removeChild(badge);
+            }, 3000);
         }
     });
 
