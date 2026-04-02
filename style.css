@@ -220,10 +220,26 @@ body {
     margin-bottom: 8px;
 }
 
-.omr-collapse-btn {
-    font-size: 12px;
+/* 상단 바 (탭접기 + 모드 표시) */
+.omr-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 4px;
+}
+
+.omr-mode-label {
+    font-size: 11px;
+    color: #93c5fd;
     font-weight: bold;
-    padding: 5px 12px;
+}
+
+.omr-collapse-btn {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 10px;
     border: 1px solid rgba(255,255,255,0.3);
     border-radius: 4px;
     background: linear-gradient(135deg, #475569, #334155);
@@ -235,29 +251,6 @@ body {
 .omr-collapse-btn:hover {
     background: linear-gradient(135deg, #64748b, #475569);
     border-color: rgba(255,255,255,0.5);
-    transform: scale(1.05);
-}
-
-.omr-modes {
-    display: flex;
-    gap: 3px;
-}
-
-.omr-modes button {
-    background: transparent;
-    color: var(--omr-text);
-    border: 1px solid var(--omr-text);
-    padding: 2px 4px;
-    font-size: 11px;
-    border-radius: var(--ui-radius);
-    cursor: pointer;
-    opacity: 0.6;
-}
-
-.omr-modes button.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    opacity: 1;
 }
 
 .omr-body {
@@ -265,34 +258,57 @@ body {
     overflow-y: auto;
     padding-right: 5px;
     font-size: 12px;
+    max-height: 40vh;
 }
 
 /* Custom scrollbar for OMR */
 .omr-body::-webkit-scrollbar { width: 6px; }
 .omr-body::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
 
-.omr-next-control {
+/* 하단 세로 액션 버튼 영역 */
+.omr-actions {
     display: flex;
+    flex-direction: column;
     gap: 5px;
-    padding-bottom: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    overflow-y: auto;
+    flex-shrink: 0;
 }
-.omr-next-control button {
-    flex: 1;
-    padding: 6px;
-    border-radius: var(--ui-radius);
+
+.omr-action-btn {
+    width: 100%;
+    padding: 8px 10px;
     border: none;
-    font-size: 11px;
-    font-weight: bold;
+    border-radius: var(--ui-radius);
     cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
     color: white;
+    text-align: center;
+    transition: all 0.15s;
 }
-.reset-btn {
-    background: #64748b;
-    transition: background 0.2s;
+.omr-action-btn:hover {
+    transform: scale(1.02);
+    filter: brightness(1.1);
 }
-.reset-btn:hover {
-    background: #475569;
-}
+
+.skip-btn { background: #ef4444; }
+.skip-btn:hover { background: #dc2626; }
+
+.mode-btn { background: #f59e0b; }
+.mode-btn:hover { background: #d97706; }
+.mode-btn.active-score { background: #22c55e; }
+.mode-btn.active-score:hover { background: #16a34a; }
+
+.grade-btn { background: var(--primary-color); }
+.grade-btn:hover { background: var(--primary-hover); }
+
+.detail-btn { background: #a855f7; }
+.detail-btn:hover { background: #9333ea; }
+
+.reset-action-btn { background: #64748b; }
+.reset-action-btn:hover { background: #475569; }
 
 /* OMR specific styling */
 .subject-group {
@@ -355,37 +371,17 @@ body {
 .q-opt.correct { background: #22c55e !important; border-color: #22c55e !important; }
 .q-opt.wrong { background: #ef4444 !important; border-color: #ef4444 !important; }
 
-.omr-footer {
-    padding-top: 10px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.score-btn {
-    width: 100%;
-    padding: 8px;
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: var(--ui-radius);
-    cursor: pointer;
-    font-weight: bold;
-}
-
 .score-result {
-    margin-top: 10px;
-    padding: 10px;
+    padding: 8px;
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--ui-radius);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--omr-text);
 }
 .stat-line {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 .stat-line:last-child {
     margin-bottom: 0;

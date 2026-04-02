@@ -254,31 +254,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderOMR();
 
-    // Mode Toggle
-    document.getElementById('modeAnswer').addEventListener('click', (e) => {
-        omrState.mode = 'answer';
-        e.target.classList.add('active');
-        document.getElementById('modeScore').classList.remove('active');
-        document.getElementById('scoreResult').classList.add('hidden');
-        renderOMR();
-    });
+    // Mode Toggle (단일 토글 버튼)
+    const modeToggleBtn = document.getElementById('modeToggleBtn');
+    const omrModeLabel = document.getElementById('omrModeLabel');
 
-    document.getElementById('modeScore').addEventListener('click', (e) => {
-        omrState.mode = 'score';
-        e.target.classList.add('active');
-        document.getElementById('modeAnswer').classList.remove('active');
-        renderOMR();
-    });
+    const updateModeUI = () => {
+        if (omrState.mode === 'answer') {
+            modeToggleBtn.textContent = '📝 정답 입력 모드로 전환';
+            modeToggleBtn.classList.remove('active-score');
+            if (omrModeLabel) omrModeLabel.textContent = '📝 답안 작성 중';
+        } else {
+            modeToggleBtn.textContent = '✏️ 답안 작성 모드로 돌아가기';
+            modeToggleBtn.classList.add('active-score');
+            if (omrModeLabel) omrModeLabel.textContent = '✅ 정답 입력 중';
+            if (omrModeLabel) omrModeLabel.style.color = '#4ade80';
+        }
+    };
+
+    if (modeToggleBtn) {
+        modeToggleBtn.addEventListener('click', () => {
+            if (omrState.mode === 'answer') {
+                omrState.mode = 'score';
+            } else {
+                omrState.mode = 'answer';
+            }
+            updateModeUI();
+            renderOMR();
+        });
+    }
 
     document.getElementById('scoreBtn').addEventListener('click', () => {
-        if (omrState.mode !== 'score') {
-            document.getElementById('modeScore').click();
-            alert("정답 입력 모드로 전환되었습니다. 정답을 입력 후 탭 내의 문항 요소들이 채점 결과처럼 보이게 됩니다.\n(녹색: 정답, 적색: 오답체크)");
+        // 정답이 하나도 입력 안 됐으면 안내
+        const hasCorrectAnswers = Object.values(omrState.correctAnswers).some(v => v != null);
+        if (!hasCorrectAnswers) {
+            // 정답 입력 모드로 자동 전환
+            omrState.mode = 'score';
+            updateModeUI();
+            renderOMR();
             return;
         }
 
         let totalScore = 0;
-        let totalInputtedAnswers = 0;
         let attemptedCount = 0;
 
         subjects.forEach(subj => {
@@ -287,12 +303,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (omrState.myAnswers[qKey]) {
                     attemptedCount++;
                 }
-
-                if (omrState.correctAnswers[qKey]) {
-                    totalInputtedAnswers++;
-                    if (omrState.myAnswers[qKey] === omrState.correctAnswers[qKey]) {
-                        totalScore++;
-                    }
+                if (omrState.correctAnswers[qKey] && omrState.myAnswers[qKey] === omrState.correctAnswers[qKey]) {
+                    totalScore++;
                 }
             }
         });
@@ -491,10 +503,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const omrResetBtn = document.getElementById('omrResetBtn');
     if (omrResetBtn) {
         omrResetBtn.addEventListener('click', () => {
-            if (confirm("입력한 내 답안과 정답 모두를 완전히 초기화하시겠습니까? (복구할 수 없습니다)")) {
+            if (confirm("모든 답안과 정답을 초기화하시겠습니까?")) {
                 omrState.myAnswers = {};
                 omrState.correctAnswers = {};
                 omrState.currentGlobalIndex = 0;
+                omrState.mode = 'answer';
+                updateModeUI();
                 
                 if (!canvasWrapper.classList.contains('hidden')) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
