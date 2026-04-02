@@ -107,9 +107,10 @@ donateToggle.addEventListener('click', () => {
 - 대시보드: https://search.google.com/search-console
 - **배포/업데이트 후 팁**: [URL 검사] → URL 입력 → **[색인 요청]** 클릭 → 하루 내 검색 반영 가능
 
-### 4-4. 네이버 서치어드바이저
-- ⚠️ **현재 등록 불가**: GitHub Pages(`github.io`)는 공용 도메인으로 소유권 인증 불가
-- 해결책: 커스텀 도메인(예: `skct-tool.com`) 구입 후 GitHub Pages에 연결하면 가능 (연 1~2만원)
+### 4-4. 네이버 서치어드바이저 (최적화 완료)
+- ✅ **해결 및 적용 완료**: GitHub Pages(`github.io`) 도메인의 소유권 등록 불가 문제를 해결하기 위해 고유 루트 도메인용 브릿지 리포지토리(`AgenticLab-SH.github.io`)를 개설하고 Redirect 및 `robots.txt`를 세팅하여 인증을 완벽하게 통과했습니다.
+- 대시보드: https://searchadvisor.naver.com/
+- 현재 정상적으로 `hits` 수집 및 사이트 제목, 설명 등이 네이버 검색 봇에 의해 원활하게 수집되고 있습니다.
 
 ### 4-5. 타겟 키워드 전략
 
