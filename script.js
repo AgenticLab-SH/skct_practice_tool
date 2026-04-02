@@ -637,7 +637,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let cfgTotalMins = 100;
     let cfgSubjMins = 15;
-    let cfgBreakMins = 5;
+    let cfgBreakMins = 1;
     
     let phases = [];
     let currentPhaseIdx = 0;
@@ -662,7 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedTimerCfg) {
         cfgTotalMins = savedTimerCfg.total || 100;
         cfgSubjMins = savedTimerCfg.subj || 15;
-        cfgBreakMins = savedTimerCfg.brk || 5;
+        cfgBreakMins = savedTimerCfg.brk || 1;
     }
     const cTotal = document.getElementById('cfgTotal');
     const cSubj = document.getElementById('cfgSubj');
@@ -767,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         timerApplyBtn.addEventListener('click', () => {
             cfgTotalMins = parseInt(document.getElementById('cfgTotal').value) || 100;
             cfgSubjMins = parseInt(document.getElementById('cfgSubj').value) || 15;
-            cfgBreakMins = parseInt(document.getElementById('cfgBreak').value) || 5;
+            cfgBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
             localStorage.setItem('skct_timer_cfg', JSON.stringify({total: cfgTotalMins, subj: cfgSubjMins, brk: cfgBreakMins}));
             
             if (timerIsRunning) {
