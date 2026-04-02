@@ -806,6 +806,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Developer Notice System - fetches notice.json from the same directory
+    (async () => {
+        try {
+            const res = await fetch('notice.json?' + Date.now()); // cache bust
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.show) return;
+
+            const noticeContainer = document.getElementById('devNotice');
+            if (!noticeContainer) return;
+
+            const typeColors = {
+                info: { bg: '#eff6ff', border: '#3b82f6', icon: '💡' },
+                warning: { bg: '#fffbeb', border: '#f59e0b', icon: '⚠️' },
+                update: { bg: '#f0fdf4', border: '#22c55e', icon: '🆕' },
+                event: { bg: '#fdf4ff', border: '#a855f7', icon: '🎉' }
+            };
+            const style = typeColors[data.type] || typeColors.info;
+
+            noticeContainer.innerHTML = `
+                <div style="background: ${style.bg}; border: 1px solid ${style.border}; border-left: 4px solid ${style.border}; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px;">
+                    <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px;">${style.icon} ${data.title || '공지'}</div>
+                    <div style="color: #475569; line-height: 1.5;">${data.message}</div>
+                    ${data.updated ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: right;">📅 ${data.updated}</div>` : ''}
+                </div>
+            `;
+        } catch (e) {
+            // notice.json이 없거나 파싱 실패 시 조용히 무시
+        }
+    })();
+
     // Disable implicit focusing on calcDisplay
     const calcDisplayEl = document.getElementById('calcDisplay');
     if(calcDisplayEl) calcDisplayEl.addEventListener('mousedown', (e) => e.preventDefault());
