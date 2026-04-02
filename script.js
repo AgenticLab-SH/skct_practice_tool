@@ -285,8 +285,43 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const resEl = document.getElementById('scoreResult');
         resEl.classList.remove('hidden');
+        const detailScoreBtn = document.getElementById('detailScoreBtn');
+        if(detailScoreBtn) detailScoreBtn.classList.remove('hidden');
         renderOMR();
     });
+
+    const detailScoreBtn = document.getElementById('detailScoreBtn');
+    if (detailScoreBtn) {
+        detailScoreBtn.addEventListener('click', () => {
+            const tbody = document.getElementById('statTableBody');
+            if(!tbody) return;
+            
+            let trHtml = '';
+            subjects.forEach(subj => {
+                let sAtt = 0;
+                let sCor = 0;
+                for (let i=1; i<=subj.count; i++) {
+                    const qKey = `${subj.id}_${i}`;
+                    if (omrState.myAnswers[qKey]) sAtt++;
+                    if (omrState.correctAnswers[qKey] && omrState.myAnswers[qKey] === omrState.correctAnswers[qKey]) {
+                        sCor++;
+                    }
+                }
+                const rate = sAtt > 0 ? ((sCor / sAtt) * 100).toFixed(1) : 0;
+                trHtml += `
+                    <tr style="border-bottom: 1px solid #e2e8f0; height: 30px;">
+                        <td style="font-weight: bold; color: #1e293b;">${subj.name}</td>
+                        <td style="color: #64748b;">${subj.count}</td>
+                        <td style="color: #3b82f6;">${sAtt}</td>
+                        <td style="color: #22c55e;">${sCor}</td>
+                        <td style="color: #f59e0b; font-weight: bold;">${rate}%</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = trHtml;
+            document.getElementById('statModal').classList.remove('hidden');
+        });
+    }
 
 
     /* --- Notepad / Canvas Toggle --- */

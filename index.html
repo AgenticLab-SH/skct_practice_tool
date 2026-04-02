@@ -43,6 +43,7 @@
                 <!-- Score and Stats -->
                 <div class="omr-footer">
                     <button id="scoreBtn" class="score-btn">채점 및 통계 확인</button>
+                    <button id="detailScoreBtn" class="score-btn hidden" style="background-color: #a855f7; margin-top: 5px;">과목별 상세 통계</button>
                     <div id="scoreResult" class="score-result hidden">
                         <div class="stat-line"><span>푼 문제</span> <strong id="statAttempted">0 / 100</strong></div>
                         <div class="stat-line"><span>맞은 개수</span> <strong id="statCorrect">0</strong></div>
@@ -200,7 +201,32 @@
                 <button id="timerApplyBtn" style="margin-top:10px; padding:8px; background:#3b82f6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">적용하고 리셋하기</button>
             </div>
         </div>
+    <!-- Detailed Stats Modal Overlay -->
+    <div id="statModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>과목별 상세 통계</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                            <th style="padding: 8px;">과목명</th>
+                            <th style="padding: 8px;">문항 수</th>
+                            <th style="padding: 8px;">푼 문제</th>
+                            <th style="padding: 8px;">맞은 개수</th>
+                            <th style="padding: 8px;">정답률</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statTableBody">
+                        <!-- rows injected via js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
