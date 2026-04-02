@@ -756,15 +756,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const timerConfigBtn = document.getElementById('timerConfigBtn');
-    const timerModal = document.getElementById('timerModal');
-    if(timerConfigBtn && timerModal) {
-        timerConfigBtn.addEventListener('click', () => timerModal.classList.remove('hidden'));
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsModal = document.getElementById('settingsModal');
+    if(settingsToggle && settingsModal) {
+        settingsToggle.addEventListener('click', () => settingsModal.classList.remove('hidden'));
     }
 
-    const timerApplyBtn = document.getElementById('timerApplyBtn');
-    if (timerApplyBtn) {
-        timerApplyBtn.addEventListener('click', () => {
+    const settingsApplyBtn = document.getElementById('settingsApplyBtn');
+    if (settingsApplyBtn) {
+        settingsApplyBtn.addEventListener('click', () => {
             cfgTotalMins = parseInt(document.getElementById('cfgTotal').value) || 75;
             cfgSubjMins = parseInt(document.getElementById('cfgSubj').value) || 15;
             cfgBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
@@ -778,7 +778,8 @@ document.addEventListener('DOMContentLoaded', () => {
             totalSeconds = cfgTotalMins * 60;
             buildPhases();
             updateTimerUI();
-            timerModal.classList.add('hidden');
+            applyRatios();
+            settingsModal.classList.add('hidden');
         });
     }
 
