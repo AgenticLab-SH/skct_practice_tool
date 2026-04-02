@@ -788,6 +788,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if(helpToggle && helpModal) {
         helpToggle.addEventListener('click', () => helpModal.classList.remove('hidden'));
     }
+
+    const donateToggle = document.getElementById('donateToggle');
+    if (donateToggle) {
+        donateToggle.addEventListener('click', () => {
+            const msg = "모두의 편안함을 위해 제가 만든 무료 SKCT Tool입니다! 👨‍💻\n\n지속적인 업데이트 동기부여와 소소한 용돈벌이(?)를 위해 따뜻한 커피 한 잔 나눠주시면 정말 감사히 마시겠습니다! ☕💕\n\n(확인을 누르시면 간편 후원 페이지로 이동합니다)";
+            if (confirm(msg)) {
+                window.open('https://toon.at/donate/foreveryonehappy', '_blank');
+            }
+        });
+    }
     
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.addEventListener('click', (e) => {
