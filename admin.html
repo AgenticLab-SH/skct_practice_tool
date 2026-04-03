@@ -341,12 +341,22 @@
 
     // ── Live Stats ──
     function listenStats() {
-        // Active visitors polling (10s)
+        // Active visitors polling (10s) with strict Heartbeat filter
         async function fetchAdminActiveVisitors() {
             try {
-                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json?shallow=true');
+                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json');
                 const data = await res.json();
-                document.getElementById('statActive').textContent = (data ? Object.keys(data).length : 0) + ' 명';
+                let count = 0;
+                const now = Date.now();
+                if(data) {
+                    for(let key in data) {
+                        const lastActive = data[key];
+                        if(typeof lastActive === 'number' && (now - lastActive) < 90000) {
+                            count++;
+                        }
+                    }
+                }
+                document.getElementById('statActive').textContent = count + ' 명';
             } catch (e) {
                 console.error("Admin presence fetch error:", e);
             }

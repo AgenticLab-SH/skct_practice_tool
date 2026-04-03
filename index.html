@@ -423,19 +423,35 @@
         sessionStorage.setItem('skct_session_id', sessionId);
         const myConnectionsRef = ref(db, "active_visitors/" + sessionId);
 
+        let heartbeatInterval = null;
         onValue(connectedRef, (snap) => {
             if (snap.val() === true) {
-                onDisconnect(myConnectionsRef).remove().catch(err => console.error(err));
-                set(myConnectionsRef, Date.now()); // 세션ID 기반 덮어쓰기 (새로고침 시 좀비노드 방지)
+                onDisconnect(myConnectionsRef).remove().catch(e => {});
+                set(myConnectionsRef, Date.now());
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
+                heartbeatInterval = setInterval(() => {
+                    set(myConnectionsRef, Date.now());
+                }, 30000); // 30초마다 하트비트 전송
+            } else {
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
             }
         });
 
         let presencePollTimer = null;
         async function fetchActiveVisitors() {
             try {
-                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json?shallow=true');
+                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json');
                 const data = await res.json();
-                const count = data ? Object.keys(data).length : 0;
+                let count = 0;
+                const now = Date.now();
+                if(data) {
+                    for(let key in data) {
+                        const lastActive = data[key];
+                        if(typeof lastActive === 'number' && (now - lastActive) < 90000) {
+                            count++;
+                        }
+                    }
+                }
                 const displayEl = document.getElementById('activeVisitorCount');
                 if(displayEl) displayEl.textContent = count + " 명";
             } catch (e) {
