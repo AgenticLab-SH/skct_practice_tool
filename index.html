@@ -340,7 +340,7 @@
                         <span style="font-size: 16px; color: #475569; font-weight: bold;">현재 열심히 연습 중인 접속자</span>
                     </div>
                     <div id="activeVisitorCount" style="font-size: 36px; font-weight: 900; color: #10b981; letter-spacing: -1px;">로딩 중...</div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(10초 주기 폴링 중)</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(10초 주기 업데이트)</div>
                 </div>
 
                 <!-- 2. 최근 7일 접속자 그래프 -->
@@ -459,7 +459,11 @@
         // 📊 일일 방문자 카운터 (하루 1회, LocalStorage 기반 중복 방지)
         // ============================================
         (function incrementDailyVisit() {
-            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const date = String(d.getDate()).padStart(2, '0');
+            const today = `${year}-${month}-${date}`;
             const lastVisitDate = localStorage.getItem('skct_last_visit_date');
             if (lastVisitDate === today) return; // 오늘 이미 카운트됨
 
@@ -495,12 +499,15 @@
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date(today);
                     d.setDate(d.getDate() - i);
-                    const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const date = String(d.getDate()).padStart(2, '0');
+                    const key = `${year}-${month}-${date}`;
                     if (key < LAUNCH_DATE) {
                         last7days.push({ date: '', users: null });
                         continue;
                     }
-                    const label = (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
+                    const label = month + '-' + date;
                     last7days.push({ date: label, users: dailyVisits[key] || 0 });
                 }
 
@@ -532,6 +539,10 @@
                     const labels = data.last7days.map(d => d.date);
                     const chartData = data.last7days.map(d => d.users);
 
+                    const safeChartData = (chartData || []).map(v => Number(v) || 0);
+                    const computedMax = Math.max(...safeChartData, 5);
+                    const suggestedMax = computedMax + 2;
+
                     const ctx = document.getElementById('visitorChart').getContext('2d');
                     if (visitorChartInstance) visitorChartInstance.destroy();
 
@@ -550,7 +561,7 @@
                         options: {
                             responsive: true, maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: true, ticks: { precision: 0 }, suggestedMax: Math.max(...chartData.map(v => Number(v) || 0), 5) + 2 } }
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 }, suggestedMax: suggestedMax } }
                         }
                     });
                 } catch (err) { console.error("차트 렌더링 실패:", err); }
