@@ -553,10 +553,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleNumber(numStr) {
         if (calcState.waitingNew) {
-            calcState.current = numStr;
+            calcState.current = numStr === '.' ? '0.' : numStr;
             calcState.waitingNew = false;
         } else {
-            if (calcState.current === '0') {
+            if (numStr === '.') {
+                if (!calcState.current.includes('.')) {
+                    calcState.current += '.';
+                }
+            } else if (calcState.current === '0') {
                 calcState.current = numStr;
             } else {
                 calcState.current += numStr;
@@ -931,6 +935,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
     }
+    window.renderNotice = renderNotice;
 
     // (hitscounter.dev 로직이 Firebase total_visits로 대체되어 완전히 제거됨)
 
