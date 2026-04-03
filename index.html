@@ -337,7 +337,7 @@
                 <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
                         <span style="display: inline-block; width: 12px; height: 12px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite;"></span>
-                        <span style="font-size: 16px; color: #475569; font-weight: bold;">현재 열심히 연습 중인 접속자</span>
+                        <span style="font-size: 16px; color: #475569; font-weight: bold;">실시간 접속자 수</span>
                     </div>
                     <div id="activeVisitorCount" style="font-size: 36px; font-weight: 900; color: #10b981; letter-spacing: -1px;">로딩 중...</div>
                     <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(10초 주기 업데이트)</div>
@@ -419,13 +419,14 @@
 
         // Firebase Presence System (현재 접속자)
         const connectedRef = ref(db, ".info/connected");
-        const presenceRef = ref(db, "active_visitors");
+        const sessionId = sessionStorage.getItem('skct_session_id') || ('sess_' + Math.random().toString(36).substr(2, 9));
+        sessionStorage.setItem('skct_session_id', sessionId);
+        const myConnectionsRef = ref(db, "active_visitors/" + sessionId);
 
         onValue(connectedRef, (snap) => {
             if (snap.val() === true) {
-                const myConnectionsRef = push(presenceRef);
                 onDisconnect(myConnectionsRef).remove().catch(err => console.error(err));
-                set(myConnectionsRef, true);
+                set(myConnectionsRef, Date.now()); // 세션ID 기반 덮어쓰기 (새로고침 시 좀비노드 방지)
             }
         });
 
