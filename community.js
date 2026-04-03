@@ -239,7 +239,14 @@ function attachPostEvents() {
             else if (act === 'del') { const pw = prompt('삭제하려면 비밀번호를 입력하세요:'); if (pw !== null) await softDeletePost(id, pw); }
             else if (act === 'pin') await adminPinPost(id);
             else if (act === 'faq') { if (confirm('FAQ로 이동?')) await adminMoveToFaq(id); }
-            else if (act === 'areply') { const c = prompt('관리자 답글:'); if (c) { await adminReply(id, c); expandedPost = null; await doToggleReplies(id, true); } }
+            else if (act === 'areply') { 
+                const c = prompt('관리자 답글:'); 
+                if (c) { 
+                    await adminReply(id, c); 
+                    if (allPosts[id]) allPosts[id].replyCount = (allPosts[id].replyCount || 0) + 1;
+                    expandedPost = null; renderTab(); await doToggleReplies(id, true); 
+                } 
+            }
         };
     });
 }
@@ -308,7 +315,8 @@ function renderReplies(pid, replies) {
         const content = document.getElementById(`cmRI_${pid}`).value.trim();
         if (!nick || !pw || !content) { alert('닉네임, 비밀번호, 내용을 모두 입력하세요.'); return; }
         await createReply(pid, nick, pw, content);
-        expandedPost = null; await doToggleReplies(pid);
+        if (allPosts[pid]) allPosts[pid].replyCount = (allPosts[pid].replyCount || 0) + 1;
+        expandedPost = null; renderTab(); await doToggleReplies(pid);
     };
 
     // Reply edit/delete events
@@ -327,7 +335,9 @@ function renderReplies(pid, replies) {
                 document.getElementById(`cmERC_${rid}`).onclick = async () => { expandedPost = null; await doToggleReplies(p, true); };
             } else if (a === 'rdel') {
                 const pw = prompt('비밀번호:'); if (pw === null) return;
-                await softDeleteReply(p, rid, pw); expandedPost = null; await doToggleReplies(p, true);
+                await softDeleteReply(p, rid, pw); 
+                if (allPosts[p]) allPosts[p].replyCount = Math.max((allPosts[p].replyCount || 0) - 1, 0);
+                expandedPost = null; renderTab(); await doToggleReplies(p, true);
             } else if (a === 'rpin') {
                 await adminPinReply(p, rid); expandedPost = null; await doToggleReplies(p, true);
             }
