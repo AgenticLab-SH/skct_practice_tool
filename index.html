@@ -401,7 +401,7 @@
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getDatabase, ref, onValue, onDisconnect, set, push, remove } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        import { getDatabase, ref, onValue, onDisconnect, set, push, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
@@ -456,7 +456,26 @@
         };
 
         // ============================================
-        // 📈 일일 접속자 통계 & Chart.js 렌더링 로직 (GA4 Cache 기반으로 변경)
+        // 📊 일일 방문자 카운터 (하루 1회, LocalStorage 기반 중복 방지)
+        // ============================================
+        (function incrementDailyVisit() {
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const lastVisitDate = localStorage.getItem('skct_last_visit_date');
+            if (lastVisitDate === today) return; // 오늘 이미 카운트됨
+
+            localStorage.setItem('skct_last_visit_date', today);
+
+            // daily_visits/{today} +1
+            const dailyRef = ref(db, 'daily_visits/' + today);
+            runTransaction(dailyRef, (current) => (current || 0) + 1);
+
+            // total_visits +1
+            const totalRef = ref(db, 'total_visits');
+            runTransaction(totalRef, (current) => (current || 0) + 1);
+        })();
+
+        // ============================================
+        // 📈 일일 접속자 통계 & Chart.js 렌더링
         // ============================================
         const { get } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js");
 
@@ -469,13 +488,15 @@
                 const totalVisits = await totalRes.json() || 0;
                 const dailyVisits = await dailyRes.json() || {};
 
-                // 최근 7일 데이터 구성
+                // 최근 7일 데이터 구성 (서버 오픈일: 2026-04-03 이후만)
+                const LAUNCH_DATE = '2026-04-03';
                 const today = new Date();
                 const last7days = [];
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date(today);
                     d.setDate(d.getDate() - i);
                     const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+                    if (key < LAUNCH_DATE) continue; // 오픈일 이전 스킵
                     const label = (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
                     last7days.push({ date: label, users: dailyVisits[key] || 0 });
                 }
