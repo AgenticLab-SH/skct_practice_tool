@@ -3,5 +3,9 @@
   "title": "📢 개발자 공지",
   "message": "SKCT 연습 도구를 이용해주셔서 감사합니다! 피드백이나 건의사항은 언제든 환영합니다.\nemail: drgon28@naver.com\n위 이메일로 남겨주시면 됩니다.\n\nps. 잘 쓰셨다면 지속적인 동기부여를 위해 공유와 커피 한 잔 후원해주시면 정말 감사드리겠습니다. 서버는 sk가 skct를 없앨 때까지 열어둘 예정이니 편하게 쓰시면 됩니다.\nsk 합격하시면 꼭 후원해주시고요!!!ㅋㅋㅋ",
   "type": "info",
-  "updated": "2026-04-03"
+  "updated": "2026-04-03",
+  "popularConfig": {
+    "minLikes": 5,
+    "minComments": 3
+  }
 }
