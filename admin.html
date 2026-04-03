@@ -140,6 +140,15 @@
                         <!-- dynamic items -->
                     </div>
                 </div>
+                <div class="form-group" style="padding-top: 15px; border-top: 1px dashed #e2e8f0; margin-top: 15px;">
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            서버 상태 관리 <br>
+                            <span style="font-size:11px; color:#64748b; font-weight:normal;">가짜 접속자(좀비 커넥션) 누적 시 강제 초기화</span>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" id="clearZombiesBtn" style="color:#ef4444; border:1px solid #ef4444; font-size:11px;">⚠️ 실시간 접속자 초기화</button>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -626,6 +635,16 @@
             container.appendChild(row);
         });
     }
+
+    document.getElementById('clearZombiesBtn').addEventListener('click', async () => {
+        if(!confirm('모든 방문자의 접속 상태가 0명으로 초기화되며, 실제 접속자는 새로고침 시 다시 정상 집계됩니다. 진행할까요?')) return;
+        try {
+            await set(ref(db, 'active_visitors'), null);
+            toast('✅ 실시간 접속자 데이터가 초기화되었습니다.');
+        } catch(e) {
+            toast('❌ 초기화 오류: ' + e.message);
+        }
+    });
 
     document.getElementById('addLinkBtn').addEventListener('click', () => {
         if (!loadedConfig.useful_links) loadedConfig.useful_links = [];
