@@ -710,6 +710,31 @@ body {
     color: #64748b;
 }
 
+/* Help Modal - Sticky Header */
+.help-modal-content {
+    max-width: 700px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+}
+.help-modal-header {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 10;
+    padding: 16px 20px;
+    margin-bottom: 0;
+    border-bottom: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+.help-modal-body {
+    overflow-y: auto;
+    padding: 20px;
+    flex: 1;
+}
+
 /* ============================================================
    COMMUNITY SYSTEM STYLES
    ============================================================ */

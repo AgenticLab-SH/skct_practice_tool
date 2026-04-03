@@ -178,58 +178,63 @@
 
     <!-- Help Modal Overlay -->
     <div id="helpModal" class="modal-overlay hidden">
-        <div class="modal-content" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
-            <div class="modal-header">
+        <div class="modal-content help-modal-content">
+            <div class="modal-header help-modal-header">
                 <h3>📖 사용 가이드</h3>
                 <button class="close-modal btn-close">×</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body help-modal-body">
 
                 <!-- 개발자 공지 (notice.json에서 동적 로드) -->
                 <div id="devNotice"></div>
 
                 <!-- 사용 예시 사진 섹션 -->
                 <div style="margin-bottom: 18px;">
-                    <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">📷 실제 사용 예시</div>
+                    <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">📷 실제 화면 예시</div>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
-                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center;">▶ OMR 접은 상태 (기본)</div>
-                            <img src="omr접은 기본 상태 사용예시.png" alt="OMR 접은 기본 상태 사용예시" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 기본 화면 (OMR 접힌 상태)</div>
+                            <img src="help_collapsed.png" alt="기본 화면 - OMR 접힌 상태" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; text-align:center;">좌측 사이드바 + 타이머/메모장/계산기</div>
                         </div>
                         <div style="flex: 1; min-width: 200px;">
-                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center;">▶ OMR 펼친 상태 (채점 모드)</div>
-                            <img src="omr확장예시.png" alt="OMR 확장 예시" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ OMR 펼친 상태 (답안/채점)</div>
+                            <img src="help_expanded.png" alt="OMR 펼친 상태 - 답안 및 채점" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; text-align:center;">OMR 답안 작성 → 정답 입력 → 채점</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 구조 설명 다이어그램 -->
-                <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">🗺️ 화면 구조 안내</div>
+                <!-- 기능 안내 -->
+                <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">🗺️ 기능 안내</div>
                 <div class="guide-diagram" style="background:#1e293b; border-radius:8px; padding:15px; color:white; font-size:13px; display:flex; gap:10px;">
                     <div style="flex:1; border:2px solid #3b82f6; padding:10px; border-radius:4px; position:relative;">
-                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 버튼 바</div>
-                        <p>📌 <strong>HELP</strong>: 이 가이드</p>
-                        <p>📌 <strong>OMR</strong>: 답안 입력 서랍</p>
-                        <p>📌 <strong>⚙ 설정</strong>: 타이머 & 높이비율</p>
-                        <p>📌 <strong>☕ 커피후원</strong>: 제작자 응원</p>
+                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>
+                        <p>📖 <strong>HELP</strong> — 이 가이드</p>
+                        <p>📝 <strong>OMR</strong> — 답안 마킹/채점</p>
+                        <p>⚙ <strong>설정</strong> — 타이머·높이비율</p>
+                        <p>🔥 <strong>현황</strong> — 실시간 접속자</p>
+                        <p>💬 <strong>게시판</strong> — 커뮤니티</p>
+                        <p>☕ <strong>커피후원</strong> — 제작자 응원</p>
                         <hr style="border-color:#334155; margin: 8px 0;">
-                        <p>👉 OMR에서 답 마킹 시 <strong>자동 다음 문제</strong></p>
-                        <p>👉 [건너뛰기] = 마킹 없이 스킵</p>
+                        <p style="color:#93c5fd;">💡 OMR에서 답 마킹 → <strong>자동 다음 문제</strong></p>
+                        <p style="color:#93c5fd;">💡 [건너뛰기] = 마킹 없이 스킵</p>
                     </div>
                     <div style="flex:2; display:flex; flex-direction:column; gap:10px;">
                         <div style="border:2px solid #a855f7; padding:10px; border-radius:4px; text-align:center;">
                             <strong>🕒 다중 페이즈 타이머</strong><br>
-                            과목 → 쉬는시간 사이클 <strong>자동 전환</strong>.<br>
-                            ⚙ 설정 버튼으로 시간 조절 가능.
+                            과목 → 쉬는시간 사이클 <strong>자동 전환</strong><br>
+                            <span style="color:#c4b5fd;">⚙ 설정에서 시간 조절 가능</span>
                         </div>
                         <div style="border:2px solid #eab308; padding:10px; border-radius:4px; text-align:center; flex:3;">
-                            <strong>✏️ 연습장 (그림판 & 메모장)</strong><br>
-                            실제 SKCT와 동일하게 <strong>다음 문제로 넘어가면 자동 초기화</strong>됩니다.<br>
-                            브러쉬는 시험장 사양(진하게) 적용.
+                            <strong>✏️ 연습장 (메모장 & 그림판)</strong><br>
+                            다음 문제 넘어가면 <strong>자동 초기화</strong><br>
+                            <span style="color:#fde68a;">실제 SKCT와 동일한 동작</span>
                         </div>
                         <div style="border:2px solid #22c55e; padding:10px; border-radius:4px; text-align:center; flex:2;">
                             <strong>🧮 키보드 계산기</strong><br>
-                            실제 시험과 동일 (Delete, Esc 금지. 오직 C 버튼 허용)
+                            Delete·Esc 금지, <strong>C 버튼만 허용</strong><br>
+                            <span style="color:#86efac;">실제 시험과 동일한 제한</span>
                         </div>
                     </div>
                 </div>
