@@ -11,6 +11,7 @@ const db = getDatabase(getApp());
 let currentTab = 'qna';
 let popularConfig = { minLikes: 5, minComments: 3 };
 let allPosts = {};
+let replyCache = {}; // 댓글 캐시
 let expandedPost = null;
 let isAdmin = false;
 let adminHash = null;
@@ -39,9 +40,10 @@ function timeAgo(ts) {
 function getSavedNick() { return localStorage.getItem('skct_cm_nick') || ''; }
 function saveNick(n) { localStorage.setItem('skct_cm_nick', n); }
 
-// ── Firebase Config (real-time: notice + popularConfig + adminHash) ──
-function listenConfig() {
-    onValue(ref(db, 'config'), snap => {
+// ── Firebase Config (One-shot fetch) ──
+async function listenConfig() {
+    try {
+        const snap = await get(ref(db, 'config'));
         if (!snap.exists()) return;
         const cfg = snap.val();
         if (cfg.notice) renderNotice(cfg.notice);
@@ -50,7 +52,7 @@ function listenConfig() {
         if (cfg.adminHash) adminHash = cfg.adminHash;
         // re-render if popular tab is active
         if (currentTab === 'popular') renderTab();
-    });
+    } catch(e) { console.error("Config load error:", e); }
 }
 
 function renderNotice(data) {
@@ -77,15 +79,17 @@ async function createPost(category, nickname, password, content) {
     await set(push(ref(db, 'posts')), {
         category, nickname, passwordHash: await sha256(password),
         content: content.trim(), timestamp: Date.now(),
-        likes: 0, likedBy: {}, replyCount: 0, deleted: false, pinned: false
+        likes: 0, replyCount: 0, deleted: false, pinned: false
     });
     localStorage.setItem('skct_last_post', Date.now());
+    await loadPostsOnce();
 }
 
 async function editPost(pid, newContent, password) {
     const p = allPosts[pid]; if (!p) return false;
     if (!isAdmin && (await sha256(password)) !== p.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return false; }
     await update(ref(db, `posts/${pid}`), { content: newContent.trim(), editedAt: Date.now() });
+    await loadPostsOnce();
     return true;
 }
 
@@ -93,16 +97,23 @@ async function softDeletePost(pid, password) {
     const p = allPosts[pid]; if (!p) return;
     if (!isAdmin && (await sha256(password)) !== p.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
     await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
+    await loadPostsOnce();
 }
 
 async function toggleLike(pid) {
-    const likedRef = ref(db, `posts/${pid}/likedBy/${sessionId}`);
+    const p = allPosts[pid]; if (!p) return;
+    const likedRef = ref(db, `userLikes/${sessionId}/${pid}`);
     const likesRef = ref(db, `posts/${pid}/likes`);
-    if ((await get(likedRef)).exists()) {
+    
+    // Optistic update
+    if (p.likedByMe) {
+        p.likedByMe = false; p.likes = Math.max((p.likes||0)-1, 0);
         await set(likedRef, null); await runTransaction(likesRef, c => Math.max((c||0)-1, 0));
     } else {
+        p.likedByMe = true; p.likes = (p.likes||0)+1;
         await set(likedRef, true); await runTransaction(likesRef, c => (c||0)+1);
     }
+    renderTab();
 }
 
 // ── Replies CRUD ──
@@ -114,12 +125,14 @@ async function createReply(pid, nickname, password, content) {
         timestamp: Date.now(), isAdmin: false, pinned: false, deleted: false
     });
     await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c||0)+1);
+    delete replyCache[pid];
 }
 
 async function editReply(pid, rid, newContent, password) {
     const s = await get(ref(db, `replies/${pid}/${rid}`)); if (!s.exists()) return false;
     if (!isAdmin && (await sha256(password)) !== s.val().passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return false; }
-    await update(ref(db, `replies/${pid}/${rid}`), { content: newContent.trim(), editedAt: Date.now() }); return true;
+    await update(ref(db, `replies/${pid}/${rid}`), { content: newContent.trim(), editedAt: Date.now() }); 
+    delete replyCache[pid]; return true;
 }
 
 async function softDeleteReply(pid, rid, password) {
@@ -127,6 +140,7 @@ async function softDeleteReply(pid, rid, password) {
     if (!isAdmin && (await sha256(password)) !== s.val().passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
     await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
     await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c||0)-1, 0));
+    delete replyCache[pid];
 }
 
 // ── Admin ──
@@ -141,19 +155,33 @@ async function adminReply(pid, content) {
     if (!isAdmin || !content) return;
     await set(push(ref(db, `replies/${pid}`)), { nickname:'🛡️ 관리자', passwordHash:'', content, timestamp:Date.now(), isAdmin:true, pinned:true, deleted:false });
     await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c||0)+1);
+    delete replyCache[pid];
 }
-async function adminPinReply(pid, rid) { if (!isAdmin) return; const s = await get(ref(db, `replies/${pid}/${rid}/pinned`)); await update(ref(db, `replies/${pid}/${rid}`), { pinned: !(s.val()||false) }); }
+async function adminPinReply(pid, rid) { if (!isAdmin) return; const s = await get(ref(db, `replies/${pid}/${rid}/pinned`)); await update(ref(db, `replies/${pid}/${rid}`), { pinned: !(s.val()||false) }); delete replyCache[pid]; }
 
 // ── Data Loading ──
-function startListening() {
-    if (postsListener) return;
-    postsListener = onValue(ref(db, 'posts'), snap => {
+async function loadPostsOnce() {
+    try {
+        const snap = await get(ref(db, 'posts'));
         allPosts = {};
-        if (snap.exists()) snap.forEach(c => { const p = c.val(); p.id = c.key; allPosts[c.key] = p; });
+        if (snap.exists()) {
+            snap.forEach(c => { const p = c.val(); p.id = c.key; allPosts[c.key] = p; });
+        }
+        
+        // 내가 좋아요 누른 내역 조회
+        const likesSnap = await get(ref(db, `userLikes/${sessionId}`));
+        const userLikes = likesSnap.exists() ? likesSnap.val() : {};
+        
+        for (const pid in allPosts) {
+            allPosts[pid].likedByMe = !!userLikes[pid];
+        }
         renderTab();
-    });
+    } catch(e) { console.error("Posts load error:", e); }
 }
-function stopListening() { if (postsListener) { off(ref(db, 'posts')); postsListener = null; } }
+
+// 하위 호환성 및 기존 호출 대응
+window.startListening = loadPostsOnce;
+function stopListening() {}
 
 function getFilteredPosts(tab) {
     const posts = Object.values(allPosts).filter(p => !p.deleted);
@@ -179,7 +207,7 @@ function renderTab() {
 }
 
 function postCardHTML(p) {
-    const liked = p.likedBy && p.likedBy[sessionId];
+    const liked = p.likedByMe;
     let badges = '';
     if (p.pinned) badges += '<span class="cm-badge pin">📌 고정</span>';
     if (currentTab === 'popular') { const cl={qna:'Q&A', tip:'Tip', review:'후기', improvement:'개선', faq:'FAQ'}; badges += `<span class="cm-badge cat">${cl[p.category]||''}</span>`; }
@@ -211,7 +239,7 @@ function attachPostEvents() {
             else if (act === 'del') { const pw = prompt('삭제하려면 비밀번호를 입력하세요:'); if (pw !== null) await softDeletePost(id, pw); }
             else if (act === 'pin') await adminPinPost(id);
             else if (act === 'faq') { if (confirm('FAQ로 이동?')) await adminMoveToFaq(id); }
-            else if (act === 'areply') { const c = prompt('관리자 답글:'); if (c) { await adminReply(id, c); expandedPost = null; await doToggleReplies(id); } }
+            else if (act === 'areply') { const c = prompt('관리자 답글:'); if (c) { await adminReply(id, c); expandedPost = null; await doToggleReplies(id, true); } }
         };
     });
 }
@@ -231,18 +259,27 @@ async function showEditForm(pid, password) {
 }
 
 // ── Replies UI ──
-async function doToggleReplies(pid) {
-    if (expandedPost === pid) { expandedPost = null; const s = document.getElementById(`cmReplies_${pid}`); if (s) s.classList.add('hidden'); return; }
+async function doToggleReplies(pid, forceReload = false) {
+    if (!forceReload && expandedPost === pid) { expandedPost = null; const s = document.getElementById(`cmReplies_${pid}`); if (s) s.classList.add('hidden'); return; }
     expandedPost = pid;
     const section = document.getElementById(`cmReplies_${pid}`);
     if (!section) return;
     section.classList.remove('hidden');
+    
+    if (!forceReload && replyCache[pid] && (Date.now() - replyCache[pid].time < 60000)) {
+        renderReplies(pid, replyCache[pid].data);
+        return;
+    }
+    
     section.innerHTML = '<div class="cm-loading">로딩 중...</div>';
     const snap = await get(ref(db, `replies/${pid}`));
     let replies = [];
     if (snap.exists()) snap.forEach(c => { const r = c.val(); r.id = c.key; replies.push(r); });
     replies.sort((a, b) => { if (a.pinned && !b.pinned) return -1; if (!a.pinned && b.pinned) return 1; return a.timestamp - b.timestamp; });
-    renderReplies(pid, replies.filter(r => !r.deleted));
+    
+    const finalData = replies.filter(r => !r.deleted);
+    replyCache[pid] = { data: finalData, time: Date.now() };
+    renderReplies(pid, finalData);
 }
 
 function renderReplies(pid, replies) {
@@ -286,13 +323,13 @@ function renderReplies(pid, replies) {
                 if (!isAdmin && (await sha256(pw)) !== r.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
                 const el = document.getElementById(`cmRB_${rid}`); if (!el) return;
                 el.innerHTML = `<textarea class="cm-edit-ta" id="cmERI_${rid}">${esc(r.content)}</textarea><div class="cm-edit-acts"><button id="cmERS_${rid}">저장</button><button id="cmERC_${rid}">취소</button></div>`;
-                document.getElementById(`cmERS_${rid}`).onclick = async () => { const v = document.getElementById(`cmERI_${rid}`).value.trim(); if (v) { await editReply(p, rid, v, pw); expandedPost = null; await doToggleReplies(p); } };
-                document.getElementById(`cmERC_${rid}`).onclick = async () => { expandedPost = null; await doToggleReplies(p); };
+                document.getElementById(`cmERS_${rid}`).onclick = async () => { const v = document.getElementById(`cmERI_${rid}`).value.trim(); if (v) { await editReply(p, rid, v, pw); expandedPost = null; await doToggleReplies(p, true); } };
+                document.getElementById(`cmERC_${rid}`).onclick = async () => { expandedPost = null; await doToggleReplies(p, true); };
             } else if (a === 'rdel') {
                 const pw = prompt('비밀번호:'); if (pw === null) return;
-                await softDeleteReply(p, rid, pw); expandedPost = null; await doToggleReplies(p);
+                await softDeleteReply(p, rid, pw); expandedPost = null; await doToggleReplies(p, true);
             } else if (a === 'rpin') {
-                await adminPinReply(p, rid); expandedPost = null; await doToggleReplies(p);
+                await adminPinReply(p, rid); expandedPost = null; await doToggleReplies(p, true);
             }
         };
     });
@@ -327,6 +364,12 @@ function closeModal() {
 function init() {
     document.getElementById('commentToggle')?.addEventListener('click', openModal);
     document.getElementById('cmCloseBtn')?.addEventListener('click', closeModal);
+    document.getElementById('cmRefreshBtn')?.addEventListener('click', async () => {
+        const btn = document.getElementById('cmRefreshBtn');
+        if(btn) { btn.textContent = '⏳ 로딩중'; btn.disabled = true; }
+        await loadPostsOnce();
+        if(btn) { btn.textContent = '🔄 새로고침'; btn.disabled = false; }
+    });
     document.querySelectorAll('.cm-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
     document.getElementById('cmSubmitBtn')?.addEventListener('click', submitPost);
     // Admin: double-click title

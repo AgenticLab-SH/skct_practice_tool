@@ -885,7 +885,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.querySelectorAll('.close-modal').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            e.target.closest('.modal-overlay').classList.add('hidden');
+            const modal = e.target.closest('.modal-overlay');
+            if (modal) {
+                modal.classList.add('hidden');
+                if (modal.id === 'statsModal' && typeof window.stopPresencePolling === 'function') {
+                    window.stopPresencePolling();
+                }
+            }
         });
     });
 
