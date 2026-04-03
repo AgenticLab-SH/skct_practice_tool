@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKCT Tool - Admin Dashboard</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" href="admin.css">
+    <link rel="icon" href="sk_ci.png">
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="loginScreen" class="login-screen">
+    <div class="login-card">
+        <h1>🔐 SKCT Tool Admin</h1>
+        <p class="subtitle">개발자 전용 관리 대시보드</p>
+        <input type="password" id="loginPw" placeholder="관리자 비밀번호 입력" autocomplete="off">
+        <button id="loginBtn">로그인</button>
+        <div id="loginError" class="login-error">비밀번호가 올바르지 않습니다.</div>
+    </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="dashboard">
+    <!-- Top Nav -->
+    <nav class="top-nav">
+        <h1>🛡️ SKCT Tool Admin</h1>
+        <div class="top-nav-actions">
+            <a href="index.html" target="_blank">🔗 사이트 보기</a>
+            <button class="btn-logout" id="logoutBtn">로그아웃</button>
+        </div>
+    </nav>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div id="statActive" class="stat-value green">-</div>
+            <div class="stat-label">현재 접속자</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div id="statToday" class="stat-value blue">-</div>
+            <div class="stat-label">오늘 방문자</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div id="statTotal" class="stat-value yellow">-</div>
+            <div class="stat-label">누적 방문자</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💬</div>
+            <div id="statPosts" class="stat-value purple">-</div>
+            <div class="stat-label">총 게시글</div>
+        </div>
+    </div>
+
+    <div class="admin-section">
+
+        <!-- 1. Notice Management -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📢 공지 관리</h2>
+                <button class="btn btn-primary btn-sm" id="noticeSaveBtn">💾 저장</button>
+            </div>
+            <div class="section-body">
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" id="noticeShow" checked>
+                        <label for="noticeShow" style="margin:0; text-transform:none; font-size:13px; cursor:pointer;">공지 표시</label>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>구분</label>
+                        <select id="noticeType" class="form-select">
+                            <option value="info">💡 안내 (파란색)</option>
+                            <option value="update">🆕 업데이트 (초록색)</option>
+                            <option value="warning">⚠️ 경고 (노란색)</option>
+                            <option value="event">🎉 이벤트 (보라색)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>적용 대상</label>
+                        <select id="noticeTarget" class="form-select">
+                            <option value="both">Help + 커뮤니티 둘 다</option>
+                            <option value="help">Help 모달만</option>
+                            <option value="community">커뮤니티만</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>제목</label>
+                    <input type="text" id="noticeTitle" class="form-input" placeholder="예: 📢 개발자 공지">
+                </div>
+                <div class="form-group">
+                    <label>내용 (줄바꿈 가능)</label>
+                    <textarea id="noticeMessage" class="form-textarea" placeholder="공지 내용을 입력하세요..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Popular Config -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🔥 인기글 기준 설정</h2>
+                <button class="btn btn-primary btn-sm" id="popularSaveBtn">💾 저장</button>
+            </div>
+            <div class="section-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>최소 좋아요 수</label>
+                        <input type="number" id="popMinLikes" class="form-input" value="5" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>최소 댓글 수</label>
+                        <input type="number" id="popMinComments" class="form-input" value="3" min="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Post Management -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>💬 게시글 관리</h2>
+                <span id="postFilterCount" style="font-size:12px; color:var(--adm-text-muted);"></span>
+            </div>
+            <div class="tab-filter" id="postTabFilter">
+                <button class="active" data-tab="all">전체</button>
+                <button data-tab="qna">❓ Q&A</button>
+                <button data-tab="review">⭐ 후기</button>
+                <button data-tab="improvement">🔧 개선</button>
+                <button data-tab="faq">📌 FAQ</button>
+                <button data-tab="deleted">🗑️ 삭제됨</button>
+            </div>
+            <div id="postTableWrap" style="overflow-x:auto;">
+                <table class="post-table">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;">상태</th>
+                            <th style="width:70px;">카테고리</th>
+                            <th style="width:80px;">닉네임</th>
+                            <th>내용</th>
+                            <th style="width:50px;">❤️</th>
+                            <th style="width:50px;">💬</th>
+                            <th style="width:100px;">작성일</th>
+                            <th style="width:150px;">동작</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postTableBody">
+                        <tr><td colspan="8" class="empty-state"><div class="icon">📭</div>로딩 중...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. Reply Management Modal -->
+        <div id="replyModal" class="admin-modal-overlay hidden">
+            <div class="admin-modal">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3 id="replyModalTitle">💬 댓글 관리</h3>
+                    <button class="btn btn-ghost btn-sm" id="replyModalClose">✕ 닫기</button>
+                </div>
+                <div id="replyModalBody"></div>
+                <div style="margin-top:16px; border-top:1px solid var(--adm-border); padding-top:16px;">
+                    <label style="font-size:12px; color:var(--adm-text-muted); margin-bottom:6px; display:block;">🛡️ 관리자 답글 작성</label>
+                    <div style="display:flex; gap:8px;">
+                        <textarea id="adminReplyInput" class="form-textarea" style="min-height:40px;" placeholder="관리자 답글을 입력하세요..."></textarea>
+                        <button class="btn btn-success" id="adminReplySubmit" style="white-space:nowrap;">전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction
+    } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
+        authDomain: "skct-tool.firebaseapp.com",
+        databaseURL: "https://skct-tool-default-rtdb.firebaseio.com",
+        projectId: "skct-tool",
+        storageBucket: "skct-tool.firebasestorage.app",
+        messagingSenderId: "1098212167923",
+        appId: "1:1098212167923:web:cfe9f159f5f8820e84e786",
+        measurementId: "G-F00PXNPBJ5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ── Utility ──
+    async function sha256(str) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+    function timeAgo(ts) {
+        const d = Date.now() - ts, m = Math.floor(d / 60000), h = Math.floor(d / 3600000), dy = Math.floor(d / 86400000);
+        if (m < 1) return '방금 전'; if (m < 60) return m + '분 전'; if (h < 24) return h + '시간 전'; if (dy < 30) return dy + '일 전';
+        const dt = new Date(ts); return `${dt.getFullYear()}.${String(dt.getMonth() + 1).padStart(2, '0')}.${String(dt.getDate()).padStart(2, '0')}`;
+    }
+
+    function toast(msg, isError = false) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = 'toast show' + (isError ? ' error' : '');
+        setTimeout(() => el.className = 'toast', 3000);
+    }
+
+    // ── State ──
+    let adminHash = null;
+    let isLoggedIn = false;
+    let allPosts = {};
+    let currentFilter = 'all';
+    let currentReplyPid = null;
+
+    const BASE_YESTERDAY_VISITS = 380;
+
+    // ── Login ──
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+    async function doLogin() {
+        const pw = document.getElementById('loginPw').value.trim();
+        if (!pw) return;
+
+        // Get admin hash from Firebase
+        const snap = await get(ref(db, 'config/adminHash'));
+        if (!snap.exists()) {
+            // No admin hash set — first time setup
+            const confirmSetup = confirm('관리자 비밀번호가 아직 설정되지 않았습니다.\n지금 입력한 비밀번호를 관리자 비밀번호로 설정할까요?');
+            if (confirmSetup) {
+                const hash = await sha256(pw);
+                await set(ref(db, 'config/adminHash'), hash);
+                adminHash = hash;
+                enterDashboard();
+                toast('✅ 관리자 비밀번호가 설정되었습니다!');
+            }
+            return;
+        }
+
+        adminHash = snap.val();
+        const inputHash = await sha256(pw);
+        if (inputHash === adminHash) {
+            enterDashboard();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+            setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
+        }
+    }
+
+    function enterDashboard() {
+        isLoggedIn = true;
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('dashboard').classList.add('active');
+        startDashboard();
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        isLoggedIn = false;
+        document.getElementById('dashboard').classList.remove('active');
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('loginPw').value = '';
+    });
+
+    // ── Dashboard Init ──
+    function startDashboard() {
+        listenStats();
+        listenPosts();
+        listenConfig();
+    }
+
+    // ── Live Stats ──
+    function listenStats() {
+        // Active visitors
+        onValue(ref(db, 'active_visitors'), snap => {
+            document.getElementById('statActive').textContent = snap.size + ' 명';
+        });
+
+        // Today visits
+        const tzDate = new Date();
+        const todayStr = tzDate.getFullYear() + '-' + String(tzDate.getMonth() + 1).padStart(2, '0') + '-' + String(tzDate.getDate()).padStart(2, '0');
+        onValue(ref(db, `daily_visits/${todayStr}`), snap => {
+            document.getElementById('statToday').textContent = (snap.val() || 0).toLocaleString() + ' 명';
+        });
+
+        // Total visits
+        onValue(ref(db, 'total_visits'), snap => {
+            const total = (snap.val() || 0) + BASE_YESTERDAY_VISITS;
+            document.getElementById('statTotal').textContent = total.toLocaleString() + ' 명';
+        });
+    }
+
+    // ── Posts ──
+    function listenPosts() {
+        onValue(ref(db, 'posts'), snap => {
+            allPosts = {};
+            let count = 0;
+            if (snap.exists()) snap.forEach(c => { allPosts[c.key] = { ...c.val(), id: c.key }; count++; });
+            document.getElementById('statPosts').textContent = count;
+            renderPosts();
+        });
+    }
+
+    // Tab filter
+    document.getElementById('postTabFilter').addEventListener('click', e => {
+        if (e.target.tagName !== 'BUTTON') return;
+        currentFilter = e.target.dataset.tab;
+        document.querySelectorAll('#postTabFilter button').forEach(b => b.classList.toggle('active', b.dataset.tab === currentFilter));
+        renderPosts();
+    });
+
+    function getFilteredPosts() {
+        let posts = Object.values(allPosts);
+        if (currentFilter === 'deleted') return posts.filter(p => p.deleted).sort((a, b) => (b.deletedAt || b.timestamp) - (a.deletedAt || a.timestamp));
+        posts = posts.filter(p => !p.deleted);
+        if (currentFilter !== 'all') posts = posts.filter(p => p.category === currentFilter);
+        return posts.sort((a, b) => { if (a.pinned && !b.pinned) return -1; if (!a.pinned && b.pinned) return 1; return b.timestamp - a.timestamp; });
+    }
+
+    function renderPosts() {
+        const posts = getFilteredPosts();
+        const tbody = document.getElementById('postTableBody');
+        const countEl = document.getElementById('postFilterCount');
+        countEl.textContent = `${posts.length}건`;
+
+        if (!posts.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><div class="icon">📭</div>게시글이 없습니다.</td></tr>';
+            return;
+        }
+
+        const catLabels = { qna: 'Q&A', review: '후기', improvement: '개선', faq: 'FAQ' };
+        const catBadges = { qna: 'badge-qna', review: 'badge-review', improvement: 'badge-improvement', faq: 'badge-faq' };
+
+        tbody.innerHTML = posts.map(p => {
+            const status = p.deleted ? '🗑️' : (p.pinned ? '📌' : '✅');
+            const cat = `<span class="badge ${catBadges[p.category] || ''}">${catLabels[p.category] || p.category}</span>`;
+            const content = esc(p.content).substring(0, 100);
+            const actions = p.deleted
+                ? `<button class="btn btn-ghost btn-sm" data-action="restore" data-id="${p.id}">♻️ 복원</button>
+                   <button class="btn btn-danger btn-sm" data-action="harddelete" data-id="${p.id}">💀 완전삭제</button>`
+                : `<button class="btn btn-ghost btn-sm" data-action="replies" data-id="${p.id}">💬</button>
+                   <button class="btn btn-ghost btn-sm" data-action="pin" data-id="${p.id}">${p.pinned ? '📌해제' : '📌고정'}</button>
+                   <button class="btn btn-ghost btn-sm" data-action="move" data-id="${p.id}">→FAQ</button>
+                   <button class="btn btn-danger btn-sm" data-action="delete" data-id="${p.id}">삭제</button>`;
+
+            return `<tr>
+                <td>${status}</td>
+                <td>${cat}</td>
+                <td style="font-weight:600; color:var(--adm-text);">${esc(p.nickname)}</td>
+                <td class="post-content" title="${esc(p.content)}">${content}</td>
+                <td>${p.likes || 0}</td>
+                <td>${p.replyCount || 0}</td>
+                <td class="post-meta">${timeAgo(p.timestamp)}</td>
+                <td>${actions}</td>
+            </tr>`;
+        }).join('');
+
+        // Attach events
+        tbody.querySelectorAll('[data-action]').forEach(btn => {
+            btn.onclick = () => handlePostAction(btn.dataset.action, btn.dataset.id);
+        });
+    }
+
+    async function handlePostAction(action, pid) {
+        switch (action) {
+            case 'pin': {
+                const snap = await get(ref(db, `posts/${pid}/pinned`));
+                await update(ref(db, `posts/${pid}`), { pinned: !(snap.val() || false) });
+                toast('📌 고정 상태 변경됨');
+                break;
+            }
+            case 'move': {
+                if (!confirm('이 게시글을 FAQ로 이동할까요?')) return;
+                await update(ref(db, `posts/${pid}`), { category: 'faq' });
+                toast('📌 FAQ로 이동 완료');
+                break;
+            }
+            case 'delete': {
+                if (!confirm('이 게시글을 삭제할까요?')) return;
+                await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
+                toast('🗑️ 삭제됨');
+                break;
+            }
+            case 'restore': {
+                await update(ref(db, `posts/${pid}`), { deleted: false, deletedAt: null });
+                toast('♻️ 복원됨');
+                break;
+            }
+            case 'harddelete': {
+                if (!confirm('⚠️ 완전히 삭제합니다. 복구가 불가능합니다. 계속할까요?')) return;
+                await remove(ref(db, `posts/${pid}`));
+                await remove(ref(db, `replies/${pid}`));
+                toast('💀 완전 삭제됨');
+                break;
+            }
+            case 'replies': {
+                openReplyModal(pid);
+                break;
+            }
+        }
+    }
+
+    // ── Reply Modal ──
+    async function openReplyModal(pid) {
+        currentReplyPid = pid;
+        const post = allPosts[pid];
+        if (!post) return;
+
+        document.getElementById('replyModalTitle').textContent = `💬 댓글 관리 — ${post.nickname}`;
+        document.getElementById('replyModal').classList.remove('hidden');
+
+        const body = document.getElementById('replyModalBody');
+        body.innerHTML = '<div style="text-align:center; color:var(--adm-text-muted); padding:20px;">로딩 중...</div>';
+
+        const snap = await get(ref(db, `replies/${pid}`));
+        let replies = [];
+        if (snap.exists()) snap.forEach(c => { replies.push({ ...c.val(), id: c.key }); });
+        replies.sort((a, b) => a.timestamp - b.timestamp);
+
+        if (!replies.length) {
+            body.innerHTML = '<div style="text-align:center; color:var(--adm-text-muted); padding:20px;">댓글이 없습니다.</div>';
+            return;
+        }
+
+        body.innerHTML = replies.map(r => {
+            const isDeleted = r.deleted;
+            const adminTag = r.isAdmin ? '<span class="badge badge-pinned" style="margin-right:4px;">🛡️ 관리자</span>' : '';
+            const pinnedTag = r.pinned ? '<span class="badge badge-pinned" style="margin-right:4px;">📌</span>' : '';
+            const style = isDeleted ? 'opacity:0.4;' : (r.isAdmin ? 'border-left:3px solid var(--adm-warning); padding-left:12px;' : '');
+
+            return `<div style="background:var(--adm-bg); border-radius:6px; padding:10px 12px; margin-bottom:8px; ${style}">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        ${adminTag}${pinnedTag}
+                        <strong style="font-size:13px;">${esc(r.nickname)}</strong>
+                        <span style="font-size:11px; color:var(--adm-text-muted);">${timeAgo(r.timestamp)}</span>
+                        ${r.editedAt ? '<span style="font-size:10px; color:var(--adm-text-muted);">(수정됨)</span>' : ''}
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        ${!isDeleted ? `
+                            <button class="btn btn-ghost btn-sm" data-ract="rpin" data-rid="${r.id}">${r.pinned ? '📌해제' : '📌'}</button>
+                            <button class="btn btn-danger btn-sm" data-ract="rdel" data-rid="${r.id}">삭제</button>
+                        ` : `
+                            <button class="btn btn-ghost btn-sm" data-ract="rrestore" data-rid="${r.id}">♻️</button>
+                            <button class="btn btn-danger btn-sm" data-ract="rhard" data-rid="${r.id}">💀</button>
+                        `}
+                    </div>
+                </div>
+                <div style="font-size:13px; color:var(--adm-text); line-height:1.5;">${isDeleted ? '<i style="color:var(--adm-text-muted);">[삭제된 댓글]</i>' : esc(r.content).replace(/\n/g, '<br>')}</div>
+            </div>`;
+        }).join('');
+
+        // Attach reply events
+        body.querySelectorAll('[data-ract]').forEach(btn => {
+            btn.onclick = async () => {
+                const a = btn.dataset.ract, rid = btn.dataset.rid;
+                if (a === 'rpin') {
+                    const s = await get(ref(db, `replies/${pid}/${rid}/pinned`));
+                    await update(ref(db, `replies/${pid}/${rid}`), { pinned: !(s.val() || false) });
+                    toast('📌 댓글 고정 변경');
+                    openReplyModal(pid);
+                } else if (a === 'rdel') {
+                    if (!confirm('댓글을 삭제할까요?')) return;
+                    await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
+                    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c || 0) - 1, 0));
+                    toast('🗑️ 댓글 삭제됨');
+                    openReplyModal(pid);
+                } else if (a === 'rrestore') {
+                    await update(ref(db, `replies/${pid}/${rid}`), { deleted: false, deletedAt: null });
+                    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c || 0) + 1);
+                    toast('♻️ 댓글 복원됨');
+                    openReplyModal(pid);
+                } else if (a === 'rhard') {
+                    if (!confirm('⚠️ 완전 삭제합니다.')) return;
+                    await remove(ref(db, `replies/${pid}/${rid}`));
+                    toast('💀 완전 삭제됨');
+                    openReplyModal(pid);
+                }
+            };
+        });
+    }
+
+    document.getElementById('replyModalClose').addEventListener('click', () => {
+        document.getElementById('replyModal').classList.add('hidden');
+        currentReplyPid = null;
+    });
+
+    // Admin reply submit
+    document.getElementById('adminReplySubmit').addEventListener('click', async () => {
+        if (!currentReplyPid) return;
+        const content = document.getElementById('adminReplyInput').value.trim();
+        if (!content) { toast('내용을 입력하세요', true); return; }
+        await set(push(ref(db, `replies/${currentReplyPid}`)), {
+            nickname: '🛡️ 관리자', passwordHash: '', content,
+            timestamp: Date.now(), isAdmin: true, pinned: true, deleted: false
+        });
+        await runTransaction(ref(db, `posts/${currentReplyPid}/replyCount`), c => (c || 0) + 1);
+        document.getElementById('adminReplyInput').value = '';
+        toast('✅ 관리자 답글 등록');
+        openReplyModal(currentReplyPid);
+    });
+
+    // ── Config (Notice + PopularConfig) ──
+    function listenConfig() {
+        onValue(ref(db, 'config'), snap => {
+            if (!snap.exists()) return;
+            const cfg = snap.val();
+
+            // Notice fields
+            if (cfg.notice) {
+                document.getElementById('noticeShow').checked = cfg.notice.show || false;
+                document.getElementById('noticeType').value = cfg.notice.type || 'info';
+                document.getElementById('noticeTitle').value = cfg.notice.title || '';
+                document.getElementById('noticeMessage').value = cfg.notice.message || '';
+                document.getElementById('noticeTarget').value = cfg.notice.target || 'both';
+            }
+
+            // Popular config
+            if (cfg.popularConfig) {
+                document.getElementById('popMinLikes').value = cfg.popularConfig.minLikes || 5;
+                document.getElementById('popMinComments').value = cfg.popularConfig.minComments || 3;
+            }
+        }, { onlyOnce: true }); // only load once to avoid overwriting user edits
+    }
+
+    // Save notice
+    document.getElementById('noticeSaveBtn').addEventListener('click', async () => {
+        const notice = {
+            show: document.getElementById('noticeShow').checked,
+            type: document.getElementById('noticeType').value,
+            title: document.getElementById('noticeTitle').value.trim(),
+            message: document.getElementById('noticeMessage').value.trim(),
+            target: document.getElementById('noticeTarget').value,
+            updated: new Date().toISOString().slice(0, 10)
+        };
+        await set(ref(db, 'config/notice'), notice);
+
+        // Also update notice.json equivalent for Help modal (sync to Firebase for real-time)
+        // Help modal reads from notice.json BUT we can also make it read from Firebase
+        toast('✅ 공지 저장 완료');
+    });
+
+    // Save popular config
+    document.getElementById('popularSaveBtn').addEventListener('click', async () => {
+        const config = {
+            minLikes: parseInt(document.getElementById('popMinLikes').value) || 5,
+            minComments: parseInt(document.getElementById('popMinComments').value) || 3
+        };
+        await set(ref(db, 'config/popularConfig'), config);
+        toast('✅ 인기글 기준 저장 완료');
+    });
+
+</script>
+
+</body>
+</html>

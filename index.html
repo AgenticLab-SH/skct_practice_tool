@@ -535,6 +535,20 @@
                 }
             });
         }
+
+        // ============================================
+        // 📢 Help 모달 공지 - Firebase 실시간 로드
+        // ============================================
+        onValue(ref(db, 'config/notice'), (snap) => {
+            if (!snap.exists()) return;
+            const data = snap.val();
+            // Help 모달에도 표시 (target이 'community'가 아니면)
+            if (data.target === 'community') return;
+            if (typeof renderNotice === 'function') {
+                window.__skctNoticeLoaded = true;
+                renderNotice(data);
+            }
+        });
     </script>
     <!-- Community Module (loaded after Firebase init) -->
     <script type="module" src="community.js"></script>

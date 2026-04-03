@@ -889,11 +889,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Developer Notice System - 실시간 공지 업데이트 기능 (캐시 무효화 적용)
+    // Developer Notice System - Firebase 기반 실시간 공지 (관리 페이지에서 편집 가능)
+    // window.__skctFirebaseNotice가 설정되면 Firebase에서 로드된 것
+    // 폴백: notice.json
     (async () => {
+        // Firebase에서 공지를 로드하면 이 함수가 호출됨 (index.html Firebase 모듈에서)
+        // 300ms 대기 후 Firebase가 안 왔으면 notice.json 폴백
+        await new Promise(r => setTimeout(r, 500));
+        if (window.__skctNoticeLoaded) return; // Firebase에서 이미 로드됨
         try {
-            // Github Pages 서버에서 최대한 최신 버전을 가져오기 위해 타임스탬프 추가
-            // (주의: GitHub 커밋 후 Pages 배포가 완료되는 1~2분 뒤부터 실시간 갱신됨)
             const res = await fetch('notice.json?t=' + Date.now());
             if (!res.ok) return;
             const data = await res.json();
