@@ -460,25 +460,34 @@
         // ============================================
         const { get } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js");
 
-        async function fetchAnalyticsCache() {
+        async function fetchVisitorStats() {
             try {
-                const res = await fetch('data/analytics-cache.json');
-                if (!res.ok) throw new Error('No cache file');
-                return await res.json();
+                const [totalRes, dailyRes] = await Promise.all([
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/total_visits.json'),
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/daily_visits.json')
+                ]);
+                const totalVisits = await totalRes.json() || 0;
+                const dailyVisits = await dailyRes.json() || {};
+
+                // 최근 7일 데이터 구성
+                const today = new Date();
+                const last7days = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
+                    const label = (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
+                    last7days.push({ date: label, users: dailyVisits[key] || 0 });
+                }
+
+                return { totalUsersApprox: totalVisits, last7days };
             } catch (e) {
-                // Fallback 데이터 (GA 연동 전 임시 노출용 – 서버 오픈일: 2026-04-02)
-                return {
-                    totalUsersApprox: 0,
-                    todayUsers: 0,
-                    last7days: [
-                        {date: '04-02', users: 0},
-                        {date: '04-03', users: 0}
-                    ]
-                };
+                console.error('fetchVisitorStats error:', e);
+                return { totalUsersApprox: 0, last7days: [] };
             }
         }
 
-        fetchAnalyticsCache().then(data => {
+        fetchVisitorStats().then(data => {
             const displayEl = document.getElementById('visitorCountDisplay');
             if (displayEl && data) displayEl.textContent = data.totalUsersApprox.toLocaleString() + " 명";
         });
@@ -493,7 +502,7 @@
                 if (typeof window.startPresencePolling === 'function') window.startPresencePolling();
 
                 try {
-                    const data = await fetchAnalyticsCache();
+                    const data = await fetchVisitorStats();
                     if (!data) return;
 
                     const labels = data.last7days.map(d => d.date);
