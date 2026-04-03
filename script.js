@@ -907,6 +907,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     })();
 
+    // 🛡️ 숨겨진 관리자 페이지 통로
+    const helpModalHeaderTitle = document.querySelector('.help-modal-header h3');
+    if (helpModalHeaderTitle) {
+        helpModalHeaderTitle.style.cursor = 'pointer';
+        helpModalHeaderTitle.title = "더블 클릭 시 관리자 페이지로 이동합니다.";
+        helpModalHeaderTitle.addEventListener('dblclick', () => {
+            window.open('admin.html', '_blank');
+        });
+    }
+
     function renderNotice(data) {
         if (!data.show) return;
         const noticeContainer = document.getElementById('devNotice');
