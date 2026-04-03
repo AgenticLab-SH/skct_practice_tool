@@ -46,7 +46,8 @@ async function listenConfig() {
         const snap = await get(ref(db, 'config'));
         if (!snap.exists()) return;
         const cfg = snap.val();
-        if (cfg.notice) renderNotice(cfg.notice);
+        const noticeData = cfg.notice_community || cfg.notice;
+        if (noticeData) renderNotice(noticeData);
         else { const el = document.getElementById('cmNotice'); if (el) el.innerHTML = ''; }
         if (cfg.popularConfig) popularConfig = cfg.popularConfig;
         if (cfg.adminHash) adminHash = cfg.adminHash;
@@ -61,11 +62,28 @@ function renderNotice(data) {
     if (!data || !data.show) { el.innerHTML = ''; return; }
     const colors = { info:{bg:'#eff6ff',br:'#3b82f6',ic:'💡'}, warning:{bg:'#fffbeb',br:'#f59e0b',ic:'⚠️'}, update:{bg:'#f0fdf4',br:'#22c55e',ic:'🆕'}, event:{bg:'#fdf4ff',br:'#a855f7',ic:'🎉'} };
     const s = colors[data.type] || colors.info;
-    el.innerHTML = `<div class="cm-notice" style="background:${s.bg};border:1px solid ${s.br};border-left:4px solid ${s.br};">
-        <div style="font-weight:bold;color:#1e293b;margin-bottom:4px;">${s.ic} ${data.title||'공지'}</div>
-        <div style="color:#475569;line-height:1.5;font-size:13px;">${(data.message||'').replace(/\n/g,'<br>')}</div>
-        ${data.updated?`<div style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:right;">📅 ${data.updated}</div>`:''}
+    el.innerHTML = `<div id="cmNoticeWrapper" class="cm-notice" style="cursor:pointer; background:${s.bg};border:1px solid ${s.br};border-left:4px solid ${s.br};">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:bold;color:#1e293b;">${s.ic} ${data.title||'공지'}</div>
+            <div id="cmNoticeToggleIcon" style="font-size:10px; color:#64748b; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px;">▼ 펼치기</div>
+        </div>
+        <div id="cmNoticeBody" style="display:none; margin-top:8px; border-top:1px dashed ${s.br}; padding-top:8px;">
+            <div style="color:#475569;line-height:1.5;font-size:13px;">${(data.message||'').replace(/\n/g,'<br>')}</div>
+            ${data.updated?`<div style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:right;">📅 ${data.updated}</div>`:''}
+        </div>
     </div>`;
+
+    document.getElementById('cmNoticeWrapper').onclick = () => {
+        const body = document.getElementById('cmNoticeBody');
+        const icon = document.getElementById('cmNoticeToggleIcon');
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            icon.textContent = '▲ 접기';
+        } else {
+            body.style.display = 'none';
+            icon.textContent = '▼ 펼치기';
+        }
+    };
 }
 
 // ── Posts CRUD (DC-style: nickname + password per post) ──

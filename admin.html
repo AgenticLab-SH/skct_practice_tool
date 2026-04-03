@@ -63,16 +63,22 @@
         <div class="section-card">
             <div class="section-header">
                 <h2>📢 공지 관리</h2>
-                <button class="btn btn-primary btn-sm" id="noticeSaveBtn">💾 저장</button>
+                <div style="display:flex; gap:10px;">
+                    <select id="noticeTarget" class="form-select" style="width:145px; background:white; font-size:12px; padding:4px;">
+                        <option value="notice_help">Help 모달 공지</option>
+                        <option value="notice_community">커뮤니티 공지</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" id="noticeSaveBtn">💾 저장</button>
+                </div>
             </div>
             <div class="section-body">
-                <div class="form-group">
-                    <div class="form-check">
-                        <input type="checkbox" id="noticeShow" checked>
-                        <label for="noticeShow" style="margin:0; text-transform:none; font-size:13px; cursor:pointer;">공지 표시</label>
-                    </div>
-                </div>
                 <div class="form-row">
+                    <div class="form-group" style="flex:auto;">
+                        <div class="form-check" style="margin-top:24px;">
+                            <input type="checkbox" id="noticeShow" checked>
+                            <label for="noticeShow" style="margin:0; text-transform:none; font-size:12px; cursor:pointer;">공지 표시</label>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label>구분</label>
                         <select id="noticeType" class="form-select">
@@ -80,14 +86,6 @@
                             <option value="update">🆕 업데이트 (초록색)</option>
                             <option value="warning">⚠️ 경고 (노란색)</option>
                             <option value="event">🎉 이벤트 (보라색)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>적용 대상</label>
-                        <select id="noticeTarget" class="form-select">
-                            <option value="both">Help + 커뮤니티 둘 다</option>
-                            <option value="help">Help 모달만</option>
-                            <option value="community">커뮤니티만</option>
                         </select>
                     </div>
                 </div>
@@ -98,6 +96,29 @@
                 <div class="form-group">
                     <label>내용 (줄바꿈 가능)</label>
                     <textarea id="noticeMessage" class="form-textarea" placeholder="공지 내용을 입력하세요..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1-B. Global Settings -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>⚙️ 일반 설정 및 유용한 링크</h2>
+                <button class="btn btn-primary btn-sm" id="settingsSaveBtn">💾 저장</button>
+            </div>
+            <div class="section-body">
+                <div class="form-group">
+                    <label>앱 표시 이름</label>
+                    <input type="text" id="settingAppName" class="form-input" placeholder="SKCT 연습 도구" value="SKCT 연습 도구">
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        유용한 링크 (Help 창 하단에 추가됨)
+                        <button class="btn btn-ghost btn-sm" id="addLinkBtn" style="padding:2px 8px; font-size:11px;">+ 링크 추가</button>
+                    </label>
+                    <div id="usefulLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- dynamic items -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -540,42 +561,85 @@
         openReplyModal(currentReplyPid);
     });
 
-    // ── Config (Notice + PopularConfig) ──
+    // ── Config (Notice + PopularConfig + Global) ──
+    let loadedConfig = { notice_help: {}, notice_community: {}, appName: "SKCT 연습 도구", useful_links: [] };
+
+    function renderNoticeForm() {
+        const target = document.getElementById('noticeTarget').value;
+        const notice = loadedConfig[target] || {};
+        document.getElementById('noticeShow').checked = notice.show || false;
+        document.getElementById('noticeType').value = notice.type || 'info';
+        document.getElementById('noticeTitle').value = notice.title || '';
+        document.getElementById('noticeMessage').value = notice.message || '';
+    }
+
+    function renderLinksForm() {
+        const container = document.getElementById('usefulLinksContainer');
+        container.innerHTML = '';
+        if (!loadedConfig.useful_links) loadedConfig.useful_links = [];
+        loadedConfig.useful_links.forEach((link, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex'; row.style.gap = '5px';
+            row.innerHTML = `
+                <input type="text" class="form-input" style="flex:1;" placeholder="제목" value="${esc(link.title||'')}">
+                <input type="text" class="form-input" style="flex:2;" placeholder="URL" value="${esc(link.url||'')}">
+                <button class="btn btn-ghost btn-sm" style="color:var(--adm-danger);" data-idx="${idx}">✕</button>
+            `;
+            row.querySelector('button').onclick = () => {
+                loadedConfig.useful_links.splice(idx, 1);
+                renderLinksForm();
+            };
+            container.appendChild(row);
+        });
+    }
+
+    document.getElementById('addLinkBtn').addEventListener('click', () => {
+        if (!loadedConfig.useful_links) loadedConfig.useful_links = [];
+        loadedConfig.useful_links.push({ title: '', url: '' });
+        renderLinksForm();
+    });
+
+    document.getElementById('noticeTarget').addEventListener('change', renderNoticeForm);
+
     function listenConfig() {
         onValue(ref(db, 'config'), snap => {
             if (!snap.exists()) return;
             const cfg = snap.val();
+            
+            if (cfg.notice_help) loadedConfig.notice_help = cfg.notice_help;
+            else if (cfg.notice) loadedConfig.notice_help = cfg.notice; // fallback logic
+            
+            if (cfg.notice_community) loadedConfig.notice_community = cfg.notice_community;
+            else if (cfg.notice) loadedConfig.notice_community = cfg.notice; // fallback logic
 
-            // Notice fields
-            if (cfg.notice) {
-                document.getElementById('noticeShow').checked = cfg.notice.show || false;
-                document.getElementById('noticeType').value = cfg.notice.type || 'info';
-                document.getElementById('noticeTitle').value = cfg.notice.title || '';
-                document.getElementById('noticeMessage').value = cfg.notice.message || '';
-                document.getElementById('noticeTarget').value = cfg.notice.target || 'both';
-            }
+            if (cfg.appName) loadedConfig.appName = cfg.appName;
+            if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
+
+            renderNoticeForm();
+            renderLinksForm();
+            document.getElementById('settingAppName').value = loadedConfig.appName;
 
             // Popular config
             if (cfg.popularConfig) {
                 document.getElementById('popMinLikes').value = cfg.popularConfig.minLikes || 5;
                 document.getElementById('popMinComments').value = cfg.popularConfig.minComments || 3;
             }
-        }, { onlyOnce: true }); // only load once to avoid overwriting user edits
+        }, { onlyOnce: true });
     }
 
     // Save notice
     document.getElementById('noticeSaveBtn').addEventListener('click', async () => {
+        const target = document.getElementById('noticeTarget').value;
         const notice = {
             show: document.getElementById('noticeShow').checked,
             type: document.getElementById('noticeType').value,
             title: document.getElementById('noticeTitle').value.trim(),
             message: document.getElementById('noticeMessage').value.trim(),
-            target: document.getElementById('noticeTarget').value,
             updated: new Date().toISOString().slice(0, 10)
         };
-        await set(ref(db, 'config/notice'), notice);
-
-        toast('✅ 공지 저장 완료');
+        loadedConfig[target] = notice;
+        await set(ref(db, `config/${target}`), notice);
+        toast('✅ 공지 저장 완료 (' + (target === 'notice_help' ? 'Help' : '커뮤니티') + ')');
     });
 
     // Save popular config
@@ -586,6 +650,25 @@
         };
         await set(ref(db, 'config/popularConfig'), config);
         toast('✅ 인기글 기준 저장 완료');
+    });
+
+    // Save general settings
+    document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
+        const appName = document.getElementById('settingAppName').value.trim();
+        loadedConfig.appName = appName;
+        // gather links
+        const links = [];
+        document.querySelectorAll('#usefulLinksContainer > div').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if(inputs[0].value.trim() && inputs[1].value.trim()) {
+                links.push({ title: inputs[0].value.trim(), url: inputs[1].value.trim() });
+            }
+        });
+        loadedConfig.useful_links = links;
+        
+        await set(ref(db, 'config/appName'), appName);
+        await set(ref(db, 'config/useful_links'), links);
+        toast('✅ 글로벌 설정 저장 완료');
     });
 
 </script>

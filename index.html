@@ -373,7 +373,7 @@
             <!-- 개발자 공지 (Firebase에서 실시간 로드) -->
             <div id="cmNotice"></div>
             <div class="cm-tabs">
-                <button class="cm-tab" data-tab="popular">🔥 인기</button>
+                <button class="cm-tab" data-tab="popular">🔥 인기글</button>
                 <button class="cm-tab active" data-tab="qna">❓ Q&A</button>
                 <button class="cm-tab" data-tab="tip">💡 Tip</button>
                 <button class="cm-tab" data-tab="review">⭐ 후기</button>
@@ -558,35 +558,55 @@
         }
 
         // ============================================
-        // 📢 Help 모달 공지 - Firebase 1회 조회 (캐싱)
+        // 📢 Help 모달 리소스 - Firebase 1회 조회 (캐싱)
         // ============================================
-        async function fetchNotice() {
+        async function fetchConfig() {
             try {
-                const cacheStr = sessionStorage.getItem('skct_notice_cache');
+                const cacheStr = sessionStorage.getItem('skct_config_cache');
                 if (cacheStr) {
                     const parsed = JSON.parse(cacheStr);
                     if (Date.now() - parsed.time < 600000) { // 10 min TTL
-                        handleNoticeData(parsed.data);
+                        handleConfigData(parsed.data);
                         return;
                     }
                 }
-                const snap = await get(ref(db, 'config/notice'));
+                const snap = await get(ref(db, 'config'));
                 if (snap.exists()) {
                     const data = snap.val();
-                    sessionStorage.setItem('skct_notice_cache', JSON.stringify({data, time: Date.now()}));
-                    handleNoticeData(data);
+                    sessionStorage.setItem('skct_config_cache', JSON.stringify({data, time: Date.now()}));
+                    handleConfigData(data);
                 }
-            } catch(e) { console.error('fetchNotice error:', e); }
+            } catch(e) { console.error('fetchConfig error:', e); }
         }
 
-        function handleNoticeData(data) {
-            if (data.target === 'community') return;
+        function handleConfigData(cfg) {
+            if (cfg.appName) {
+                document.title = cfg.appName;
+            }
             if (typeof renderNotice === 'function') {
                 window.__skctNoticeLoaded = true;
-                renderNotice(data);
+                // 하위호환
+                const noticeData = cfg.notice_help || cfg.notice; 
+                if (noticeData) renderNotice(noticeData);
+            }
+            if (cfg.useful_links && cfg.useful_links.length > 0) {
+                let html = `<div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-top: 15px; margin-bottom: 8px;">🔗 유용한 링크</div>`;
+                html += `<div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 15px;">`;
+                cfg.useful_links.forEach(link => {
+                    html += `<a href="${link.url}" target="_blank" style="display:block; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6; text-decoration:none; font-weight:600; font-size:13px; transition:all 0.2s;">
+                        ${link.title} <span style="float:right;">↗</span>
+                    </a>`;
+                });
+                html += `</div>`;
+                const helpBody = document.querySelector('.help-modal-body');
+                if (helpBody) {
+                    const container = document.createElement('div');
+                    container.innerHTML = html;
+                    helpBody.appendChild(container);
+                }
             }
         }
-        fetchNotice();
+        fetchConfig();
     </script>
     <!-- Community Module (loaded after Firebase init) -->
     <script type="module" src="community.js"></script>
