@@ -188,10 +188,10 @@
                 <h3>📖 사용 가이드</h3>
                 <button class="close-modal btn-close">×</button>
             </div>
-            <div class="modal-body help-modal-body">
-
-                <!-- 개발자 공지 (Firebase에서 동적 로드) -->
+            <div class="help-modal-body">
+                <!-- 개발자 공지 (JS에서 주입) -->
                 <div id="devNotice"></div>
+                <div id="sponsorTicker"></div>
 
                 <!-- 사용 예시 사진 섹션 -->
                 <div style="margin-bottom: 5px;">
@@ -617,20 +617,44 @@
                 }
             }
             if (cfg.sponsors && cfg.sponsors.length > 0) {
-                let html = `<div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-top: 20px; margin-bottom: 8px;">💖 투네이션 후원자 명예의 전당</div>`;
-                html += `<div style="display:flex; flex-direction:column; gap:8px; margin-bottom: 15px;">`;
-                cfg.sponsors.forEach(sponsor => {
-                    html += `<div style="padding:10px 14px; background:linear-gradient(135deg, #fdf4ff 0%, #fff 100%); border:1px solid #fbcfe8; border-left:4px solid #f472b6; border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
-                        <span style="font-weight:bold; color:#be185d; font-size:13px;">${sponsor.name}</span> 님
-                        ${sponsor.message ? `<div style="font-size:12px; color:#475569; margin-top:4px;">"${sponsor.message}"</div>` : ''}
-                    </div>`;
-                });
-                html += `</div>`;
-                const helpBody = document.querySelector('.help-modal-body');
-                if (helpBody) {
-                    const container = document.createElement('div');
-                    container.innerHTML = html;
-                    helpBody.appendChild(container);
+                const tickerEl = document.getElementById('sponsorTicker');
+                if (tickerEl) {
+                    let html = `<div style="margin-bottom:14px; padding:10px 14px; background:linear-gradient(135deg, #fdf4ff 0%, #fff 100%); border:1px solid #fbcfe8; border-left:4px solid #f472b6; border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); display:flex; align-items:center; gap:10px;">
+                        <div style="flex-shrink:0; font-size:18px;">💖</div>
+                        <div style="flex:1; overflow:hidden; position:relative; height:20px;">`;
+                    
+                    cfg.sponsors.forEach((s, i) => {
+                        html += `<div class="sponsor-item" style="position:absolute; width:100%; top:0; left:0; opacity:${i===0?1:0}; transition: opacity 0.5s, transform 0.5s; transform: translateY(${i===0?'0':'15px'}); font-size:13px; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <span style="font-weight:bold; color:#be185d;">${s.name}님</span> (${s.amount}) 
+                            <span style="margin-left:4px;">${s.message}</span>
+                            <span style="font-size:10px; color:#94a3b8; margin-left:6px; float:right;">${s.date}</span>
+                        </div>`;
+                    });
+                    
+                    html += `</div></div>`;
+                    tickerEl.innerHTML = html;
+
+                    if (cfg.sponsors.length > 1 && !window.__sponsorTickerStarted) {
+                        window.__sponsorTickerStarted = true;
+                        let idx = 0;
+                        setInterval(() => {
+                            const items = tickerEl.querySelectorAll('.sponsor-item');
+                            if(!items.length) return;
+                            items[idx].style.opacity = '0';
+                            items[idx].style.transform = 'translateY(-15px)';
+                            
+                            idx = (idx + 1) % items.length;
+                            
+                            items[idx].style.transition = 'none';
+                            items[idx].style.transform = 'translateY(15px)';
+                            items[idx].style.opacity = '0';
+                            void items[idx].offsetWidth;
+                            
+                            items[idx].style.transition = 'opacity 0.5s, transform 0.5s';
+                            items[idx].style.opacity = '1';
+                            items[idx].style.transform = 'translateY(0)';
+                        }, 4000);
+                    }
                 }
             }
         }

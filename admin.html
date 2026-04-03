@@ -130,10 +130,13 @@
                 </div>
                 <div class="form-group">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
-                        💖 투네이션 후원자 명단 (명예의 전당)
-                        <button class="btn btn-ghost btn-sm" id="addSponsorBtn" style="padding:2px 8px; font-size:11px;">+ 후원자 추가</button>
+                        💖 투네이션 후원 내역 (CSV 업데이트)
+                        <label class="btn btn-ghost btn-sm" style="padding:2px 8px; font-size:11px; cursor:pointer;" title="투네이션에서 다운받은 CSV 파일을 선택하세요">
+                            + CSV 업로드
+                            <input type="file" id="sponsorCsvUpload" accept=".csv" style="display:none;">
+                        </label>
                     </label>
-                    <div id="sponsorsContainer" style="display:flex; flex-direction:column; gap:8px;">
+                    <div id="sponsorsContainer" style="display:flex; flex-direction:column; gap:4px; max-height:150px; overflow-y:auto; background:#f8fafc; padding:8px; border-radius:4px; border:1px solid #e2e8f0; font-size:12px; color:#475569;">
                         <!-- dynamic items -->
                     </div>
                 </div>
@@ -630,31 +633,54 @@
         renderLinksForm();
     });
 
-    function renderSponsorsForm() {
-        const container = document.getElementById('sponsorsContainer');
-        container.innerHTML = '';
-        if (!loadedConfig.sponsors) loadedConfig.sponsors = [];
-        loadedConfig.sponsors.forEach((sponsor, idx) => {
-            const row = document.createElement('div');
-            row.style.display = 'flex'; row.style.gap = '5px';
-            row.innerHTML = `
-                <input type="text" class="form-input" style="flex:1;" placeholder="후원자 닉네임" value="${esc(sponsor.name||'')}">
-                <input type="text" class="form-input" style="flex:2;" placeholder="메시지" value="${esc(sponsor.message||'')}">
-                <button class="btn btn-ghost btn-sm" style="color:var(--adm-danger);" data-idx="${idx}">✕</button>
-            `;
-            row.querySelector('button').onclick = () => {
-                loadedConfig.sponsors.splice(idx, 1);
-                renderSponsorsForm();
-            };
-            container.appendChild(row);
-        });
+    function parseToonationCSV(csvText) {
+        const lines = csvText.split('\n').map(l=>l.trim()).filter(l=>l);
+        if(lines.length < 2) return [];
+        const data = [];
+        for(let i=1; i<lines.length; i++) {
+            const parts = lines[i].split(',');
+            if(parts.length < 4) continue;
+            const time = parts[0].trim().split(' ')[0]; // YYYY-MM-DD
+            let account = parts[1].trim(); 
+            let name = parts[2].trim();
+            if(name.length === 2) name = name[0]+'*';
+            else if(name.length > 2) name = name[0] + '*'.repeat(name.length-2) + name[name.length-1];
+            
+            let amountStr = parts[3].trim();
+            let amount = parseInt(amountStr.replace(/[^0-9]/g, '')) || 0;
+            let message = parts.slice(4).join(',').trim();
+            
+            data.push({ date: time, account: account, name: name, amount: amount.toLocaleString() + '원', message: message });
+        }
+        return data;
     }
 
-    document.getElementById('addSponsorBtn').addEventListener('click', () => {
-        if (!loadedConfig.sponsors) loadedConfig.sponsors = [];
-        loadedConfig.sponsors.push({ name: '', message: '' });
-        renderSponsorsForm();
+    document.getElementById('sponsorCsvUpload').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const text = evt.target.result;
+            loadedConfig.sponsors = parseToonationCSV(text);
+            renderSponsorsPreview();
+            toast(`✅ ${loadedConfig.sponsors.length}건 인식됨 (저장 버튼을 눌러야 반영됩니다)`);
+        };
+        reader.readAsText(file, "UTF-8");
     });
+
+    function renderSponsorsPreview() {
+        const container = document.getElementById('sponsorsContainer');
+        if (!loadedConfig.sponsors || loadedConfig.sponsors.length === 0) {
+            container.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:10px;">등록된 후원 내역이 없습니다. (CSV를 업로드하세요)</div>';
+            return;
+        }
+        container.innerHTML = `<div style="font-weight:bold; margin-bottom:4px; color:#1e293b;">총 ${loadedConfig.sponsors.length}건</div>`;
+        loadedConfig.sponsors.forEach(s => {
+            const div = document.createElement('div');
+            div.textContent = `[${s.date}] ${s.name} (${s.amount}): ${s.message}`;
+            container.appendChild(div);
+        });
+    }
 
     document.getElementById('noticeTarget').addEventListener('change', renderNoticeForm);
 
@@ -675,7 +701,7 @@
 
             renderNoticeForm();
             renderLinksForm();
-            renderSponsorsForm();
+            renderSponsorsPreview();
             document.getElementById('settingAppName').value = loadedConfig.appName;
 
             // Popular config
@@ -725,19 +751,11 @@
         });
         loadedConfig.useful_links = links;
         
-        // gather sponsors
-        const sponsors = [];
-        document.querySelectorAll('#sponsorsContainer > div').forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            if(inputs[0].value.trim()) {
-                sponsors.push({ name: inputs[0].value.trim(), message: inputs[1].value.trim() });
-            }
-        });
-        loadedConfig.sponsors = sponsors;
+        loadedConfig.useful_links = links;
 
         await set(ref(db, 'config/appName'), appName);
         await set(ref(db, 'config/useful_links'), links);
-        await set(ref(db, 'config/sponsors'), sponsors);
+        await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
         toast('✅ 글로벌 설정 저장 완료');
     });
 
