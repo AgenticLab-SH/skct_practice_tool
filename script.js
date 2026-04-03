@@ -723,10 +723,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateTimerUI = () => {
         if(!displayTotal) return;
-        displayTotal.innerText = `Total ${formatTime(totalSeconds)}`;
+        displayTotal.innerText = `${formatTime(totalSeconds)}`;
         if (currentPhaseIdx < phases.length) {
             const p = phases[currentPhaseIdx];
-            displayPName.innerText = `[${p.name}]`;
+            displayPName.innerText = `${p.name}`;
             displayPTime.innerText = formatTime(currentPhaseSeconds);
             if (p.type === 'break') {
                 displayPName.style.color = '#fb923c'; 
@@ -736,7 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayPTime.style.color = '#4ade80';
             }
         } else {
-            displayPName.innerText = '[시험 종료]';
+            displayPName.innerText = '모든 시험 종료';
             displayPTime.innerText = '00:00';
             displayPName.style.color = '#ef4444';
             displayPTime.style.color = '#ef4444';
@@ -791,7 +791,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             clearInterval(timerInterval);
             timerIsRunning = false;
-            timerPlayBtn.innerText = '▶';
+            timerPlayBtn.innerText = '▶ 시작 / 정지';
             currentPhaseIdx = phases.length;
             updateTimerUI();
             playBeep(440, 300, 3); // 전체 시간 종료
@@ -815,7 +815,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     clearInterval(timerInterval);
                     timerIsRunning = false;
-                    timerPlayBtn.innerText = '▶';
+                    timerPlayBtn.innerText = '▶ 시작 / 정지';
                     playBeep(440, 500, 3); // 전체 종료: 길고 깊은 3회 알람 (A4)
                 }
             }
@@ -830,11 +830,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerIsRunning) {
                 clearInterval(timerInterval);
                 timerIsRunning = false;
-                timerPlayBtn.innerText = '▶';
+                timerPlayBtn.innerText = '▶ 시작 / 정지';
             } else {
                 timerInterval = setInterval(timerTick, 1000);
                 timerIsRunning = true;
-                timerPlayBtn.innerText = '❚❚';
+                timerPlayBtn.innerText = '⏸ 일시정지';
             }
         });
     }
