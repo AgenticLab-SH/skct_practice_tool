@@ -131,6 +131,7 @@
             <div class="tab-filter" id="postTabFilter">
                 <button class="active" data-tab="all">전체</button>
                 <button data-tab="qna">❓ Q&A</button>
+                <button data-tab="tip">💡 Tip</button>
                 <button data-tab="review">⭐ 후기</button>
                 <button data-tab="improvement">🔧 개선</button>
                 <button data-tab="faq">📌 FAQ</button>
@@ -344,8 +345,8 @@
             return;
         }
 
-        const catLabels = { qna: 'Q&A', review: '후기', improvement: '개선', faq: 'FAQ' };
-        const catBadges = { qna: 'badge-qna', review: 'badge-review', improvement: 'badge-improvement', faq: 'badge-faq' };
+        const catLabels = { qna: 'Q&A', tip: 'Tip', review: '후기', improvement: '개선', faq: 'FAQ' };
+        const catBadges = { qna: 'badge-qna', tip: 'badge-tip', review: 'badge-review', improvement: 'badge-improvement', faq: 'badge-faq' };
 
         tbody.innerHTML = posts.map(p => {
             const status = p.deleted ? '🗑️' : (p.pinned ? '📌' : '✅');

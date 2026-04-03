@@ -23,7 +23,7 @@ const sessionId = localStorage.getItem('skct_sid') || (() => {
     return id;
 })();
 
-const WRITABLE_TABS = ['qna', 'review', 'improvement'];
+const WRITABLE_TABS = ['qna', 'tip', 'review', 'improvement'];
 
 // ── Utilities ──
 async function sha256(str) {
@@ -182,7 +182,7 @@ function postCardHTML(p) {
     const liked = p.likedBy && p.likedBy[sessionId];
     let badges = '';
     if (p.pinned) badges += '<span class="cm-badge pin">📌 고정</span>';
-    if (currentTab === 'popular') { const cl={qna:'Q&A',review:'후기',improvement:'개선',faq:'FAQ'}; badges += `<span class="cm-badge cat">${cl[p.category]||''}</span>`; }
+    if (currentTab === 'popular') { const cl={qna:'Q&A', tip:'Tip', review:'후기', improvement:'개선', faq:'FAQ'}; badges += `<span class="cm-badge cat">${cl[p.category]||''}</span>`; }
     if (p.editedAt) badges += '<span class="cm-badge edit">(수정됨)</span>';
     const adm = isAdmin ? `<div class="cm-admin-acts"><button data-act="pin" data-id="${p.id}">📌</button>${p.category!=='faq'?`<button data-act="faq" data-id="${p.id}">→FAQ</button>`:''}<button data-act="areply" data-id="${p.id}">🛡️</button></div>` : '';
 

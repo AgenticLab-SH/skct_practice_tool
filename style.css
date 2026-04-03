@@ -812,26 +812,29 @@ body {
 /* Tabs */
 .cm-tabs {
     display: flex;
-    border-bottom: 2px solid #e2e8f0;
+    gap: 6px;
+    padding: 8px 14px;
     background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
     overflow-x: auto;
 }
+.cm-tabs::-webkit-scrollbar { height: 4px; }
+.cm-tabs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
 .cm-tab {
-    flex: 1;
-    padding: 8px 4px;
-    border: none;
+    padding: 6px 14px;
+    border: 1px solid transparent;
+    border-radius: 20px;
     background: transparent;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: #94a3b8;
+    color: #64748b;
     white-space: nowrap;
-    transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
+    transition: all 0.2s ease;
 }
-.cm-tab:hover { color: #475569; background: #f1f5f9; }
-.cm-tab.active { color: #4f46e5; border-bottom-color: #4f46e5; background: white; }
+.cm-tab:hover { color: #1e293b; background: #f1f5f9; border-color: #e2e8f0; }
+.cm-tab.active { color: white; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-color: transparent; box-shadow: 0 2px 6px rgba(99,102,241,0.3); }
 
 /* Write Form */
 .cm-write {
