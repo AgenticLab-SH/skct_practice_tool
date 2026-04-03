@@ -353,7 +353,7 @@
 
                 <!-- 3. 총 누적 접속자 -->
                 <div style="border-top: 1px dashed #cbd5e1; padding-top: 15px; text-align: center;">
-                    <span style="font-size: 13px; color: #64748b; margin-bottom: 5px; display: block;">🗓️ 2026-04-02 이후 역대 누적 접속자</span>
+                    <span style="font-size: 13px; color: #64748b; margin-bottom: 5px; display: block;">🗓️ 누적 방문자</span>
                     <div id="visitorCountDisplay" style="font-size: 18px; font-weight: bold; color: #3b82f6;">로딩 중...</div>
                 </div>
             </div>
@@ -466,14 +466,13 @@
                 if (!res.ok) throw new Error('No cache file');
                 return await res.json();
             } catch (e) {
-                // Fallback 데이터 (GA 연동 전 임시 노출용)
+                // Fallback 데이터 (GA 연동 전 임시 노출용 – 서버 오픈일: 2026-04-02)
                 return {
-                    totalUsersApprox: 1250,
-                    todayUsers: 134,
+                    totalUsersApprox: 0,
+                    todayUsers: 0,
                     last7days: [
-                        {date: '03-28', users: 150}, {date: '03-29', users: 160}, {date: '03-30', users: 170},
-                        {date: '03-31', users: 140}, {date: '04-01', users: 180}, {date: '04-02', users: 380},
-                        {date: '04-03', users: 134}
+                        {date: '04-02', users: 0},
+                        {date: '04-03', users: 0}
                     ]
                 };
             }
