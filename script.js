@@ -895,23 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Developer Notice System - Firebase 기반 실시간 공지 (관리 페이지에서 편집 가능)
-    // window.__skctFirebaseNotice가 설정되면 Firebase에서 로드된 것
-    // 폴백: notice.json
-    (async () => {
-        // Firebase에서 공지를 로드하면 이 함수가 호출됨 (index.html Firebase 모듈에서)
-        // 300ms 대기 후 Firebase가 안 왔으면 notice.json 폴백
-        await new Promise(r => setTimeout(r, 500));
-        if (window.__skctNoticeLoaded) return; // Firebase에서 이미 로드됨
-        try {
-            const res = await fetch('notice.json?t=' + Date.now());
-            if (!res.ok) return;
-            const data = await res.json();
-            renderNotice(data);
-        } catch (e) {
-            // notice.json이 없거나 파싱 실패 시 조용히 무시
-        }
-    })();
+    // Developer Notice System - Firebase 기반 공지 렌더링 함수 (호출은 index.html에서 수행)
 
     // 🛡️ 숨겨진 관리자 페이지 통로
     const helpModalHeaderTitle = document.querySelector('.help-modal-header h3');

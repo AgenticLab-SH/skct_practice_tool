@@ -190,7 +190,7 @@
             </div>
             <div class="modal-body help-modal-body">
 
-                <!-- 개발자 공지 (notice.json에서 동적 로드) -->
+                <!-- 개발자 공지 (Firebase에서 동적 로드) -->
                 <div id="devNotice"></div>
 
                 <!-- 사용 예시 사진 섹션 -->
@@ -496,7 +496,10 @@
                     const d = new Date(today);
                     d.setDate(d.getDate() - i);
                     const key = d.toISOString().slice(0, 10); // YYYY-MM-DD
-                    if (key < LAUNCH_DATE) continue; // 오픈일 이전 스킵
+                    if (key < LAUNCH_DATE) {
+                        last7days.push({ date: '', users: null });
+                        continue;
+                    }
                     const label = (d.getMonth() + 1).toString().padStart(2, '0') + '-' + d.getDate().toString().padStart(2, '0');
                     last7days.push({ date: label, users: dailyVisits[key] || 0 });
                 }
@@ -547,7 +550,7 @@
                         options: {
                             responsive: true, maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
-                            scales: { y: { beginAtZero: true, ticks: { precision: 0 }, suggestedMax: Math.max(...chartData, 5) + 2 } }
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 }, suggestedMax: Math.max(...chartData.map(v => Number(v) || 0), 5) + 2 } }
                         }
                     });
                 } catch (err) { console.error("차트 렌더링 실패:", err); }
