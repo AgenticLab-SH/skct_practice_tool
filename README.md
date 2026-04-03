@@ -4,7 +4,7 @@
 
 🔗 **[바로 사용하기 →](https://agenticlab-sh.github.io/skct_tool/)**
 
-![OG Image](og-image.png)
+![OG Image](images/og-image.png)
 
 ---
 
@@ -47,8 +47,15 @@ skct_tool/
 ├── style.css           # 전체 스타일
 ├── script.js           # 앱 로직 (OMR, 타이머, 계산기 등)
 ├── notice.json         # 실시간 공지사항 (GitHub에서 직접 수정 가능)
-├── og-image.png        # SNS 공유용 OG 이미지
-├── sk_ci.png           # 파비콘
+├── images/
+│   ├── og-image.png        # SNS 공유용 OG 이미지
+│   ├── sk_ci.png           # 파비콘
+│   ├── omr_using_image.png # 도움말용 OMR 이미지
+│   ├── real_non_omr_image.png # 실제 환경 분할 이미지
+│   ├── help_collapsed.png
+│   └── help_expanded.png
+├── docs/
+│   └── SKCT_TOOL_운영가이드.md
 ├── sitemap.xml         # SEO 사이트맵
 ├── robots.txt          # 검색 봇 가이드
 └── README.md           # 이 문서
