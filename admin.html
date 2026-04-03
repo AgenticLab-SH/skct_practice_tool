@@ -94,7 +94,15 @@
                     <input type="text" id="noticeTitle" class="form-input" placeholder="예: 📢 개발자 공지">
                 </div>
                 <div class="form-group">
-                    <label>내용 (줄바꿈 가능)</label>
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>내용 (리치 텍스트 지원)</span>
+                        <div style="display:flex; gap:4px;">
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="wrapText('noticeMessage', '<b>', '</b>')" title="굵게" style="padding:2px 6px;"><b>B</b></button>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="wrapText('noticeMessage', '&lt;span style=&quot;color:#ef4444;&quot;&gt;', '&lt;/span&gt;')" title="빨간색" style="color:#ef4444; font-weight:bold; padding:2px 6px;">T</button>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="wrapText('noticeMessage', '&lt;span style=&quot;color:#3b82f6;&quot;&gt;', '&lt;/span&gt;')" title="파란색" style="color:#3b82f6; font-weight:bold; padding:2px 6px;">T</button>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="wrapText('noticeMessage', '&lt;span style=&quot;font-size:16px;&quot;&gt;', '&lt;/span&gt;')" title="글자 크게" style="padding:2px 6px; font-weight:bold;">A⁺</button>
+                        </div>
+                    </label>
                     <textarea id="noticeMessage" class="form-textarea" placeholder="공지 내용을 입력하세요..."></textarea>
                 </div>
             </div>
@@ -111,12 +119,21 @@
                     <label>앱 표시 이름</label>
                     <input type="text" id="settingAppName" class="form-input" placeholder="SKCT 연습 도구" value="SKCT 연습 도구">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         유용한 링크 (Help 창 하단에 추가됨)
                         <button class="btn btn-ghost btn-sm" id="addLinkBtn" style="padding:2px 8px; font-size:11px;">+ 링크 추가</button>
                     </label>
                     <div id="usefulLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
+                        <!-- dynamic items -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        💖 투네이션 후원자 명단 (명예의 전당)
+                        <button class="btn btn-ghost btn-sm" id="addSponsorBtn" style="padding:2px 8px; font-size:11px;">+ 후원자 추가</button>
+                    </label>
+                    <div id="sponsorsContainer" style="display:flex; flex-direction:column; gap:8px;">
                         <!-- dynamic items -->
                     </div>
                 </div>
@@ -561,8 +578,22 @@
         openReplyModal(currentReplyPid);
     });
 
+    // ── Global Tools ──
+    window.wrapText = function(id, openTag, closeTag) {
+        const ta = document.getElementById(id);
+        if (!ta) return;
+        const start = ta.selectionStart;
+        const end = ta.selectionEnd;
+        const text = ta.value;
+        const selectedText = text.substring(start, end);
+        ta.value = text.substring(0, start) + openTag + selectedText + closeTag + text.substring(end);
+        ta.selectionStart = start + openTag.length;
+        ta.selectionEnd = start + openTag.length + selectedText.length;
+        ta.focus();
+    };
+
     // ── Config (Notice + PopularConfig + Global) ──
-    let loadedConfig = { notice_help: {}, notice_community: {}, appName: "SKCT 연습 도구", useful_links: [] };
+    let loadedConfig = { notice_help: {}, notice_community: {}, appName: "SKCT 연습 도구", useful_links: [], sponsors: [] };
 
     function renderNoticeForm() {
         const target = document.getElementById('noticeTarget').value;
@@ -599,6 +630,32 @@
         renderLinksForm();
     });
 
+    function renderSponsorsForm() {
+        const container = document.getElementById('sponsorsContainer');
+        container.innerHTML = '';
+        if (!loadedConfig.sponsors) loadedConfig.sponsors = [];
+        loadedConfig.sponsors.forEach((sponsor, idx) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex'; row.style.gap = '5px';
+            row.innerHTML = `
+                <input type="text" class="form-input" style="flex:1;" placeholder="후원자 닉네임" value="${esc(sponsor.name||'')}">
+                <input type="text" class="form-input" style="flex:2;" placeholder="메시지" value="${esc(sponsor.message||'')}">
+                <button class="btn btn-ghost btn-sm" style="color:var(--adm-danger);" data-idx="${idx}">✕</button>
+            `;
+            row.querySelector('button').onclick = () => {
+                loadedConfig.sponsors.splice(idx, 1);
+                renderSponsorsForm();
+            };
+            container.appendChild(row);
+        });
+    }
+
+    document.getElementById('addSponsorBtn').addEventListener('click', () => {
+        if (!loadedConfig.sponsors) loadedConfig.sponsors = [];
+        loadedConfig.sponsors.push({ name: '', message: '' });
+        renderSponsorsForm();
+    });
+
     document.getElementById('noticeTarget').addEventListener('change', renderNoticeForm);
 
     function listenConfig() {
@@ -614,9 +671,11 @@
 
             if (cfg.appName) loadedConfig.appName = cfg.appName;
             if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
+            if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
 
             renderNoticeForm();
             renderLinksForm();
+            renderSponsorsForm();
             document.getElementById('settingAppName').value = loadedConfig.appName;
 
             // Popular config
@@ -666,8 +725,19 @@
         });
         loadedConfig.useful_links = links;
         
+        // gather sponsors
+        const sponsors = [];
+        document.querySelectorAll('#sponsorsContainer > div').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if(inputs[0].value.trim()) {
+                sponsors.push({ name: inputs[0].value.trim(), message: inputs[1].value.trim() });
+            }
+        });
+        loadedConfig.sponsors = sponsors;
+
         await set(ref(db, 'config/appName'), appName);
         await set(ref(db, 'config/useful_links'), links);
+        await set(ref(db, 'config/sponsors'), sponsors);
         toast('✅ 글로벌 설정 저장 완료');
     });
 
