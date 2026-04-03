@@ -354,21 +354,29 @@
         fetchAdminActiveVisitors();
         setInterval(fetchAdminActiveVisitors, 10000);
 
-        // ── Analytics Cache (Today & Total) ──
-        async function fetchAnalyticsCache() {
+        // ── Analytics (Today & Total) ──
+        async function fetchAdminAnalytics() {
             try {
-                const res = await fetch('data/analytics-cache.json');
-                if(!res.ok) throw new Error('No cache file');
-                const data = await res.json();
-                document.getElementById('statToday').textContent = data.todayUsers.toLocaleString() + ' 명';
-                document.getElementById('statTotal').textContent = data.totalUsersApprox.toLocaleString() + ' 명';
+                const [totalRes, dailyRes] = await Promise.all([
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/total_visits.json'),
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/daily_visits.json')
+                ]);
+                const totalVisits = await totalRes.json() || 0;
+                const dailyVisits = await dailyRes.json() || {};
+                
+                const d = new Date();
+                const todayKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                const todayVisits = dailyVisits[todayKey] || 0;
+
+                document.getElementById('statToday').textContent = todayVisits.toLocaleString() + ' 명';
+                document.getElementById('statTotal').textContent = totalVisits.toLocaleString() + ' 명';
             } catch (e) {
-                // Fallback (임시 데이터)
-                document.getElementById('statToday').textContent = '134 명';
-                document.getElementById('statTotal').textContent = '1,250 명';
+                console.error("fetchAdminAnalytics error:", e);
+                document.getElementById('statToday').textContent = '- 명';
+                document.getElementById('statTotal').textContent = '- 명';
             }
         }
-        fetchAnalyticsCache();
+        fetchAdminAnalytics();
     }
 
     // ── Posts ──
