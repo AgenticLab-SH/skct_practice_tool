@@ -239,6 +239,20 @@ body {
     padding: 5px;
     height: 100%;
     overflow: hidden;
+    position: relative; /* For break overlay */
+}
+
+.omr-break-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(3px);
+    text-align: center;
 }
 
 .omr-content.hidden {
@@ -370,6 +384,24 @@ body {
 }
 .q-row.past-q {
     opacity: 0.6;
+}
+/* 실전 모드: 시간 종료된 과목 */
+.subject-group.subject-locked {
+    opacity: 0.5;
+    position: relative;
+}
+.subject-group.subject-locked .subject-title {
+    color: #94a3b8;
+}
+.lock-badge {
+    font-size: 10px;
+    color: #ef4444;
+    font-weight: 600;
+    margin-left: 4px;
+}
+.q-row.locked-q {
+    opacity: 0.4;
+    pointer-events: none;
 }
 .q-num {
     width: 18px;

@@ -101,6 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentGlobalIndex: 0
     };
 
+    // 실전/연습 모드 (기본: 실전 모드)
+    let isPracticeMode = localStorage.getItem('skct_practice_mode') === 'true';
+    // 실전 모드에서 시간 종료된 과목 인덱스를 추적
+    const lockedSubjectIndices = new Set();
+
     const omrSidebar = document.getElementById('omrSidebar');
     const omrToggleBtn = document.getElementById('omrToggleBtn');
     const omrContent = document.getElementById('omrContent');
@@ -188,8 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (timerIsRunning) {
             const qKey = getCurrentQKey();
             if (qKey) {
-                // 누적 시간 유지 혹은 새로 덮어쓰기 여부 (우선 덮어쓰기로. 다시 돌아가서 푸는 경우 이전 시간이 소멸되지만, SKCT는 돌아가기보다 직진 성향)
-                // 만약 합산이 필요하다면: questionTimings[qKey].spent += questionSpentSec;
                 if (!questionTimings[qKey]) questionTimings[qKey] = { spent: 0, state: 'answered' };
                 questionTimings[qKey].spent += questionSpentSec;
                 if (isSkip) questionTimings[qKey].state = 'skipped';
@@ -200,14 +203,35 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('globalClearBtn').click();
     };
 
+    // 현재 globalIndex가 어떤 과목(subjectIndex)에 속하는지 반환
+    const getSubjectIndexForGlobal = (globalIdx) => {
+        let cumulative = 0;
+        for (let i = 0; i < subjects.length; i++) {
+            cumulative += subjects[i].count;
+            if (globalIdx < cumulative) return i;
+        }
+        return subjects.length - 1;
+    };
+
+    // 과목 인덱스별 시작 globalIndex 반환
+    const getSubjectStartIndex = (subjIdx) => {
+        let start = 0;
+        for (let k = 0; k < subjIdx; k++) {
+            start += subjects[k].count;
+        }
+        return start;
+    };
+
     // Render OMR
     function renderOMR() {
         let globalIndex = 0;
         omrBody.innerHTML = '';
-        subjects.forEach(subj => {
+        subjects.forEach((subj, subjIdx) => {
             const group = document.createElement('div');
             group.className = 'subject-group';
-            group.innerHTML = `<div class="subject-title">${subj.name}</div>`;
+            const isSubjLocked = lockedSubjectIndices.has(subjIdx);
+            if (isSubjLocked) group.classList.add('subject-locked');
+            group.innerHTML = `<div class="subject-title">${subj.name}${isSubjLocked ? ' <span class="lock-badge">🔒 시간종료</span>' : ''}</div>`;
             
             for (let i = 1; i <= subj.count; i++) {
                 const qRow = document.createElement('div');
@@ -217,8 +241,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isPast = (currentIdx < omrState.currentGlobalIndex);
 
                 if (omrState.mode === 'answer') {
-                    if (isCurrent) qRow.classList.add('current-q');
-                    else if (isPast) qRow.classList.add('past-q');
+                    if (isSubjLocked) {
+                        qRow.classList.add('locked-q');
+                    } else if (isCurrent) {
+                        qRow.classList.add('current-q');
+                    } else if (isPast) {
+                        qRow.classList.add('past-q');
+                    }
                 } else if (omrState.mode === 'score') {
                     const qKey = `${subj.id}_${i}`;
                     const myAns = omrState.myAnswers[qKey];
@@ -239,23 +268,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         extraClass = 'selected';
                     } else if (omrState.mode === 'score') {
                         if (isCorrectAnswer) {
-                            extraClass = 'selected correct'; // Green
+                            extraClass = 'selected correct';
                         } else if (isMyAnswer) {
-                            extraClass = 'selected wrong'; // Red (Wrong guess)
+                            extraClass = 'selected wrong';
                         }
                     }
 
                     let disabledAttr = '';
-                    if (omrState.mode === 'answer' && !isCurrent) {
-                        disabledAttr = 'disabled';
+                    if (omrState.mode === 'answer') {
+                        if (isSubjLocked) {
+                            // 실전 모드: 시간 종료된 과목은 무조건 잠금
+                            disabledAttr = 'disabled';
+                        } else if (isPracticeMode) {
+                            // 연습 모드: 모든 문항 자유 입력
+                            disabledAttr = '';
+                        } else if (!isCurrent) {
+                            // 실전 모드: 현재 문항만 입력 가능
+                            disabledAttr = 'disabled';
+                        }
                     }
 
-                    optionsHtml += `<button class="q-opt ${extraClass}" data-key="${qKey}" data-opt="${opt}" ${disabledAttr}>${opt}</button>`;
+                    optionsHtml += `<button class="q-opt ${extraClass}" data-key="${qKey}" data-opt="${opt}" data-gidx="${currentIdx}" ${disabledAttr}>${opt}</button>`;
                 }
                 
                 const qKey = `${subj.id}_${i}`;
                 let skipHtml = '';
-                if (omrState.mode === 'answer' && isCurrent) {
+                if (omrState.mode === 'answer' && isCurrent && !isSubjLocked) {
                     skipHtml = `<button class="q-skip-btn" data-key="${qKey}" title="답을 고르지 않고 넘어갑니다">⏭ 건너뛰기</button>`;
                 }
 
@@ -285,11 +323,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', (e) => {
                 const key = e.target.dataset.key;
                 const opt = parseInt(e.target.dataset.opt);
+                const gIdx = parseInt(e.target.dataset.gidx);
                 
                 if (omrState.mode === 'answer') {
                     if (!e.target.disabled) {
                         omrState.myAnswers[key] = (omrState.myAnswers[key] === opt) ? null : opt;
-                        advanceQuestion(false); // Trigger next question advance
+                        if (isPracticeMode) {
+                            // 연습 모드: 클릭한 문항 위치로 currentGlobalIndex 이동 후 advance
+                            omrState.currentGlobalIndex = gIdx;
+                        }
+                        advanceQuestion(false);
                     }
                 } else {
                     omrState.correctAnswers[key] = (omrState.correctAnswers[key] === opt) ? null : opt;
@@ -300,9 +343,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('.q-skip-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const key = e.target.dataset.key;
                 if (omrState.mode === 'answer') {
-                    advanceQuestion(true); // skip
+                    advanceQuestion(true);
                 }
             });
         });
@@ -633,13 +675,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrState.mode = 'answer';
                 questionTimings = {};
                 questionSpentSec = 0;
+                lockedSubjectIndices.clear(); // 잠금 해제
                 updateModeUI();
                 
-                if (!canvasWrapper.classList.contains('hidden')) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                } else {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 notepad.value = '';
                 calcState.current = '0';
                 calcState.previous = null;
@@ -894,11 +933,11 @@ document.addEventListener('DOMContentLoaded', () => {
             displayPTime.style.color = '#ef4444';
         }
 
-        // Guide Timer Update
+        // Guide Timer Update (연습 모드에서는 가이드 타이머 숨김)
         const guideWrapper = document.getElementById('guideTimerWrapper');
         const displayGuide = document.getElementById('displayGuideTime');
         const qKey = getCurrentQKey();
-        if (guideWrapper && displayGuide && configGuideEnabled && timerIsRunning && qKey && currentPhaseIdx < phases.length && phases[currentPhaseIdx].type !== 'break') {
+        if (guideWrapper && displayGuide && configGuideEnabled && !isPracticeMode && timerIsRunning && qKey && currentPhaseIdx < phases.length && phases[currentPhaseIdx].type !== 'break') {
             guideWrapper.style.display = 'block';
             const remaining = configGuideSec - questionSpentSec;
             if (remaining >= 0) {
@@ -1001,23 +1040,66 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // 페이즈 종료 → 알람음 재생
                 const endedPhase = phases[currentPhaseIdx];
+                const endedPhaseIdx = currentPhaseIdx;
                 currentPhaseIdx++;
                 if (currentPhaseIdx < phases.length) {
                     currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
                     if (endedPhase.type === 'subject') {
                         playBeep(659, 400, 2); // 과목 종료: 부드러운 더블 차임 (E5)
+                        // 실전 모드: 종료된 과목 잠금
+                        if (!isPracticeMode) {
+                            const subjIdx = Math.floor(endedPhaseIdx / 2);
+                            lockedSubjectIndices.add(subjIdx);
+                        }
                     } else {
                         playBeep(523, 400, 1); // 쉬는시간 종료: 단일 차임 (C5)
                     }
+                    applyPhaseToOMR();
                 } else {
                     clearInterval(timerInterval);
                     timerIsRunning = false;
                     timerPlayBtn.innerText = '▶ 시작 / 정지';
-                    playBeep(440, 500, 3); // 전체 종료: 길고 깊은 3회 알람 (A4)
+                    playBeep(440, 500, 3); // 전체 종료
+                    // 실전 모드: 마지막 과목도 잠금
+                    if (!isPracticeMode) {
+                        const subjIdx = Math.floor((currentPhaseIdx - 1) / 2);
+                        lockedSubjectIndices.add(subjIdx);
+                    }
+                    applyPhaseToOMR();
                 }
             }
         }
         updateTimerUI();
+    };
+
+    const applyPhaseToOMR = () => {
+        const breakOverlay = document.getElementById('omrBreakOverlay');
+        if (currentPhaseIdx >= phases.length) {
+            if (breakOverlay) breakOverlay.classList.add('hidden');
+            renderOMR();
+            return;
+        }
+        const currentPhase = phases[currentPhaseIdx];
+        if (currentPhase.type === 'break') {
+            if (!isPracticeMode) {
+                if (breakOverlay) breakOverlay.classList.remove('hidden');
+            } else {
+                // 연습 모드: break overlay 표시하지 않음
+                if (breakOverlay) breakOverlay.classList.add('hidden');
+            }
+        } else {
+            if (breakOverlay) breakOverlay.classList.add('hidden');
+            
+            const subjIdx = Math.floor(currentPhaseIdx / 2);
+            const targetIndex = getSubjectStartIndex(subjIdx);
+            if (!isPracticeMode) {
+                // 실전 모드: 강제로 다음 과목 첫 문항으로 이동
+                if (omrState.currentGlobalIndex < targetIndex) {
+                    omrState.currentGlobalIndex = targetIndex;
+                }
+            }
+            renderOMR();
+        }
     };
 
     if(timerPlayBtn) {
@@ -1032,6 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 timerInterval = setInterval(timerTick, 1000);
                 timerIsRunning = true;
                 timerPlayBtn.innerText = '⏸ 일시정지';
+                applyPhaseToOMR();
             }
         });
     }
@@ -1039,7 +1122,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsToggle = document.getElementById('settingsToggle');
     const settingsModal = document.getElementById('settingsModal');
     if(settingsToggle && settingsModal) {
-        settingsToggle.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        settingsToggle.addEventListener('click', () => {
+            // 모달 열릴 때 현재 모드 상태 동기화
+            const practiceModeInput = document.getElementById('cfgPracticeMode');
+            if (practiceModeInput) practiceModeInput.checked = isPracticeMode;
+            settingsModal.classList.remove('hidden');
+        });
     }
 
     const settingsApplyBtn = document.getElementById('settingsApplyBtn');
@@ -1054,15 +1142,24 @@ document.addEventListener('DOMContentLoaded', () => {
             configGuideSec = parseInt(document.getElementById('cfgGuideSec').value) || 45;
             localStorage.setItem('skct_guide_cfg', JSON.stringify({enabled: configGuideEnabled, sec: configGuideSec}));
 
+            // 모드 설정 적용
+            const practiceModeInput = document.getElementById('cfgPracticeMode');
+            if (practiceModeInput) {
+                isPracticeMode = practiceModeInput.checked;
+                localStorage.setItem('skct_practice_mode', isPracticeMode);
+            }
+
             if (timerIsRunning) {
                 clearInterval(timerInterval);
                 timerIsRunning = false;
                 timerPlayBtn.innerText = '▶ 시작 / 정지';
             }
             totalSeconds = configTotalMins * 60;
+            lockedSubjectIndices.clear(); // 모드 변경 시 잠금 초기화
             buildPhases();
             updateTimerUI();
             applyRatios();
+            renderOMR();
             settingsModal.classList.add('hidden');
         });
     }
