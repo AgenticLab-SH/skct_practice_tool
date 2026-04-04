@@ -150,7 +150,10 @@
 
                 <!-- Calculator (Bottom right area in layout logic) -->
                 <section class="calculator-section">
-                    <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+                    <div class="calc-display-wrapper" style="position: relative; width: 100%;">
+                        <span id="calcOpDisplay" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: bold; color: #94a3b8;"></span>
+                        <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+                    </div>
                     <div class="calc-keys">
                         <button class="calc-btn fn-btn" data-val="C">C</button>
                         <button class="calc-btn op-btn" data-val="/">÷</button>
@@ -321,6 +324,9 @@
                         <!-- rows injected via js -->
                     </tbody>
                 </table>
+                <div id="statDetailWrapper" style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; overflow-x: hidden;">
+                    <!-- details injected via js -->
+                </div>
             </div>
         </div>
     </div>

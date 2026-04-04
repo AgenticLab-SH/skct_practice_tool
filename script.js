@@ -187,6 +187,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (omrState.mode === 'answer') {
                     if (isCurrent) qRow.classList.add('current-q');
                     else if (isPast) qRow.classList.add('past-q');
+                } else if (omrState.mode === 'score') {
+                    const qKey = `${subj.id}_${i}`;
+                    const myAns = omrState.myAnswers[qKey];
+                    const corAns = omrState.correctAnswers[qKey];
+                    if (!myAns) qRow.classList.add('status-missed');
+                    else if (myAns === corAns) qRow.classList.add('status-correct');
+                    else qRow.classList.add('status-wrong');
                 }
                 
                 let optionsHtml = '';
@@ -327,17 +334,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (detailScoreBtn) {
         detailScoreBtn.addEventListener('click', () => {
             const tbody = document.getElementById('statTableBody');
+            const detailWrapper = document.getElementById('statDetailWrapper');
             if(!tbody) return;
             
             let trHtml = '';
+            let detailHtml = '';
+            
             subjects.forEach(subj => {
                 let sAtt = 0;
                 let sCor = 0;
+                let wrongHtml = '';
                 for (let i=1; i<=subj.count; i++) {
                     const qKey = `${subj.id}_${i}`;
-                    if (omrState.myAnswers[qKey]) sAtt++;
-                    if (omrState.correctAnswers[qKey] && omrState.myAnswers[qKey] === omrState.correctAnswers[qKey]) {
+                    const myAns = omrState.myAnswers[qKey];
+                    const corAns = omrState.correctAnswers[qKey];
+                    if (myAns) sAtt++;
+                    if (corAns && myAns === corAns) {
                         sCor++;
+                    } else if (corAns) {
+                       let myAnsText = myAns ? myAns : "-";
+                       wrongHtml += `<span style="background: ${myAns?'#fee2e2':'#f1f5f9'}; color: ${myAns?'#ef4444':'#64748b'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${myAns?'#fca5a5':'#cbd5e1'}; white-space: nowrap; font-size: 11px;">
+                            <strong>${i}번</strong>: 답(${myAnsText}) 정답(${corAns})
+                       </span>`;
                     }
                 }
                 const rate = sAtt > 0 ? ((sCor / sAtt) * 100).toFixed(1) : 0;
@@ -350,8 +368,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="color: #f59e0b; font-weight: bold;">${rate}%</td>
                     </tr>
                 `;
+                if(wrongHtml !== '') {
+                    detailHtml += `
+                    <div>
+                        <div style="font-weight: bold; color: #3b82f6; margin-bottom: 4px;">▶ ${subj.name} 오답/미응답 정리</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${wrongHtml}</div>
+                    </div>
+                    `;
+                }
             });
             tbody.innerHTML = trHtml;
+            if(detailWrapper) {
+                detailWrapper.innerHTML = detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">완벽합니다! 틀린 문제가 없습니다. 🎉</div>' : detailHtml;
+            }
             document.getElementById('statModal').classList.remove('hidden');
         });
     }
@@ -549,6 +578,16 @@ document.addEventListener('DOMContentLoaded', () => {
             displayStr = displayStr.substring(0, 12);
         }
         calcDisplay.value = displayStr;
+
+        const opDisplay = document.getElementById('calcOpDisplay');
+        if (opDisplay) {
+            let symbol = '';
+            if (calcState.operator === '*') symbol = '×';
+            else if (calcState.operator === '/') symbol = '÷';
+            else if (calcState.operator === '+') symbol = '+';
+            else if (calcState.operator === '-') symbol = '-';
+            opDisplay.innerText = symbol;
+        }
     }
 
     function handleNumber(numStr) {
