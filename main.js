@@ -934,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const donateToggle = document.getElementById('donateToggle');
     if (donateToggle) {
         donateToggle.addEventListener('click', () => {
-            const msg = "취준생 여러분의 쾌적한 합격 메이트, SKCT Tool입니다! 🎉\n\n이곳은 지저분한 팝업 광고에 시간 뺏기지 않도록 모두를 위해 무료로 운영하는 '우리의 공동 툴'입니다.\n지금 이 글을 보고 계신 단 한 분의 소소한 투네이션 혹은 메일 후원이 다음 달 무료 서버를 끄떡없이 유지하는 데 엄청난 보탬이 됩니다!\n\n합격의 기운을 담아 커피 한 잔 ☕ 쏘고 쿨하게 공부하러 가실 분 계신가요?\n\n(확인을 누르시면 투네이션 후원 링크로 연결됩니다)";
+            const msg = "우리가 함께 지켜나가는 '결제/광고 없는' SKCT 연습 공간입니다! ✍️\n\n저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 SKCT에만 집중할 수 있도록 결제 유도나 상업적 배너 광고를 일절 넣지 않고 사비로 100% 무료 서버를 가동 중입니다.\n\n이 쾌적한 '모두의 툴'이 다음 달에도 거뜬히 유지될 수 있도록, 투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 마음을 보태어 주시면 정말 큰 힘이 됩니다!\n\n(확인을 누르시면 간편 후원 페이지로 이동합니다)";
             if (confirm(msg)) {
                 window.open('https://toon.at/donate/foreveryonehappy', '_blank');
             }
