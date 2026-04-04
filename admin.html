@@ -437,7 +437,7 @@
         tbody.innerHTML = posts.map(p => {
             const status = p.deleted ? '🗑️' : (p.pinned ? '📌' : '✅');
             const cat = `<span class="badge ${catBadges[p.category] || ''}">${catLabels[p.category] || p.category}</span>`;
-            const content = esc(p.content).substring(0, 100);
+            const content = esc(p.content);
             const actions = p.deleted
                 ? `<button class="btn btn-ghost btn-sm" data-action="restore" data-id="${p.id}">♻️ 복원</button>
                    <button class="btn btn-danger btn-sm" data-action="harddelete" data-id="${p.id}">💀 완전삭제</button>`

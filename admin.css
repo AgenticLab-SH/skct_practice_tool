@@ -402,10 +402,9 @@ body {
 }
 
 .post-table .post-content {
-    max-width: 300px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: 400px;
+    white-space: pre-wrap;
+    word-break: break-all;
     color: var(--adm-text);
 }
 
