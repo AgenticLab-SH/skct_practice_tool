@@ -38,7 +38,7 @@
 <body>
     <!-- SEO & Screen Reader 용 숨김 텍스트 (Google 검색 노출 극대화) -->
     <h1 class="sr-only">SKCT 연습 툴 - SKCT 실제화면과 동일한 온라인 SKCT 환경 가이드</h1>
-    <p class="sr-only">본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. 고사장 모니터의 SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!</p>
+    <p class="sr-only">본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!</p>
 
     <div class="app-container">
 
@@ -46,7 +46,7 @@
         <aside class="omr-sidebar collapsed" id="omrSidebar">
             <div class="sidebar-controls" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 8px;">
                 <div class="help-toggle" id="helpToggle" title="사용 가이드">
-                    <span>H</span><span>E</span><span>L</span><span>P</span>
+                    <span>G</span><span>U</span><span>I</span><span>D</span><span>E</span>
                 </div>
                 <div class="omr-toggle" id="omrToggleBtn" title="연습용 OMR 탭 열기/닫기">
                     <span style="font-size:9px; letter-spacing:0; line-height:1.2;">연습용</span><span style="font-size:9px; letter-spacing:0; line-height:1.2;">OMR</span>
@@ -58,7 +58,7 @@
                 <!-- 구분선 -->
                 <div class="stats-toggle" id="statsToggle" title="실시간 현황 & 최근 7일 그래프">
                     <span style="font-size:14px;">🔥</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">접속자</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">접속자 수</span>
                 </div>
                 <div class="comment-toggle" id="commentToggle" title="커뮤니티 게시판 (공지 / Q&A / 후기)">
                     <span style="font-size:14px;">💬</span>
@@ -75,7 +75,7 @@
                 <!-- 탭 접기 (최상단) -->
                 <div class="omr-top-bar">
                     <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 탭 접기</button>
-                    <span id="omrModeLabel" class="omr-mode-label">📝 답안 작성 중</span>
+                    <span id="omrModeLabel" class="omr-mode-label">응시 모드</span>
                 </div>
 
                 <!-- OMR 칸 (절반 높이) -->
@@ -85,7 +85,7 @@
 
                 <!-- 하단 세로 배열 버튼 -->
                 <div class="omr-actions">
-                    <button id="globalClearBtn" class="omr-action-btn skip-btn">⏭ 건너뛰기</button>
+                    <button id="globalClearBtn" class="omr-action-btn skip-btn">문항 건너뛰기</button>
                     <button id="modeToggleBtn" class="omr-action-btn mode-btn">📝 정답 입력 모드로 전환</button>
                     <button id="scoreBtn" class="omr-action-btn grade-btn">📊 채점 및 통계 확인</button>
                     <div id="scoreResult" class="score-result hidden">
@@ -198,9 +198,9 @@
                     <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">📷 실제 툴 사용 권장 예시</div>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 200px;">
-                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 실제 권장 환경 (PDF 분할)</div>
+                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ PDF 활용 예시</div>
                             <img src="images/real_non_omr_image.png" alt="PDF 및 연습 도구 분할 화면" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; text-align:center;">좌측에 PDF나 e-book을 띄워두고 이 예시 사진과 동일한 비율로 맞춰서 화면을 구성하시면 몰입감이 좋습니다.</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; text-align:center;">좌측에 PDF나 e-book을 띄워두고 이 예시 사진과 동일한 비율로 맞춰서 화면을 구성하시고 연습하시면 됩니다.</div>
                         </div>
                         <div style="flex: 1; min-width: 200px;">
                             <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 연습용 모드 (OMR 사용)</div>
@@ -214,7 +214,7 @@
                     <strong style="color:#1e293b;">[참고사항]</strong><br>
                     1. <strong>실제 시험장 사용 불가</strong>: 실제 온라인 SKCT 시험은 전용 보안 프로그램에서 진행되므로 본 연습 툴을 병행하여 띄워둘 수 없습니다.<br>
                     2. <strong>유사 환경 구현</strong>: 본 도구는 실제 시험의 타이머 작동 방식, 리셋되는 메모장, 제한적 계산기 등 UI/UX를 최대한 비슷하게 체험하도록 제작한 모의 연습 도구입니다.<br>
-                    3. <strong>OMR은 연습 전용</strong>: 실제 시험에는 OMR이 없으며 문제 창 측면에 직접 정답을 체크하는 방식입니다. 본 서비스의 OMR 기능은 여러분의 채점 편의를 위해 가상으로 추가된 기능입니다.
+                    3. <strong>OMR은 연습 전용</strong>: 실제 시험에는 OMR이 없으며 문제 에 직접 정답을 체크하는 방식입니다. 본 서비스의 OMR 기능은 여러분의 채점 편의를 위해 가상으로 추가된 기능입니다.
                 </div>
 
                 <!-- 기능 안내 -->
@@ -222,20 +222,20 @@
                 <div class="guide-diagram" style="background:#1e293b; border-radius:8px; padding:15px; color:white; font-size:13px; display:flex; gap:10px;">
                     <div style="flex:1; border:2px solid #3b82f6; padding:10px; border-radius:4px; position:relative;">
                         <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>
-                        <p>📖 <strong>HELP</strong> — 이 가이드</p>
+                        <p>📖 <strong>GUIDE</strong> — 가이드 문서</p>
                         <p>📝 <strong>OMR</strong> — 답안 마킹/채점</p>
                         <p>⚙ <strong>설정</strong> — 타이머·높이비율</p>
-                        <p>🔥 <strong>현황</strong> — 실시간 접속자</p>
+                        <p>🔥 <strong>접속자 수</strong> — 실시간 접속자</p>
                         <p>💬 <strong>게시판</strong> — 커뮤니티</p>
                         <p>☕ <strong>커피후원</strong> — 제작자 응원</p>
                         <hr style="border-color:#334155; margin: 8px 0;">
-                        <p style="color:#93c5fd;">💡 OMR에서 답 마킹 → <strong>자동 다음 문제</strong></p>
-                        <p style="color:#93c5fd;">💡 [건너뛰기] = 마킹 없이 스킵</p>
+                        <p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제</strong></p>
+                        <p style="color:#93c5fd;">[건너뛰기] = 마킹 없이 스킵</p>
                     </div>
                     <div style="flex:2; display:flex; flex-direction:column; gap:10px;">
                         <div style="border:2px solid #a855f7; padding:10px; border-radius:4px; text-align:center;">
                             <strong>🕒 다중 페이즈 타이머</strong><br>
-                            과목 → 쉬는시간 사이클 <strong>자동 전환</strong><br>
+                            과목 → 쉬는시간 사이클 <strong>자동 전환 및 소리 알림</strong><br>
                             <span style="color:#c4b5fd;">⚙ 설정에서 시간 조절 가능</span>
                         </div>
                         <div style="border:2px solid #eab308; padding:10px; border-radius:4px; text-align:center; flex:3;">
@@ -244,8 +244,8 @@
                             <span style="color:#fde68a;">실제 SKCT와 동일한 동작</span>
                         </div>
                         <div style="border:2px solid #22c55e; padding:10px; border-radius:4px; text-align:center; flex:2;">
-                            <strong>🧮 키보드 계산기</strong><br>
-                            Delete·Esc 금지, <strong>C 버튼만 허용</strong><br>
+                            <strong>🧮 키보드 사용 가능한 계산기</strong><br>
+                            <strong>버튼 구현</strong><br>
                             <span style="color:#86efac;">실제 시험과 동일한 제한</span>
                         </div>
                     </div>
@@ -382,8 +382,8 @@
             </div>
             <div class="cm-write" id="cmWriteForm" style="flex-direction:column;gap:6px;">
                 <div style="display:flex;gap:6px;">
-                    <input type="text" id="cmNick" placeholder="닉네임" maxlength="20" style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none;">
-                    <input type="password" id="cmPw" placeholder="비밀번호" style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none;">
+                    <input type="text" id="cmNick" placeholder="(자유로운)닉네임" maxlength="20" style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none;">
+                    <input type="password" id="cmPw" placeholder="(자유로운)비밀번호" style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none;">
                 </div>
                 <div style="display:flex;gap:6px;">
                     <textarea id="cmInput" placeholder="내용을 입력하세요... (최대 1000자)" rows="2"></textarea>
@@ -639,7 +639,7 @@
                     let html = `<div style="margin-bottom:14px; padding:10px 14px; background:linear-gradient(135deg, #fdf4ff 0%, #fff 100%); border:1px solid #fbcfe8; border-left:4px solid #f472b6; border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); display:flex; gap:10px; align-items:flex-start;">
                         <div style="flex-shrink:0; font-size:18px; margin-top:2px;">💖</div>
                         <div style="flex:1; overflow:hidden; position:relative; height:80px;">`;
-                    
+
                     cfg.sponsors.forEach((s, i) => {
                         html += `<div class="sponsor-item" style="position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; justify-content:center; opacity:${i===0?1:0}; transition: opacity 0.5s, transform 0.5s; transform: translateY(${i===0?'0':'15px'}); font-size:13px; color:#475569;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;">
