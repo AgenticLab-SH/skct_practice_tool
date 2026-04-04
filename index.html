@@ -114,7 +114,12 @@
                     <div style="width: 1px; height: 24px; background: #334155;"></div>
                     <div style="display:flex; flex-direction:column; align-items:center;">
                         <span id="displayPhaseName" style="color: #60a5fa; font-size: 11px; font-weight: bold; margin-bottom: 2px;">진행 대기중</span>
-                        <span id="displayPhaseTime" style="color: #4ade80; font-family: 'Consolas', monospace; font-size: 20px; font-weight: bold; line-height: 1;">00:00</span>
+                        <div style="display:flex; align-items:baseline; gap:8px;">
+                            <span id="displayPhaseTime" style="color: #4ade80; font-family: 'Consolas', monospace; font-size: 20px; font-weight: bold; line-height: 1;">00:00</span>
+                        </div>
+                        <div id="guideTimerWrapper" style="font-size:10px; color:#94a3b8; font-weight:bold; margin-top:4px; display:none;">
+                            가이드: <span id="displayGuideTime" style="color:#38bdf8; font-family:'Consolas', monospace;">00:00</span>
+                        </div>
                     </div>
                     <div class="timer-controls" style="margin-left: 8px;">
                         <button id="timerPlayBtn" style="padding: 6px 14px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;">▶ 시작 / 정지</button>
@@ -281,6 +286,19 @@
                         <input type="number" id="cfgBreak" value="1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
                 </div>
+                <!-- 문항 가이드 설정 -->
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                        ⏱️ 문항별 시간 가이드
+                        <label style="font-size:11px; font-weight:normal; display:flex; align-items:center; gap:4px; margin:0;">
+                            <input type="checkbox" id="cfgGuideEnabled" checked style="margin:0;"> 표시하기
+                        </label>
+                    </div>
+                    <div class="settings-row" style="margin-bottom:0;">
+                        <label style="color:#334155;">1문항당 권장 시간 (초)</label>
+                        <input type="number" id="cfgGuideSec" value="45" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                </div>
                 <!-- 높이 비율 설정 -->
                 <div>
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📐 높이 비율 설정 (우측 영역)</div>
@@ -326,6 +344,30 @@
                 </table>
                 <div id="statDetailWrapper" style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; overflow-x: hidden;">
                     <!-- details injected via js -->
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Donation Custom Modal -->
+    <div id="donateModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 420px; padding: 25px;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0px; margin-bottom: 10px;">
+                <h3 style="color: #6366f1; font-size: 18px; line-height: 1.4;">☕ 우리의 공동 툴,<br>쾌적하게 지켜나가기</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body" style="font-size: 14px; line-height: 1.6; color: #475569; padding-right: 0;">
+                <p style="margin-bottom: 12px; margin-top: 0;">우리가 함께 지켜나가는 <strong>'결제/광고 없는' SKCT 연습 공간</strong>입니다! ✍️</p>
+                <p style="margin-bottom: 12px;">저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 집중할 수 있도록 상업적 배너 광고나 결제 유도를 일절 넣지 않고 사비로 <strong>100% 무료 서버</strong>를 가동 중입니다.</p>
+                <p style="margin-bottom: 12px;">최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 커지고 있지만, 끝까지 이 <strong style="color:#ef4444;">'광고 없는 무료 개방'</strong> 원칙을 고수하려 합니다.</p>
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px dashed #93c5fd; margin-bottom: 20px; font-size: 13px; color: #334155;">
+                    만약 이 쾌적한 <strong>'모두의 툴'</strong>이 여러분의 합격 준비에 약간이나마 유용하셨다면, <strong style="color:#2563eb;">투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 후원에 동참</strong>해 주시길 조심스레 부탁드립니다.<br><br>
+                    이 공간이 다음 달에도 거뜬히 유지되려면 여러분 한 분 한 분의 십시일반 참여가 필수적입니다! 💕
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="close-modal" id="donateLaterBtn" style="flex:1; padding:12px; background:#e2e8f0; color:#475569; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; transition: background 0.2s;">나중에 하기</button>
+                    <button id="donateConfirmBtn" style="flex:2; padding:12px; background:linear-gradient(135deg, #6366f1, #8b5cf6); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px; transition: opacity 0.2s;">☕ 쿨하게 지원하기</button>
                 </div>
             </div>
         </div>
@@ -641,12 +683,21 @@
             }
             
             // Timer Defaults Sync
+            // Timer Defaults Sync
             if (cfg.timerDefaults && !localStorage.getItem('skct_timer_cfg')) {
                 if (window.applyRemoteTimerDefaults) {
                     window.applyRemoteTimerDefaults(
                         cfg.timerDefaults.total,
                         cfg.timerDefaults.subj,
                         cfg.timerDefaults.brk
+                    );
+                }
+            }
+            if (cfg.guideDefaults && !localStorage.getItem('skct_guide_cfg')) {
+                if (window.applyRemoteGuideDefaults) {
+                    window.applyRemoteGuideDefaults(
+                        cfg.guideDefaults.enabled,
+                        cfg.guideDefaults.sec
                     );
                 }
             }

@@ -137,6 +137,21 @@
                         </div>
                     </div>
                 </div>
+                <!-- 문항별 가이드 설정 -->
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        ⏱️ 문항별 시간 타이머 & 가이드 초기값
+                        <label class="form-check" style="margin: 0; font-weight: normal; font-size:11px; color:var(--adm-text-muted);">
+                            <input type="checkbox" id="settingGuideEnabled" checked> 켜기 기본값
+                        </label>
+                    </label>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">1문항당 권장 시간 (초)</span>
+                            <input type="number" id="settingGuideSec" class="form-input" placeholder="45" value="45">
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         유용한 링크 (Help 창 하단에 추가됨)
@@ -760,6 +775,11 @@
                 document.getElementById('settingTimerBreak').value = cfg.timerDefaults.brk || 1;
             }
 
+            if (cfg.guideDefaults) {
+                document.getElementById('settingGuideEnabled').checked = cfg.guideDefaults.enabled !== false;
+                document.getElementById('settingGuideSec').value = cfg.guideDefaults.sec || 45;
+            }
+
             renderNoticeForm();
             renderLinksForm();
             renderSponsorsPreview();
@@ -820,10 +840,16 @@
             brk: parseInt(document.getElementById('settingTimerBreak').value) || 1
         };
 
+        const guideDefaults = {
+            enabled: document.getElementById('settingGuideEnabled').checked,
+            sec: parseInt(document.getElementById('settingGuideSec').value) || 45
+        };
+
         await set(ref(db, 'config/appName'), appName);
         await set(ref(db, 'config/useful_links'), links);
         await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
         await set(ref(db, 'config/timerDefaults'), timerDefaults);
+        await set(ref(db, 'config/guideDefaults'), guideDefaults);
         toast('✅ 글로벌 & 기본 설정 저장 완료');
     });
 

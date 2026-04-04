@@ -168,6 +168,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Question Timing
+    let questionTimings = {}; // { "math_1": { spent: 45, state: 'answered' | 'skipped' } }
+    let questionSpentSec = 0;
+
+    // Helper to get current Question Key
+    const getCurrentQKey = () => {
+        let globalIndex = 0;
+        for (let subj of subjects) {
+            for (let i = 1; i <= subj.count; i++) {
+                if (globalIndex === omrState.currentGlobalIndex) return `${subj.id}_${i}`;
+                globalIndex++;
+            }
+        }
+        return null;
+    };
+
+    const advanceQuestion = (isSkip = false) => {
+        if (timerIsRunning) {
+            const qKey = getCurrentQKey();
+            if (qKey) {
+                // 누적 시간 유지 혹은 새로 덮어쓰기 여부 (우선 덮어쓰기로. 다시 돌아가서 푸는 경우 이전 시간이 소멸되지만, SKCT는 돌아가기보다 직진 성향)
+                // 만약 합산이 필요하다면: questionTimings[qKey].spent += questionSpentSec;
+                if (!questionTimings[qKey]) questionTimings[qKey] = { spent: 0, state: 'answered' };
+                questionTimings[qKey].spent += questionSpentSec;
+                if (isSkip) questionTimings[qKey].state = 'skipped';
+                else questionTimings[qKey].state = 'answered';
+                questionSpentSec = 0; // reset
+            }
+        }
+        document.getElementById('globalClearBtn').click();
+    };
+
     // Render OMR
     function renderOMR() {
         let globalIndex = 0;
@@ -220,10 +252,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     optionsHtml += `<button class="q-opt ${extraClass}" data-key="${qKey}" data-opt="${opt}" ${disabledAttr}>${opt}</button>`;
                 }
+                
+                const qKey = `${subj.id}_${i}`;
+                let skipHtml = '';
+                if (omrState.mode === 'answer' && isCurrent) {
+                    skipHtml = `<button class="q-skip-btn" data-key="${qKey}" title="답을 고르지 않고 넘어갑니다">⏭ 건너뛰기</button>`;
+                }
 
                 qRow.innerHTML = `
                     <div class="q-num">${i}.</div>
-                    <div class="q-options">${optionsHtml}</div>
+                    <div class="q-options" style="display:flex; align-items:center; gap:4px;">
+                        ${optionsHtml}
+                        ${skipHtml}
+                    </div>
                 `;
                 group.appendChild(qRow);
                 globalIndex++;
@@ -248,12 +289,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (omrState.mode === 'answer') {
                     if (!e.target.disabled) {
                         omrState.myAnswers[key] = (omrState.myAnswers[key] === opt) ? null : opt;
-                        // Trigger next question advance
-                        document.getElementById('globalClearBtn').click();
+                        advanceQuestion(false); // Trigger next question advance
                     }
                 } else {
                     omrState.correctAnswers[key] = (omrState.correctAnswers[key] === opt) ? null : opt;
                     renderOMR();
+                }
+            });
+        });
+
+        document.querySelectorAll('.q-skip-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const key = e.target.dataset.key;
+                if (omrState.mode === 'answer') {
+                    advanceQuestion(true); // skip
                 }
             });
         });
@@ -378,8 +427,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
             tbody.innerHTML = trHtml;
+            
+            // Add Timing Stats
+            let timeHtml = '';
+            let allTimes = [];
+            subjects.forEach(subj => {
+                for (let i = 1; i <= subj.count; i++) {
+                    const qKey = `${subj.id}_${i}`;
+                    if (questionTimings[qKey]) {
+                        allTimes.push({ key: qKey, subjName: subj.name, num: i, spent: questionTimings[qKey].spent, state: questionTimings[qKey].state });
+                    }
+                }
+            });
+
+            if (allTimes.length > 0) {
+                const sortedTimes = [...allTimes].sort((a, b) => b.spent - a.spent);
+                const topHtml = sortedTimes.slice(0, 3).map((item, idx) => `
+                    <div style="color: ${idx===0 ? '#ef4444' : '#f97316'}; font-weight:bold; font-size:12px; margin-top:2px;">
+                        ${idx+1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.state === 'skipped' ? '건너뜀' : '마킹함'})
+                    </div>
+                `).join('');
+
+                timeHtml += `
+                <div style="margin-top: 15px;">
+                    <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0;">⏱ 소요 시간 리포트 (타이머 가동 중 이력)</div>
+                    <div style="padding: 10px; background: #fffcf8; border: 1px solid #fed7aa; border-radius: 6px; margin-bottom: 8px;">
+                        <span style="font-size:11px; color:#c2410c; font-weight:bold;">🚨 가장 오래 걸린 문항 Top 3</span>
+                        ${topHtml}
+                    </div>
+                </div>`;
+                
+                subjects.forEach(subj => {
+                    let sTimes = allTimes.filter(t => t.subjName === subj.name);
+                    if (sTimes.length > 0) {
+                        let tHtml = sTimes.map(t => `<span style="background: ${t.state==='skipped' ? '#f1f5f9' : '#e0f2fe'}; color: ${t.state==='skipped' ? '#64748b' : '#0369a1'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${t.state==='skipped' ? '#cbd5e1' : '#bae6fd'}; white-space: nowrap; font-size: 11px;">
+                            <strong>${t.num}번</strong>: ${t.spent}초 소요${t.state==='skipped'?' (건너뜀)':''}
+                        </span>`).join('');
+                        timeHtml += `
+                        <div style="margin-bottom: 8px;">
+                            <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">▶ ${subj.name} 소요 시간</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${tHtml}</div>
+                        </div>`;
+                    }
+                });
+            }
+
             if(detailWrapper) {
-                detailWrapper.innerHTML = detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">완벽합니다! 틀린 문제가 없습니다. 🎉</div>' : detailHtml;
+                detailWrapper.innerHTML = detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">완벽합니다! 틀린 문제가 없습니다. 🎉</div>' + timeHtml : detailHtml + timeHtml;
             }
             document.getElementById('statModal').classList.remove('hidden');
         });
@@ -537,6 +631,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrState.correctAnswers = {};
                 omrState.currentGlobalIndex = 0;
                 omrState.mode = 'answer';
+                questionTimings = {};
+                questionSpentSec = 0;
                 updateModeUI();
                 
                 if (!canvasWrapper.classList.contains('hidden')) {
@@ -742,12 +838,25 @@ document.addEventListener('DOMContentLoaded', () => {
         configSubjectMins = savedTimerCfg.subj || 15;
         configBreakMins = savedTimerCfg.brk || 1;
     }
+
+    let configGuideEnabled = true;
+    let configGuideSec = 45;
+    const savedGuideCfg = JSON.parse(localStorage.getItem('skct_guide_cfg'));
+    if (savedGuideCfg) {
+        configGuideEnabled = savedGuideCfg.enabled;
+        configGuideSec = savedGuideCfg.sec;
+    }
     const totalTimeInput = document.getElementById('cfgTotal');
     const subjectTimeInput = document.getElementById('cfgSubj');
     const breakTimeInput = document.getElementById('cfgBreak');
+    const guideEnabledInput = document.getElementById('cfgGuideEnabled');
+    const guideSecInput = document.getElementById('cfgGuideSec');
+
     if(totalTimeInput) totalTimeInput.value = configTotalMins;
     if(subjectTimeInput) subjectTimeInput.value = configSubjectMins;
     if(breakTimeInput) breakTimeInput.value = configBreakMins;
+    if(guideEnabledInput) guideEnabledInput.checked = configGuideEnabled;
+    if(guideSecInput) guideSecInput.value = configGuideSec;
     
     totalSeconds = configTotalMins * 60;
     buildPhases();
@@ -784,6 +893,24 @@ document.addEventListener('DOMContentLoaded', () => {
             displayPName.style.color = '#ef4444';
             displayPTime.style.color = '#ef4444';
         }
+
+        // Guide Timer Update
+        const guideWrapper = document.getElementById('guideTimerWrapper');
+        const displayGuide = document.getElementById('displayGuideTime');
+        const qKey = getCurrentQKey();
+        if (guideWrapper && displayGuide && configGuideEnabled && timerIsRunning && qKey && currentPhaseIdx < phases.length && phases[currentPhaseIdx].type !== 'break') {
+            guideWrapper.style.display = 'block';
+            const remaining = configGuideSec - questionSpentSec;
+            if (remaining >= 0) {
+                displayGuide.style.color = '#38bdf8';
+                displayGuide.innerText = `${remaining}초 남음`;
+            } else {
+                displayGuide.style.color = '#ef4444';
+                displayGuide.innerText = `+${Math.abs(remaining)}초 초과`;
+            }
+        } else if (guideWrapper) {
+            guideWrapper.style.display = 'none';
+        }
     };
 
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
@@ -798,6 +925,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         totalSeconds = configTotalMins * 60;
         buildPhases();
+        updateTimerUI();
+    };
+
+    window.applyRemoteGuideDefaults = (enabled, sec) => {
+        configGuideEnabled = enabled;
+        configGuideSec = sec || 45;
+        if (guideEnabledInput) guideEnabledInput.checked = enabled;
+        if (guideSecInput) guideSecInput.value = sec;
         updateTimerUI();
     };
 
@@ -844,6 +979,10 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTimerUI();
 
     const timerTick = () => {
+        if (timerIsRunning && currentPhaseIdx < phases.length && phases[currentPhaseIdx].type !== 'break') {
+            questionSpentSec++;
+        }
+
         if (totalSeconds > 0) {
             totalSeconds--;
         } else {
@@ -906,17 +1045,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsApplyBtn = document.getElementById('settingsApplyBtn');
     if (settingsApplyBtn) {
         settingsApplyBtn.addEventListener('click', () => {
-            cfgTotalMins = parseInt(document.getElementById('cfgTotal').value) || 75;
-            cfgSubjMins = parseInt(document.getElementById('cfgSubj').value) || 15;
-            cfgBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
-            localStorage.setItem('skct_timer_cfg', JSON.stringify({total: cfgTotalMins, subj: cfgSubjMins, brk: cfgBreakMins}));
+            configTotalMins = parseInt(document.getElementById('cfgTotal').value) || 75;
+            configSubjectMins = parseInt(document.getElementById('cfgSubj').value) || 15;
+            configBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
+            localStorage.setItem('skct_timer_cfg', JSON.stringify({total: configTotalMins, subj: configSubjectMins, brk: configBreakMins}));
             
+            configGuideEnabled = document.getElementById('cfgGuideEnabled').checked;
+            configGuideSec = parseInt(document.getElementById('cfgGuideSec').value) || 45;
+            localStorage.setItem('skct_guide_cfg', JSON.stringify({enabled: configGuideEnabled, sec: configGuideSec}));
+
             if (timerIsRunning) {
                 clearInterval(timerInterval);
                 timerIsRunning = false;
-                timerPlayBtn.innerText = '▶';
+                timerPlayBtn.innerText = '▶ 시작 / 정지';
             }
-            totalSeconds = cfgTotalMins * 60;
+            totalSeconds = configTotalMins * 60;
             buildPhases();
             updateTimerUI();
             applyRatios();
@@ -932,12 +1075,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const donateToggle = document.getElementById('donateToggle');
-    if (donateToggle) {
+    const donateModal = document.getElementById('donateModal');
+    if (donateToggle && donateModal) {
         donateToggle.addEventListener('click', () => {
-            const msg = "우리가 함께 지켜나가는 '결제/광고 없는' SKCT 연습 공간입니다! ✍️\n\n저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 집중할 수 있도록 상업적 배너나 결제 유도를 일절 넣지 않고 사비로 100% 무료 서버를 가동 중입니다.\n\n최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 생겨나고 있지만, 끝까지 이 '광고 없는 무료 개방' 원칙을 고수하려 합니다.\n\n만약 이 쾌적한 '모두의 툴'이 여러분의 합격 준비에 약간이나마 유용하셨다면, 투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 후원에 동참해 주시길 조심스레 부탁드립니다. 이 공간이 다음 달에도 거뜬히 유지되려면 여러분 한 분 한 분의 십시일반 참여가 필수적입니다! 💕\n\n(확인을 누르시면 간편 후원 페이지로 이동합니다)";
-            if (confirm(msg)) {
-                window.open('https://toon.at/donate/foreveryonehappy', '_blank');
-            }
+            donateModal.classList.remove('hidden');
+        });
+    }
+    const donateConfirmBtn = document.getElementById('donateConfirmBtn');
+    if (donateConfirmBtn) {
+        donateConfirmBtn.addEventListener('click', () => {
+            donateModal.classList.add('hidden');
+            window.open('https://toon.at/donate/foreveryonehappy', '_blank');
+        });
+    }
+    const donateLaterBtn = document.getElementById('donateLaterBtn');
+    if (donateLaterBtn) {
+        donateLaterBtn.addEventListener('click', () => {
+             donateModal.classList.add('hidden');
         });
     }
     
