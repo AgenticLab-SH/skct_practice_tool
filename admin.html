@@ -152,6 +152,24 @@
                         </div>
                     </div>
                 </div>
+                <!-- 높이 비율 설정 -->
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <label>📐 높이 비율 설정 (우측 영역 기본값)</label>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">타이머 영역</span>
+                            <input type="number" id="settingRatioTimer" class="form-input" placeholder="0.2" value="0.2" step="0.1" min="0">
+                        </div>
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">메모/그림 영역</span>
+                            <input type="number" id="settingRatioUtils" class="form-input" placeholder="1" value="1" step="0.1" min="0">
+                        </div>
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">계산기 영역</span>
+                            <input type="number" id="settingRatioCalc" class="form-input" placeholder="2" value="2" step="0.1" min="0">
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         유용한 링크 (Help 창 하단에 추가됨)
@@ -780,6 +798,12 @@
                 document.getElementById('settingGuideSec').value = cfg.guideDefaults.sec || 45;
             }
 
+            if (cfg.layoutRatios) {
+                document.getElementById('settingRatioTimer').value = cfg.layoutRatios.timer ?? 0.2;
+                document.getElementById('settingRatioUtils').value = cfg.layoutRatios.utils ?? 1;
+                document.getElementById('settingRatioCalc').value = cfg.layoutRatios.calc ?? 2;
+            }
+
             renderNoticeForm();
             renderLinksForm();
             renderSponsorsPreview();
@@ -845,11 +869,18 @@
             sec: parseInt(document.getElementById('settingGuideSec').value) || 45
         };
 
+        const layoutRatios = {
+            timer: parseFloat(document.getElementById('settingRatioTimer').value) || 0.2,
+            utils: parseFloat(document.getElementById('settingRatioUtils').value) || 1,
+            calc: parseFloat(document.getElementById('settingRatioCalc').value) || 2
+        };
+
         await set(ref(db, 'config/appName'), appName);
         await set(ref(db, 'config/useful_links'), links);
         await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
         await set(ref(db, 'config/timerDefaults'), timerDefaults);
         await set(ref(db, 'config/guideDefaults'), guideDefaults);
+        await set(ref(db, 'config/layoutRatios'), layoutRatios);
         toast('✅ 글로벌 & 기본 설정 저장 완료');
     });
 

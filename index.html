@@ -722,6 +722,16 @@
                     );
                 }
             }
+            // Layout Ratios Sync (사용자가 로컬 저장하지 않은 경우에만 원격 기본값 적용)
+            if (cfg.layoutRatios && !localStorage.getItem('skct_layout_ratios')) {
+                if (window.applyRemoteLayoutRatios) {
+                    window.applyRemoteLayoutRatios(
+                        cfg.layoutRatios.timer,
+                        cfg.layoutRatios.utils,
+                        cfg.layoutRatios.calc
+                    );
+                }
+            }
 
             if (cfg.sponsors && cfg.sponsors.length > 0) {
                 const tickerEl = document.getElementById('sponsorTicker');

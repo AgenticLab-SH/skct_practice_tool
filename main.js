@@ -975,6 +975,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerUI();
     };
 
+    window.applyRemoteLayoutRatios = (timer, utils, calc) => {
+        const tR = parseFloat(timer) || 0.2;
+        const uR = parseFloat(utils) || 1;
+        const cR = parseFloat(calc) || 2;
+
+        document.documentElement.style.setProperty('--timer-ratio', tR);
+        document.documentElement.style.setProperty('--utils-ratio', uR);
+        document.documentElement.style.setProperty('--calc-ratio', cR);
+
+        if (ratioTimer) ratioTimer.value = tR;
+        if (ratioUtils) ratioUtils.value = uR;
+        if (ratioCalc) ratioCalc.value = cR;
+
+        if (typeof resizeCanvas === 'function') {
+            requestAnimationFrame(resizeCanvas);
+        }
+    };
+
     // 부드러운 알람 비프음 (Web Audio API)
     let audioCtx = null;
     const initAudio = () => {
