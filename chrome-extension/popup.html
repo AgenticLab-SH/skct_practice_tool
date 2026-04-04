@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            width: 300px;
+            font-family: 'Segoe UI', -apple-system, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .header h1 {
+            font-size: 14px;
+            font-weight: 700;
+        }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .status .dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .status .text {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6ee7b7;
+        }
+        .info {
+            font-size: 11px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+        .info strong {
+            color: #cbd5e1;
+        }
+        .features {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #94a3b8;
+            padding: 6px 8px;
+            background: rgba(99, 102, 241, 0.06);
+            border-radius: 6px;
+        }
+        .feature .icon {
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .footer {
+            margin-top: 14px;
+            padding-top: 10px;
+            border-top: 1px solid #1e293b;
+            text-align: center;
+        }
+        .footer a {
+            font-size: 11px;
+            color: #818cf8;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <span style="font-size: 20px;">🛡️</span>
+        <h1>SKCT Tool Focus Bypass</h1>
+    </div>
+
+    <div class="status">
+        <div class="dot"></div>
+        <span class="text">자동 보호 활성 중</span>
+    </div>
+
+    <div class="info">
+        <strong>링커리어 CBT</strong> 페이지에서 자동으로 작동합니다.<br>
+        창을 전환해도 가림막이 뜨지 않습니다.
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <span class="icon">🧲</span>
+            <span>포커스 이벤트 캡처 단계 차단</span>
+        </div>
+        <div class="feature">
+            <span class="icon">👁️</span>
+            <span>visibilityState 항상 visible 고정</span>
+        </div>
+        <div class="feature">
+            <span class="icon">🛡️</span>
+            <span>가림막(overlay) 자동 감지 및 제거</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <a href="https://agenticlab-sh.github.io/skct_tool/" target="_blank">SKCT Tool 메인 →</a>
+    </div>
+</body>
+</html>
