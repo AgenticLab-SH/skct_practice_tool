@@ -5,7 +5,22 @@
 (function () {
   'use strict';
 
-  // ── 1. hasFocus 항상 true 반환 ──
+  // --- SKCT Tool 본 페이지 접속 시: 설치 신호 마커만 주입 후 즉시 종료 ---
+  if (!window.location.hostname.includes('linkareer.com')) {
+    function injectMarker() {
+      if (document.getElementById('skct-extension-installed')) return;
+      var marker = document.createElement('div');
+      marker.id = 'skct-extension-installed';
+      marker.style.display = 'none';
+      marker.textContent = 'true';
+      document.documentElement.appendChild(marker);
+    }
+    if (document.documentElement) injectMarker();
+    else document.addEventListener('DOMContentLoaded', injectMarker);
+    return;
+  }
+
+  // ── 1. hasFocus 항상 true 반환 (링커리어 CBT 대상) ──
   try {
     Object.defineProperty(document, 'hasFocus', {
       value: function () { return true; },

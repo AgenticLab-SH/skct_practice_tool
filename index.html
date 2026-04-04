@@ -55,7 +55,12 @@
                     <span style="font-size:14px;">⚙</span>
                     <span style="font-size:8px; letter-spacing:0; line-height:1.3;">설정</span>
                 </div>
+                <div class="extension-toggle" id="extensionToggle" title="초간단 링커리어 무적(가림막 해제) 확장프로그램 설치">
+                    <span style="font-size:15px; filter: drop-shadow(0 0 2px rgba(16,185,129,0.8));">🛡️</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">무적<br>모드</span>
+                </div>
                 <!-- 구분선 -->
+                <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
                 <div class="stats-toggle" id="statsToggle" title="실시간 현황 & 최근 7일 그래프">
                     <span style="font-size:14px;">🔥</span>
                     <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">접속자 수</span>
@@ -111,13 +116,13 @@
                 <div class="timer-wrapper" style="margin-left:auto; display: flex; align-items: center; gap: 12px; background: #0f172a; border: 1px solid #334155; padding: 6px 14px; border-radius: 8px;">
                     <div style="display:flex; flex-direction:column; align-items:flex-end;">
                         <span style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">전체 남은 시간</span>
-                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">00:00</span>
+                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">75:00</span>
                     </div>
                     <div style="width: 1px; height: 24px; background: #334155;"></div>
                     <div style="display:flex; flex-direction:column; align-items:center;">
-                        <span id="displayPhaseName" style="color: #60a5fa; font-size: 11px; font-weight: bold; margin-bottom: 2px;">진행 대기중</span>
+                        <span id="displayPhaseName" style="color: #60a5fa; font-size: 11px; font-weight: bold; margin-bottom: 2px;">1과목 언어이해</span>
                         <div style="display:flex; align-items:baseline; gap:8px;">
-                            <span id="displayPhaseTime" style="color: #4ade80; font-family: 'Consolas', monospace; font-size: 20px; font-weight: bold; line-height: 1;">00:00</span>
+                            <span id="displayPhaseTime" style="color: #4ade80; font-family: 'Consolas', monospace; font-size: 20px; font-weight: bold; line-height: 1;">15:00</span>
                         </div>
                         <div id="guideTimerWrapper" style="font-size:10px; color:#94a3b8; font-weight:bold; margin-top:4px; display:none;">
                             가이드: <span id="displayGuideTime" style="color:#38bdf8; font-family:'Consolas', monospace;">00:00</span>
@@ -788,5 +793,120 @@
     </script>
     <!-- Community Module (loaded after Firebase init) -->
     <script type="module" src="community.js"></script>
+    <!-- Extension Install Modal (무적모드 팝업) -->
+    <div class="modal-overlay hidden" id="extensionModal" style="z-index: 10000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="max-width: 520px; padding: 0;">
+            <div class="modal-header" style="padding: 16px 20px; margin-bottom: 0;">
+                <h3 style="display: flex; align-items: center; gap: 8px;">🛡️ 링커리어 스크린차단 해제</h3>
+                <span class="modal-close btn-close" id="extensionClose">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- 설치 상태 확인 영역 -->
+                <div id="extStatusCheck" style="text-align:center; margin-bottom: 20px;">
+                    <div style="font-size:40px; margin-bottom:10px;">⏳</div>
+                    <div style="font-weight:bold; color:#94a3b8;">설치 상태 확인 중...</div>
+                </div>
+
+                <!-- 미설치 시 표시되는 전체 안내 -->
+                <div id="extInstallGuide" class="hidden">
+
+                    <!-- ★ 두괄식 핵심 메시지 -->
+                    <div style="background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 2px solid #93c5fd; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; text-align: center;">
+                        <div style="font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 6px;">설치 한 번이면, 가림막 걱정 없이 편하게 연습!</div>
+                        <div style="font-size: 13px; color: #475569; line-height: 1.6;">크롬에 이 확장 프로그램을 설치하면, 링커리어 CBT 가림막이 <strong style="color:#dc2626;">자동으로 완전 제거</strong>됩니다.<br>설치 이후에는 <strong>아무 조작 없이도</strong> 항상 무적 상태입니다.</div>
+                    </div>
+
+                    <!-- ★ 왜 필요한지 (Before / After) -->
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight: 700; color: #1e293b; font-size: 14px; margin-bottom: 10px;">❓ 왜 이게 필요한가요?</div>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; margin-bottom: 4px;">😰</div>
+                                <div style="font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 4px;">미설치 시</div>
+                                <div style="font-size: 11px; color: #7f1d1d; line-height: 1.5;">SKCT Tool 클릭만 해도<br><strong>즉시 가림막</strong>이 뜨며<br>문제 화면이 전부 가려짐</div>
+                            </div>
+                            <div style="flex: 1; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; margin-bottom: 4px;">😎</div>
+                                <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-bottom: 4px;">설치 후</div>
+                                <div style="font-size: 11px; color: #14532d; line-height: 1.5;">창 전환, 마우스 이동 모두<br><strong>완전 자유</strong><br>가림막이 절대 뜨지 않음</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 핵심 장점 3가지 -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 18px;">
+                        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 18px;">🤖</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 4px;">완전 자동</div>
+                            <div style="font-size: 10px; color: #64748b;">설치 후 조작 불필요</div>
+                        </div>
+                        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 18px;">♾️</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 4px;">한 번이면 영구</div>
+                            <div style="font-size: 10px; color: #64748b;">크롬 삭제 전까지 유지</div>
+                        </div>
+                        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 18px;">🛡️</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 4px;">가림막 완파</div>
+                            <div style="font-size: 10px; color: #64748b;">모든 종류 자동 제거</div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 설치 방법 3단계 -->
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight: 700; color: #1e293b; font-size: 14px; margin-bottom: 10px;">⚙️ 초간단 설치 3단계</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                <div style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">1</div>
+                                <div style="font-size: 13px; color: #334155; line-height: 1.5;">아래 <strong style="color:#16a34a;">다운로드 버튼</strong>을 눌러 ZIP 파일을 받으세요.</div>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                <div style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">2</div>
+                                <div style="font-size: 13px; color: #334155; line-height: 1.5;">크롬 주소창에 <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-size:12px;">chrome://extensions</code> 입력 → 우측 상단 <strong style="color:#6366f1;">[개발자 모드]</strong> 켜기</div>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                <div style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">3</div>
+                                <div style="font-size: 13px; color: #334155; line-height: 1.5;">다운받은 <strong style="color:#ec4899;">ZIP 파일을 그대로 화면에 끌어다 놓기</strong>만 하면 끝!<br><span style="font-size:11px; color:#64748b;">압축 해제 필요 없음. 드래그 앤 드롭으로 즉시 설치됩니다.</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 다운로드 버튼 -->
+                    <div style="text-align: center; margin-bottom: 18px;">
+                        <a href="skct_extension.zip" download style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 16px; font-weight: 800; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: all 0.2s;">
+                            🚀 무적모드 다운로드 (ZIP)
+                        </a>
+                    </div>
+
+                    <!-- ★ 사용 방법 -->
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                        <div style="font-weight: 700; color: #166534; font-size: 13px; margin-bottom: 6px;">✅ 설치 후 사용 방법</div>
+                        <div style="font-size: 12px; color: #15803d; line-height: 1.6;">
+                            <strong>아무것도 하지 않아도 됩니다.</strong> 링커리어 CBT 접속만 하면 확장 프로그램이 자동으로 가림막 차단을 활성화합니다. 별도의 버튼 클릭이나 설정이 필요 없습니다.
+                        </div>
+                    </div>
+
+                    <!-- ★ FAQ -->
+                    <div style="border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                        <div style="font-weight: 700; color: #1e293b; font-size: 13px; margin-bottom: 8px;">💬 자주 묻는 질문</div>
+                        <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color:#3b82f6;">Q. 매번 켜야 하나요?</strong><br>
+                                아닙니다. 크롬에서 제거하지 않는 한 영구적으로 자동 작동합니다.
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color:#3b82f6;">Q. 실제 시험에서도 쓸 수 있나요?</strong><br>
+                                아닙니다. 실전 시험은 전용 보안 프로그램이 설치되므로 이 방법은 연습용 CBT 전용입니다.
+                            </div>
+                            <div>
+                                <strong style="color:#3b82f6;">Q. 링커리어 외 다른 사이트에서도 되나요?</strong><br>
+                                blur/visibilitychange 방식의 가림막을 사용하는 대부분의 CBT 사이트에서 동작합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

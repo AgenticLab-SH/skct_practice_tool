@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save window size if we are in popup mode
     let winResizeTimeout = null;
     window.addEventListener('resize', () => {
-        if (!window.opener && window.name === 'skct_popup_mode') {
+        if (window.name === 'skct_popup_mode') {
             clearTimeout(winResizeTimeout);
             winResizeTimeout = setTimeout(() => {
                 localStorage.setItem('skct_popup_width', window.outerWidth);
@@ -56,34 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }
     });
-
-    // Auto-launch popup logic
-    if (!window.opener && window.name !== 'skct_popup_mode') {
-        const w = parseInt(localStorage.getItem('skct_popup_width')) || 350;
-        const h = parseInt(localStorage.getItem('skct_popup_height')) || 800;
-        let left = parseInt(localStorage.getItem('skct_popup_left'));
-        let top = parseInt(localStorage.getItem('skct_popup_top'));
-        if (isNaN(left)) left = Math.round((screen.width - w) / 2);
-        if (isNaN(top)) top = Math.round((screen.height - h) / 2);
-
-        const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
-        
-        // Attempt to auto-open
-        const newWin = window.open(window.location.href, 'skct_popup_mode', popupParams);
-        
-        // 창이 즉시 꺼져버려 팝업 차단을 해제하지 못하는 현상을 방지
-        document.body.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f1f5f9; text-align:center;">
-                <h1 style="color:#334155; margin-bottom: 10px;">팝업 모드 실행 중...</h1>
-                <h3 style="color:#ef4444;">만약 우측 상단 주소창에 [팝업 차단됨] 마크가 떴다면, <br>반드시 클릭하여 <b>"항상 허용"</b>으로 변경하고 아래 버튼을 누르세요.</h3>
-                <button onclick="location.reload()" style="margin-top:20px; padding:10px 30px; font-size:18px; font-weight:bold; background:#3b82f6; color:white; border:none; border-radius:5px; cursor:pointer;">허용 후 다시 시도 (새로고침)</button>
-                <p style="margin-top:20px; color:#64748b;">이 원본 창은 5초 후 자동으로 닫힙니다.</p>
-            </div>
-        `;
-        
-        setTimeout(() => { window.close(); }, 5000);
-        return; // 중복 실행 방지를 위해 아래 로직 스킵
-    }
 
     /* --- OMR & Scoring Logic --- */
     const subjects = [
@@ -950,6 +922,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- 초기 렌더링 갱신 ---
+    updateTimerUI();
+    applyPhaseToOMR();
+
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
         if (timerIsRunning) return; // ignore if running
         configTotalMins = total || 75;
@@ -1159,6 +1135,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    /* --- Extension Modal Logic --- */
+    const extToggle = document.getElementById('extensionToggle');
+    const extModal = document.getElementById('extensionModal');
+    const extClose = document.getElementById('extensionClose');
+    const extStatusCheck = document.getElementById('extStatusCheck');
+    const extInstallGuide = document.getElementById('extInstallGuide');
+    
+    if (extToggle && extModal && extClose) {
+        extToggle.addEventListener('click', () => {
+            extModal.style.display = 'flex';
+            extModal.classList.remove('hidden');
+            
+            // Check if extension injected the marker
+            setTimeout(() => {
+                const marker = document.getElementById('skct-extension-installed');
+                if (marker) {
+                    extStatusCheck.innerHTML = `
+                        <div style="font-size:50px; margin-bottom:10px;">✅</div>
+                        <div style="font-weight:bold; font-size:18px; color:#10b981;">설치 완료 및 정상 작동중!</div>
+                        <div style="font-size:12px; color:#94a3b8; margin-top:8px;">이제 링커리어 화면에 가림막이 뜨지 않습니다.</div>
+                    `;
+                    extInstallGuide.classList.add('hidden');
+                } else {
+                    extStatusCheck.innerHTML = `
+                        <div style="font-size:50px; margin-bottom:10px;">❌</div>
+                        <div style="font-weight:bold; font-size:18px; color:#ef4444;">무적모드 확장이 아직 설치되지 않았습니다</div>
+                    `;
+                    extInstallGuide.classList.remove('hidden');
+                }
+            }, 300); // 딜레이 약간 주어 렌더링 안정화
+        });
+        
+        extClose.addEventListener('click', () => {
+            extModal.classList.add('hidden');
+            extModal.style.display = '';
+        });
+    }
+
     const settingsApplyBtn = document.getElementById('settingsApplyBtn');
     if (settingsApplyBtn) {
         settingsApplyBtn.addEventListener('click', () => {
@@ -1301,8 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        // Hide button if we are already in a small popup or opened by opener
-        if (window.opener || window.innerWidth <= 400 || window.name === 'skct_popup_mode') {
+        if (window.name === 'skct_popup_mode') {
             popupBtn.style.display = 'none';
         }
     }
