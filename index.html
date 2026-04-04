@@ -98,12 +98,7 @@
                 </div>
             </div>
             
-            <!-- Break Time Overlay -->
-            <div id="omrBreakOverlay" class="omr-break-overlay hidden">
-                <span style="font-size:32px;">☕</span>
-                <div style="font-weight:bold; font-size:16px; color:#f97316; margin-top:10px;">쉬는 시간입니다</div>
-                <div style="font-size:12px; color:#64748b; margin-top:5px; padding:0 10px;">다음 과목이 시작될 때까지 통제됩니다.</div>
-            </div>
+
             <div class="omr-resizer" id="omrResizer"></div>
         </aside>
 
@@ -135,7 +130,17 @@
             </header>
 
             <!-- Tools Grid -->
-            <div class="tools-layout">
+            <div class="tools-layout" style="position: relative;">
+
+                <!-- Break Time Overlay (Moved from sidebar) -->
+                <div id="omrBreakOverlay" class="omr-break-overlay hidden">
+                    <span style="font-size:32px;">☕</span>
+                    <div style="font-weight:bold; font-size:16px; color:#f97316; margin-top:10px;">쉬는 시간입니다</div>
+                    <div style="font-size:12px; color:#64748b; margin-top:5px; padding:0 10px;">다음 과목이 시작될 때까지 통제됩니다.</div>
+                    <div style="margin-top:20px; font-size:11px; color:#94a3b8; padding-top:10px; border-top:1px dashed rgba(0,0,0,0.1);">
+                        개발에 큰 힘이 됩니다. 좌측 <span style="color:#f59e0b;">☕</span> 아이콘을 통해 후원 부탁드립니다.
+                    </div>
+                </div>
 
                 <!-- Utilities (Top right area in layout logic, but here taking upper flow) -->
                 <section class="utility-section">

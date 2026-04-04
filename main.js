@@ -229,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         subjects.forEach((subj, subjIdx) => {
             const group = document.createElement('div');
             group.className = 'subject-group';
-            const isSubjLocked = lockedSubjectIndices.has(subjIdx);
+            const isSubjLocked = lockedSubjectIndices.has(subjIdx) && (!isPracticeMode && timerIsRunning);
             if (isSubjLocked) group.classList.add('subject-locked');
             group.innerHTML = `<div class="subject-title">${subj.name}${isSubjLocked ? ' <span class="lock-badge">🔒 시간종료</span>' : ''}</div>`;
             
@@ -276,14 +276,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let disabledAttr = '';
                     if (omrState.mode === 'answer') {
-                        if (isSubjLocked) {
-                            // 실전 모드: 시간 종료된 과목은 무조건 잠금
-                            disabledAttr = 'disabled';
-                        } else if (isPracticeMode) {
-                            // 연습 모드: 모든 문항 자유 입력
+                        if (isPracticeMode || !timerIsRunning) {
+                            // 연습 모드이거나 타이머 정지 시: 모든 문항 자유 입력
                             disabledAttr = '';
+                        } else if (isSubjLocked) {
+                            disabledAttr = 'disabled';
                         } else if (!isCurrent) {
-                            // 실전 모드: 현재 문항만 입력 가능
                             disabledAttr = 'disabled';
                         }
                     }
@@ -1060,6 +1058,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const endedPhase = phases[currentPhaseIdx];
                 const endedPhaseIdx = currentPhaseIdx;
                 currentPhaseIdx++;
+                
+                // --- 도구 초기화 (과목 전환 혹은 쉬는 시간 진입 시) ---
+                if (typeof ctx !== 'undefined' && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (typeof notepad !== 'undefined') notepad.value = '';
+                if (typeof calcState !== 'undefined') {
+                    calcState.current = '0';
+                    calcState.previous = null;
+                    calcState.operator = null;
+                    calcState.waitingNew = false;
+                    if (typeof updateCalcDisplay === 'function') updateCalcDisplay();
+                }
+                // ------------------------------------------------
                 if (currentPhaseIdx < phases.length) {
                     currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
                     if (endedPhase.type === 'subject') {
@@ -1099,10 +1109,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const currentPhase = phases[currentPhaseIdx];
         if (currentPhase.type === 'break') {
-            if (!isPracticeMode) {
+            if (!isPracticeMode && timerIsRunning) {
                 if (breakOverlay) breakOverlay.classList.remove('hidden');
             } else {
-                // 연습 모드: break overlay 표시하지 않음
+                // 연습 모드이거나 타이머 중지 상태: break overlay 표시하지 않음
                 if (breakOverlay) breakOverlay.classList.add('hidden');
             }
         } else {
@@ -1128,6 +1138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(timerInterval);
                 timerIsRunning = false;
                 timerPlayBtn.innerText = '▶ 시작 / 정지';
+                applyPhaseToOMR();
             } else {
                 timerInterval = setInterval(timerTick, 1000);
                 timerIsRunning = true;
