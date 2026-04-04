@@ -713,9 +713,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let timerInterval = null;
     let totalSeconds = 75 * 60;
     
-    let cfgTotalMins = 75;
-    let cfgSubjMins = 15;
-    let cfgBreakMins = 1;
+    let configTotalMins = 75;
+    let configSubjectMins = 15;
+    let configBreakMins = 1;
     
     let phases = [];
     let currentPhaseIdx = 0;
@@ -725,9 +725,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const buildPhases = () => {
         phases = [];
         subjects.forEach((subj, idx) => {
-            phases.push({ type: 'subject', name: `${idx+1}과목 ${subj.name}`, mins: cfgSubjMins });
+            phases.push({ type: 'subject', name: `${idx+1}과목 ${subj.name}`, mins: configSubjectMins });
             if (idx < subjects.length - 1) {
-                phases.push({ type: 'break', name: '쉬는 시간', mins: cfgBreakMins });
+                phases.push({ type: 'break', name: '쉬는 시간', mins: configBreakMins });
             }
         });
         currentPhaseIdx = 0;
@@ -738,18 +738,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const savedTimerCfg = JSON.parse(localStorage.getItem('skct_timer_cfg'));
     if (savedTimerCfg) {
-        cfgTotalMins = savedTimerCfg.total || 75;
-        cfgSubjMins = savedTimerCfg.subj || 15;
-        cfgBreakMins = savedTimerCfg.brk || 1;
+        configTotalMins = savedTimerCfg.total || 75;
+        configSubjectMins = savedTimerCfg.subj || 15;
+        configBreakMins = savedTimerCfg.brk || 1;
     }
-    const cTotal = document.getElementById('cfgTotal');
-    const cSubj = document.getElementById('cfgSubj');
-    const cBreak = document.getElementById('cfgBreak');
-    if(cTotal) cTotal.value = cfgTotalMins;
-    if(cSubj) cSubj.value = cfgSubjMins;
-    if(cBreak) cBreak.value = cfgBreakMins;
+    const totalTimeInput = document.getElementById('cfgTotal');
+    const subjectTimeInput = document.getElementById('cfgSubj');
+    const breakTimeInput = document.getElementById('cfgBreak');
+    if(totalTimeInput) totalTimeInput.value = configTotalMins;
+    if(subjectTimeInput) subjectTimeInput.value = configSubjectMins;
+    if(breakTimeInput) breakTimeInput.value = configBreakMins;
     
-    totalSeconds = cfgTotalMins * 60;
+    totalSeconds = configTotalMins * 60;
     buildPhases();
 
     const displayTotal = document.getElementById('displayTotalTime');
