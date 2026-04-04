@@ -639,6 +639,18 @@
                     helpBody.appendChild(container);
                 }
             }
+            
+            // Timer Defaults Sync
+            if (cfg.timerDefaults && !localStorage.getItem('skct_timer_cfg')) {
+                if (window.applyRemoteTimerDefaults) {
+                    window.applyRemoteTimerDefaults(
+                        cfg.timerDefaults.total,
+                        cfg.timerDefaults.subj,
+                        cfg.timerDefaults.brk
+                    );
+                }
+            }
+
             if (cfg.sponsors && cfg.sponsors.length > 0) {
                 const tickerEl = document.getElementById('sponsorTicker');
                 if (tickerEl) {

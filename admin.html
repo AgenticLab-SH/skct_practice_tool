@@ -119,6 +119,24 @@
                     <label>앱 표시 이름</label>
                     <input type="text" id="settingAppName" class="form-input" placeholder="SKCT 연습 도구" value="SKCT 연습 도구">
                 </div>
+                <!-- 타이머 기본값 설정 -->
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <label>⏰ 타이머 초기 환경설정 기본값 (분)</label>
+                    <div class="form-row">
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">전체 시간</span>
+                            <input type="number" id="settingTimerTotal" class="form-input" placeholder="75" value="75">
+                        </div>
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">각 과목별 시간</span>
+                            <input type="number" id="settingTimerSubj" class="form-input" placeholder="15" value="15">
+                        </div>
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">쉬는 시간</span>
+                            <input type="number" id="settingTimerBreak" class="form-input" placeholder="1" value="1">
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         유용한 링크 (Help 창 하단에 추가됨)
@@ -735,6 +753,12 @@
             if (cfg.appName) loadedConfig.appName = cfg.appName;
             if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
             if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
+            
+            if (cfg.timerDefaults) {
+                document.getElementById('settingTimerTotal').value = cfg.timerDefaults.total || 75;
+                document.getElementById('settingTimerSubj').value = cfg.timerDefaults.subj || 15;
+                document.getElementById('settingTimerBreak').value = cfg.timerDefaults.brk || 1;
+            }
 
             renderNoticeForm();
             renderLinksForm();
@@ -790,10 +814,17 @@
         
         loadedConfig.useful_links = links;
 
+        const timerDefaults = {
+            total: parseInt(document.getElementById('settingTimerTotal').value) || 75,
+            subj: parseInt(document.getElementById('settingTimerSubj').value) || 15,
+            brk: parseInt(document.getElementById('settingTimerBreak').value) || 1
+        };
+
         await set(ref(db, 'config/appName'), appName);
         await set(ref(db, 'config/useful_links'), links);
         await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
-        toast('✅ 글로벌 설정 저장 완료');
+        await set(ref(db, 'config/timerDefaults'), timerDefaults);
+        toast('✅ 글로벌 & 기본 설정 저장 완료');
     });
 
 </script>

@@ -786,6 +786,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    window.applyRemoteTimerDefaults = (total, subj, brk) => {
+        if (timerIsRunning) return; // ignore if running
+        configTotalMins = total || 75;
+        configSubjectMins = subj || 15;
+        configBreakMins = brk || 1;
+
+        if (totalTimeInput) totalTimeInput.value = configTotalMins;
+        if (subjectTimeInput) subjectTimeInput.value = configSubjectMins;
+        if (breakTimeInput) breakTimeInput.value = configBreakMins;
+
+        totalSeconds = configTotalMins * 60;
+        buildPhases();
+        updateTimerUI();
+    };
+
     // 부드러운 알람 비프음 (Web Audio API)
     let audioCtx = null;
     const initAudio = () => {
@@ -919,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const donateToggle = document.getElementById('donateToggle');
     if (donateToggle) {
         donateToggle.addEventListener('click', () => {
-            const msg = "모두의 편안함을 위해 제가 만든 무료 SKCT Tool입니다! 👨‍💻\n\n지속적인 업데이트 동기부여와 소소한 용돈벌이(?)를 위해 따뜻한 커피 한 잔 나눠주시면 정말 감사히 마시겠습니다! ☕💕\n\n(확인을 누르시면 간편 후원 페이지로 이동합니다)";
+            const msg = "취준생 여러분의 빠른 합격을 기원합니다! 🎉\n본 SKCT 연습 도구가 유용하셨다면, 서버 유지보수와 개발자에게 힘이 될 수 있도록 '따뜻한 커피 한 잔 ☕' 후원해 주시면 큰 원동력이 됩니다.\n\n(확인을 누르시면 후원 채널로 이동합니다. 항상 응원합니다!)";
             if (confirm(msg)) {
                 window.open('https://toon.at/donate/foreveryonehappy', '_blank');
             }
