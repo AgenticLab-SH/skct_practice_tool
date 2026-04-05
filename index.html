@@ -147,7 +147,7 @@
                     <div style="font-weight:bold; font-size:16px; color:#f97316; margin-top:10px;">쉬는 시간입니다</div>
                     <div style="font-size:12px; color:#64748b; margin-top:5px; padding:0 10px;">다음 과목이 시작될 때까지 통제됩니다.</div>
                     <div style="margin-top:20px; font-size:11px; color:#94a3b8; padding-top:10px; border-top:1px dashed rgba(0,0,0,0.1);">
-                        개발에 큰 힘이 됩니다. 좌측 <span style="color:#f59e0b;">☕</span> 아이콘을 통해 후원 부탁드립니다.
+                        <span id="breakSupportHint">개발에 큰 힘이 됩니다. 좌측 <span style="color:#f59e0b;">☕</span> 아이콘을 통해 후원 부탁드립니다.</span>
                     </div>
                 </div>
 
@@ -292,8 +292,8 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
-                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 11:48:00 +09:00</div>
-                    <div><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1148</div>
+                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 12:02:00 +09:00</div>
+                    <div><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1202</div>
                 </div>
                 <!-- 모드 설정 -->
                 <div>
@@ -393,16 +393,17 @@
     <div id="donateModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 420px; padding: 25px;">
             <div class="modal-header" style="border-bottom: none; padding-bottom: 0px; margin-bottom: 10px;">
-                <h3 style="color: #6366f1; font-size: 18px; line-height: 1.4;">☕ 우리의 공동 툴,<br>쾌적하게 지켜나가기</h3>
+                <h3 id="donateModalTitle" style="color: #6366f1; font-size: 18px; line-height: 1.4;">☕ 우리의 공동 툴,<br>쾌적하게 지켜나가기</h3>
                 <button class="close-modal btn-close">×</button>
             </div>
             <div class="modal-body" style="font-size: 14px; line-height: 1.6; color: #475569; padding-right: 0;">
-                <p style="margin-bottom: 12px; margin-top: 0;">우리가 함께 지켜나가는 <strong>'결제/광고 없는' SKCT 연습 공간</strong>입니다! ✍️</p>
-                <p style="margin-bottom: 12px;">저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 집중할 수 있도록 상업적 배너 광고나 결제 유도를 일절 넣지 않고 사비로 <strong>100% 무료 서버</strong>를 가동 중입니다.</p>
-                <p style="margin-bottom: 12px;">최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 커지고 있지만, 끝까지 이 <strong style="color:#ef4444;">'광고 없는 무료 개방'</strong> 원칙을 고수하려 합니다.</p>
+                <p id="donateModalLead" style="margin-bottom: 12px; margin-top: 0;">우리가 함께 지켜나가는 <strong>'결제/광고 없는' SKCT 연습 공간</strong>입니다! ✍️</p>
+                <p id="donateModalBody" style="margin-bottom: 12px;">저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 집중할 수 있도록 상업적 배너 광고나 결제 유도를 일절 넣지 않고 사비로 <strong>100% 무료 서버</strong>를 가동 중입니다.</p>
+                <p id="donateModalPromise" style="margin-bottom: 12px;">최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 커지고 있지만, 끝까지 이 <strong style="color:#ef4444;">'광고 없는 무료 개방'</strong> 원칙을 고수하려 합니다.</p>
                 <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px dashed #93c5fd; margin-bottom: 20px; font-size: 13px; color: #334155;">
-                    만약 이 쾌적한 <strong>'모두의 툴'</strong>이 여러분의 합격 준비에 약간이나마 유용하셨다면, <strong style="color:#2563eb;">투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 후원에 동참</strong>해 주시길 조심스레 부탁드립니다.<br><br>
-                    이 공간이 다음 달에도 거뜬히 유지되려면 여러분 한 분 한 분의 십시일반 참여가 필수적입니다! 💕
+                    <div id="donateModalHighlight">만약 이 쾌적한 <strong>'모두의 툴'</strong>이 여러분의 합격 준비에 약간이나마 유용하셨다면, <strong style="color:#2563eb;">투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 후원에 동참</strong>해 주시길 조심스레 부탁드립니다.<br><br>
+                    이 공간이 다음 달에도 거뜬히 유지되려면 여러분 한 분 한 분의 십시일반 참여가 필수적입니다! 💕</div>
+                    <div id="donateModalContact" style="margin-top: 10px; font-size: 12px; color: #475569; display: none;"></div>
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <button class="close-modal" id="donateLaterBtn" style="flex:1; padding:12px; background:#e2e8f0; color:#475569; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; transition: background 0.2s;">나중에 하기</button>
@@ -495,7 +496,7 @@
             };
         })();
     </script>
-    <script src="main.js?v=202604051148"></script>
+    <script src="main.js?v=202604051202"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -727,6 +728,9 @@
                     container.innerHTML = html;
                     helpBody.appendChild(container);
                 }
+            }
+            if (typeof window.applySupportConfig === 'function') {
+                window.applySupportConfig(cfg.supportConfig);
             }
             
             // Timer Defaults Sync

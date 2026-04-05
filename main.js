@@ -77,6 +77,70 @@ document.addEventListener('DOMContentLoaded', () => {
         return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
     };
 
+    const escapeHtml = (value) => {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
+    };
+
+    const formatMultilineHtml = (value) => escapeHtml(value || '').replace(/\n/g, '<br>');
+
+    const DEFAULT_SUPPORT_CONFIG = {
+        modalTitle: "☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!",
+        modalLead: "결제와 광고 없는 쾌적한 환경은 여러분의 소중한 참여로 유지됩니다.",
+        modalBody: "안녕하세요! 저 역시 여러분과 함께 합격을 목표로 달리는 취준생입니다.\n이곳은 오직 공부에만 집중할 수 있도록 광고나 결제 유도 없이, 제가 직접 사비로 운영 중인 100% 무료 공간입니다.",
+        modalPromise: "최근 방문자가 늘어나면서 서버 유지 비용에 대한 부담이 커지고 있습니다.\n'광고 없는 무료 개방' 원칙을 다음 달에도 변함없이 지켜나가기 위해, 이용자분들의 따뜻한 응원이 필요합니다.",
+        modalHighlight: "이 공간이 준비에 도움이 되셨다면, 투네이션을 통해 '커피 한 잔 ☕' 정도의 마음을 나누어 주세요.\n보내주신 정성은 서버 운영 및 관리 비용으로만 사용됩니다.",
+        breakFooter: "개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다.",
+        contactText: "",
+        contactUrl: "",
+        buttonLabel: "☕ 쿨하게 지원하기",
+        buttonUrl: "https://toon.at/donate/foreveryonehappy"
+    };
+
+    function applySupportConfig(config) {
+        const support = { ...DEFAULT_SUPPORT_CONFIG, ...(config || {}) };
+        const titleEl = document.getElementById('donateModalTitle');
+        const leadEl = document.getElementById('donateModalLead');
+        const bodyEl = document.getElementById('donateModalBody');
+        const promiseEl = document.getElementById('donateModalPromise');
+        const highlightEl = document.getElementById('donateModalHighlight');
+        const contactEl = document.getElementById('donateModalContact');
+        const buttonEl = document.getElementById('donateConfirmBtn');
+        const breakHintEl = document.getElementById('breakSupportHint');
+
+        if (titleEl) titleEl.innerHTML = support.modalTitle || DEFAULT_SUPPORT_CONFIG.modalTitle;
+        if (leadEl) leadEl.innerHTML = formatMultilineHtml(support.modalLead);
+        if (bodyEl) bodyEl.innerHTML = formatMultilineHtml(support.modalBody);
+        if (promiseEl) promiseEl.innerHTML = formatMultilineHtml(support.modalPromise);
+        if (highlightEl) highlightEl.innerHTML = formatMultilineHtml(support.modalHighlight);
+        if (breakHintEl) breakHintEl.innerHTML = formatMultilineHtml(support.breakFooter);
+
+        if (buttonEl) {
+            buttonEl.textContent = support.buttonLabel || DEFAULT_SUPPORT_CONFIG.buttonLabel;
+            buttonEl.dataset.href = support.buttonUrl || DEFAULT_SUPPORT_CONFIG.buttonUrl;
+        }
+
+        if (contactEl) {
+            const contactText = (support.contactText || '').trim();
+            const contactUrl = (support.contactUrl || '').trim();
+            if (contactText && contactUrl) {
+                const resolvedUrl = contactUrl.includes('@') && !/^https?:/i.test(contactUrl) && !/^mailto:/i.test(contactUrl)
+                    ? `mailto:${contactUrl}`
+                    : contactUrl;
+                contactEl.innerHTML = `<a href="${escapeHtml(resolvedUrl)}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:none; font-weight:600;">${escapeHtml(contactText)}</a>`;
+                contactEl.style.display = 'block';
+            } else if (contactText) {
+                contactEl.textContent = contactText;
+                contactEl.style.display = 'block';
+            } else {
+                contactEl.textContent = '';
+                contactEl.style.display = 'none';
+            }
+        }
+    }
+    window.applySupportConfig = applySupportConfig;
+
     const isLegacyDefaultTimerConfig = (cfg) => {
         if (!cfg || typeof cfg !== 'object') return false;
         const total = sanitizeMinutes(cfg.total, -1);
@@ -1268,7 +1332,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (donateConfirmBtn) {
         donateConfirmBtn.addEventListener('click', () => {
             donateModal.classList.add('hidden');
-            window.open('https://toon.at/donate/foreveryonehappy', '_blank');
+            const targetUrl = donateConfirmBtn.dataset.href || DEFAULT_SUPPORT_CONFIG.buttonUrl;
+            window.open(targetUrl, '_blank');
         });
     }
     const donateLaterBtn = document.getElementById('donateLaterBtn');
