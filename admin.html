@@ -129,8 +129,8 @@
                     </label>
                     <div class="form-row" style="margin-top: 8px;">
                         <div>
-                            <span style="font-size:11px; color:var(--adm-text-muted);">업데이트 마무리 시간 (예: 11:00)</span>
-                            <input type="text" id="settingMaintenanceTime" class="form-input" placeholder="11:00" value="11:00">
+                            <span style="font-size:11px; color:var(--adm-text-muted);">업데이트 완료 일시 (예: 4월 5일 11:00)</span>
+                            <input type="text" id="settingMaintenanceTime" class="form-input" placeholder="4월 5일 11:00" value="4월 5일 11:00">
                         </div>
                     </div>
                 </div>
@@ -140,7 +140,7 @@
                     <div class="form-row">
                         <div>
                             <span style="font-size:11px; color:var(--adm-text-muted);">전체 시간</span>
-                            <input type="number" id="settingTimerTotal" class="form-input" placeholder="75" value="75">
+                            <input type="number" id="settingTimerTotal" class="form-input" placeholder="79" value="79">
                         </div>
                         <div>
                             <span style="font-size:11px; color:var(--adm-text-muted);">각 과목별 시간</span>
@@ -691,6 +691,19 @@
     // ── Config (Notice + PopularConfig + Global) ──
     let loadedConfig = { notice_help: {}, notice_community: {}, appName: "SKCT 연습 도구", useful_links: [], sponsors: [] };
 
+    const TIMER_SUBJECT_COUNT = 5;
+    const normalizeTimerDefaults = (total, subj, brk) => {
+        const safeSubj = Math.max(0, parseInt(subj, 10) || 15);
+        const safeBreak = Math.max(0, parseInt(brk, 10) || 1);
+        const safeTotal = Math.max(0, parseInt(total, 10) || 75);
+        const minTotal = safeSubj * TIMER_SUBJECT_COUNT + safeBreak * Math.max(0, TIMER_SUBJECT_COUNT - 1);
+        return {
+            total: Math.max(safeTotal, minTotal),
+            subj: safeSubj,
+            brk: safeBreak
+        };
+    };
+
     function renderNoticeForm() {
         const target = document.getElementById('noticeTarget').value;
         const notice = loadedConfig[target] || {};
@@ -809,9 +822,10 @@
             if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
             
             if (cfg.timerDefaults) {
-                document.getElementById('settingTimerTotal').value = cfg.timerDefaults.total || 75;
-                document.getElementById('settingTimerSubj').value = cfg.timerDefaults.subj || 15;
-                document.getElementById('settingTimerBreak').value = cfg.timerDefaults.brk || 1;
+                const timerDefaults = normalizeTimerDefaults(cfg.timerDefaults.total, cfg.timerDefaults.subj, cfg.timerDefaults.brk);
+                document.getElementById('settingTimerTotal').value = timerDefaults.total;
+                document.getElementById('settingTimerSubj').value = timerDefaults.subj;
+                document.getElementById('settingTimerBreak').value = timerDefaults.brk;
             }
 
             if (cfg.guideDefaults) {
@@ -884,11 +898,12 @@
             time: document.getElementById('settingMaintenanceTime').value.trim() || '11:00'
         };
 
-        const timerDefaults = {
-            total: parseInt(document.getElementById('settingTimerTotal').value) || 75,
-            subj: parseInt(document.getElementById('settingTimerSubj').value) || 15,
-            brk: parseInt(document.getElementById('settingTimerBreak').value) || 1
-        };
+        const timerDefaults = normalizeTimerDefaults(
+            document.getElementById('settingTimerTotal').value,
+            document.getElementById('settingTimerSubj').value,
+            document.getElementById('settingTimerBreak').value
+        );
+        document.getElementById('settingTimerTotal').value = timerDefaults.total;
 
         const guideDefaults = {
             enabled: document.getElementById('settingGuideEnabled').checked,
