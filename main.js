@@ -1952,9 +1952,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // (hitscounter.dev 로직이 Firebase total_visits로 대체되어 완전히 제거됨)
 
-    // Prevent the calculator history panel from stealing focus on click.
+    // Clicking the calculator surface should move keyboard focus to the calculator.
     const calcHistoryEl = document.getElementById('calcHistory');
-    if (calcHistoryEl) calcHistoryEl.addEventListener('mousedown', (e) => e.preventDefault());
+    const focusCalculatorSurface = () => {
+        if (!calculatorSectionEl) return;
+        if (document.activeElement === notepad) {
+            notepad.blur();
+        }
+        calculatorSectionEl.focus({ preventScroll: true });
+    };
+    if (calculatorSectionEl) {
+        calculatorSectionEl.tabIndex = -1;
+        calculatorSectionEl.addEventListener('mousedown', (e) => {
+            if (!(e.target instanceof Element)) return;
+            if (e.target.closest('.calc-btn, input, textarea')) return;
+            requestAnimationFrame(focusCalculatorSurface);
+        });
+        calculatorSectionEl.addEventListener('click', (e) => {
+            if (!(e.target instanceof Element)) return;
+            if (e.target.closest('.calc-btn, input, textarea')) return;
+            focusCalculatorSurface();
+        });
+    }
+    if (calcHistoryEl) {
+        calcHistoryEl.tabIndex = -1;
+        calcHistoryEl.addEventListener('mousedown', () => {
+            requestAnimationFrame(focusCalculatorSurface);
+        });
+    }
 
     /* --- Window Popup Mode Logic --- */
     function launchPopupMode() {
