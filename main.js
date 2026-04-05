@@ -3,8 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminPreviewMode = runtimeFlags.adminPreview === true;
     const isPopupMode = window.name === 'skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
-    const DEFAULT_LAYOUT_RATIOS = { timer: 0.2, utils: 1, calc: 2 };
-    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0, noteFontSize: 14, canvasLineWidth: 4 };
+    const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
+    const DEFAULT_POPUP_LAYOUT = {
+        window: { widthRatio: 0.269, heightRatio: 0.98, leftRatio: 0.731, topRatio: 0 },
+        omrWidthRatio: 0.34
+    };
+    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'skct-popup-layout-preview',
         saveRequest: 'skct-popup-layout-save-request',
@@ -20,16 +24,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const popupEditorPanelEl = document.getElementById('popupEditorPanel');
     const popupEditorMetricsEl = document.getElementById('popupEditorMetrics');
     const popupEditorStatusEl = document.getElementById('popupEditorStatus');
-    const popupEditorSaveBtn = document.getElementById('popupEditorSaveBtn');
+    const popupEditorToggleBtn = document.getElementById('popupEditorToggleBtn');
     const popupEditorReloadBtn = document.getElementById('popupEditorReloadBtn');
+    const popupEditorSaveBtn = document.getElementById('popupEditorSaveBtn');
+    const popupBottomPaddingRange = document.getElementById('popupBottomPaddingRange');
+    const popupBottomPaddingValue = document.getElementById('popupBottomPaddingValue');
+    const popupSideColumnRange = document.getElementById('popupSideColumnRange');
+    const popupSideColumnValue = document.getElementById('popupSideColumnValue');
+    const ratioTimer = document.getElementById('ratioTimer');
+    const ratioUtils = document.getElementById('ratioUtils');
+    const ratioCalc = document.getElementById('ratioCalc');
+    const noteFontSizeRange = document.getElementById('noteFontSizeRange');
+    const noteFontSizeValue = document.getElementById('noteFontSizeValue');
+    const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
+    const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
     let lastPopupWindowOnlySignature = '';
-    let remotePopupLayout = normalizePopupLayout();
-    let currentPopupLayout = normalizePopupLayout();
-    let remoteToolUiConfig = normalizeToolUiConfig();
-    let currentToolUiConfig = normalizeToolUiConfig();
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
 
@@ -50,26 +62,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createLegacyPopupWindowDefaults() {
-        const { availWidth, availHeight } = getScreenMetrics();
-        const width = clampNumber(350, 300, availWidth);
-        const height = clampNumber(800, 520, availHeight);
         return {
-            widthRatio: roundRatio(width / availWidth),
-            heightRatio: roundRatio(height / availHeight),
-            leftRatio: roundRatio(Math.max(0, (availWidth - width) / 2) / availWidth),
-            topRatio: roundRatio(Math.max(0, (availHeight - height) / 2) / availHeight)
+            widthRatio: DEFAULT_POPUP_LAYOUT.window.widthRatio,
+            heightRatio: DEFAULT_POPUP_LAYOUT.window.heightRatio,
+            leftRatio: DEFAULT_POPUP_LAYOUT.window.leftRatio,
+            topRatio: DEFAULT_POPUP_LAYOUT.window.topRatio
         };
     }
 
     function normalizePopupLayout(raw) {
         const fallbackWindow = createLegacyPopupWindowDefaults();
         const sourceWindow = raw?.window || {};
-        const widthRatio = clampNumber(parseFloat(sourceWindow.widthRatio), 0.18, 0.8);
-        const heightRatio = clampNumber(parseFloat(sourceWindow.heightRatio), 0.45, 0.98);
-        const safeWidthRatio = Number.isFinite(widthRatio) ? widthRatio : fallbackWindow.widthRatio;
-        const safeHeightRatio = Number.isFinite(heightRatio) ? heightRatio : fallbackWindow.heightRatio;
+        const widthRatio = parseFloat(sourceWindow.widthRatio);
+        const heightRatio = parseFloat(sourceWindow.heightRatio);
+        const safeWidthRatio = Number.isFinite(widthRatio) ? clampNumber(widthRatio, 0.18, 0.8) : fallbackWindow.widthRatio;
+        const safeHeightRatio = Number.isFinite(heightRatio) ? clampNumber(heightRatio, 0.45, 0.98) : fallbackWindow.heightRatio;
         const leftRatioValue = parseFloat(sourceWindow.leftRatio);
         const topRatioValue = parseFloat(sourceWindow.topRatio);
+        const omrWidthRatio = parseFloat(raw?.omrWidthRatio);
 
         return {
             window: {
@@ -78,27 +88,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 leftRatio: roundRatio(clampNumber(Number.isFinite(leftRatioValue) ? leftRatioValue : fallbackWindow.leftRatio, 0, Math.max(0, 1 - safeWidthRatio))),
                 topRatio: roundRatio(clampNumber(Number.isFinite(topRatioValue) ? topRatioValue : fallbackWindow.topRatio, 0, Math.max(0, 1 - safeHeightRatio)))
             },
-            omrWidthRatio: roundRatio(clampNumber(parseFloat(raw?.omrWidthRatio), 0.16, 0.7))
+            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.16, 0.7) : DEFAULT_POPUP_LAYOUT.omrWidthRatio)
         };
     }
 
     function normalizeToolUiConfig(raw) {
         return {
-            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.3)),
+            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.9)),
+            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || DEFAULT_TOOL_UI_CONFIG.sideButtonColumnRatio, 0.03, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || DEFAULT_TOOL_UI_CONFIG.noteFontSize, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || DEFAULT_TOOL_UI_CONFIG.canvasLineWidth, 2, 12)
         };
     }
 
-    if (!Number.isFinite(currentPopupLayout.omrWidthRatio)) {
-        currentPopupLayout.omrWidthRatio = 0.34;
-    }
-    if (!Number.isFinite(remotePopupLayout.omrWidthRatio)) {
-        remotePopupLayout.omrWidthRatio = currentPopupLayout.omrWidthRatio;
-    }
+    let remotePopupLayout = normalizePopupLayout();
+    let currentPopupLayout = normalizePopupLayout();
+    let remoteToolUiConfig = normalizeToolUiConfig();
+    let currentToolUiConfig = normalizeToolUiConfig(
+        isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('skct_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
+    );
 
     function buildPopupWindowMetrics(windowConfig = currentPopupLayout.window) {
-        const normalized = normalizePopupLayout({ window: windowConfig, omrWidthRatio: currentPopupLayout.omrWidthRatio });
+        const normalized = normalizePopupLayout({ window: windowConfig });
         const { availWidth, availHeight, availLeft, availTop } = getScreenMetrics();
         const width = clampNumber(Math.round(availWidth * normalized.window.widthRatio), 300, availWidth);
         const height = clampNumber(Math.round(availHeight * normalized.window.heightRatio), 520, availHeight);
@@ -110,9 +121,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function syncToolsBottomPadding() {
-        const basisHeight = mainContentEl?.clientHeight || window.innerHeight || 0;
+        const { availHeight } = getScreenMetrics();
+        const basisHeight = availHeight || window.screen?.availHeight || window.outerHeight || window.innerHeight || 900;
         const paddingPx = Math.max(0, Math.round(basisHeight * currentToolUiConfig.bottomPaddingRatio));
         document.documentElement.style.setProperty('--tools-bottom-padding', `${paddingPx}px`);
+        if (popupBottomPaddingRange) popupBottomPaddingRange.value = String(currentToolUiConfig.bottomPaddingRatio);
+        if (popupBottomPaddingValue) popupBottomPaddingValue.textContent = `${(currentToolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%`;
+    }
+
+    function syncToolsRightRail() {
+        const baseWidth = document.querySelector('.tools-layout')?.clientWidth || mainContentEl?.clientWidth || window.innerWidth || 360;
+        const buttonPx = clampNumber(Math.round(baseWidth * currentToolUiConfig.sideButtonColumnRatio), 22, 78);
+        document.documentElement.style.setProperty('--tools-right-rail-button-size', `${buttonPx}px`);
+        document.documentElement.style.setProperty('--tools-right-rail-reserve', `${buttonPx + 14}px`);
+        if (popupSideColumnRange) popupSideColumnRange.value = String(currentToolUiConfig.sideButtonColumnRatio);
+        if (popupSideColumnValue) popupSideColumnValue.textContent = `${(currentToolUiConfig.sideButtonColumnRatio * 100).toFixed(1)}%`;
     }
 
     function capturePopupWindowRatios() {
@@ -135,6 +158,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!popupEditorStatusEl) return;
         popupEditorStatusEl.textContent = message;
         popupEditorStatusEl.className = `popup-editor-status${type ? ` ${type}` : ''}`;
+    }
+
+    function setPopupEditorCollapsed(collapsed) {
+        if (!popupEditorPanelEl) return;
+        popupEditorPanelEl.classList.toggle('collapsed', collapsed);
+        if (popupEditorToggleBtn) {
+            popupEditorToggleBtn.textContent = collapsed ? '펼치기' : '접기';
+            popupEditorToggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
     }
 
     function applyPopupOmrWidthRatio(widthRatio) {
@@ -208,8 +240,17 @@ document.addEventListener('DOMContentLoaded', () => {
         } = options;
 
         currentToolUiConfig = normalizeToolUiConfig({ ...currentToolUiConfig, ...(rawConfig || {}) });
+        const notepadEl = document.getElementById('notepad');
         document.documentElement.style.setProperty('--notepad-font-size', `${currentToolUiConfig.noteFontSize}px`);
+        if (notepadEl) {
+            notepadEl.style.fontSize = `${currentToolUiConfig.noteFontSize}px`;
+        }
+        if (noteFontSizeRange) noteFontSizeRange.value = String(currentToolUiConfig.noteFontSize);
+        if (noteFontSizeValue) noteFontSizeValue.textContent = String(currentToolUiConfig.noteFontSize);
+        if (canvasLineWidthRange) canvasLineWidthRange.value = String(currentToolUiConfig.canvasLineWidth);
+        if (canvasLineWidthValue) canvasLineWidthValue.textContent = String(currentToolUiConfig.canvasLineWidth);
         syncToolsBottomPadding();
+        syncToolsRightRail();
 
         if (persist) {
             localStorage.setItem('skct_tool_ui', JSON.stringify(currentToolUiConfig));
@@ -240,7 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>창 위치: 왼쪽 ${(popupLayout.window.leftRatio * 100).toFixed(1)}% / 위 ${(popupLayout.window.topRatio * 100).toFixed(1)}%</div>
             <div>OMR 폭: ${(popupLayout.omrWidthRatio * 100).toFixed(1)}%</div>
             <div>세로 비율: 타이머 ${layoutRatios.timer.toFixed(1)} / 메모 ${layoutRatios.utils.toFixed(1)} / 계산기 ${layoutRatios.calc.toFixed(1)}</div>
-            <div>도구 기본값: 하단 여백 ${(payload.toolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%, 메모 ${payload.toolUiConfig.noteFontSize}px, 그림판 ${payload.toolUiConfig.canvasLineWidth}px</div>
+            <div>도구 기본값: 하단 여백 ${(payload.toolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%, 우측 버튼 열 ${(payload.toolUiConfig.sideButtonColumnRatio * 100).toFixed(1)}%, 메모 ${payload.toolUiConfig.noteFontSize}px, 그림판 ${payload.toolUiConfig.canvasLineWidth}px</div>
         `;
     }
 
@@ -295,10 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedToolUiConfig = (!isAdminPreviewMode && !isPopupMode)
         ? (JSON.parse(localStorage.getItem('skct_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
         : DEFAULT_TOOL_UI_CONFIG;
-    
-    const ratioTimer = document.getElementById('ratioTimer');
-    const ratioUtils = document.getElementById('ratioUtils');
-    const ratioCalc = document.getElementById('ratioCalc');
     setLayoutRatios(savedRatios.timer, savedRatios.utils, savedRatios.calc, {
         persist: false,
         syncInputs: true,
@@ -324,16 +361,34 @@ document.addEventListener('DOMContentLoaded', () => {
         ratioCalc.addEventListener('input', applyRatios);
     }
 
+    if (popupBottomPaddingRange) {
+        popupBottomPaddingRange.addEventListener('input', () => {
+            applyToolUiConfig({ bottomPaddingRatio: popupBottomPaddingRange.value }, { persist: false, notifyPopupEditor: true });
+        });
+    }
+
+    if (popupSideColumnRange) {
+        popupSideColumnRange.addEventListener('input', () => {
+            applyToolUiConfig({ sideButtonColumnRatio: popupSideColumnRange.value }, { persist: false, notifyPopupEditor: true });
+        });
+    }
+
     if (isPopupEditorMode) {
         popupEditorPanelEl?.classList.remove('hidden');
         topBarResizerEl?.classList.remove('hidden');
         toolsSectionResizerEl?.classList.remove('hidden');
-        setPopupEditorStatus('창 위치와 분리선을 조절한 뒤 저장하세요.');
+        setPopupEditorCollapsed(true);
+        setPopupEditorStatus('창 위치, 크기, 세로 비율, 하단 여백을 조절한 뒤 저장하세요.');
+
+        popupEditorToggleBtn?.addEventListener('click', () => {
+            setPopupEditorCollapsed(!popupEditorPanelEl.classList.contains('collapsed'));
+        });
 
         popupEditorReloadBtn?.addEventListener('click', () => {
             currentPopupLayout = normalizePopupLayout(remotePopupLayout);
             applyPopupWindowToCurrentWindow(currentPopupLayout.window);
             applyPopupOmrWidthRatio(currentPopupLayout.omrWidthRatio);
+            applyToolUiConfig(remoteToolUiConfig, { persist: false, notifyPopupEditor: false });
             syncPopupEditorSnapshot(true);
             setPopupEditorStatus('서버에 저장된 기본값을 다시 적용했습니다.');
         });
@@ -580,9 +635,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (isPopupEditorMode && topBarResizerEl && toolsSectionResizerEl && topBarEl && utilitySectionEl && calculatorSectionEl) {
-        const MIN_TIMER_HEIGHT = 44;
-        const MIN_UTILITY_HEIGHT = 120;
-        const MIN_CALC_HEIGHT = 170;
+        const MIN_TIMER_HEIGHT = 0;
+        const MIN_UTILITY_HEIGHT = 0;
+        const MIN_CALC_HEIGHT = 0;
 
         function readSectionHeights() {
             return {
@@ -1138,6 +1193,15 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('touchstart', startDrawing);
     canvas.addEventListener('touchmove', draw);
     canvas.addEventListener('touchend', stopDrawing);
+
+    noteFontSizeRange?.addEventListener('input', () => {
+        applyToolUiConfig({ noteFontSize: noteFontSizeRange.value });
+    });
+
+    canvasLineWidthRange?.addEventListener('input', () => {
+        applyToolUiConfig({ canvasLineWidth: canvasLineWidthRange.value });
+        ctx.lineWidth = currentToolUiConfig.canvasLineWidth;
+    });
 
     /* --- global Utilities --- */
     document.getElementById('clearCurrentToolBtn').addEventListener('click', () => {
@@ -1980,6 +2044,14 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(focusCalculatorSurface);
         });
     }
+
+    document.getElementById('mockChatBtn')?.addEventListener('click', () => {
+        alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
+    });
+
+    document.getElementById('mockQuestionBtn')?.addEventListener('click', () => {
+        alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
+    });
 
     /* --- Window Popup Mode Logic --- */
     function launchPopupMode() {

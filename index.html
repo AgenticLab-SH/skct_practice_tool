@@ -159,7 +159,7 @@
                             <button id="tabNotepad" class="tab-btn active">메모장</button>
                             <button id="tabCanvas" class="tab-btn">그림판</button>
                         </div>
-                        <button id="clearCurrentToolBtn" class="clear-btn">지우기</button>
+                        <button id="clearCurrentToolBtn" class="tool-delete-btn" type="button">삭제</button>
                     </div>
 
                     <div class="tool-body">
@@ -211,20 +211,40 @@
                     </div>
                 </section>
 
+                <button id="mockChatBtn" class="skct-floating-btn chat-btn" type="button" aria-label="채팅 버튼 자리">
+                    <span class="chat-bubble-icon" aria-hidden="true"></span>
+                </button>
+                <button id="mockQuestionBtn" class="skct-floating-btn question-btn" type="button" aria-label="물음표 버튼 자리">?</button>
+
             </div>
         </main>
 
     </div>
 
-    <div id="popupEditorPanel" class="popup-editor-panel hidden" aria-live="polite">
-        <div class="popup-editor-title">팝업 기본값 편집</div>
-        <div class="popup-editor-desc">창 위치와 크기, 분리선을 직접 조절한 뒤 서버 기본값으로 저장하세요.</div>
-        <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
-        <div class="popup-editor-actions">
-            <button id="popupEditorReloadBtn" type="button" class="popup-editor-btn ghost">서버값 다시 적용</button>
-            <button id="popupEditorSaveBtn" type="button" class="popup-editor-btn primary">서버 기본값 저장</button>
+    <div id="popupEditorPanel" class="popup-editor-panel hidden collapsed" aria-live="polite">
+        <div class="popup-editor-header">
+            <div class="popup-editor-title">팝업 기본값 편집</div>
+            <button id="popupEditorToggleBtn" type="button" class="popup-editor-toggle-btn" aria-expanded="false">펼치기</button>
         </div>
-        <div id="popupEditorStatus" class="popup-editor-status">관리자 페이지에서 연 팝업에서만 저장됩니다.</div>
+        <div class="popup-editor-content">
+            <div class="popup-editor-desc">창 위치, 크기, 세로 비율, 하단 여백을 조절한 뒤 서버 기본값으로 저장하세요.</div>
+            <label class="popup-editor-field">
+                <span>하단 여백</span>
+                <input type="range" id="popupBottomPaddingRange" min="0" max="0.9" step="0.005" value="0.11">
+                <strong id="popupBottomPaddingValue">11.0%</strong>
+            </label>
+            <label class="popup-editor-field">
+                <span>우측 버튼 열</span>
+                <input type="range" id="popupSideColumnRange" min="0.03" max="0.24" step="0.005" value="0.09">
+                <strong id="popupSideColumnValue">9.0%</strong>
+            </label>
+            <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
+            <div class="popup-editor-actions">
+                <button id="popupEditorReloadBtn" type="button" class="popup-editor-btn ghost">서버값 다시 적용</button>
+                <button id="popupEditorSaveBtn" type="button" class="popup-editor-btn primary">서버 기본값 저장</button>
+            </div>
+            <div id="popupEditorStatus" class="popup-editor-status">관리자 페이지에서 연 편집 팝업에서만 저장됩니다.</div>
+        </div>
     </div>
 
     <!-- Help Modal Overlay -->
@@ -364,16 +384,33 @@
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📐 높이 비율 설정 (우측 영역)</div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">타이머 영역</label>
-                        <input type="number" id="ratioTimer" value="0.2" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                        <input type="number" id="ratioTimer" value="8.6" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">메모/그림 영역</label>
-                        <input type="number" id="ratioUtils" value="1" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                        <input type="number" id="ratioUtils" value="45.0" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
                     <div class="settings-row" style="margin-bottom:0;">
                         <label style="color:#334155;">계산기 영역</label>
-                        <input type="number" id="ratioCalc" value="2" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                        <input type="number" id="ratioCalc" value="46.4" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
+                </div>
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🧰 도구 설정</div>
+                    <label class="settings-slider-row" for="noteFontSizeRange">
+                        <span class="settings-slider-label">메모장 글씨 크기</span>
+                        <div class="settings-slider-control" id="noteFontControl">
+                            <input type="range" id="noteFontSizeRange" min="12" max="22" step="1" value="12">
+                            <strong id="noteFontSizeValue">12</strong>
+                        </div>
+                    </label>
+                    <label class="settings-slider-row" for="canvasLineWidthRange" style="margin-top:10px;">
+                        <span class="settings-slider-label">그림판 선 굵기</span>
+                        <div class="settings-slider-control" id="canvasLineWidthControl">
+                            <input type="range" id="canvasLineWidthRange" min="2" max="12" step="1" value="2">
+                            <strong id="canvasLineWidthValue">2</strong>
+                        </div>
+                    </label>
                 </div>
                 <button id="settingsApplyBtn" style="padding:10px; background:#3b82f6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">✅ 적용하고 닫기</button>
             </div>
