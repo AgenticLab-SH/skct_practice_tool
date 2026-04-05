@@ -1073,7 +1073,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `생성 시각: ${new Date().toLocaleString('ko-KR')}`,
             `모드: ${isPracticeMode ? '연습 모드' : '실전 모드'}`,
             `설정 시간(입력값): 전체 ${configTotalMins}분 / 과목 ${configSubjectMins}분 / 쉬는시간 ${configBreakMins}분`,
-            `실제 총 진행 기준: ${Math.round(getEffectiveConfiguredTotalSeconds() / 60)}분`,
+            `전체 제한 시간(쉬는 시간 제외): ${Math.round(getEffectiveConfiguredTotalSeconds() / 60)}분`,
             ''
         ];
 
@@ -1662,7 +1662,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const getEffectiveConfiguredTotalSeconds = () => {
-        return Math.max(configTotalMins * 60, getConfiguredPhaseTotalSeconds());
+        return configTotalMins * 60;
     };
 
     const buildPhases = () => {
@@ -1864,16 +1864,19 @@ document.addEventListener('DOMContentLoaded', () => {
             questionSpentSec++;
         }
 
-        if (totalSeconds > 0) {
-            totalSeconds--;
-        } else {
-            clearInterval(timerInterval);
-            timerIsRunning = false;
-            syncTimerPlayButtonLabel(false);
-            currentPhaseIdx = phases.length;
-            updateTimerUI();
-            playBeep(440, 300, 3); // 전체 시간 종료
-            return;
+        const currentPhase = currentPhaseIdx < phases.length ? phases[currentPhaseIdx] : null;
+        if (currentPhase?.type !== 'break') {
+            if (totalSeconds > 0) {
+                totalSeconds--;
+            } else {
+                clearInterval(timerInterval);
+                timerIsRunning = false;
+                syncTimerPlayButtonLabel(false);
+                currentPhaseIdx = phases.length;
+                updateTimerUI();
+                playBeep(440, 300, 3); // 전체 시간 종료
+                return;
+            }
         }
 
         if (currentPhaseIdx < phases.length) {
@@ -1920,10 +1923,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (currentPhaseIdx >= phases.length) return;
         const endedPhase = phases[currentPhaseIdx];
         const endedPhaseIdx = currentPhaseIdx;
-
-        if (skipRemainingPhaseSeconds && currentPhaseSeconds > 0) {
-            totalSeconds = Math.max(totalSeconds - currentPhaseSeconds, 0);
-        }
 
         currentPhaseIdx++;
 

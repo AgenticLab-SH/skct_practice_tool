@@ -180,8 +180,8 @@
                 `페이즈 남은 시간: ${Math.max(snapshot.timer.currentPhaseSeconds, 0)}초`,
                 `문항별 누적 시간: ${snapshot.timer.questionSpentSec}초`,
                 `설정 시간: 전체 ${snapshot.timer.configuredTotalMinutes}분 / 과목 ${snapshot.timer.subjectMinutes}분 / 쉬는시간 ${snapshot.timer.breakMinutes}분`,
-                `페이즈 합계: ${snapshot.timer.phaseTotalMinutes}분`,
-                `실제 적용 총합: ${snapshot.timer.effectiveTotalMinutes}분`,
+                `페이즈 합계(쉬는 시간 포함): ${snapshot.timer.phaseTotalMinutes}분`,
+                `전체 제한 시간(쉬는 시간 제외): ${snapshot.timer.effectiveTotalMinutes}분`,
                 `현재 문제: ${snapshot.question.currentKey || '-'}`,
                 `현재 인덱스: ${snapshot.question.currentIndex}`,
                 `모드: ${snapshot.question.mode}`
