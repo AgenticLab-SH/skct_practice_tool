@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 17:29:51 KST
+작성일시: 2026-04-05 17:31:55 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -211,3 +211,6 @@
   - `node --check staging/site/assets/scripts/app.bundle.js` 통과
   - 운영 `index.html`에서 `calcHistory`, `BACK`, `SQRT`, `00` 키 마크업 반영 확인
   - 운영 `main.js`에서 구형 `calcDisplay / previous` 참조 제거 확인
+  - 원격 `https://agenticlab-sh.github.io/skct_tool/index.html` 응답에서 `calcHistory`, `data-val="SQRT"` 문자열 확인
+  - 원격 `https://agenticlab-sh.github.io/skct_tool/main.css` 응답에서 `calc-display-shell`, `calc-line-tight`, `sqrt-btn` 문자열 확인
+  - 운영 반영 커밋 `15b14c3`을 `origin/main`에 push 완료

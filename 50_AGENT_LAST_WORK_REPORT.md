@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-05 12:05:20 KST
+작성일시: 2026-04-05 17:31:55 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -79,6 +79,70 @@
 - 이후 프로세스는 `로컬 개발 -> 스테이징 검증 -> 사용자 승인 -> 운영 반영` 순서로 분리합니다.
 - 이 기준은 로컬 [AGENTS.md](C:/dev/01_career/_assets/tools/skct_tool/AGENTS.md)에 반영했습니다.
 
+## 2026-04-05 스테이징 읽기 전용 미러 구성
+- 운영 사용자 페이지 파일은 건드리지 않고 `staging/site/` 아래에 숨은 테스트 사본을 유지했습니다.
+- 루트 `admin.html` 상단에 기존 `사이트 보기`와 별개로 `🧪 테스트 사이트` 버튼을 추가했습니다.
+- 이 버튼은 `stg_skct_admin_gate_until` 값을 먼저 저장한 뒤 `staging/site/index.html?stage=1&preview=1`를 팝업으로 엽니다.
+- 게이트 값 없이 스테이징 URL에 직접 접근하면 `staging/site/update.html?time=개발자 전용 테스트 사이트`로 되돌립니다.
+
+## 스테이징 데이터 정책
+- 스테이징 사용자 사이트는 운영 Firebase 데이터를 읽기 전용으로만 사용합니다.
+- 운영 `config`, `posts`, `replies`, 방문 통계는 운영 DB에서 읽습니다.
+- 스테이징 사용자 사이트에서는 방문 기록, 좋아요, 댓글, 게시글 작성, 관리자 저장 등 쓰기 흐름을 모두 차단합니다.
+- 스테이징 관리자 사본은 향후 격리된 쓰기 테스트를 위해 `staging_hidden_v1/*` 네임스페이스를 유지합니다.
+- 주의: 정적 GitHub Pages만으로는 운영 DB에 대한 진짜 강제 읽기 전용을 완성할 수 없고, 그 보장은 Firebase 보안 규칙 또는 별도 서버 프록시가 필요합니다.
+
+## 이번 보강
+- `admin.html`
+  - `🧪 테스트 사이트` 버튼 추가
+  - 기존 `사이트 보기`와 동일한 팝업 크기/위치 로직 재사용
+- `staging/site/index.html`
+  - 읽기 전용 배너 추가
+  - 관리자 게이트 검증 로직 추가
+  - 운영 DB의 방문 통계와 `config`를 읽되, 방문 기록 증분은 건너뛰도록 분기
+- `staging/site/assets/scripts/app.bundle.js`
+  - 커뮤니티 작성 폼을 읽기 전용 안내 박스로 교체
+  - 좋아요/수정/삭제/관리자 조작 버튼 비노출 처리
+  - 댓글은 펼쳐서 읽을 수만 있고, 답글 작성 폼 대신 읽기 전용 안내만 보이도록 정리
+- `staging/site/update.html`
+  - favicon 추가로 불필요한 404 콘솔 에러 제거
+- `staging/README.md`
+  - 현재 스테이징 구조와 읽기 전용 미러 원칙 문서화
+
+## 최종 검증
+- 관리자 페이지에서 숨겨진 `stagingPreviewLink` 클릭 시 `stg_skct_admin_gate_until` 저장 확인
+- 게이트가 있는 상태에서 `staging/site/index.html?stage=1&preview=1` 정상 진입 확인
+- 게이트를 지우고 같은 주소 재진입 시 `staging/site/update.html`로 차단 확인
+- 스테이징 커뮤니티에서 읽기 전용 안내 노출 확인
+- 스테이징 커뮤니티에서 좋아요 버튼은 숫자 표시만 남고, 수정/삭제 버튼 비노출 확인
+- 댓글 펼치기 시 운영 댓글은 보이되, 하단에는 `읽기만 가능` 안내만 표시되는 것 확인
+- Playwright 기준 최종 콘솔 에러 0건 확인
+
+## 2026-04-05 GUIDE 문구 최신화
+- 실제 운영 사용자 페이지 [index.html](C:/dev/01_career/_assets/tools/skct_tool/index.html)의 `GUIDE` 모달 기능 설명을 현재 버튼 구성에 맞게 갱신했습니다.
+- 새로 반영한 항목:
+  - `화면 더 줄이기`
+  - `무적모드(테스트)`
+  - `정답 입력 모드`
+  - `채점 및 통계 확인`
+  - `접속자 수`와 `게시판`의 상세 설명 최신화
+- 타이머/연습장/계산기 설명도 현재 동작 기준으로 정리했습니다.
+- 사용자 설정창과 관리자 페이지의 버전 표시는 `2026-04-05 12:52:36 +09:00`, `v2026.04.05.1252`로 올렸습니다.
+- 커밋 `a25fb22`로 원격 `main` 푸시 완료했습니다.
+
+## 2026-04-05 실전모드 OMR 입력 제한
+- 요구사항: 실전모드에서는 현재 포커스된 문항에만 답을 입력할 수 있어야 하고, 이전 문항을 다시 클릭해 바꾸면 안 되도록 제한
+- 먼저 [staging/site/assets/scripts/app.bundle.js](C:/dev/01_career/_assets/tools/skct_tool/staging/site/assets/scripts/app.bundle.js)에 동일 로직을 적용해 검증했습니다.
+- 반영 방식:
+  - 실전모드에서는 타이머가 멈춰 있어도 현재 문항 외 버튼은 모두 비활성화
+  - 시간이 끝나 잠긴 과목은 일시정지 상태에서도 계속 잠금 유지
+  - 연습모드에서는 기존처럼 모든 문항 자유 입력 유지
+- 검증 결과:
+  - 스테이징에서 실전모드 기본 진입 시 1번만 활성, 2번 이후는 모두 비활성 확인
+  - 1번 답 입력 후 현재 문항이 2번으로 이동하고, 1번은 다시 비활성화되는 것 확인
+  - 연습모드로 전환 후 1번과 2번 모두 다시 활성화되는 것 확인
+  - 운영본 로컬 [main.js](C:/dev/01_career/_assets/tools/skct_tool/main.js) 적용 후 같은 시나리오로 재검증했고 Playwright 콘솔 에러 0건 확인
+
 ## 2026-04-05 팝업 진입 UX 정리
 - 자동 팝업 진입은 복원하지 않았습니다. 브라우저 팝업 차단에 걸리면 다시 `팝업 모드 실행 중...` 같은 안내 화면에 갇히는 회귀가 날 수 있기 때문입니다.
 - 대신 실제 사용자 페이지 [index.html](C:/dev/01_career/_assets/tools/skct_tool/index.html)에 `화면 더 줄이기` 진입점을 2곳으로 맞췄습니다.
@@ -116,3 +180,58 @@
 ## 2026-04-05 후원 문구 검증
 - 로컬 서버 `http://127.0.0.1:8126/index.html?dev=1&preview=1`에서 `window.applySupportConfig(...)` 호출 시 제목/본문/강조문구/문의 링크/버튼 링크가 실제 DOM에 반영되는 것 확인
 - 관리자 페이지 소스 기준으로 `config/supportConfig` 로드/저장 경로 연결 확인
+
+## 2026-04-05 안정 버전 백업
+- 현재 만족 상태인 운영 커밋 `6c90bed` 기준으로 로컬 백업 ZIP 생성
+- 백업 파일: [skct_tool_backup_20260405_120941_6c90bed.zip](C:/dev/01_career/_assets/tools/skct_tool/_backup/skct_tool_backup_20260405_120941_6c90bed.zip)
+- 복구용 Git 태그: `backup-20260405-120941-stable`
+- 이 백업은 현재 배포된 안정 상태만 대상으로 만들었고, 워크트리에 남아 있던 로컬 메모 파일(`docs/TODO/TODO1.md`, `AGENTS.md`, `docs/agent/worklog/2026-04-05_release_process_design.md`)은 포함하지 않았습니다.
+
+## 2026-04-05 운영 분리용 스테이징 사본 생성
+- 운영 파일을 건드리지 않고 별도 복제본 작업 공간 [staging/README.md](C:/dev/01_career/_assets/tools/skct_tool/staging/README.md), [staging/site/index.html](C:/dev/01_career/_assets/tools/skct_tool/staging/site/index.html)을 만들었습니다.
+- 스테이징 사본은 루트 파일을 늘리지 않도록 `assets/styles`, `assets/scripts`, `assets/images`, `assets/packages`, `assets/extension` 구조로 정리했습니다.
+- 원본 운영 파일은 그대로 두고, 복제본만 아래처럼 재배치했습니다.
+  - 사용자/관리자 엔트리: `staging/site/*.html`
+  - 스타일: `staging/site/assets/styles/`
+  - 스크립트: `staging/site/assets/scripts/`
+  - 이미지: `staging/site/assets/images/`
+  - 확장 ZIP: `staging/site/assets/packages/stg_skct_extension.zip`
+- 같은 도메인 하위 페이지로 올려도 운영본과 충돌하지 않게 스테이징 사본의 저장소 키를 `stg_skct_*`로 분리했습니다.
+- Firebase도 운영 데이터와 섞이지 않도록 `staging_hidden_v1/*` 네임스페이스만 읽고 쓰게 바꿨습니다.
+- 아직 현재 운영 `admin.html`에는 연결하지 않았습니다. 사용자가 금지한 “기존 파일/서버 수정” 없이 사본만 준비한 상태입니다.
+
+## 2026-04-05 스테이징 사본 검증
+- 로컬 `http://127.0.0.1:8127/staging/site/index.html?dev=1&preview=1` 정상 렌더링 확인
+- 스테이징 확장 ZIP `http://127.0.0.1:8127/staging/site/assets/packages/stg_skct_extension.zip` 응답 코드 `200` 확인
+
+## 2026-04-05 스테이징 사본 리팩토링
+- 작업 대상은 운영본이 아닌 [staging/site](C:/dev/01_career/_assets/tools/skct_tool/staging/site) 복제본만 사용
+- 파일 수 축소:
+  - 리팩토링 전 파일 수: `24`
+  - 리팩토링 후 파일 수: `14`
+- 주요 정리 내용:
+  - `main.js` + `community.js`를 [app.bundle.js](C:/dev/01_career/_assets/tools/skct_tool/staging/site/assets/scripts/app.bundle.js)로 통합
+  - 미사용 확장 사본 폴더 `staging/site/assets/extension/` 제거
+  - 스테이징 내 중복 ZIP `skct_extension.zip` 제거, [stg_skct_extension.zip](C:/dev/01_career/_assets/tools/skct_tool/staging/site/assets/packages/stg_skct_extension.zip)만 유지
+  - HTML은 그대로 두되 `assets/` 하위 경로만 참조하도록 정리
+  - 운영본과 저장소 충돌 방지를 위한 `stg_skct_*` / `staging_hidden_v1/*` 분리 유지
+- 안전장치:
+  - 제거한 스테이징 원본 사본은 [_trash/20260405_122937](C:/dev/01_career/_assets/tools/skct_tool/_trash/20260405_122937)에 보관
+- 최종 검증:
+  - `http://127.0.0.1:8128/staging/site/index.html?dev=1&preview=1` 렌더링 정상
+  - Playwright 콘솔 에러 `0`
+  - 스테이징 ZIP 응답 코드 `200`
+
+## 2026-04-05 운영 계산기 수식 표시 반영
+- 사용자 승인 범위에 맞춰 계산기 부분만 운영 서버에 반영했습니다.
+- 운영 기준 커밋은 `15b14c3`입니다.
+- 반영 내용:
+  - 운영 `index.html` 계산기 마크업을 staging 계산기 구조로 이식
+  - 운영 `main.js` 계산 상태를 `storedValue / operator / history` 구조로 교체
+  - `=` 전까지 현재 줄에 전체 수식이 유지되도록 표시 방식 수정
+  - `BACK`, `SQRT`, `00` 키와 계산 기록 3줄 + 현재 입력 1줄 구조 반영
+- 검증:
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 원격 `https://agenticlab-sh.github.io/skct_tool/index.html` 응답에서 `calcHistory`, `data-val="SQRT"` 문자열 확인
+  - 원격 `https://agenticlab-sh.github.io/skct_tool/main.js` 응답에서 `CALC_MAX_INPUT_LENGTH = 32`, `storedValue`, `calcHistory` 문자열 확인
