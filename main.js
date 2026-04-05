@@ -72,15 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'seq_rea', name: '수열추리', count: 20 }
     ];
 
-    const getRequiredTotalMins = (subjMins, breakMins) => {
-        const safeSubj = Math.max(0, parseInt(subjMins, 10) || 0);
-        const safeBreak = Math.max(0, parseInt(breakMins, 10) || 0);
-        return safeSubj * subjects.length + safeBreak * Math.max(0, subjects.length - 1);
-    };
-
-    const clampTotalMins = (totalMins, subjMins, breakMins) => {
-        const safeTotal = Math.max(0, parseInt(totalMins, 10) || 0);
-        return Math.max(safeTotal, getRequiredTotalMins(subjMins, breakMins));
+    const sanitizeMinutes = (value, fallback) => {
+        const parsed = parseInt(value, 10);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
     };
 
     const omrState = {
@@ -289,17 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     optionsHtml += `<button class="q-opt ${extraClass}" data-key="${qKey}" data-opt="${opt}" data-gidx="${currentIdx}" ${disabledAttr}>${opt}</button>`;
                 }
                 
-                const qKey = `${subj.id}_${i}`;
-                let skipHtml = '';
-                if (omrState.mode === 'answer' && isCurrent && !isSubjLocked) {
-                    skipHtml = `<button class="q-skip-btn" data-key="${qKey}" title="답을 고르지 않고 넘어갑니다">⏭ 건너뛰기</button>`;
-                }
-
                 qRow.innerHTML = `
                     <div class="q-num">${i}.</div>
                     <div class="q-options" style="display:flex; align-items:center; gap:4px;">
                         ${optionsHtml}
-                        ${skipHtml}
                     </div>
                 `;
                 group.appendChild(qRow);
@@ -338,14 +325,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
-
-        document.querySelectorAll('.q-skip-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (omrState.mode === 'answer') {
-                    advanceQuestion(true);
-                }
-            });
-        });
     }
 
     renderOMR();
@@ -358,7 +337,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (omrState.mode === 'answer') {
             modeToggleBtn.textContent = '📝 정답 입력 모드로 전환';
             modeToggleBtn.classList.remove('active-score');
-            if (omrModeLabel) omrModeLabel.textContent = '📝 답안 작성 중';
+            if (omrModeLabel) {
+                omrModeLabel.textContent = '📝 답안 작성 중';
+                omrModeLabel.style.color = '';
+            }
         } else {
             modeToggleBtn.textContent = '✏️ 답안 작성 모드로 돌아가기';
             modeToggleBtn.classList.add('active-score');
@@ -367,15 +349,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const stopTimer = () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        timerIsRunning = false;
+        if (timerPlayBtn) {
+            timerPlayBtn.innerText = '▶ 시작 / 정지';
+        }
+        updateTimerUI();
+        applyPhaseToOMR();
+    };
+
+    const enterScoreMode = () => {
+        omrState.mode = 'score';
+        stopTimer();
+        updateModeUI();
+        renderOMR();
+    };
+
     if (modeToggleBtn) {
         modeToggleBtn.addEventListener('click', () => {
             if (omrState.mode === 'answer') {
-                omrState.mode = 'score';
+                enterScoreMode();
             } else {
                 omrState.mode = 'answer';
+                updateModeUI();
+                renderOMR();
             }
-            updateModeUI();
-            renderOMR();
         });
     }
 
@@ -384,9 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasCorrectAnswers = Object.values(omrState.correctAnswers).some(v => v != null);
         if (!hasCorrectAnswers) {
             // 정답 입력 모드로 자동 전환
-            omrState.mode = 'score';
-            updateModeUI();
-            renderOMR();
+            enterScoreMode();
             return;
         }
 
@@ -428,11 +428,28 @@ document.addEventListener('DOMContentLoaded', () => {
             
             let trHtml = '';
             let detailHtml = '';
+            let allTimes = [];
+
+            subjects.forEach(subj => {
+                for (let i = 1; i <= subj.count; i++) {
+                    const qKey = `${subj.id}_${i}`;
+                    if (questionTimings[qKey]) {
+                        allTimes.push({
+                            key: qKey,
+                            subjId: subj.id,
+                            subjName: subj.name,
+                            num: i,
+                            spent: questionTimings[qKey].spent,
+                            state: questionTimings[qKey].state
+                        });
+                    }
+                }
+            });
             
             subjects.forEach(subj => {
                 let sAtt = 0;
                 let sCor = 0;
-                let wrongHtml = '';
+                let wrongItems = [];
                 for (let i=1; i<=subj.count; i++) {
                     const qKey = `${subj.id}_${i}`;
                     const myAns = omrState.myAnswers[qKey];
@@ -442,9 +459,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         sCor++;
                     } else if (corAns) {
                        let myAnsText = myAns ? myAns : "-";
-                       wrongHtml += `<span style="background: ${myAns?'#fee2e2':'#f1f5f9'}; color: ${myAns?'#ef4444':'#64748b'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${myAns?'#fca5a5':'#cbd5e1'}; white-space: nowrap; font-size: 11px;">
+                       wrongItems.push(`<span style="background: ${myAns?'#fee2e2':'#f1f5f9'}; color: ${myAns?'#ef4444':'#64748b'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${myAns?'#fca5a5':'#cbd5e1'}; white-space: nowrap; font-size: 11px;">
                             <strong>${i}번</strong>: 답(${myAnsText}) 정답(${corAns})
-                       </span>`;
+                       </span>`);
                     }
                 }
                 const rate = sAtt > 0 ? ((sCor / sAtt) * 100).toFixed(1) : 0;
@@ -457,29 +474,39 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td style="color: #f59e0b; font-weight: bold;">${rate}%</td>
                     </tr>
                 `;
-                if(wrongHtml !== '') {
-                    detailHtml += `
-                    <div>
-                        <div style="font-weight: bold; color: #3b82f6; margin-bottom: 4px;">▶ ${subj.name} 오답/미응답 정리</div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${wrongHtml}</div>
-                    </div>
-                    `;
-                }
+                const subjectTimes = allTimes.filter(t => t.subjId === subj.id);
+                const wrongHtml = wrongItems.length > 0
+                    ? `<div style="margin-bottom: 10px;">
+                            <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">오답/미응답</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${wrongItems.join('')}</div>
+                       </div>`
+                    : `<div style="margin-bottom: 10px; color:#10b981; font-weight:600;">오답/미응답이 없습니다.</div>`;
+                const timeHtml = subjectTimes.length > 0
+                    ? `<div>
+                            <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">소요 시간</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${subjectTimes.map(t => `<span style="background: ${t.state==='skipped' ? '#f1f5f9' : '#e0f2fe'}; color: ${t.state==='skipped' ? '#64748b' : '#0369a1'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${t.state==='skipped' ? '#cbd5e1' : '#bae6fd'}; white-space: nowrap; font-size: 11px;">
+                                <strong>${t.num}번</strong>: ${t.spent}초 소요${t.state==='skipped'?' (건너뜀)':''}
+                            </span>`).join('')}</div>
+                       </div>`
+                    : `<div style="color:#64748b;">기록된 소요 시간이 없습니다.</div>`;
+                detailHtml += `
+                    <details style="border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; padding:0 12px;" data-stat-subject="${subj.id}">
+                        <summary style="cursor:pointer; list-style:none; padding:12px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; font-weight:700; color:#1d4ed8;">
+                            <span>${subj.name}</span>
+                            <span style="font-size:11px; color:#475569; font-weight:600;">${sCor}/${sAtt || 0} 정답 · ${rate}% · ${subjectTimes.length}개 시간기록</span>
+                        </summary>
+                        <div style="padding:0 0 12px; border-top:1px dashed #bfdbfe;">
+                            <div style="padding-top:10px;">
+                                ${wrongHtml}
+                                ${timeHtml}
+                            </div>
+                        </div>
+                    </details>
+                `;
             });
             tbody.innerHTML = trHtml;
             
-            // Add Timing Stats
-            let timeHtml = '';
-            let allTimes = [];
-            subjects.forEach(subj => {
-                for (let i = 1; i <= subj.count; i++) {
-                    const qKey = `${subj.id}_${i}`;
-                    if (questionTimings[qKey]) {
-                        allTimes.push({ key: qKey, subjName: subj.name, num: i, spent: questionTimings[qKey].spent, state: questionTimings[qKey].state });
-                    }
-                }
-            });
-
+            let topTimeHtml = '';
             if (allTimes.length > 0) {
                 const sortedTimes = [...allTimes].sort((a, b) => b.spent - a.spent);
                 const topHtml = sortedTimes.slice(0, 3).map((item, idx) => `
@@ -488,32 +515,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `).join('');
 
-                timeHtml += `
-                <div style="margin-top: 15px;">
-                    <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0;">⏱ 소요 시간 리포트 (타이머 가동 중 이력)</div>
+                topTimeHtml = `
                     <div style="padding: 10px; background: #fffcf8; border: 1px solid #fed7aa; border-radius: 6px; margin-bottom: 8px;">
                         <span style="font-size:11px; color:#c2410c; font-weight:bold;">🚨 가장 오래 걸린 문항 Top 3</span>
                         ${topHtml}
-                    </div>
-                </div>`;
-                
-                subjects.forEach(subj => {
-                    let sTimes = allTimes.filter(t => t.subjName === subj.name);
-                    if (sTimes.length > 0) {
-                        let tHtml = sTimes.map(t => `<span style="background: ${t.state==='skipped' ? '#f1f5f9' : '#e0f2fe'}; color: ${t.state==='skipped' ? '#64748b' : '#0369a1'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${t.state==='skipped' ? '#cbd5e1' : '#bae6fd'}; white-space: nowrap; font-size: 11px;">
-                            <strong>${t.num}번</strong>: ${t.spent}초 소요${t.state==='skipped'?' (건너뜀)':''}
-                        </span>`).join('');
-                        timeHtml += `
-                        <div style="margin-bottom: 8px;">
-                            <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">▶ ${subj.name} 소요 시간</div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${tHtml}</div>
-                        </div>`;
-                    }
-                });
+                    </div>`;
             }
 
             if(detailWrapper) {
-                detailWrapper.innerHTML = detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">완벽합니다! 틀린 문제가 없습니다. 🎉</div>' + timeHtml : detailHtml + timeHtml;
+                detailWrapper.innerHTML = topTimeHtml + (detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">표시할 과목별 상세 통계가 없습니다.</div>' : detailHtml);
             }
             document.getElementById('statModal').classList.remove('hidden');
         });
@@ -858,11 +868,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const savedTimerCfg = isAdminPreviewMode ? null : JSON.parse(localStorage.getItem('skct_timer_cfg'));
     if (savedTimerCfg) {
-        configTotalMins = savedTimerCfg.total || 75;
-        configSubjectMins = savedTimerCfg.subj || 15;
-        configBreakMins = savedTimerCfg.brk || 1;
+        configTotalMins = sanitizeMinutes(savedTimerCfg.total, 75);
+        configSubjectMins = sanitizeMinutes(savedTimerCfg.subj, 15);
+        configBreakMins = sanitizeMinutes(savedTimerCfg.brk, 1);
     }
-    configTotalMins = clampTotalMins(configTotalMins, configSubjectMins, configBreakMins);
 
     let configGuideEnabled = true;
     let configGuideSec = 45;
@@ -940,9 +949,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
         if (timerIsRunning) return; // ignore if running
-        configSubjectMins = subj || 15;
-        configBreakMins = brk || 1;
-        configTotalMins = clampTotalMins(total || 75, configSubjectMins, configBreakMins);
+        configSubjectMins = sanitizeMinutes(subj, 15);
+        configBreakMins = sanitizeMinutes(brk, 1);
+        configTotalMins = sanitizeMinutes(total, 75);
 
         if (totalTimeInput) totalTimeInput.value = configTotalMins;
         if (subjectTimeInput) subjectTimeInput.value = configSubjectMins;
@@ -1176,7 +1185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     extStatusCheck.innerHTML = `
                         <div style="font-size:50px; margin-bottom:10px;">❌</div>
-                        <div style="font-weight:bold; font-size:18px; color:#ef4444;">무적모드 확장이 아직 설치되지 않았습니다</div>
+                        <div style="font-weight:bold; font-size:18px; color:#ef4444;">무적모드(테스트 기능) 확장이 아직 설치되지 않았습니다</div>
                     `;
                     extInstallGuide.classList.remove('hidden');
                 }
@@ -1192,9 +1201,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsApplyBtn = document.getElementById('settingsApplyBtn');
     if (settingsApplyBtn) {
         settingsApplyBtn.addEventListener('click', () => {
-            configSubjectMins = parseInt(document.getElementById('cfgSubj').value) || 15;
-            configBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
-            configTotalMins = clampTotalMins(document.getElementById('cfgTotal').value, configSubjectMins, configBreakMins);
+            configSubjectMins = sanitizeMinutes(document.getElementById('cfgSubj').value, 15);
+            configBreakMins = sanitizeMinutes(document.getElementById('cfgBreak').value, 1);
+            configTotalMins = sanitizeMinutes(document.getElementById('cfgTotal').value, 75);
             document.getElementById('cfgTotal').value = configTotalMins;
             if (!isAdminPreviewMode) {
                 localStorage.setItem('skct_timer_cfg', JSON.stringify({total: configTotalMins, subj: configSubjectMins, brk: configBreakMins}));
@@ -1214,9 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (timerIsRunning) {
-                clearInterval(timerInterval);
-                timerIsRunning = false;
-                timerPlayBtn.innerText = '▶ 시작 / 정지';
+                stopTimer();
             }
             totalSeconds = configTotalMins * 60;
             lockedSubjectIndices.clear(); // 모드 변경 시 잠금 초기화

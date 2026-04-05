@@ -55,9 +55,9 @@
                     <span style="font-size:14px;">⚙</span>
                     <span style="font-size:8px; letter-spacing:0; line-height:1.3;">설정</span>
                 </div>
-                <div class="extension-toggle" id="extensionToggle" title="초간단 링커리어 무적(가림막 해제) 확장프로그램 설치">
+                <div class="extension-toggle" id="extensionToggle" title="초간단 링커리어 무적모드(테스트 기능) 확장프로그램 설치">
                     <span style="font-size:15px; filter: drop-shadow(0 0 2px rgba(16,185,129,0.8));">🛡️</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">무적<br>모드</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">무적모드<br>(테스트)</span>
                 </div>
                 <!-- 구분선 -->
                 <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
@@ -116,7 +116,7 @@
                 <div class="timer-wrapper" style="margin-left:auto; display: flex; align-items: center; gap: 12px; background: #0f172a; border: 1px solid #334155; padding: 6px 14px; border-radius: 8px;">
                     <div style="display:flex; flex-direction:column; align-items:flex-end;">
                         <span style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">전체 남은 시간</span>
-                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">79:00</span>
+                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">75:00</span>
                     </div>
                     <div style="width: 1px; height: 24px; background: #334155;"></div>
                     <div style="display:flex; flex-direction:column; align-items:center;">
@@ -288,8 +288,8 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
-                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 10:45:00 +09:00</div>
-                    <div><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1045</div>
+                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 11:07:34 +09:00</div>
+                    <div><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1107</div>
                 </div>
                 <!-- 모드 설정 -->
                 <div>
@@ -310,7 +310,7 @@
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🕒 타이머 설정</div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">전체 제한 시간 (분)</label>
-                        <input type="number" id="cfgTotal" value="79" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                        <input type="number" id="cfgTotal" value="75" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">각 과목당 시간 (분)</label>
@@ -805,11 +805,11 @@
     </script>
     <!-- Community Module (loaded after Firebase init) -->
     <script type="module" src="community.js"></script>
-    <!-- Extension Install Modal (무적모드 팝업) -->
+    <!-- Extension Install Modal (무적모드 테스트 기능 팝업) -->
     <div class="modal-overlay hidden" id="extensionModal" style="z-index: 10000; align-items: center; justify-content: center;">
         <div class="modal-content" style="max-width: 520px; padding: 0;">
             <div class="modal-header" style="padding: 16px 20px; margin-bottom: 0;">
-                <h3 style="display: flex; align-items: center; gap: 8px;">🛡️ 링커리어 스크린차단 해제</h3>
+                <h3 style="display: flex; align-items: center; gap: 8px;">🛡️ 링커리어 스크린차단 해제 (테스트 기능)</h3>
                 <span class="modal-close btn-close" id="extensionClose">&times;</span>
             </div>
             <div class="modal-body" style="padding: 20px;">
@@ -825,6 +825,7 @@
                     <!-- ★ 두괄식 핵심 메시지 -->
                     <div style="background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 2px solid #93c5fd; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; text-align: center;">
                         <div style="font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 6px;">설치 한 번이면, 가림막 걱정 없이 편하게 연습!</div>
+                        <div style="font-size: 11px; color: #b45309; font-weight: 700; margin-bottom: 8px;">현재는 테스트 기능으로 제공됩니다.</div>
                         <div style="font-size: 13px; color: #475569; line-height: 1.6;">크롬에 이 확장 프로그램을 설치하면, 링커리어 CBT 가림막이 <strong style="color:#dc2626;">자동으로 완전 제거</strong>됩니다.<br>설치 이후에는 <strong>아무 조작 없이도</strong> 항상 무적 상태입니다.</div>
                     </div>
 
@@ -886,7 +887,7 @@
                     <!-- ★ 다운로드 버튼 -->
                     <div style="text-align: center; margin-bottom: 18px;">
                         <a href="skct_extension.zip" download style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 16px; font-weight: 800; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: all 0.2s;">
-                            🚀 무적모드 다운로드 (ZIP)
+                            🚀 무적모드(테스트 기능) 다운로드 (ZIP)
                         </a>
                     </div>
 
