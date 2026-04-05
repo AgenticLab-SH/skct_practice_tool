@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
     const DEFAULT_LAYOUT_RATIOS = { timer: 0.2, utils: 1, calc: 2 };
-    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.04, noteFontSize: 14, canvasLineWidth: 4 };
+    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.04, sideButtonColumnRatio: 0.14, noteFontSize: 14, canvasLineWidth: 4 };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'stg-skct-popup-preview',
         saveRequest: 'stg-skct-popup-save-request',
@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const popupEditorSaveBtn = document.getElementById('popupEditorSaveBtn');
     const popupBottomPaddingRange = document.getElementById('popupBottomPaddingRange');
     const popupBottomPaddingValue = document.getElementById('popupBottomPaddingValue');
+    const popupSideColumnRange = document.getElementById('popupSideColumnRange');
+    const popupSideColumnValue = document.getElementById('popupSideColumnValue');
     const ratioTimer = document.getElementById('ratioTimer');
     const ratioUtils = document.getElementById('ratioUtils');
     const ratioCalc = document.getElementById('ratioCalc');
@@ -103,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function normalizeToolUiConfig(raw) {
         return {
             bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.18)),
+            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || DEFAULT_TOOL_UI_CONFIG.sideButtonColumnRatio, 0.08, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || DEFAULT_TOOL_UI_CONFIG.noteFontSize, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || DEFAULT_TOOL_UI_CONFIG.canvasLineWidth, 2, 12)
         };
@@ -149,6 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--tools-bottom-padding', `${paddingPx}px`);
         if (popupBottomPaddingRange) popupBottomPaddingRange.value = String(currentToolUiConfig.bottomPaddingRatio);
         if (popupBottomPaddingValue) popupBottomPaddingValue.textContent = `${(currentToolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%`;
+    }
+
+    function syncToolsRightRail() {
+        const baseWidth = document.querySelector('.tools-layout')?.clientWidth || mainContentEl?.clientWidth || window.innerWidth || 360;
+        const buttonPx = clampNumber(Math.round(baseWidth * currentToolUiConfig.sideButtonColumnRatio), 44, 78);
+        document.documentElement.style.setProperty('--tools-right-rail-button-size', `${buttonPx}px`);
+        document.documentElement.style.setProperty('--tools-right-rail-reserve', `${buttonPx + 14}px`);
+        if (popupSideColumnRange) popupSideColumnRange.value = String(currentToolUiConfig.sideButtonColumnRatio);
+        if (popupSideColumnValue) popupSideColumnValue.textContent = `${(currentToolUiConfig.sideButtonColumnRatio * 100).toFixed(1)}%`;
     }
 
     function applyPopupOmrWidthRatio(widthRatio) {
@@ -237,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (canvasLineWidthRange) canvasLineWidthRange.value = String(currentToolUiConfig.canvasLineWidth);
         if (canvasLineWidthValue) canvasLineWidthValue.textContent = String(currentToolUiConfig.canvasLineWidth);
         syncToolsBottomPadding();
+        syncToolsRightRail();
         if (persist) {
             localStorage.setItem('stg_skct_tool_ui', JSON.stringify(currentToolUiConfig));
         }
@@ -264,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>창 위치: 왼쪽 ${(payload.popupLayout.window.leftRatio * 100).toFixed(1)}% / 위 ${(payload.popupLayout.window.topRatio * 100).toFixed(1)}%</div>
             <div>OMR 폭: ${(payload.popupLayout.omrWidthRatio * 100).toFixed(1)}%</div>
             <div>세로 비율: 타이머 ${payload.layoutRatios.timer.toFixed(1)} / 메모 ${payload.layoutRatios.utils.toFixed(1)} / 계산기 ${payload.layoutRatios.calc.toFixed(1)}</div>
-            <div>도구 기본값: 하단 여백 ${(currentToolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%, 메모 ${currentToolUiConfig.noteFontSize}px, 그림판 ${currentToolUiConfig.canvasLineWidth}px</div>
+            <div>도구 기본값: 하단 여백 ${(currentToolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%, 우측 버튼 열 ${(currentToolUiConfig.sideButtonColumnRatio * 100).toFixed(1)}%, 메모 ${currentToolUiConfig.noteFontSize}px, 그림판 ${currentToolUiConfig.canvasLineWidth}px</div>
         `;
     }
 
@@ -338,9 +351,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (popupSideColumnRange) {
+        popupSideColumnRange.addEventListener('input', () => {
+            applyToolUiConfig({ sideButtonColumnRatio: popupSideColumnRange.value }, { persist: false, notifyPopupEditor: true });
+        });
+    }
+
     let winResizeTimeout = null;
     window.addEventListener('resize', () => {
         syncToolsBottomPadding();
+        syncToolsRightRail();
         if (isPopupMode) {
             clearTimeout(winResizeTimeout);
             winResizeTimeout = setTimeout(() => {
@@ -1045,20 +1065,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const notepadWrapper = document.getElementById('notepadWrapper');
     const canvasWrapper = document.getElementById('canvasWrapper');
     const notepad = document.getElementById('notepad');
-    const noteFontControl = document.getElementById('noteFontControl');
-    const canvasLineWidthControl = document.getElementById('canvasLineWidthControl');
-
-    const updateToolControlVisibility = () => {
-        noteFontControl?.classList.toggle('hidden', notepadWrapper.classList.contains('hidden'));
-        canvasLineWidthControl?.classList.toggle('hidden', canvasWrapper.classList.contains('hidden'));
-    };
-
     tabNotepad.addEventListener('click', () => {
         tabNotepad.classList.add('active');
         tabCanvas.classList.remove('active');
         notepadWrapper.classList.remove('hidden');
         canvasWrapper.classList.add('hidden');
-        updateToolControlVisibility();
     });
 
     tabCanvas.addEventListener('click', () => {
@@ -1066,11 +1077,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tabNotepad.classList.remove('active');
         canvasWrapper.classList.remove('hidden');
         notepadWrapper.classList.add('hidden');
-        updateToolControlVisibility();
         resizeCanvas(); // Ensure canvas fits when revealed
     });
-
-    updateToolControlVisibility();
 
     /* --- Drawing Board (Canvas) Logic --- */
     const canvas = document.getElementById('drawingBoard');

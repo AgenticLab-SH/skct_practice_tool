@@ -161,20 +161,8 @@
                         <div class="tool-tabs">
                             <button id="tabNotepad" class="tab-btn active">메모장</button>
                             <button id="tabCanvas" class="tab-btn">그림판</button>
-                            <button id="clearCurrentToolBtn" class="tab-btn tool-action-btn">삭제</button>
                         </div>
-                        <div class="tool-adjusters">
-                            <label id="noteFontControl" class="tool-adjuster">
-                                <span>글씨</span>
-                                <input type="range" id="noteFontSizeRange" min="12" max="22" step="1" value="14">
-                                <strong id="noteFontSizeValue">14</strong>
-                            </label>
-                            <label id="canvasLineWidthControl" class="tool-adjuster hidden">
-                                <span>굵기</span>
-                                <input type="range" id="canvasLineWidthRange" min="2" max="12" step="1" value="4">
-                                <strong id="canvasLineWidthValue">4</strong>
-                            </label>
-                        </div>
+                        <button id="clearCurrentToolBtn" class="tool-delete-btn" type="button">삭제</button>
                     </div>
 
                     <div class="tool-body">
@@ -247,6 +235,11 @@
                 <span>하단 여백</span>
                 <input type="range" id="popupBottomPaddingRange" min="0" max="0.18" step="0.005" value="0.04">
                 <strong id="popupBottomPaddingValue">4.0%</strong>
+            </label>
+            <label class="popup-editor-field">
+                <span>우측 버튼 열</span>
+                <input type="range" id="popupSideColumnRange" min="0.08" max="0.24" step="0.005" value="0.14">
+                <strong id="popupSideColumnValue">14.0%</strong>
             </label>
             <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
             <div class="popup-editor-actions">
@@ -400,6 +393,23 @@
                         <label style="color:#334155;">계산기 영역</label>
                         <input type="number" id="ratioCalc" value="2" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
+                </div>
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🛠 도구 설정</div>
+                    <label class="settings-slider-row" for="noteFontSizeRange">
+                        <span class="settings-slider-label">메모장 글씨 크기</span>
+                        <div class="settings-slider-control" id="noteFontControl">
+                            <input type="range" id="noteFontSizeRange" min="12" max="22" step="1" value="14">
+                            <strong id="noteFontSizeValue">14</strong>
+                        </div>
+                    </label>
+                    <label class="settings-slider-row" for="canvasLineWidthRange" style="margin-top:10px;">
+                        <span class="settings-slider-label">그림판 선 굵기</span>
+                        <div class="settings-slider-control" id="canvasLineWidthControl">
+                            <input type="range" id="canvasLineWidthRange" min="2" max="12" step="1" value="4">
+                            <strong id="canvasLineWidthValue">4</strong>
+                        </div>
+                    </label>
                 </div>
                 <button id="settingsApplyBtn" style="padding:10px; background:#3b82f6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">✅ 적용하고 닫기</button>
             </div>

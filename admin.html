@@ -522,6 +522,7 @@
     function normalizeToolUiConfig(raw) {
         return {
             bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0, 0, 0.3)),
+            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || 0.14, 0.08, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || 14, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || 4, 2, 12)
         };
@@ -536,7 +537,7 @@
             <div><strong>창 위치</strong>: 왼쪽 ${(popup.window.leftRatio * 100).toFixed(1)}% / 위 ${(popup.window.topRatio * 100).toFixed(1)}%</div>
             <div><strong>OMR 폭</strong>: ${(popup.omrWidthRatio * 100).toFixed(1)}%</div>
             <div><strong>세로 비율</strong>: 타이머 ${ratios.timer.toFixed(1)} / 메모 ${ratios.utils.toFixed(1)} / 계산기 ${ratios.calc.toFixed(1)}</div>
-            <div><strong>도구 기본값</strong>: 하단 여백 ${(toolUi.bottomPaddingRatio * 100).toFixed(1)}%, 메모 ${toolUi.noteFontSize}px, 그림판 ${toolUi.canvasLineWidth}px</div>
+            <div><strong>도구 기본값</strong>: 하단 여백 ${(toolUi.bottomPaddingRatio * 100).toFixed(1)}%, 우측 버튼 열 ${(toolUi.sideButtonColumnRatio * 100).toFixed(1)}%, 메모 ${toolUi.noteFontSize}px, 그림판 ${toolUi.canvasLineWidth}px</div>
         `;
     }
 
