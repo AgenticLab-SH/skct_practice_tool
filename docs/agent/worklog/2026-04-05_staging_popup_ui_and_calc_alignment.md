@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 18:04:49 KST
+작성일시: 2026-04-05 20:03:58 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -193,6 +193,24 @@
     - 버튼 그리드를 `flex: 1 1 auto`로 바꿔 남는 높이를 버튼이 더 가져가도록 조정
 - 검증 결과
   - CSS diff 기준 표시부 높이 고정, 현재 줄 확대, 버튼 영역 flex 확대 반영 확인
+
+## 운영 반영 완료
+- 사용자 승인 후 운영 반영 수행
+- 운영 반영 코드 커밋: `862ee50`
+- 운영 반영 대상
+  - `index.html`
+  - `main.css`
+  - `main.js`
+- 운영 반영 내용
+  - 승인된 팝업 기본값, 세로 비율, 하단 여백, 우측 버튼 열, 메모 12px, 그림판 2px 이식
+  - 우측 채팅/물음표 자리 버튼 이식
+  - 메모/그림/삭제 도구 헤더 밀도 축소 이식
+  - 계산기 표시부 4줄 체감, 현재 줄 확대, 버튼 높이 재배분 이식
+  - 운영 팝업 편집 패널에 하단 여백 / 우측 버튼 열 슬라이더 이식
+- 운영 Firebase 실제값 확인
+  - `config/popupLayout.json` → `{"omrWidthRatio":0.34,"window":{"heightRatio":0.98,"leftRatio":0.731,"topRatio":0,"widthRatio":0.269}}`
+  - `config/layoutRatios.json` → `{"calc":46.4,"timer":8.6,"utils":45.0}`
+  - `config/toolUiConfig.json` → `{"bottomPaddingRatio":0.11,"canvasLineWidth":2,"noteFontSize":12,"sideButtonColumnRatio":0.09}`
   - `https://agenticlab-sh.github.io/skct_tool/staging/site/admin.html`에서 `popupLayoutEditorBtn`, `popupLayoutSummary`, `toolUiConfig` 문자열 확인
   - 운영 관리자 페이지 `https://agenticlab-sh.github.io/skct_tool/admin.html`에는 기존 `🧪 테스트 사이트` 버튼이 유지됨 확인
 - 영향 범위

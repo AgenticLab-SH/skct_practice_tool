@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-05 18:04:10 KST
+작성일시: 2026-04-05 20:03:58 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -263,3 +263,21 @@
   - `4 + 5 = 9`
   - `node --check main.js` 통과
   - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+
+## 2026-04-05 운영 반영: 승인된 팝업/도구 UI 기본값 이식
+- 운영 반영 코드 커밋은 `862ee50`입니다.
+- 반영 내용:
+  - 운영 `index.html`
+    - `삭제` 버튼, 우측 채팅/물음표 자리 버튼, 운영 팝업 편집 패널 슬라이더, 메모장/그림판 기본값 슬라이더 추가
+  - 운영 `main.css`
+    - 우측 버튼 열 예약 공간, 도구 헤더 축소, 계산기 표시부 4줄 체감 높이, 현재 줄 확대, 버튼 높이 재분배 반영
+  - 운영 `main.js`
+    - 팝업 기본값 fallback을 `26.9 / 98.0 / 73.1 / 0.0 / OMR 34.0` 기준으로 갱신
+    - 세로 비율 기본값 `8.6 / 45.0 / 46.4` 반영
+    - `toolUiConfig.sideButtonColumnRatio` 지원 추가
+    - 메모 `12px`, 그림판 `2px`, 하단 여백 `11%`, 우측 버튼 열 `9%` 기본값 반영
+    - 우측 가짜 버튼 알림, 팝업 편집 패널 접기/펼치기, 리사이즈 최소 높이 해제 반영
+- 운영 Firebase 실제값:
+  - `config/popupLayout` → `window 0.269 / 0.98 / 0.731 / 0`, `omrWidthRatio 0.34`
+  - `config/layoutRatios` → `timer 8.6 / utils 45.0 / calc 46.4`
+  - `config/toolUiConfig` → `bottomPaddingRatio 0.11 / sideButtonColumnRatio 0.09 / noteFontSize 12 / canvasLineWidth 2`
