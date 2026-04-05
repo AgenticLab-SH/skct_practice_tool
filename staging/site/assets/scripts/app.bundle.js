@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupMode = window.name === 'stg_skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
-    const DEFAULT_LAYOUT_RATIOS = { timer: 8.4, utils: 47.5, calc: 44.1 };
+    const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
-        window: { widthRatio: 0.273, heightRatio: 0.98, leftRatio: 0.727, topRatio: 0 },
+        window: { widthRatio: 0.269, heightRatio: 0.98, leftRatio: 0.731, topRatio: 0 },
         omrWidthRatio: 0.34
     };
-    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 14, canvasLineWidth: 4 };
+    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'stg-skct-popup-preview',
         saveRequest: 'stg-skct-popup-save-request',

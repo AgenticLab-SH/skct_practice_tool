@@ -147,6 +147,38 @@
     - `staging_hidden_v1/config/toolUiConfig.json` → `bottomPaddingRatio: 0.11`, `sideButtonColumnRatio: 0.09`, `noteFontSize: 14`, `canvasLineWidth: 4`
     - `staging_hidden_v1/config/popupLayout.json` → `window 0.273 / 0.98 / 0.727 / 0`, `omrWidthRatio: 0.34`
     - `staging_hidden_v1/config/layoutRatios.json` → `timer: 8.4`, `utils: 47.5`, `calc: 44.1`
+
+## 추가 수정: 메모/그림 기본값 재조정 및 도구 헤더 높이 축소
+- 사용자 요청
+  - 그림판 선 굵기 기본값 `2`
+  - 메모장 글씨 크기 기본값 `12`
+  - 메모장/그림판/삭제가 있는 상단 도구 헤더 높이를 현재 대비 약 `70%` 수준으로 축소
+  - 아래 값을 새 기본값으로 반영
+    - 하단 여백 `11.0%`
+    - 우측 버튼 열 `9.0%`
+    - 창 크기 `26.9% x 98.0%`
+    - 창 위치 `왼쪽 73.1% / 위 0.0%`
+    - OMR 폭 `34.0%`
+    - 세로 비율 `타이머 8.6 / 메모 45.0 / 계산기 46.4`
+    - 도구 기본값 `메모 12px / 그림판 2px`
+- 수정 내용
+  - `staging/site/assets/scripts/app.bundle.js`
+    - 기본 팝업 레이아웃을 `0.269 / 0.98 / 0.731 / 0`으로 변경
+    - 기본 세로 비율을 `8.6 / 45.0 / 46.4`로 변경
+    - 기본 도구값을 `bottomPaddingRatio: 0.11`, `sideButtonColumnRatio: 0.09`, `noteFontSize: 12`, `canvasLineWidth: 2`로 변경
+  - `staging/site/index.html`
+    - 설정 슬라이더 초기값을 메모 `12`, 그림판 `2`로 변경
+  - `staging/site/assets/styles/main.css`
+    - 도구 헤더 패딩 `9/12/8 -> 6/10/5`
+    - 탭 간격 `18px -> 12px`
+    - 탭 글자 `14px -> 12px`
+    - 삭제 버튼 패딩 `8x16 -> 5x11`, 글자 `13px -> 12px`
+  - `admin.html`
+    - 관리자 페이지의 기본 팝업/비율/도구 기본값도 같은 수치로 갱신
+- staging Firebase 실제값 재확인
+  - `staging_hidden_v1/config/toolUiConfig.json` → `bottomPaddingRatio: 0.11`, `sideButtonColumnRatio: 0.09`, `noteFontSize: 12`, `canvasLineWidth: 2`
+  - `staging_hidden_v1/config/popupLayout.json` → `window 0.269 / 0.98 / 0.731 / 0`, `omrWidthRatio: 0.34`
+  - `staging_hidden_v1/config/layoutRatios.json` → `timer: 8.6`, `utils: 45.0`, `calc: 46.4`
   - `https://agenticlab-sh.github.io/skct_tool/staging/site/admin.html`에서 `popupLayoutEditorBtn`, `popupLayoutSummary`, `toolUiConfig` 문자열 확인
   - 운영 관리자 페이지 `https://agenticlab-sh.github.io/skct_tool/admin.html`에는 기존 `🧪 테스트 사이트` 버튼이 유지됨 확인
 - 영향 범위

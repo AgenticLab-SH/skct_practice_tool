@@ -479,9 +479,9 @@
 
     function createLegacyPopupWindowDefaults() {
         return {
-            widthRatio: 0.273,
+            widthRatio: 0.269,
             heightRatio: 0.98,
-            leftRatio: 0.727,
+            leftRatio: 0.731,
             topRatio: 0
         };
     }
@@ -510,9 +510,9 @@
 
     function normalizeLayoutRatios(raw) {
         return {
-            timer: roundRatio(clampNumber(parseFloat(raw?.timer) || 8.4, 0.05, 98)),
-            utils: roundRatio(clampNumber(parseFloat(raw?.utils) || 47.5, 0.05, 98)),
-            calc: roundRatio(clampNumber(parseFloat(raw?.calc) || 44.1, 0.05, 98))
+            timer: roundRatio(clampNumber(parseFloat(raw?.timer) || 8.6, 0.05, 98)),
+            utils: roundRatio(clampNumber(parseFloat(raw?.utils) || 45.0, 0.05, 98)),
+            calc: roundRatio(clampNumber(parseFloat(raw?.calc) || 46.4, 0.05, 98))
         };
     }
 
@@ -520,8 +520,8 @@
         return {
             bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0.11, 0, 0.9)),
             sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || 0.09, 0.03, 0.24)),
-            noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || 14, 12, 22),
-            canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || 4, 2, 12)
+            noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || 12, 12, 22),
+            canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || 2, 2, 12)
         };
     }
 

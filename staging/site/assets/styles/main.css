@@ -679,8 +679,8 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    padding: 9px 12px 8px;
+    gap: 7px;
+    padding: 6px 10px 5px;
     background: linear-gradient(180deg, #dfe1e5 0%, #ececef 100%);
     border-bottom: 1px solid var(--border-color);
 }
@@ -694,19 +694,20 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 
 .tool-tabs {
     display: flex;
-    gap: 18px;
+    gap: 12px;
     align-items: center;
 }
 
 .tab-btn {
-    padding: 0 0 6px;
+    padding: 0 0 4px;
     border: none;
     border-bottom: 2px solid transparent;
     background: transparent;
     cursor: pointer;
     font-weight: 700;
     color: #656971;
-    font-size: 14px;
+    font-size: 12px;
+    line-height: 1;
     letter-spacing: -0.01em;
 }
 .tab-btn.active {
@@ -715,12 +716,13 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 }
 
 .tool-delete-btn {
-    padding: 8px 16px;
+    padding: 5px 11px;
     border: 1px solid #cfd2d6;
     border-radius: 4px;
     background: linear-gradient(180deg, #ffffff 0%, #f3f4f6 100%);
     color: #4b5563;
-    font-size: 13px;
+    font-size: 12px;
+    line-height: 1;
     font-weight: 700;
     cursor: pointer;
 }
