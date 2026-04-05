@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
     const advancedToolsSection = document.getElementById('advancedToolsSection');
+    const advancedFeatureGuideBtn = document.getElementById('advancedFeatureGuideBtn');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
     const advancedPasswordListField = document.getElementById('advancedPasswordListField');
     const advancedPasswordSaveBtn = document.getElementById('advancedPasswordSaveBtn');
@@ -2164,6 +2165,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (advancedPasswordListField && isAdvancedMode) {
         advancedPasswordListField.value = getAdvancedPasswordList().join('\n');
+    }
+    if (advancedFeatureGuideBtn) {
+        advancedFeatureGuideBtn.addEventListener('click', () => {
+            alert([
+                '현재 창은 숨김 인증을 통과한 고급 기능 버전입니다.',
+                '',
+                '포함된 고급 기능',
+                '1. 문항별 상세 통계 TXT 다운로드',
+                '- 현재 시험 기록을 텍스트 파일로 저장합니다.',
+                '',
+                '2. 허용 비밀번호 목록 관리',
+                '- 이 고급 버전에 다시 들어올 수 있는 비밀번호 목록을 직접 저장합니다.',
+                '',
+                '진입 방식',
+                '- 일반 설정 화면에서는 보이지 않으며, 통합 설정 제목 연타 후 인증을 통과한 창에서만 사용 가능합니다.'
+            ].join('\n'));
+        });
     }
     if (advancedStatsDownloadBtn) {
         advancedStatsDownloadBtn.addEventListener('click', () => {

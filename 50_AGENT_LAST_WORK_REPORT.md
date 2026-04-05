@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-06 02:47:52 KST
+작성일시: 2026-04-06 03:02:00 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -430,3 +430,15 @@
   - 비밀번호 `0208` 입력 후 인증 창이 `advanced-tools.html`에 남지 않고 `index.html?advanced=1`로 전환됨 확인
   - 전환된 창의 `window.name`이 `skct_popup_mode`로 설정되어 실제 팝업 모드로 열림 확인
   - 전환된 창에서 설정 모달을 열면 고급 기능 섹션, TXT 다운로드 버튼, 비밀번호 목록 기본값 `0208` 노출 확인
+
+## 2026-04-06 고급 기능 안내 버튼 추가
+- 사용자 요청
+  - 고급 기능 화면 안에서 어떤 기능이 들어갔는지 한 번에 설명하는 버튼 추가
+- 수정 내용
+  - 운영 `index.html`, 스테이징 `staging/site/index.html`
+    - 고급 기능 섹션 최상단에 `고급 기능 안내` 버튼 추가
+  - 운영 `main.js`, 스테이징 `staging/site/assets/scripts/app.bundle.js`
+    - 버튼 클릭 시 고급 버전 개요, TXT 다운로드, 비밀번호 목록 관리, 숨김 진입 방식 설명을 담은 안내창 표시
+- 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과

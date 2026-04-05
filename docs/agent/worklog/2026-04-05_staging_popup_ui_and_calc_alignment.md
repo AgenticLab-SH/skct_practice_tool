@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 02:47:52 KST
+작성일시: 2026-04-06 03:02:00 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -291,6 +291,22 @@
 - 운영 반영
   - 코드 커밋: `83471ce` (`Turn advanced popup into authenticated advanced app mode`)
   - `main` push 완료
+
+## 2026-04-06 고급 기능 안내 버튼 추가
+- 사용자 요청
+  - 고급 기능 페이지 안에 `고급 기능 버튼`을 만들고, 누르면 현재 포함된 고급 기능이 무엇인지 설명이 나오게 하기
+- 수정 내용
+  - `index.html`, `staging/site/index.html`
+    - 고급 기능 섹션 맨 위에 `고급 기능 안내` 버튼 추가
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - 버튼 클릭 시 아래 내용을 설명하는 안내창 표시
+      - 현재 창이 숨김 인증을 통과한 고급 버전이라는 점
+      - 문항별 상세 통계 TXT 다운로드
+      - 허용 비밀번호 목록 관리
+      - 일반 설정에는 보이지 않고 제목 연타 + 인증으로만 진입 가능하다는 점
+- 검증 결과
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
 - 로컬 검증
   - `node --check main.js` 통과
   - 로컬 `admin.html`에서 3단계 버튼 DOM 존재 확인
