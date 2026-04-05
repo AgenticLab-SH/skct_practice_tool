@@ -687,6 +687,11 @@
         }
 
         function handleConfigData(cfg) {
+            if (cfg.maintenance && cfg.maintenance.enabled) {
+                sessionStorage.removeItem('skct_config_cache');
+                window.location.href = `update.html?time=${encodeURIComponent(cfg.maintenance.time)}`;
+                return;
+            }
             if (cfg.appName) {
                 document.title = cfg.appName;
             }

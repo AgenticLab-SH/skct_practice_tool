@@ -119,6 +119,21 @@
                     <label>앱 표시 이름</label>
                     <input type="text" id="settingAppName" class="form-input" placeholder="SKCT 연습 도구" value="SKCT 연습 도구">
                 </div>
+                <!-- 업데이트/점검 모드 설정 -->
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <label style="display:flex; align-items:center; color:#ef4444; font-weight:bold;">
+                        🚧 점검 (업데이트) 모드 활성화
+                        <label class="form-check" style="margin-left: 10px; font-weight: normal; font-size:13px; color:var(--adm-text-default);">
+                            <input type="checkbox" id="settingMaintenanceEnabled"> 접속 차단
+                        </label>
+                    </label>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">업데이트 마무리 시간 (예: 11:00)</span>
+                            <input type="text" id="settingMaintenanceTime" class="form-input" placeholder="11:00" value="11:00">
+                        </div>
+                    </div>
+                </div>
                 <!-- 타이머 기본값 설정 -->
                 <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
                     <label>⏰ 타이머 초기 환경설정 기본값 (분)</label>
@@ -784,6 +799,12 @@
             else if (cfg.notice) loadedConfig.notice_community = cfg.notice; // fallback logic
 
             if (cfg.appName) loadedConfig.appName = cfg.appName;
+            
+            if (cfg.maintenance) {
+                document.getElementById('settingMaintenanceEnabled').checked = cfg.maintenance.enabled || false;
+                document.getElementById('settingMaintenanceTime').value = cfg.maintenance.time || '11:00';
+            }
+
             if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
             if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
             
@@ -858,6 +879,11 @@
         
         loadedConfig.useful_links = links;
 
+        const maintenance = {
+            enabled: document.getElementById('settingMaintenanceEnabled').checked,
+            time: document.getElementById('settingMaintenanceTime').value.trim() || '11:00'
+        };
+
         const timerDefaults = {
             total: parseInt(document.getElementById('settingTimerTotal').value) || 75,
             subj: parseInt(document.getElementById('settingTimerSubj').value) || 15,
@@ -877,6 +903,7 @@
 
         await set(ref(db, 'config/appName'), appName);
         await set(ref(db, 'config/useful_links'), links);
+        await set(ref(db, 'config/maintenance'), maintenance);
         await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
         await set(ref(db, 'config/timerDefaults'), timerDefaults);
         await set(ref(db, 'config/guideDefaults'), guideDefaults);
