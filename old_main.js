@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save window size if we are in popup mode
     let winResizeTimeout = null;
     window.addEventListener('resize', () => {
-        if (window.name === 'skct_popup_mode') {
+        if (!window.opener && window.name === 'skct_popup_mode') {
             clearTimeout(winResizeTimeout);
             winResizeTimeout = setTimeout(() => {
                 localStorage.setItem('skct_popup_width', window.outerWidth);
@@ -950,10 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- 초기 렌더링 갱신 ---
-    updateTimerUI();
-    applyPhaseToOMR();
-
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
         if (timerIsRunning) return; // ignore if running
         configTotalMins = total || 75;
@@ -1163,44 +1159,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* --- Extension Modal Logic --- */
-    const extToggle = document.getElementById('extensionToggle');
-    const extModal = document.getElementById('extensionModal');
-    const extClose = document.getElementById('extensionClose');
-    const extStatusCheck = document.getElementById('extStatusCheck');
-    const extInstallGuide = document.getElementById('extInstallGuide');
-    
-    if (extToggle && extModal && extClose) {
-        extToggle.addEventListener('click', () => {
-            extModal.style.display = 'flex';
-            extModal.classList.remove('hidden');
-            
-            // Check if extension injected the marker
-            setTimeout(() => {
-                const marker = document.getElementById('skct-extension-installed');
-                if (marker) {
-                    extStatusCheck.innerHTML = `
-                        <div style="font-size:50px; margin-bottom:10px;">✅</div>
-                        <div style="font-weight:bold; font-size:18px; color:#10b981;">설치 완료 및 정상 작동중!</div>
-                        <div style="font-size:12px; color:#94a3b8; margin-top:8px;">이제 링커리어 화면에 가림막이 뜨지 않습니다.</div>
-                    `;
-                    extInstallGuide.classList.add('hidden');
-                } else {
-                    extStatusCheck.innerHTML = `
-                        <div style="font-size:50px; margin-bottom:10px;">❌</div>
-                        <div style="font-weight:bold; font-size:18px; color:#ef4444;">무적모드 확장이 아직 설치되지 않았습니다</div>
-                    `;
-                    extInstallGuide.classList.remove('hidden');
-                }
-            }, 300); // 딜레이 약간 주어 렌더링 안정화
-        });
-        
-        extClose.addEventListener('click', () => {
-            extModal.classList.add('hidden');
-            extModal.style.display = '';
-        });
-    }
-
     const settingsApplyBtn = document.getElementById('settingsApplyBtn');
     if (settingsApplyBtn) {
         settingsApplyBtn.addEventListener('click', () => {
@@ -1343,7 +1301,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
         
-        if (window.name === 'skct_popup_mode') {
+        // Hide button if we are already in a small popup or opened by opener
+        if (window.opener || window.innerWidth <= 400 || window.name === 'skct_popup_mode') {
             popupBtn.style.display = 'none';
         }
     }
