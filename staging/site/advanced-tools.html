@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SKCT 고급 기능</title>
+    <title>SKCT 고급 기능 인증</title>
     <style>
         :root {
             color-scheme: light;
@@ -116,8 +116,8 @@
 <body>
     <div class="panel stack">
         <div>
-            <h1>고급 기능</h1>
-            <p>인증된 사용자만 사용할 수 있습니다.</p>
+            <h1>고급 기능 인증</h1>
+            <p>비밀번호 확인 후 실제 팝업 웹의 고급 기능 버전으로 전환됩니다.</p>
         </div>
 
         <section id="authSection" class="stack">
@@ -130,72 +130,20 @@
             </div>
             <div id="authStatus" class="status"></div>
         </section>
-
-        <section id="toolSection" class="stack hidden">
-            <div class="section stack">
-                <div>
-                    <label>현재 실행 상태</label>
-                    <pre id="advancedSnapshot"></pre>
-                </div>
-                <div class="actions">
-                    <button id="downloadStatsBtn" class="primary" type="button">문항별 상세 통계 TXT 다운로드</button>
-                    <button id="refreshSnapshotBtn" class="ghost" type="button">상태 새로고침</button>
-                </div>
-            </div>
-
-            <div class="section stack">
-                <div class="field">
-                    <label for="advancedPasswordList">허용 비밀번호 목록</label>
-                    <textarea id="advancedPasswordList" spellcheck="false"></textarea>
-                </div>
-                <div class="actions">
-                    <button id="savePasswordListBtn" class="primary" type="button">비밀번호 목록 저장</button>
-                </div>
-                <div id="toolStatus" class="status"></div>
-            </div>
-        </section>
     </div>
 
     <script>
         const bridge = window.opener && window.opener.SKCTAdvancedBridge;
-        const authSection = document.getElementById('authSection');
-        const toolSection = document.getElementById('toolSection');
         const authStatus = document.getElementById('authStatus');
-        const toolStatus = document.getElementById('toolStatus');
         const passwordInput = document.getElementById('advancedPasswordInput');
-        const passwordListArea = document.getElementById('advancedPasswordList');
-        const snapshotEl = document.getElementById('advancedSnapshot');
+        const loginButton = document.getElementById('advancedLoginBtn');
 
         if (!bridge) {
             authStatus.textContent = '원본 창과 연결되지 않아 사용할 수 없습니다.';
-            document.getElementById('advancedLoginBtn').disabled = true;
-        }
-
-        const formatSnapshot = () => {
-            if (!bridge) return;
-            const snapshot = bridge.getAdvancedSnapshot();
-            snapshotEl.textContent = [
-                `실행 상태: ${snapshot.timer.isRunning ? '진행 중' : '정지'}`,
-                `현재 페이즈: ${snapshot.timer.currentPhaseName}`,
-                `페이즈 남은 시간: ${Math.max(snapshot.timer.currentPhaseSeconds, 0)}초`,
-                `문항별 누적 시간: ${snapshot.timer.questionSpentSec}초`,
-                `설정 시간: 전체 ${snapshot.timer.configuredTotalMinutes}분 / 과목 ${snapshot.timer.subjectMinutes}분 / 쉬는시간 ${snapshot.timer.breakMinutes}분`,
-                `페이즈 합계(쉬는 시간 포함): ${snapshot.timer.phaseTotalMinutes}분`,
-                `전체 제한 시간(쉬는 시간 제외): ${snapshot.timer.effectiveTotalMinutes}분`,
-                `현재 문제: ${snapshot.question.currentKey || '-'}`,
-                `현재 인덱스: ${snapshot.question.currentIndex}`,
-                `모드: ${snapshot.question.mode}`
-            ].join('\n');
+            loginButton.disabled = true;
         };
 
-        const enterTools = () => {
-            authSection.classList.add('hidden');
-            toolSection.classList.remove('hidden');
-            passwordListArea.value = bridge.getPasswordList().join('\n');
-            formatSnapshot();
-        };
-
-        document.getElementById('advancedLoginBtn').addEventListener('click', () => {
+        loginButton.addEventListener('click', () => {
             if (!bridge) return;
             const password = passwordInput.value.trim();
             if (!bridge.validatePassword(password)) {
@@ -203,33 +151,17 @@
                 passwordInput.select();
                 return;
             }
-            authStatus.textContent = '';
-            enterTools();
+            const launch = bridge.activateAdvancedSession();
+            authStatus.textContent = '고급 버전 팝업 웹으로 전환 중입니다.';
+            window.name = launch.popupName;
+            window.location.replace(launch.targetUrl);
         });
 
         passwordInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                document.getElementById('advancedLoginBtn').click();
+                loginButton.click();
             }
-        });
-
-        document.getElementById('downloadStatsBtn').addEventListener('click', () => {
-            if (!bridge) return;
-            bridge.downloadDetailedStatsText();
-            toolStatus.textContent = '텍스트 파일 다운로드를 시작했습니다.';
-        });
-
-        document.getElementById('refreshSnapshotBtn').addEventListener('click', () => {
-            formatSnapshot();
-            toolStatus.textContent = '현재 상태를 다시 읽었습니다.';
-        });
-
-        document.getElementById('savePasswordListBtn').addEventListener('click', () => {
-            if (!bridge) return;
-            const saved = bridge.savePasswordList(passwordListArea.value);
-            passwordListArea.value = saved.join('\n');
-            toolStatus.textContent = `비밀번호 ${saved.length}개를 저장했습니다.`;
         });
     </script>
 </body>

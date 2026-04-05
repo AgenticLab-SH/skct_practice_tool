@@ -12,6 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupMode = window.name === 'stg_skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
+    const ADVANCED_UNLOCK_STORAGE_KEY = 'stg_skct_advanced_unlock';
+    const ADVANCED_UNLOCK_DURATION_MS = 1000 * 60 * 30;
+    const readAdvancedUnlockState = () => {
+        try {
+            return JSON.parse(localStorage.getItem(ADVANCED_UNLOCK_STORAGE_KEY) || 'null');
+        } catch (error) {
+            return null;
+        }
+    };
+    const hasAdvancedUnlock = () => {
+        const state = readAdvancedUnlockState();
+        return Boolean(state && Number.isFinite(state.expiresAt) && state.expiresAt > Date.now());
+    };
+    const isAdvancedMode = runtimeFlags.advanced === true && hasAdvancedUnlock();
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
         window: { widthRatio: 0.269, heightRatio: 0.98, leftRatio: 0.731, topRatio: 0 },
@@ -47,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteFontSizeValue = document.getElementById('noteFontSizeValue');
     const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
+    const advancedToolsSection = document.getElementById('advancedToolsSection');
+    const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
+    const advancedPasswordListField = document.getElementById('advancedPasswordListField');
+    const advancedPasswordSaveBtn = document.getElementById('advancedPasswordSaveBtn');
+    const advancedToolsStatus = document.getElementById('advancedToolsStatus');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
@@ -56,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
+    document.body.classList.toggle('advanced-mode', isAdvancedMode);
 
     function clampNumber(value, min, max) {
         return Math.min(max, Math.max(min, value));
@@ -553,6 +573,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextPasswords = normalizeAdvancedPasswords(value);
         localStorage.setItem(ADVANCED_PASSWORDS_STORAGE_KEY, JSON.stringify(nextPasswords));
         return nextPasswords;
+    };
+
+    const buildAdvancedLaunchUrl = () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('advanced', '1');
+        url.searchParams.delete('popupEditor');
+        return url.toString();
+    };
+
+    const activateAdvancedSession = () => {
+        localStorage.setItem(ADVANCED_UNLOCK_STORAGE_KEY, JSON.stringify({
+            issuedAt: Date.now(),
+            expiresAt: Date.now() + ADVANCED_UNLOCK_DURATION_MS
+        }));
+        return {
+            targetUrl: buildAdvancedLaunchUrl(),
+            popupName: 'stg_skct_popup_mode'
+        };
     };
 
     const omrState = {
@@ -2081,11 +2119,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (advancedToolsSection) {
+        advancedToolsSection.classList.toggle('hidden', !isAdvancedMode);
+    }
+    if (advancedPasswordListField && isAdvancedMode) {
+        advancedPasswordListField.value = getAdvancedPasswordList().join('\n');
+    }
+    if (advancedStatsDownloadBtn) {
+        advancedStatsDownloadBtn.addEventListener('click', () => {
+            downloadDetailedStatsText();
+            if (advancedToolsStatus) advancedToolsStatus.textContent = '문항별 상세 통계 TXT 다운로드를 시작했습니다.';
+        });
+    }
+    if (advancedPasswordSaveBtn) {
+        advancedPasswordSaveBtn.addEventListener('click', () => {
+            const saved = saveAdvancedPasswordList(advancedPasswordListField?.value || '');
+            if (advancedPasswordListField) advancedPasswordListField.value = saved.join('\n');
+            if (advancedToolsStatus) advancedToolsStatus.textContent = `비밀번호 ${saved.length}개를 저장했습니다.`;
+        });
+    }
+
     const openAdvancedToolsPopup = () => {
+        const { width, height, left, top } = buildPopupWindowMetrics(remotePopupLayout.window);
         const popup = window.open(
             ADVANCED_POPUP_PATH,
             'stg_skct_advanced_tools',
-            'width=460,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes'
+            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`
         );
         if (!popup) {
             alert('브라우저에서 팝업이 차단되어 고급 기능 창을 열 수 없습니다.');
@@ -2125,6 +2184,9 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         savePasswordList(rawValue) {
             return saveAdvancedPasswordList(rawValue);
+        },
+        activateAdvancedSession() {
+            return activateAdvancedSession();
         },
         getAdvancedSnapshot() {
             return {

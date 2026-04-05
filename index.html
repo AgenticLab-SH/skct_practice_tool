@@ -415,6 +415,17 @@
                         </div>
                     </label>
                 </div>
+                <div id="advancedToolsSection" class="hidden">
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🔒 고급 기능</div>
+                    <div style="font-size:11px; color:#64748b; line-height:1.5; margin-bottom:10px;">현재 창은 고급 기능 버전입니다. 아래 기능은 이 창에서만 보입니다.</div>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <button id="advancedStatsDownloadBtn" type="button" style="padding:10px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">문항별 상세 통계 TXT 다운로드</button>
+                        <label style="font-size:12px; font-weight:700; color:#334155;" for="advancedPasswordListField">허용 비밀번호 목록</label>
+                        <textarea id="advancedPasswordListField" rows="4" style="width:100%; resize:vertical; background:white; color:black; border:1px solid #cbd5e1; border-radius:8px; padding:10px;"></textarea>
+                        <button id="advancedPasswordSaveBtn" type="button" style="padding:10px; background:#475569; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">비밀번호 목록 저장</button>
+                        <div id="advancedToolsStatus" style="font-size:11px; color:#64748b; min-height:16px;"></div>
+                    </div>
+                </div>
                 <button id="settingsApplyBtn" style="padding:10px; background:#3b82f6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">✅ 적용하고 닫기</button>
             </div>
         </div>
@@ -551,11 +562,13 @@
             const devParam = url.searchParams.get('dev');
             const previewParam = url.searchParams.get('preview');
             const popupEditorParam = url.searchParams.get('popupEditor');
+            const advancedParam = url.searchParams.get('advanced');
 
             window.SKCT_FLAGS = {
                 maintenanceBypass: devParam === '1',
                 adminPreview: previewParam === '1',
-                popupEditor: popupEditorParam === '1'
+                popupEditor: popupEditorParam === '1',
+                advanced: advancedParam === '1'
             };
         })();
     </script>
