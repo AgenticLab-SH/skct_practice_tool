@@ -60,6 +60,56 @@
 
     <div class="admin-section">
 
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🧭 운영 가이드</h2>
+            </div>
+            <div class="section-body" style="display:flex; flex-direction:column; gap:14px;">
+                <div style="padding:12px 14px; border-radius:10px; background:linear-gradient(135deg,#eff6ff,#f8fafc); border:1px solid #bfdbfe;">
+                    <div style="font-size:13px; font-weight:700; color:#1d4ed8; margin-bottom:8px;">헷갈리기 쉬운 핵심 구분</div>
+                    <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:#334155; line-height:1.55;">
+                        <div><strong>🔗 사이트 보기</strong>: 실제 운영 사이트를 개발자 우회로 여는 버튼입니다. 저장 후 운영 동작을 바로 확인할 때 사용합니다.</div>
+                        <div><strong>🧪 테스트 사이트</strong>: 숨겨진 스테이징 사본입니다. 운영 데이터는 읽기만 하고, 글/댓글/좋아요/방문기록 저장은 막혀 있습니다.</div>
+                        <div><strong>🚧 접속 차단</strong>: 일반 사용자를 점검 페이지로 보내는 설정입니다. 개발자는 `사이트 보기`로 계속 확인할 수 있습니다.</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px;">
+                    <div style="padding:12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff;">
+                        <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:8px;">배포 전 체크</div>
+                        <div style="font-size:12px; color:#475569; line-height:1.65;">
+                            1. 먼저 <strong>🧪 테스트 사이트</strong>에서 UI와 흐름 확인<br>
+                            2. 저장 후 <strong>🔗 사이트 보기</strong>로 운영 동작 재확인<br>
+                            3. 점검 문구와 완료 일시가 맞는지 확인<br>
+                            4. 마지막에만 <strong>접속 차단 해제</strong>
+                        </div>
+                    </div>
+                    <div style="padding:12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff;">
+                        <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:8px;">자주 바꾸는 설정</div>
+                        <div style="font-size:12px; color:#475569; line-height:1.65;">
+                            - <strong>타이머 기본값</strong>: 전체/과목/쉬는시간<br>
+                            - <strong>가이드 초기값</strong>: 문항당 권장 시간, 표시 여부<br>
+                            - <strong>높이 비율</strong>: 타이머, 메모/그림판, 계산기 영역<br>
+                            - <strong>공지</strong>: Help 모달, 커뮤니티 상단 공지
+                        </div>
+                    </div>
+                    <div style="padding:12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#ffffff;">
+                        <div style="font-size:13px; font-weight:700; color:#0f172a; margin-bottom:8px;">문제 발생 시 우선 확인</div>
+                        <div style="font-size:12px; color:#475569; line-height:1.65;">
+                            - 운영은 <strong>사이트 보기</strong>에서 재현되는지<br>
+                            - 스테이징만 이상하면 <strong>테스트 사이트</strong> 문제인지<br>
+                            - 저장 후 값이 안 바뀌면 새로고침으로 재확인<br>
+                            - 점검 중인데 일반 접속이 되면 <strong>접속 차단</strong> 체크 상태 확인
+                        </div>
+                    </div>
+                </div>
+
+                <div style="padding:12px 14px; border-radius:10px; background:#fff7ed; border:1px solid #fdba74; font-size:12px; color:#9a3412; line-height:1.6;">
+                    <strong>기억할 점</strong>: 테스트 사이트는 운영 화면과 비슷하게 보는 용도이지, 운영 DB를 수정하는 공간이 아닙니다. 실제 반영 여부는 항상 <strong>저장 → 사이트 보기</strong>로 한 번 더 확인하는 편이 안전합니다.
+                </div>
+            </div>
+        </div>
+
         <!-- 1. Notice Management -->
         <div class="section-card">
             <div class="section-header">
@@ -118,8 +168,8 @@
             <div class="section-body">
                 <div class="form-group" style="padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
                     <div style="font-size:11px; color:var(--adm-text-muted); line-height:1.6;">
-                        <div><strong style="color:var(--adm-text-default);">현재 업데이트 일시</strong>: 2026-04-05 12:52:36 +09:00</div>
-                        <div><strong style="color:var(--adm-text-default);">현재 버전</strong>: v2026.04.05.1252</div>
+                        <div><strong style="color:var(--adm-text-default);">현재 업데이트 일시</strong>: 2026-04-05 12:59:41 +09:00</div>
+                        <div><strong style="color:var(--adm-text-default);">현재 버전</strong>: v2026.04.05.1259</div>
                     </div>
                 </div>
                 <div class="form-group">
