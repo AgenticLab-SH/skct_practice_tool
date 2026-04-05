@@ -51,6 +51,10 @@ body {
     overflow: hidden; /* Prevent scrolling, strict app feel */
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* App Container */
 .app-container {
     display: flex;
