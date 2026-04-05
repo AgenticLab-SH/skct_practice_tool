@@ -1255,14 +1255,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return value.length <= CALC_MAX_INPUT_LENGTH ? value : value.slice(0, CALC_MAX_INPUT_LENGTH);
     }
 
-    function getCurrentCalcLine() {
-        if (calcState.operator && calcState.storedValue !== null) {
-            const rightText = calcState.waitingNew ? '' : ` ${calcState.current}`;
-            return `${calcState.storedValue} ${getOperatorSymbol(calcState.operator)}${rightText}`;
-        }
-        return calcState.current;
-    }
-
     function escapeCalcLine(line) {
         return String(line)
             .replaceAll('&', '&amp;')
@@ -1282,15 +1274,26 @@ document.addEventListener('DOMContentLoaded', () => {
         calcState.history = calcState.history.slice(-3);
     }
 
+    function getPendingCalcLine() {
+        if (!calcState.operator || calcState.storedValue === null) return null;
+        const rightText = calcState.waitingNew ? '' : ` ${calcState.current}`;
+        return `${calcState.storedValue} ${getOperatorSymbol(calcState.operator)}${rightText}`;
+    }
+
     function renderCalcDisplay() {
         if (!calcHistory) return;
-        const lines = calcState.history.map((line) => {
+        const upperLines = [...calcState.history];
+        const pendingLine = getPendingCalcLine();
+        if (pendingLine) {
+            upperLines.push(pendingLine);
+        }
+
+        const lines = upperLines.slice(-3).map((line) => {
             const sizeClass = getCalcLineSizeClass(line, false);
             return `<div class="calc-line history-line ${sizeClass}">${escapeCalcLine(line)}</div>`;
         });
-        const currentLine = getCurrentCalcLine();
-        const currentSizeClass = getCalcLineSizeClass(currentLine, true);
-        lines.push(`<div class="calc-line current-line ${currentSizeClass}">${escapeCalcLine(currentLine)}</div>`);
+        const currentSizeClass = getCalcLineSizeClass(calcState.current, true);
+        lines.push(`<div class="calc-line current-line ${currentSizeClass}">${escapeCalcLine(calcState.current)}</div>`);
         calcHistory.innerHTML = lines.join('');
         calcHistory.scrollTop = calcHistory.scrollHeight;
     }
@@ -1316,7 +1319,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleOperator(op) {
         if (calcState.operator && !calcState.waitingNew) {
-            calculateResult(false);
+            calculateResult(true);
         }
         calcState.storedValue = calcState.current;
         calcState.operator = op;
@@ -1346,7 +1349,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const resultText = String(res);
         if (commitHistory) {
-            pushCalcHistory(`${leftValue} ${getOperatorSymbol(calcState.operator)} ${rightValue} = ${resultText}`);
+            pushCalcHistory(`${leftValue} ${getOperatorSymbol(calcState.operator)} ${rightValue}`);
         }
 
         calcState.current = resultText;
@@ -1372,11 +1375,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = Number.isFinite(currentValue) && currentValue >= 0
                 ? String(Math.round(Math.sqrt(currentValue) * 100000000) / 100000000)
                 : 'Error';
-            pushCalcHistory(`√${calcState.current} = ${result}`);
+            pushCalcHistory(`√${calcState.current}`);
             calcState.current = result;
-            calcState.storedValue = null;
-            calcState.operator = null;
-            calcState.waitingNew = true;
+            if (calcState.operator && calcState.storedValue !== null) {
+                calcState.waitingNew = false;
+            } else {
+                calcState.storedValue = null;
+                calcState.operator = null;
+                calcState.waitingNew = true;
+            }
         } else if (fnStr === '=') {
             calculateResult(true);
         }
