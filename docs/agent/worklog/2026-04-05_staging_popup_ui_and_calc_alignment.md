@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 18:18:40 KST
+작성일시: 2026-04-05 18:04:49 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -78,6 +78,33 @@
 - 원격 반영: `origin/main` push 완료
 - 원격 확인
   - `https://agenticlab-sh.github.io/skct_tool/staging/site/index.html`에서 `mockQuestionBtn`, `calcHistory`, `noteFontSizeRange` 문자열 확인
+
+## 추가 수정: 하단 여백 절대 비율화 및 최소 높이 제한 제거
+- 사용자 요청
+  - 테스트 페이지에서 하단 여백을 더 크게 줄 수 있게 하고, 이 값은 남은 레이아웃과 섞이지 않는 절대 비율로 계산
+  - 기본값을 하단 여백 `20%`, 우측 버튼 열 `12.5%`로 조정
+  - 타이머, 메모장, 계산기 영역 최소 높이 제한 제거
+  - 테스트 조정 시 실제 화면과 가깝게 보기 위해 상단 테스트 배너 제거
+- 수정 내용
+  - `staging/site/assets/scripts/app.bundle.js`
+    - `DEFAULT_TOOL_UI_CONFIG` 기본값을 `bottomPaddingRatio: 0.20`, `sideButtonColumnRatio: 0.125`로 변경
+    - 하단 여백 계산 기준을 `mainContent` 높이 대신 `screen.availHeight` 기반으로 변경
+    - 하단 여백 저장 상한을 `0.9`까지 확장
+    - 팝업 편집 드래그 리사이즈의 `MIN_TIMER_HEIGHT`, `MIN_UTILITY_HEIGHT`, `MIN_CALC_HEIGHT`를 `0`으로 완화
+  - `staging/site/index.html`
+    - 팝업 편집기 슬라이더 기본값을 하단 `20%`, 우측 버튼 열 `12.5%`로 변경
+    - 하단 여백 슬라이더 최대값을 `0.9`로 확장
+    - 상단 읽기 전용 안내 배너 제거
+  - `staging/site/assets/styles/main.css`
+    - `.top-bar`, `.utility-section`, `.calculator-section`, `.calc-display-shell`, `.calc-history`, `.calc-keys`의 최소 높이 제한을 제거하거나 완화
+    - 계산기 버튼 그리드의 행 최소값을 `minmax(0, 1fr)`로 변경
+  - `admin.html`
+    - 스테이징 저장값을 다시 읽을 때 하단 여백과 우측 버튼 열 기본값/상한이 잘리지 않도록 보정 범위 갱신
+- 검증 결과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - `git diff` 기준으로 staging 조정 관련 파일만 수정됨 확인
+- 비고
+  - 브라우저 주소창과 메뉴 영역은 웹 페이지 코드만으로 완전히 제거할 수 없습니다. 그래서 대신 팝업창과 레이아웃 최소 높이 제한을 느슨하게 풀어 실제 시험 화면 비율에 더 가깝게 맞추는 방향으로 대응했습니다.
   - `https://agenticlab-sh.github.io/skct_tool/staging/site/admin.html`에서 `popupLayoutEditorBtn`, `popupLayoutSummary`, `toolUiConfig` 문자열 확인
   - 운영 관리자 페이지 `https://agenticlab-sh.github.io/skct_tool/admin.html`에는 기존 `🧪 테스트 사이트` 버튼이 유지됨 확인
 - 영향 범위

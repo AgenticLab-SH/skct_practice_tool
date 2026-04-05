@@ -36,9 +36,6 @@
     <link rel="icon" href="assets/images/sk_ci.png">
 </head>
 <body>
-    <div style="position:sticky; top:0; z-index:10001; padding:8px 14px; background:linear-gradient(135deg,#0f172a,#1e293b); color:#f8fafc; font-size:12px; font-weight:700; text-align:center; letter-spacing:0.02em;">
-        🧪 숨은 테스트 사이트 · 운영 데이터 읽기 전용 · 방문/좋아요/댓글/설정 저장 차단
-    </div>
     <!-- SEO & Screen Reader 용 숨김 텍스트 (Google 검색 노출 극대화) -->
     <h1 class="sr-only">SKCT 연습 툴 - SKCT 실제화면과 동일한 온라인 SKCT 환경 가이드</h1>
     <p class="sr-only">본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!</p>
@@ -233,13 +230,13 @@
             <div class="popup-editor-desc">창 위치, 크기, 세로 비율, 하단 여백을 조절한 뒤 스테이징 기본값으로 저장하세요.</div>
             <label class="popup-editor-field">
                 <span>하단 여백</span>
-                <input type="range" id="popupBottomPaddingRange" min="0" max="0.18" step="0.005" value="0.04">
-                <strong id="popupBottomPaddingValue">4.0%</strong>
+                <input type="range" id="popupBottomPaddingRange" min="0" max="0.9" step="0.005" value="0.20">
+                <strong id="popupBottomPaddingValue">20.0%</strong>
             </label>
             <label class="popup-editor-field">
                 <span>우측 버튼 열</span>
-                <input type="range" id="popupSideColumnRange" min="0.08" max="0.24" step="0.005" value="0.14">
-                <strong id="popupSideColumnValue">14.0%</strong>
+                <input type="range" id="popupSideColumnRange" min="0.08" max="0.24" step="0.005" value="0.125">
+                <strong id="popupSideColumnValue">12.5%</strong>
             </label>
             <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
             <div class="popup-editor-actions">

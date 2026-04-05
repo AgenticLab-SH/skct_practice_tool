@@ -521,8 +521,8 @@
 
     function normalizeToolUiConfig(raw) {
         return {
-            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0, 0, 0.3)),
-            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || 0.14, 0.08, 0.24)),
+            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0.20, 0, 0.9)),
+            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || 0.125, 0.08, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || 14, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || 4, 2, 12)
         };

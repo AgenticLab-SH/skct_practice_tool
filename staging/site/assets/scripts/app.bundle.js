@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
     const DEFAULT_LAYOUT_RATIOS = { timer: 0.2, utils: 1, calc: 2 };
-    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.04, sideButtonColumnRatio: 0.14, noteFontSize: 14, canvasLineWidth: 4 };
+    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.20, sideButtonColumnRatio: 0.125, noteFontSize: 14, canvasLineWidth: 4 };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'stg-skct-popup-preview',
         saveRequest: 'stg-skct-popup-save-request',
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function normalizeToolUiConfig(raw) {
         return {
-            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.18)),
+            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.9)),
             sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || DEFAULT_TOOL_UI_CONFIG.sideButtonColumnRatio, 0.08, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || DEFAULT_TOOL_UI_CONFIG.noteFontSize, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || DEFAULT_TOOL_UI_CONFIG.canvasLineWidth, 2, 12)
@@ -147,7 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
     );
 
     function syncToolsBottomPadding() {
-        const baseHeight = mainContentEl?.clientHeight || window.innerHeight || 900;
+        const { availHeight } = getScreenMetrics();
+        const baseHeight = availHeight || window.screen?.availHeight || window.outerHeight || window.innerHeight || 900;
         const paddingPx = Math.round(baseHeight * currentToolUiConfig.bottomPaddingRatio);
         document.documentElement.style.setProperty('--tools-bottom-padding', `${paddingPx}px`);
         if (popupBottomPaddingRange) popupBottomPaddingRange.value = String(currentToolUiConfig.bottomPaddingRatio);
@@ -618,9 +619,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (isPopupEditorMode && topBarResizerEl && toolsSectionResizerEl && topBarEl && utilitySectionEl && calculatorSectionEl) {
-        const MIN_TIMER_HEIGHT = 44;
-        const MIN_UTILITY_HEIGHT = 120;
-        const MIN_CALC_HEIGHT = 170;
+        const MIN_TIMER_HEIGHT = 0;
+        const MIN_UTILITY_HEIGHT = 0;
+        const MIN_CALC_HEIGHT = 0;
 
         function readSectionHeights() {
             return {
