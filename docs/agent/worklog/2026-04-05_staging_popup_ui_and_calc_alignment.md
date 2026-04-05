@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 02:22:13 KST
+작성일시: 2026-04-06 02:47:52 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -256,8 +256,41 @@
     - 테스트 팝업 편집기 저장 메시지를 받아 `staging_hidden_v1/config/*`에만 저장
     - 마지막 단계 버튼을 눌렀을 때만 `config/popupLayout`, `config/layoutRatios`, `config/toolUiConfig`로 복사
   - `index.html`, `main.js`, `main.css`
-    - 운영 사용자 페이지가 `config/toolUiConfig`를 읽어 하단 여백, 메모 글씨 크기, 그림판 굵기 기본값을 적용하도록 연결
-    - 기본값이 없으면 기존 동작과 거의 같게 유지되도록 안전 기본값 사용
+  - 운영 사용자 페이지가 `config/toolUiConfig`를 읽어 하단 여백, 메모 글씨 크기, 그림판 굵기 기본값을 적용하도록 연결
+  - 기본값이 없으면 기존 동작과 거의 같게 유지되도록 안전 기본값 사용
+
+## 2026-04-06 고급 기능 팝업 구조 수정
+- 사용자 정정
+  - 숨김 진입 후 열리는 창은 별도 통계 도구창이 아니라, 실제로 사용하는 팝업 웹의 고급 버전이어야 함
+  - TXT 다운로드와 비밀번호 목록 관리도 그 고급 버전 사용자 화면 안에 포함되어야 함
+- 기존 문제
+  - `advanced-tools.html`이 인증 후에도 독립 도구창으로 남아 있어 사용자가 기대한 실제 시험 팝업 흐름과 달랐음
+- 수정 방향
+  - `advanced-tools.html`
+    - 인증 전용 게이트로 축소
+    - 비밀번호 성공 시 같은 창을 실제 팝업 이름(`skct_popup_mode`, 스테이징은 `stg_skct_popup_mode`)으로 전환
+    - 이어서 `index.html?advanced=1` 또는 `staging/site/index.html?advanced=1`로 이동
+  - `index.html`, `staging/site/index.html`
+    - `advanced=1` 런타임 플래그 추가
+    - 설정 모달 안에 고급 기능 섹션 추가
+      - 문항별 상세 통계 TXT 다운로드
+      - 허용 비밀번호 목록 조회/저장
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - 고급 인증 성공 상태를 `localStorage`에 30분 저장
+    - `activateAdvancedSession()` helper 추가
+    - 고급 모드에서만 설정 모달 내 고급 기능 섹션 표시
+    - 숨김 트리거가 여는 인증 창도 일반 팝업과 같은 창 크기/위치 로직 재사용
+- 로컬 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 로컬 `http://127.0.0.1:8000/index.html?dev=1`
+    - 설정 제목 7연타 후 `advanced-tools.html` 인증 창 열림 확인
+    - 비밀번호 `0208` 입력 후 인증 창이 `index.html?advanced=1`로 전환됨 확인
+    - 전환된 창의 `window.name = skct_popup_mode` 확인
+    - 전환된 창에서 설정 모달을 열면 `고급 기능` 섹션, TXT 다운로드 버튼, 비밀번호 목록 기본값 `0208` 노출 확인
+- 운영 반영
+  - 코드 커밋: `83471ce` (`Turn advanced popup into authenticated advanced app mode`)
+  - `main` push 완료
 - 로컬 검증
   - `node --check main.js` 통과
   - 로컬 `admin.html`에서 3단계 버튼 DOM 존재 확인

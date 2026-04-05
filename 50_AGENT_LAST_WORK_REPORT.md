@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-06 02:22:13 KST
+작성일시: 2026-04-06 02:47:52 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -400,3 +400,33 @@
     - `전체 제한 시간(쉬는 시간 제외)`
     - `return configTotalMins * 60;`
     - `currentPhase?.type !== 'break'`
+
+## 2026-04-06 고급 기능 팝업을 실제 고급 버전 사용자 화면으로 전환
+- 운영 기준 커밋은 `83471ce`입니다.
+- 사용자 정정 요청
+  - 숨김 진입 뒤에 뜨는 창은 별도 TXT 도구창이 아니라, 우리가 실제 사용하는 팝업 웹의 고급 버전이어야 함
+  - TXT 다운로드와 비밀번호 목록 관리도 그 고급 버전 화면 안에 포함되어야 함
+- 문제 원인
+  - 기존 `advanced-tools.html`은 인증 후에도 자체 UI를 유지하는 독립 도구창이었음
+  - 그래서 사용자가 기대한 `실제 팝업 웹이 고급 기능 포함 버전으로 열린다`는 흐름과 달랐음
+- 수정 내용
+  - 운영 `advanced-tools.html`, 스테이징 `staging/site/advanced-tools.html`
+    - 인증 전용 게이트 화면으로 축소
+    - 비밀번호 성공 시 `window.name`을 실제 팝업 이름으로 바꾸고 `index.html?advanced=1`로 전환
+  - 운영 `index.html`, 스테이징 `staging/site/index.html`
+    - `advanced=1` 플래그 인식 추가
+    - 설정 모달 안에 고급 기능 섹션 추가
+  - 운영 `main.js`, 스테이징 `staging/site/assets/scripts/app.bundle.js`
+    - 고급 잠금 해제 상태를 `localStorage`에 30분 유지
+    - `activateAdvancedSession()`으로 인증 성공 후 실제 팝업 URL/이름 반환
+    - 고급 모드에서만 설정 모달 안에 아래 기능 노출
+      - `문항별 상세 통계 TXT 다운로드`
+      - 허용 비밀번호 목록 저장
+    - 숨김 트리거로 여는 인증 창도 일반 팝업과 같은 창 크기/위치 규칙 재사용
+- 로컬 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - `index.html?dev=1`에서 설정 제목 7연타 후 인증 창 열림 확인
+  - 비밀번호 `0208` 입력 후 인증 창이 `advanced-tools.html`에 남지 않고 `index.html?advanced=1`로 전환됨 확인
+  - 전환된 창의 `window.name`이 `skct_popup_mode`로 설정되어 실제 팝업 모드로 열림 확인
+  - 전환된 창에서 설정 모달을 열면 고급 기능 섹션, TXT 다운로드 버튼, 비밀번호 목록 기본값 `0208` 노출 확인
