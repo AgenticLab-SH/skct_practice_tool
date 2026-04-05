@@ -815,7 +815,7 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: clip;
-    font-size: 13px;
+    font-size: clamp(8px, 2.6vw, 13px);
     color: #807279;
 }
 
@@ -823,7 +823,7 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: break-all;
-    font-size: 24px;
+    font-size: clamp(12px, 4.6vw, 24px);
     font-weight: 700;
     color: #1f1a1d;
 }
@@ -853,16 +853,21 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(5, minmax(0, 1fr));
-    gap: 6px;
-    padding-bottom: 10px;
+    gap: clamp(2px, 1.2vw, 6px);
+    padding-bottom: clamp(4px, 1.8vw, 10px);
     min-height: 0;
 }
 
 .calc-btn {
     border: 1px solid #d3c9ce;
-    border-radius: 9px;
+    border-radius: clamp(5px, 2vw, 9px);
     background: linear-gradient(180deg, #ffffff 0%, #f3eff1 100%);
-    font-size: 17px;
+    font-size: clamp(9px, 3.7vw, 17px);
+    line-height: 1;
+    padding: 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
     cursor: pointer;
     user-select: none;
     transition: background 0.12s, transform 0.12s;
@@ -893,11 +898,11 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 
 .skct-floating-btn {
     position: absolute;
-    right: 8px;
+    right: max(4px, calc((var(--tools-right-rail-reserve, 58px) - var(--tools-right-rail-button-size, 44px)) / 2));
     width: var(--tools-right-rail-button-size, 44px);
     height: var(--tools-right-rail-button-size, 44px);
     border: none;
-    border-radius: 12px;
+    border-radius: clamp(8px, 2vw, 12px);
     background: #171717;
     color: #ffffff;
     display: inline-flex;
@@ -914,7 +919,7 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 
 .skct-floating-btn.question-btn {
     bottom: calc(var(--tools-bottom-padding, 0px) + 14px);
-    font-size: 24px;
+    font-size: clamp(12px, calc(var(--tools-right-rail-button-size, 44px) * 0.55), 24px);
     font-weight: 700;
 }
 
@@ -954,8 +959,8 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 
 .chat-bubble-icon {
     position: relative;
-    width: 22px;
-    height: 16px;
+    width: clamp(10px, calc(var(--tools-right-rail-button-size, 44px) * 0.5), 22px);
+    height: clamp(8px, calc(var(--tools-right-rail-button-size, 44px) * 0.36), 16px);
     border: 2px solid #ffffff;
     border-radius: 8px;
 }
@@ -978,7 +983,7 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     position: absolute;
     inset: -2px 0 0 0;
     text-align: center;
-    font-size: 12px;
+    font-size: clamp(7px, calc(var(--tools-right-rail-button-size, 44px) * 0.27), 12px);
     letter-spacing: 1px;
 }
 

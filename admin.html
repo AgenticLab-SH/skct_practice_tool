@@ -478,14 +478,11 @@
     }
 
     function createLegacyPopupWindowDefaults() {
-        const { availWidth, availHeight } = getScreenMetrics();
-        const width = clampNumber(350, 300, availWidth);
-        const height = clampNumber(800, 520, availHeight);
         return {
-            widthRatio: roundRatio(width / availWidth),
-            heightRatio: roundRatio(height / availHeight),
-            leftRatio: roundRatio(Math.max(0, (availWidth - width) / 2) / availWidth),
-            topRatio: roundRatio(Math.max(0, (availHeight - height) / 2) / availHeight)
+            widthRatio: 0.273,
+            heightRatio: 0.98,
+            leftRatio: 0.727,
+            topRatio: 0
         };
     }
 
@@ -513,16 +510,16 @@
 
     function normalizeLayoutRatios(raw) {
         return {
-            timer: roundRatio(clampNumber(parseFloat(raw?.timer) || 0.2, 0.05, 98)),
-            utils: roundRatio(clampNumber(parseFloat(raw?.utils) || 1, 0.05, 98)),
-            calc: roundRatio(clampNumber(parseFloat(raw?.calc) || 2, 0.05, 98))
+            timer: roundRatio(clampNumber(parseFloat(raw?.timer) || 8.4, 0.05, 98)),
+            utils: roundRatio(clampNumber(parseFloat(raw?.utils) || 47.5, 0.05, 98)),
+            calc: roundRatio(clampNumber(parseFloat(raw?.calc) || 44.1, 0.05, 98))
         };
     }
 
     function normalizeToolUiConfig(raw) {
         return {
-            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0.20, 0, 0.9)),
-            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || 0.125, 0.08, 0.24)),
+            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0.11, 0, 0.9)),
+            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || 0.09, 0.03, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || 14, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || 4, 2, 12)
         };

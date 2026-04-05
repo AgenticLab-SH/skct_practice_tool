@@ -12,8 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupMode = window.name === 'stg_skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
-    const DEFAULT_LAYOUT_RATIOS = { timer: 0.2, utils: 1, calc: 2 };
-    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.20, sideButtonColumnRatio: 0.125, noteFontSize: 14, canvasLineWidth: 4 };
+    const DEFAULT_LAYOUT_RATIOS = { timer: 8.4, utils: 47.5, calc: 44.1 };
+    const DEFAULT_POPUP_LAYOUT = {
+        window: { widthRatio: 0.273, heightRatio: 0.98, leftRatio: 0.727, topRatio: 0 },
+        omrWidthRatio: 0.34
+    };
+    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 14, canvasLineWidth: 4 };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'stg-skct-popup-preview',
         saveRequest: 'stg-skct-popup-save-request',
@@ -70,14 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createLegacyPopupWindowDefaults() {
-        const { availWidth, availHeight } = getScreenMetrics();
-        const width = clampNumber(350, 300, availWidth);
-        const height = clampNumber(800, 520, availHeight);
         return {
-            widthRatio: roundRatio(width / availWidth),
-            heightRatio: roundRatio(height / availHeight),
-            leftRatio: roundRatio(Math.max(0, (availWidth - width) / 2) / availWidth),
-            topRatio: roundRatio(Math.max(0, (availHeight - height) / 2) / availHeight)
+            widthRatio: DEFAULT_POPUP_LAYOUT.window.widthRatio,
+            heightRatio: DEFAULT_POPUP_LAYOUT.window.heightRatio,
+            leftRatio: DEFAULT_POPUP_LAYOUT.window.leftRatio,
+            topRatio: DEFAULT_POPUP_LAYOUT.window.topRatio
         };
     }
 
@@ -98,14 +99,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 leftRatio: roundRatio(clampNumber(Number.isFinite(leftRatio) ? leftRatio : fallbackWindow.leftRatio, 0, Math.max(0, 1 - safeWidthRatio))),
                 topRatio: roundRatio(clampNumber(Number.isFinite(topRatio) ? topRatio : fallbackWindow.topRatio, 0, Math.max(0, 1 - safeHeightRatio)))
             },
-            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.16, 0.7) : 0.34)
+            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.16, 0.7) : DEFAULT_POPUP_LAYOUT.omrWidthRatio)
         };
     }
 
     function normalizeToolUiConfig(raw) {
         return {
             bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.9)),
-            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || DEFAULT_TOOL_UI_CONFIG.sideButtonColumnRatio, 0.08, 0.24)),
+            sideButtonColumnRatio: roundRatio(clampNumber(parseFloat(raw?.sideButtonColumnRatio) || DEFAULT_TOOL_UI_CONFIG.sideButtonColumnRatio, 0.03, 0.24)),
             noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || DEFAULT_TOOL_UI_CONFIG.noteFontSize, 12, 22),
             canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || DEFAULT_TOOL_UI_CONFIG.canvasLineWidth, 2, 12)
         };
@@ -157,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function syncToolsRightRail() {
         const baseWidth = document.querySelector('.tools-layout')?.clientWidth || mainContentEl?.clientWidth || window.innerWidth || 360;
-        const buttonPx = clampNumber(Math.round(baseWidth * currentToolUiConfig.sideButtonColumnRatio), 44, 78);
+        const buttonPx = clampNumber(Math.round(baseWidth * currentToolUiConfig.sideButtonColumnRatio), 22, 78);
         document.documentElement.style.setProperty('--tools-right-rail-button-size', `${buttonPx}px`);
         document.documentElement.style.setProperty('--tools-right-rail-reserve', `${buttonPx + 14}px`);
         if (popupSideColumnRange) popupSideColumnRange.value = String(currentToolUiConfig.sideButtonColumnRatio);
