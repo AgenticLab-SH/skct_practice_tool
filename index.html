@@ -727,7 +727,7 @@
             
             // Timer Defaults Sync
             // Timer Defaults Sync
-            if (cfg.timerDefaults && !localStorage.getItem('skct_timer_cfg')) {
+            if (cfg.timerDefaults && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('skct_timer_cfg'))) {
                 if (window.applyRemoteTimerDefaults) {
                     window.applyRemoteTimerDefaults(
                         cfg.timerDefaults.total,
@@ -736,7 +736,7 @@
                     );
                 }
             }
-            if (cfg.guideDefaults && !localStorage.getItem('skct_guide_cfg')) {
+            if (cfg.guideDefaults && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('skct_guide_cfg'))) {
                 if (window.applyRemoteGuideDefaults) {
                     window.applyRemoteGuideDefaults(
                         cfg.guideDefaults.enabled,
@@ -745,7 +745,7 @@
                 }
             }
             // Layout Ratios Sync (사용자가 로컬 저장하지 않은 경우에만 원격 기본값 적용)
-            if (cfg.layoutRatios && !localStorage.getItem('skct_layout_ratios')) {
+            if (cfg.layoutRatios && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('skct_layout_ratios'))) {
                 if (window.applyRemoteLayoutRatios) {
                     window.applyRemoteLayoutRatios(
                         cfg.layoutRatios.timer,

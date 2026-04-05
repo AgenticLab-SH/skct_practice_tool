@@ -411,6 +411,23 @@
     const sitePreviewLink = document.getElementById('sitePreviewLink');
     if (sitePreviewLink) {
         sitePreviewLink.href = buildSitePreviewUrl();
+        sitePreviewLink.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            let w = parseInt(localStorage.getItem('skct_popup_width'), 10) || 350;
+            let h = parseInt(localStorage.getItem('skct_popup_height'), 10) || 800;
+            let left = parseInt(localStorage.getItem('skct_popup_left'), 10);
+            let top = parseInt(localStorage.getItem('skct_popup_top'), 10);
+
+            if (isNaN(left)) left = Math.round((screen.width - w) / 2);
+            if (isNaN(top)) top = Math.round((screen.height - h) / 2);
+
+            const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+            const popup = window.open(buildSitePreviewUrl(), 'skct_popup_mode', popupParams);
+            if (!popup) {
+                toast('팝업이 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용해주세요.', true);
+            }
+        });
     }
 
     // ── Dashboard Init ──
