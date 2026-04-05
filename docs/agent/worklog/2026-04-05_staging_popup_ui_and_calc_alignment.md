@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 03:02:00 KST
+작성일시: 2026-04-06 03:16:30 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -307,6 +307,41 @@
 - 검증 결과
   - `node --check main.js` 통과
   - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+
+## 2026-04-06 고급 기능 전용 버튼/모달 분리 및 비밀번호 개발자 전용화
+- 사용자 정정
+  - 고급 기능은 실제 고급 이용자가 쓰는 화면답게 별도 버튼 구획에서 열려야 함
+  - 고급 기능 안내에는 실제로 적용된 고급 기능 항목들이 포함되어야 함
+  - 고급 기능 비밀번호 목록은 사용자 화면에 보이면 안 되고 개발자 페이지에서만 관리되어야 함
+- 수정 내용
+  - `index.html`, `staging/site/index.html`
+    - 설정 모달에서 고급 기능 블록 제거
+    - 좌측 사이드바에 `🔒 고급 기능` 전용 버튼과 구분선 추가
+    - 고급 모드일 때만 보이는 `advanced-only` 구조 추가
+    - 별도 `advancedFeatureModal` 추가
+      - 문항별 상세 통계 TXT 다운로드
+      - 쉬는 시간 건너뛰기
+      - 이전 문항 재선택 허용과 시간 고정 규칙
+      - 문항 건너뛰기 시간 처리 보정
+      - 계산기 `Ans` 누적 / 우선순위 / 이어 계산
+      - 전체 시간 75분 고정
+  - `main.css`, `staging/site/assets/styles/main.css`
+    - `advanced-only`, `advanced-toggle` 스타일 추가
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - 고급 기능 버튼 클릭 시 전용 모달 열기
+    - 고급 인증 비밀번호를 로컬 저장소가 아니라 원격 `advancedFeatureConfig.passwords`에서 읽도록 변경
+    - 사용자 화면에서 비밀번호 저장 UI/로직 제거
+  - `admin.html`, `staging/site/admin.html`
+    - `고급 기능 인증 비밀번호` textarea 추가
+    - 각각 `config/advancedFeatureConfig`, `staging_hidden_v1/config/advancedFeatureConfig` 저장/로드 연결
+- 로컬 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 고급 인증 후 `고급 기능` 사이드바 버튼 표시 확인
+  - 설정 모달에서 비밀번호 목록 UI 제거 확인
+  - 고급 기능 모달 설명에 `쉬는 시간 건너뛰기`, `이전 문항 재선택 허용`, `계산기 고급 동작` 포함 확인
+- 운영 반영
+  - 코드 커밋: `37045eb` (`Separate advanced user modal from password management`)
 - 로컬 검증
   - `node --check main.js` 통과
   - 로컬 `admin.html`에서 3단계 버튼 DOM 존재 확인
