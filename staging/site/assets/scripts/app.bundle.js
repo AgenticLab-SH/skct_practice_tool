@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const popupEditorPanelEl = document.getElementById('popupEditorPanel');
     const popupEditorMetricsEl = document.getElementById('popupEditorMetrics');
     const popupEditorStatusEl = document.getElementById('popupEditorStatus');
+    const popupEditorToggleBtn = document.getElementById('popupEditorToggleBtn');
     const popupEditorReloadBtn = document.getElementById('popupEditorReloadBtn');
     const popupEditorSaveBtn = document.getElementById('popupEditorSaveBtn');
     const popupBottomPaddingRange = document.getElementById('popupBottomPaddingRange');
@@ -162,6 +163,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!popupEditorStatusEl) return;
         popupEditorStatusEl.textContent = message;
         popupEditorStatusEl.className = `popup-editor-status${type ? ` ${type}` : ''}`;
+    }
+
+    function setPopupEditorCollapsed(collapsed) {
+        if (!popupEditorPanelEl) return;
+        popupEditorPanelEl.classList.toggle('collapsed', collapsed);
+        if (popupEditorToggleBtn) {
+            popupEditorToggleBtn.textContent = collapsed ? '펼치기' : '접기';
+            popupEditorToggleBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
     }
 
     function readCurrentLayoutRatios() {
@@ -344,7 +354,12 @@ document.addEventListener('DOMContentLoaded', () => {
         popupEditorPanelEl?.classList.remove('hidden');
         topBarResizerEl?.classList.remove('hidden');
         toolsSectionResizerEl?.classList.remove('hidden');
-        setPopupEditorStatus('창 위치와 하단 여백, 분리선을 조절한 뒤 저장하세요.');
+        setPopupEditorCollapsed(true);
+        setPopupEditorStatus('필요할 때만 펼쳐서 저장하고, 평소에는 접은 상태로 화면을 확인하세요.');
+
+        popupEditorToggleBtn?.addEventListener('click', () => {
+            setPopupEditorCollapsed(!popupEditorPanelEl.classList.contains('collapsed'));
+        });
 
         popupEditorReloadBtn?.addEventListener('click', () => {
             currentPopupLayout = normalizePopupLayout(remotePopupLayout);
@@ -1331,6 +1346,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 calcState.current = calcState.current.slice(0, -1);
                 if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
             }
+        } else if (fnStr === 'SQRT') {
+            const currentValue = parseFloat(calcState.current);
+            const result = Number.isFinite(currentValue) && currentValue >= 0
+                ? String(Math.round(Math.sqrt(currentValue) * 100000000) / 100000000)
+                : 'Error';
+            pushCalcHistory(`√${calcState.current} = ${result}`);
+            calcState.current = result;
+            calcState.storedValue = null;
+            calcState.operator = null;
+            calcState.waitingNew = true;
         } else if (fnStr === '=') {
             calculateResult(true);
         }

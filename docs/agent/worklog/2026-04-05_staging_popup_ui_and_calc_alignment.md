@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 16:52:53 KST
+작성일시: 2026-04-05 17:15:32 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -130,3 +130,39 @@
   - 로컬 `admin.html`에서 3단계 버튼 DOM 존재 확인
   - 로컬 `staging/site/index.html?stage=1&preview=1`에서 실제 읽기 경로가 `staging_hidden_v1/config`로 바뀐 것 확인
   - 로컬 `staging/site/index.html` 팝업 편집기 저장 버튼 문구가 `테스트 기본값 저장`으로 표시되는 것 확인
+
+## 일반 페이지 팝업 편집 패널 노출 회귀 수정
+- 증상
+  - 일반 운영 페이지(`index.html?dev=1&preview=1`)에서도 팝업 기본값 편집 패널과 분리선이 보임
+- 원인
+  - 운영 `index.html`의 팝업 편집 패널은 `class="hidden"`으로 들어가 있었지만, 운영 `main.css`에는 범용 `.hidden { display:none; }` 규칙이 없어 실제로 숨겨지지 않았음
+- 수정
+  - 운영 `main.css`에 범용 `.hidden { display: none !important; }` 추가
+- 검증
+  - 로컬 `http://127.0.0.1:8000/index.html?dev=1&preview=1`에서 편집 패널/분리선 모두 비표시 확인
+  - 원격 `https://agenticlab-sh.github.io/skct_tool/index.html?dev=1&preview=1`에서도 편집 패널/분리선 비표시 확인
+  - 콘솔 에러 없음 확인
+
+## 스테이징 참고사진 추가 보정
+- 사용자 요청
+  - 테스트 팝업에서 편집 패널이 화면을 너무 가리므로 접히게 만들기
+  - 계산기 우측 연산 기호를 참고사진처럼 `√ / × / - / + / =` 흐름으로 맞추기
+  - 계산기 영역 상단에도 `계산기` 제목 표시
+  - 스테이징 테스트 사이트만 먼저 수정
+- 수정 대상
+  - `staging/site/index.html`
+  - `staging/site/assets/styles/main.css`
+  - `staging/site/assets/scripts/app.bundle.js`
+- 구현 내용
+  - 팝업 편집 패널에 `펼치기 / 접기` 토글 버튼 추가
+  - 실제 팝업 편집 모드에서는 기본값을 `접힘 상태`로 시작하도록 변경
+  - 계산기 상단에 `계산기` 라벨 추가
+  - 계산기 키 배열을 `C / ← / ÷ / √`, `7 / 8 / 9 / ×`, `4 / 5 / 6 / -`, `1 / 2 / 3 / +`, `0 / 00 / . / =`로 변경
+  - `√` 버튼 동작 추가
+    - 현재 입력값 기준 제곱근 계산
+    - 이력 줄에 `√값 = 결과` 형태로 누적
+- 검증
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 로컬 실제 팝업(`stg_skct_popup_mode`)에서 편집 패널이 접힌 상태로 표시됨 확인
+  - 로컬 팝업 화면에서 계산기 라벨이 `계산기`로 보이는 것 확인
+  - 계산기 버튼 배열이 `√` 포함 20개 키 순서로 바뀐 것 확인
