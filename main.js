@@ -1335,32 +1335,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if(calcDisplayEl) calcDisplayEl.addEventListener('mousedown', (e) => e.preventDefault());
 
     /* --- Window Popup Mode Logic --- */
-    const popupBtn = document.getElementById('popupBtn');
-    if (popupBtn) {
-        popupBtn.addEventListener('click', () => {
-            alert("팝업창이 탭 형태로 열리지 않고, 독립된 창으로 열립니다.\n창 테두리를 드래그하시면 일반 브라우저의 한계를 무시하고 폭을 아주 얇게 조절할 수 있습니다!\n\n새 창이 뜨면, 이 기존 창은 닫으시면 됩니다.");
-            
-            // 기존 스토리지 값
-            let w = parseInt(localStorage.getItem('skct_popup_width')) || 350;
-            let h = parseInt(localStorage.getItem('skct_popup_height')) || 800;
-            let left = parseInt(localStorage.getItem('skct_popup_left'));
-            let top = parseInt(localStorage.getItem('skct_popup_top'));
-            
-            if (isNaN(left)) left = Math.round((screen.width - w) / 2);
-            if (isNaN(top)) top = Math.round((screen.height - h) / 2);
+    function launchPopupMode() {
+        let w = parseInt(localStorage.getItem('skct_popup_width')) || 350;
+        let h = parseInt(localStorage.getItem('skct_popup_height')) || 800;
+        let left = parseInt(localStorage.getItem('skct_popup_left'));
+        let top = parseInt(localStorage.getItem('skct_popup_top'));
 
-            const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
-            const newWin = window.open(window.location.href, 'skct_popup_mode', popupParams);
-            
-            if (newWin) {
-                document.body.innerHTML = '<h2 style="padding: 20px; color: #64748b; text-align: center;">팝업 모드로 이동되었습니다.<br><br>이 창은 자동으로 닫히거나 무시하시면 됩니다.</h2>';
-                setTimeout(() => { window.close(); }, 100);
-            }
-        });
-        
-        if (window.name === 'skct_popup_mode') {
-            popupBtn.style.display = 'none';
+        if (isNaN(left)) left = Math.round((screen.width - w) / 2);
+        if (isNaN(top)) top = Math.round((screen.height - h) / 2);
+
+        const popupUrl = window.location.href;
+        const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+        const newWin = window.open(popupUrl, 'skct_popup_mode', popupParams);
+
+        if (!newWin) {
+            alert("팝업 창이 차단되었습니다.\n브라우저 주소창의 팝업 차단 해제를 눌러 다시 시도해주세요.");
+            return;
         }
+
+        document.body.innerHTML = '<h2 style="padding: 20px; color: #64748b; text-align: center;">팝업 모드로 이동되었습니다.<br><br>이 창은 자동으로 닫히거나 무시하시면 됩니다.</h2>';
+        setTimeout(() => { window.close(); }, 100);
+    }
+
+    const popupBtn = document.getElementById('popupBtn');
+    const popupToggle = document.getElementById('popupToggle');
+    if (popupBtn) popupBtn.addEventListener('click', launchPopupMode);
+    if (popupToggle) popupToggle.addEventListener('click', launchPopupMode);
+
+    if (window.name === 'skct_popup_mode') {
+        if (popupBtn) popupBtn.style.display = 'none';
+        if (popupToggle) popupToggle.style.display = 'none';
     }
 
 });
