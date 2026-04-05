@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const runtimeFlags = window.SKCT_FLAGS || {};
+    const isAdminPreviewMode = runtimeFlags.adminPreview === true;
 
     /* --- State Restoration from LocalStorage --- */
     const savedOmrWidth = localStorage.getItem('skct_omr_width');
@@ -7,7 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Layout Ratios Settings
-    const savedRatios = JSON.parse(localStorage.getItem('skct_layout_ratios')) || { timer: 0.2, utils: 1, calc: 2 };
+    const savedRatios = isAdminPreviewMode
+        ? { timer: 0.2, utils: 1, calc: 2 }
+        : (JSON.parse(localStorage.getItem('skct_layout_ratios')) || { timer: 0.2, utils: 1, calc: 2 });
     document.documentElement.style.setProperty('--timer-ratio', savedRatios.timer);
     document.documentElement.style.setProperty('--utils-ratio', savedRatios.utils);
     document.documentElement.style.setProperty('--calc-ratio', savedRatios.calc);
@@ -30,7 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('--utils-ratio', uR);
         document.documentElement.style.setProperty('--calc-ratio', cR);
         
-        localStorage.setItem('skct_layout_ratios', JSON.stringify({ timer: tR, utils: uR, calc: cR }));
+        if (!isAdminPreviewMode) {
+            localStorage.setItem('skct_layout_ratios', JSON.stringify({ timer: tR, utils: uR, calc: cR }));
+        }
         // flex가 변경되면 utils 영역 높이가 바뀌므로 캔버스 리사이즈
         if (typeof resizeCanvas === 'function') {
             requestAnimationFrame(resizeCanvas);
@@ -57,34 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auto-launch popup logic
-    if (!window.opener && window.name !== 'skct_popup_mode') {
-        const w = parseInt(localStorage.getItem('skct_popup_width')) || 350;
-        const h = parseInt(localStorage.getItem('skct_popup_height')) || 800;
-        let left = parseInt(localStorage.getItem('skct_popup_left'));
-        let top = parseInt(localStorage.getItem('skct_popup_top'));
-        if (isNaN(left)) left = Math.round((screen.width - w) / 2);
-        if (isNaN(top)) top = Math.round((screen.height - h) / 2);
-
-        const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
-        
-        // Attempt to auto-open
-        const newWin = window.open(window.location.href, 'skct_popup_mode', popupParams);
-        
-        // 창이 즉시 꺼져버려 팝업 차단을 해제하지 못하는 현상을 방지
-        document.body.innerHTML = `
-            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f1f5f9; text-align:center;">
-                <h1 style="color:#334155; margin-bottom: 10px;">팝업 모드 실행 중...</h1>
-                <h3 style="color:#ef4444;">만약 우측 상단 주소창에 [팝업 차단됨] 마크가 떴다면, <br>반드시 클릭하여 <b>"항상 허용"</b>으로 변경하고 아래 버튼을 누르세요.</h3>
-                <button onclick="location.reload()" style="margin-top:20px; padding:10px 30px; font-size:18px; font-weight:bold; background:#3b82f6; color:white; border:none; border-radius:5px; cursor:pointer;">허용 후 다시 시도 (새로고침)</button>
-                <p style="margin-top:20px; color:#64748b;">이 원본 창은 5초 후 자동으로 닫힙니다.</p>
-            </div>
-        `;
-        
-        setTimeout(() => { window.close(); }, 5000);
-        return; // 중복 실행 방지를 위해 아래 로직 스킵
-    }
-
     /* --- OMR & Scoring Logic --- */
     const subjects = [
         { id: 'lang_und', name: '언어이해', count: 20 },
@@ -94,12 +72,34 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'seq_rea', name: '수열추리', count: 20 }
     ];
 
+    const getRequiredTotalMins = (subjMins, breakMins) => {
+        const safeSubj = Math.max(0, parseInt(subjMins, 10) || 0);
+        const safeBreak = Math.max(0, parseInt(breakMins, 10) || 0);
+        return safeSubj * subjects.length + safeBreak * Math.max(0, subjects.length - 1);
+    };
+
+    const clampTotalMins = (totalMins, subjMins, breakMins) => {
+        const safeTotal = Math.max(0, parseInt(totalMins, 10) || 0);
+        return Math.max(safeTotal, getRequiredTotalMins(subjMins, breakMins));
+    };
+
     const omrState = {
         myAnswers: {},
         correctAnswers: {},
         mode: 'answer', // 'answer' | 'score'
         currentGlobalIndex: 0
     };
+
+    /* --- Multi-Phase Timer State --- */
+    let timerInterval = null;
+    let totalSeconds = 75 * 60;
+    let configTotalMins = 75;
+    let configSubjectMins = 15;
+    let configBreakMins = 1;
+    let phases = [];
+    let currentPhaseIdx = 0;
+    let currentPhaseSeconds = 0;
+    let timerIsRunning = false;
 
     // 실전/연습 모드 (기본: 실전 모드)
     let isPracticeMode = localStorage.getItem('skct_practice_mode') === 'true';
@@ -842,19 +842,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    /* --- Multi-Phase Timer Logic --- */
-    let timerInterval = null;
-    let totalSeconds = 75 * 60;
-    
-    let configTotalMins = 75;
-    let configSubjectMins = 15;
-    let configBreakMins = 1;
-    
-    let phases = [];
-    let currentPhaseIdx = 0;
-    let currentPhaseSeconds = 0;
-    let timerIsRunning = false;
-
     const buildPhases = () => {
         phases = [];
         subjects.forEach((subj, idx) => {
@@ -869,16 +856,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const savedTimerCfg = JSON.parse(localStorage.getItem('skct_timer_cfg'));
+    const savedTimerCfg = isAdminPreviewMode ? null : JSON.parse(localStorage.getItem('skct_timer_cfg'));
     if (savedTimerCfg) {
         configTotalMins = savedTimerCfg.total || 75;
         configSubjectMins = savedTimerCfg.subj || 15;
         configBreakMins = savedTimerCfg.brk || 1;
     }
+    configTotalMins = clampTotalMins(configTotalMins, configSubjectMins, configBreakMins);
 
     let configGuideEnabled = true;
     let configGuideSec = 45;
-    const savedGuideCfg = JSON.parse(localStorage.getItem('skct_guide_cfg'));
+    const savedGuideCfg = isAdminPreviewMode ? null : JSON.parse(localStorage.getItem('skct_guide_cfg'));
     if (savedGuideCfg) {
         configGuideEnabled = savedGuideCfg.enabled;
         configGuideSec = savedGuideCfg.sec;
@@ -950,15 +938,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- 초기 렌더링 갱신 ---
-    updateTimerUI();
-    applyPhaseToOMR();
-
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
         if (timerIsRunning) return; // ignore if running
-        configTotalMins = total || 75;
         configSubjectMins = subj || 15;
         configBreakMins = brk || 1;
+        configTotalMins = clampTotalMins(total || 75, configSubjectMins, configBreakMins);
 
         if (totalTimeInput) totalTimeInput.value = configTotalMins;
         if (subjectTimeInput) subjectTimeInput.value = configSubjectMins;
@@ -1134,6 +1118,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- 초기 렌더링 갱신 ---
+    updateTimerUI();
+    applyPhaseToOMR();
+
     if(timerPlayBtn) {
         timerPlayBtn.addEventListener('click', () => {
             initAudio(); // 사용자 인터랙션 시 AudioContext 활성화
@@ -1204,14 +1192,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsApplyBtn = document.getElementById('settingsApplyBtn');
     if (settingsApplyBtn) {
         settingsApplyBtn.addEventListener('click', () => {
-            configTotalMins = parseInt(document.getElementById('cfgTotal').value) || 75;
             configSubjectMins = parseInt(document.getElementById('cfgSubj').value) || 15;
             configBreakMins = parseInt(document.getElementById('cfgBreak').value) || 1;
-            localStorage.setItem('skct_timer_cfg', JSON.stringify({total: configTotalMins, subj: configSubjectMins, brk: configBreakMins}));
+            configTotalMins = clampTotalMins(document.getElementById('cfgTotal').value, configSubjectMins, configBreakMins);
+            document.getElementById('cfgTotal').value = configTotalMins;
+            if (!isAdminPreviewMode) {
+                localStorage.setItem('skct_timer_cfg', JSON.stringify({total: configTotalMins, subj: configSubjectMins, brk: configBreakMins}));
+            }
             
             configGuideEnabled = document.getElementById('cfgGuideEnabled').checked;
             configGuideSec = parseInt(document.getElementById('cfgGuideSec').value) || 45;
-            localStorage.setItem('skct_guide_cfg', JSON.stringify({enabled: configGuideEnabled, sec: configGuideSec}));
+            if (!isAdminPreviewMode) {
+                localStorage.setItem('skct_guide_cfg', JSON.stringify({enabled: configGuideEnabled, sec: configGuideSec}));
+            }
 
             // 모드 설정 적용
             const practiceModeInput = document.getElementById('cfgPracticeMode');

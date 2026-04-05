@@ -84,9 +84,18 @@
     </div>
     
     <script>
-        // URL 파라미터에서 시간 읽기 (있는 경우)
+        const DEV_BYPASS_KEY = 'skct_maintenance_bypass';
         const urlParams = new URLSearchParams(window.location.search);
+        const devParam = urlParams.get('dev');
         const timeParam = urlParams.get('time');
+
+        if (devParam === '1') {
+            sessionStorage.setItem(DEV_BYPASS_KEY, 'true');
+            window.location.replace('index.html?dev=1');
+        } else if (devParam === '0') {
+            sessionStorage.removeItem(DEV_BYPASS_KEY);
+        }
+
         if (timeParam) {
             document.querySelector('.highlight').textContent = timeParam;
         }

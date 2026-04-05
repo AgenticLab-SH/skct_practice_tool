@@ -63,17 +63,42 @@
   } catch (e) { /* ignored */ }
 
   // ── 5. 가림막(overlay) 자동 제거 — MutationObserver ──
+  var overlayHintPattern = /(overlay|modal|backdrop|screen|focus|block|guard|mask|dim|prevent|lock)/i;
+
+  function hideOverlay(node) {
+    if (!node || node.nodeType !== 1) return;
+    node.setAttribute('data-skct-bypass-removed', 'true');
+    node.style.setProperty('pointer-events', 'none', 'important');
+    node.style.setProperty('visibility', 'hidden', 'important');
+    node.style.setProperty('opacity', '0', 'important');
+    node.style.setProperty('display', 'none', 'important');
+    if (typeof node.remove === 'function') {
+      node.remove();
+    }
+  }
+
   function tryRemoveOverlay(node) {
     if (node.nodeType !== 1) return;
     var s = node.style || window.getComputedStyle(node);
     var zi = parseInt(s.zIndex || 0);
-    if (zi >= 9990 && (s.position === 'fixed' || s.position === 'absolute')) {
-      var rect = node.getBoundingClientRect();
-      if (rect.width > window.innerWidth * 0.5 && rect.height > window.innerHeight * 0.5) {
-        node.remove();
-        console.log('[SKCT Bypass] 가림막 제거됨');
-      }
+    var rect = node.getBoundingClientRect();
+    var widthRatio = rect.width / Math.max(window.innerWidth, 1);
+    var heightRatio = rect.height / Math.max(window.innerHeight, 1);
+    var coversLargeArea = widthRatio >= 0.45 && heightRatio >= 0.45;
+    var coversMostOfScreen = widthRatio >= 0.8 && heightRatio >= 0.6;
+    var nameHint = [node.id || '', node.className || '', node.getAttribute('role') || ''].join(' ');
+    var textHint = (node.textContent || '').slice(0, 200);
+    var looksLikeOverlay = s.position === 'fixed' || s.position === 'absolute';
+    var suspiciousByName = overlayHintPattern.test(nameHint) || overlayHintPattern.test(textHint);
+
+    if (looksLikeOverlay && ((zi >= 9990 && coversLargeArea) || coversMostOfScreen || (coversLargeArea && suspiciousByName))) {
+      hideOverlay(node);
+      console.log('[SKCT Bypass] 가림막 제거됨');
     }
+  }
+
+  function scanExistingNodes() {
+    document.querySelectorAll('*').forEach(tryRemoveOverlay);
   }
 
   // DOM이 준비되면 Observer 시작
@@ -81,15 +106,25 @@
     var observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (m) {
         m.addedNodes.forEach(tryRemoveOverlay);
+        if (m.type === 'attributes') {
+          tryRemoveOverlay(m.target);
+        }
       });
     });
     observer.observe(document.body || document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style', 'class', 'hidden'],
       childList: true,
       subtree: true
     });
 
     // 기존 가림막 즉시 제거
-    document.querySelectorAll('*').forEach(tryRemoveOverlay);
+    scanExistingNodes();
+
+    var scanInterval = window.setInterval(scanExistingNodes, 1200);
+    window.setTimeout(function () {
+      window.clearInterval(scanInterval);
+    }, 20000);
   }
 
   if (document.body) {

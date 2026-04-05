@@ -116,7 +116,7 @@
                 <div class="timer-wrapper" style="margin-left:auto; display: flex; align-items: center; gap: 12px; background: #0f172a; border: 1px solid #334155; padding: 6px 14px; border-radius: 8px;">
                     <div style="display:flex; flex-direction:column; align-items:flex-end;">
                         <span style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">전체 남은 시간</span>
-                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">75:00</span>
+                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">79:00</span>
                     </div>
                     <div style="width: 1px; height: 24px; background: #334155;"></div>
                     <div style="display:flex; flex-direction:column; align-items:center;">
@@ -306,7 +306,7 @@
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🕒 타이머 설정</div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">전체 제한 시간 (분)</label>
-                        <input type="number" id="cfgTotal" value="75" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                        <input type="number" id="cfgTotal" value="79" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">각 과목당 시간 (분)</label>
@@ -475,6 +475,41 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function initRuntimeFlags() {
+            const DEV_BYPASS_KEY = 'skct_maintenance_bypass';
+            const ADMIN_PREVIEW_KEY = 'skct_admin_preview';
+            const url = new URL(window.location.href);
+            const devParam = url.searchParams.get('dev');
+            const previewParam = url.searchParams.get('preview');
+
+            if (devParam === '1') {
+                sessionStorage.setItem(DEV_BYPASS_KEY, 'true');
+                url.searchParams.delete('dev');
+            } else if (devParam === '0') {
+                sessionStorage.removeItem(DEV_BYPASS_KEY);
+                url.searchParams.delete('dev');
+            }
+
+            if (previewParam === '1') {
+                sessionStorage.setItem(ADMIN_PREVIEW_KEY, 'true');
+                url.searchParams.delete('preview');
+            } else if (previewParam === '0') {
+                sessionStorage.removeItem(ADMIN_PREVIEW_KEY);
+                url.searchParams.delete('preview');
+            }
+
+            const nextUrl = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : '') + url.hash;
+            if (nextUrl !== window.location.pathname + window.location.search + window.location.hash) {
+                window.history.replaceState({}, '', nextUrl);
+            }
+
+            window.SKCT_FLAGS = {
+                maintenanceBypass: sessionStorage.getItem(DEV_BYPASS_KEY) === 'true',
+                adminPreview: sessionStorage.getItem(ADMIN_PREVIEW_KEY) === 'true'
+            };
+        })();
+    </script>
     <script src="main.js"></script>
 
     <!-- Firebase SDK (ES Module) -->
@@ -495,6 +530,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        const isDevMaintenanceBypass = () => window.SKCT_FLAGS?.maintenanceBypass === true;
 
         // Firebase Presence System (현재 접속자)
         const connectedRef = ref(db, ".info/connected");
@@ -687,7 +723,7 @@
         }
 
         function handleConfigData(cfg) {
-            if (cfg.maintenance && cfg.maintenance.enabled) {
+            if (cfg.maintenance && cfg.maintenance.enabled && !isDevMaintenanceBypass()) {
                 sessionStorage.removeItem('skct_config_cache');
                 window.location.href = `update.html?time=${encodeURIComponent(cfg.maintenance.time)}`;
                 return;
