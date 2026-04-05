@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-05 20:37:22 KST
+작성일시: 2026-04-05 20:42:56 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -311,3 +311,20 @@
   - `node --check staging/site/assets/scripts/app.bundle.js` 통과
   - 14인치에 가까운 팝업 폭(약 400px)에서 실제 캡처로 `30%` 상태 확인
   - `30%`에서는 1~5 선택지가 모두 보이는 것 확인
+## 2026-04-05 시작/정지 버튼 아이콘 단순화
+- 운영 기준 커밋은 `8e462d2`입니다.
+- 사용자 요청
+  - 시작/정지 버튼을 훨씬 더 간략하게 보이게 하고 싶음
+  - 시작 상태는 시작 기호, 정지 상태는 중지 기호만 표시
+- 수정 내용
+  - 운영 `index.html`, 스테이징 `staging/site/index.html`
+    - 타이머 버튼을 아이콘 전용 폭으로 축소
+    - 기본 표시를 `▶`로 변경
+  - 운영 `main.js`, 스테이징 `staging/site/assets/scripts/app.bundle.js`
+    - `syncTimerPlayButtonLabel()` helper 추가
+    - 정지 상태는 `▶`, 실행 상태는 `■`만 보이도록 통일
+    - 클릭 토글, 전체 시간 종료, 과목 종료 후 종료, 점수 모드 진입에 따른 타이머 정지까지 같은 helper를 쓰도록 정리
+    - `aria-label`, `title`도 각각 `타이머 시작`, `타이머 중지`로 같이 갱신
+- 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과

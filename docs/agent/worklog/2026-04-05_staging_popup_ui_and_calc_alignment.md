@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 20:37:22 KST
+작성일시: 2026-04-05 20:42:56 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -449,3 +449,19 @@
   - `node --check main.js`
   - `node --check staging/site/assets/scripts/app.bundle.js`
   - 로컬 팝업 캡처에서 `30%` 상태로 5번까지 모두 노출 확인
+## 시작/정지 버튼 아이콘 단순화
+- 사용자 요청
+  - 시작/정지 버튼을 더 간략하게 보이게 하고 싶음
+  - 시작할 때는 시작 기호, 정지할 때는 중지 기호만 보이게 변경
+- 수정 내용
+  - `index.html`, `staging/site/index.html`
+    - 타이머 버튼을 텍스트형에서 아이콘 전용 폭 버튼으로 축소
+    - 기본 텍스트를 `▶`로 변경
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - `syncTimerPlayButtonLabel()` helper 추가
+    - 정지 상태는 `▶`, 실행 상태는 `■`로 표기
+    - 일반 클릭 토글뿐 아니라 타이머 종료, 점수 모드 진입, 중간 정지 경로에서도 helper를 공통 사용
+    - 접근성용 `aria-label`, `title`은 각각 `타이머 시작`, `타이머 중지`로 유지
+- 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
