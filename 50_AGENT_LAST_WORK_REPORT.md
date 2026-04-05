@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-06 02:04:16 KST
+작성일시: 2026-04-06 02:13:51 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -357,3 +357,25 @@
   - 원격 운영 HTML에서 `settingsTitleTrigger` 반영 확인
   - 원격 운영 JS에서 `SKCTAdvancedBridge`, `recordCurrentQuestionTiming`, `downloadDetailedStatsText`, `Ans =`, `getEffectiveConfiguredTotalSeconds` 반영 확인
   - 원격 운영 `advanced-tools.html`에서 비밀번호/TXT 다운로드 버튼 문자열 확인
+
+## 2026-04-06 쉬는 시간 스킵 및 이전 문항 재선택 허용
+- 운영 기준 커밋은 `3121797`입니다.
+- 사용자 요청
+  - 쉬는 시간 오버레이에서 바로 다음 과목으로 넘어가는 스킵 버튼 추가
+  - 실전 모드에서도 이전 문항 답안 수정 허용
+  - 다만 문항별 소요 시간은 처음 넘어갈 때 기록된 값만 유지
+- 수정 내용
+  - 운영 `index.html`, 스테이징 `staging/site/index.html`
+    - 쉬는 시간 오버레이에 `쉬는 시간 건너뛰기` 버튼 추가
+  - 운영 `main.js`, 스테이징 `staging/site/assets/scripts/app.bundle.js`
+    - `advancePhaseBoundary()`로 페이즈 종료/전환 로직 공통화
+    - 쉬는 시간 스킵 시 남은 쉬는 시간 초를 전체 남은 시간에서도 같이 차감한 뒤 바로 다음 과목 시작
+    - OMR 활성 조건을 `현재 문항만`에서 `현재+이전 문항`으로 확장
+    - 현재 문항 클릭일 때만 자동 다음 문항 이동, 이전 문항 수정은 자리 이동 없이 답만 갱신
+    - 문항별 시간 기록은 기존처럼 현재 문항을 떠날 때만 확정되어 과거 문항 재수정에 영향 없도록 유지
+- 로컬 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 문자열 확인
+    - `breakSkipBtn`
+    - `isAnswerEditableIndex`

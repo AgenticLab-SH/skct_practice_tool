@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 02:04:16 KST
+작성일시: 2026-04-06 02:13:51 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -519,3 +519,24 @@
   - 운영 `index.html`에 `settingsTitleTrigger` 존재
   - 운영 `main.js`에 `SKCTAdvancedBridge`, `recordCurrentQuestionTiming`, `downloadDetailedStatsText`, `Ans =`, `getEffectiveConfiguredTotalSeconds` 존재
   - 운영 `advanced-tools.html`에 비밀번호 입력과 TXT 다운로드 버튼 문자열 존재
+
+## 쉬는 시간 스킵 및 이전 문항 재선택 허용
+- 사용자 요청
+  - 쉬는 시간 오버레이에서 다음 과목으로 바로 넘어가는 버튼 추가
+  - 실전 모드에서 이전 문항 답안 수정 허용
+  - 과거 문항 재수정은 문항별 소요 시간 통계에 영향 없음
+- 수정 내용
+  - `index.html`, `staging/site/index.html`
+    - `omrBreakOverlay` 안에 `쉬는 시간 건너뛰기` 버튼 추가
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - `advancePhaseBoundary()`로 과목 종료/쉬는 시간 종료/쉬는 시간 스킵 로직 통합
+    - 쉬는 시간 스킵 시 남은 쉬는 시간만큼 `totalSeconds`도 같이 차감하고 바로 다음 과목 시작
+    - OMR 활성 조건을 `현재 문항`에서 `현재+이전 문항`으로 변경
+    - 현재 문항 클릭일 때만 자동 다음 문항 이동
+    - 이전 문항 클릭은 답만 바꾸고 현재 문항 위치/문항 시간 기록은 그대로 유지
+- 로컬 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 문자열 확인
+    - `breakSkipBtn`
+    - `isAnswerEditableIndex`
