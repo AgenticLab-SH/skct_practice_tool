@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 01:51:18 KST
+작성일시: 2026-04-06 02:04:16 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -503,3 +503,19 @@
 - 배포 계획
   - 운영 반영은 보류
   - `staging/site/*`와 문서만 선택 커밋하여 테스트 URL에 먼저 배포
+
+## 운영 반영
+- 사용자 승인
+  - staging 확인 후 운영 반영 승인
+- 운영 반영 파일
+  - `index.html`
+  - `main.js`
+  - `advanced-tools.html`
+  - `AGENTS.md`
+  - `50_AGENT_LAST_WORK_REPORT.md`
+- 운영 코드 커밋
+  - `172e5bb` `Deploy hidden advanced tools to production`
+- 운영 검증 포인트
+  - 운영 `index.html`에 `settingsTitleTrigger` 존재
+  - 운영 `main.js`에 `SKCTAdvancedBridge`, `recordCurrentQuestionTiming`, `downloadDetailedStatsText`, `Ans =`, `getEffectiveConfiguredTotalSeconds` 존재
+  - 운영 `advanced-tools.html`에 비밀번호 입력과 TXT 다운로드 버튼 문자열 존재

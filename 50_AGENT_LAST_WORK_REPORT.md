@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-05 20:42:56 KST
+작성일시: 2026-04-06 02:04:16 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -328,3 +328,32 @@
 - 검증
   - `node --check main.js` 통과
   - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+
+## 2026-04-06 숨김 고급 기능 운영 반영
+- 운영 기준 커밋은 `172e5bb`입니다.
+- 사용자 요청
+  - `통합 설정` 연타로만 진입 가능한 숨김 고급 기능 추가
+  - 비밀번호 목록 인증 후에만 사용하는 별도 팝업 제공
+  - 기본 비밀번호는 `0208`
+  - 문항 건너뛰기 시 문항 시간 즉시 초기화
+  - 문항별 상세 통계 TXT 다운로드
+  - 계산기 기록을 `Ans = 값`, `수식 = 결과`, 현재 줄 1개 구조로 일반 계산기처럼 유지
+  - 총 시간이 조기 종료되지 않도록 남은 잔재 로직 정리
+- 수정 내용
+  - 운영 `index.html`
+    - `통합 설정` 제목에 숨김 진입 트리거 ID 추가
+  - 운영 `advanced-tools.html`
+    - 비밀번호 인증, 현재 상태 확인, 상세 통계 TXT 다운로드, 비밀번호 목록 관리 전용 팝업 신설
+  - 운영 `main.js`
+    - `SKCTAdvancedBridge` 추가
+    - 비밀번호 목록 기본값 `0208`
+    - 제목 7연타 시에만 고급 팝업 열기
+    - 문항 전환 로직을 공통 함수로 정리해 건너뛰기 시 `questionSpentSec` 즉시 초기화
+    - 상세 통계 HTML/TXT 생성을 공통 모델 함수로 분리
+    - 계산기 기록에 `Ans = 결과값` 보관 로직 추가
+    - 총시간은 `전체 설정값`과 `과목+쉬는시간 합계` 중 큰 값을 사용하도록 보정
+- 검증
+  - `node --check main.js` 통과
+  - 원격 운영 HTML에서 `settingsTitleTrigger` 반영 확인
+  - 원격 운영 JS에서 `SKCTAdvancedBridge`, `recordCurrentQuestionTiming`, `downloadDetailedStatsText`, `Ans =`, `getEffectiveConfiguredTotalSeconds` 반영 확인
+  - 원격 운영 `advanced-tools.html`에서 비밀번호/TXT 다운로드 버튼 문자열 확인
