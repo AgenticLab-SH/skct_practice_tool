@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-06 02:13:51 KST
+작성일시: 2026-04-06 02:22:13 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -379,3 +379,24 @@
   - 문자열 확인
     - `breakSkipBtn`
     - `isAnswerEditableIndex`
+
+## 2026-04-06 전체 시간 75분 고정 복원
+- 운영 기준 커밋은 `9f9fa20`입니다.
+- 사용자 요청
+  - 전체 시간은 75분으로 유지
+  - 4분 일찍 끝나던 문제는 해결
+- 수정 내용
+  - 운영 `main.js`, 스테이징 `staging/site/assets/scripts/app.bundle.js`
+    - 전체 제한 시간은 다시 `configTotalMins * 60`만 사용
+    - 쉬는 시간(`break`)에는 `totalSeconds`를 차감하지 않도록 변경
+    - 그래서 과목 풀이 시간 총합은 75분, 쉬는 시간 4분은 별도 벽시계 시간으로만 흐름
+  - 운영 `advanced-tools.html`, 스테이징 `staging/site/advanced-tools.html`
+    - 상태 표시 문구를 `전체 제한 시간(쉬는 시간 제외)` 기준으로 수정
+  - 상세 통계 TXT 머리말도 같은 문구로 통일
+- 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 문자열 확인
+    - `전체 제한 시간(쉬는 시간 제외)`
+    - `return configTotalMins * 60;`
+    - `currentPhase?.type !== 'break'`

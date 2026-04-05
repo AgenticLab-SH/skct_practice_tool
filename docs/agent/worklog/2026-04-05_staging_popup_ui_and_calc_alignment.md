@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 02:13:51 KST
+작성일시: 2026-04-06 02:22:13 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -540,3 +540,23 @@
   - 문자열 확인
     - `breakSkipBtn`
     - `isAnswerEditableIndex`
+
+## 전체 시간 75분 고정 복원
+- 사용자 요청
+  - 전체 시간은 75분이어야 함
+  - 4분 일찍 끝나던 문제도 함께 해결
+- 수정 내용
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - 전체 제한 시간은 다시 `configTotalMins * 60`만 사용
+    - 쉬는 시간에는 `totalSeconds`를 차감하지 않도록 변경
+    - 따라서 전체 75분은 풀이 시간 합계 기준으로 유지되고, 쉬는 시간 4분은 별도 페이즈 시간으로만 처리
+  - `advanced-tools.html`, `staging/site/advanced-tools.html`
+    - 상태 문구를 `전체 제한 시간(쉬는 시간 제외)` 기준으로 수정
+  - 상세 통계 TXT 상단 문구도 같은 기준으로 수정
+- 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 문자열 확인
+    - `전체 제한 시간(쉬는 시간 제외)`
+    - `return configTotalMins * 60;`
+    - `currentPhase?.type !== 'break'`
