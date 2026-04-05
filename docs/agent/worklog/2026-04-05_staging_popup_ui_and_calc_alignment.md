@@ -143,6 +143,10 @@
 - 검증 결과
   - `node --check staging/site/assets/scripts/app.bundle.js` 통과
   - 코드 기준으로 우측 버튼 열 하한 `0.03`, 버튼 최소 크기 `22px`, 새 기본값 `0.11 / 0.09 / 0.273 / 0.727 / 8.4 / 47.5 / 44.1` 반영 확인
+  - staging Firebase 실제값도 아래처럼 직접 확인
+    - `staging_hidden_v1/config/toolUiConfig.json` → `bottomPaddingRatio: 0.11`, `sideButtonColumnRatio: 0.09`, `noteFontSize: 14`, `canvasLineWidth: 4`
+    - `staging_hidden_v1/config/popupLayout.json` → `window 0.273 / 0.98 / 0.727 / 0`, `omrWidthRatio: 0.34`
+    - `staging_hidden_v1/config/layoutRatios.json` → `timer: 8.4`, `utils: 47.5`, `calc: 44.1`
   - `https://agenticlab-sh.github.io/skct_tool/staging/site/admin.html`에서 `popupLayoutEditorBtn`, `popupLayoutSummary`, `toolUiConfig` 문자열 확인
   - 운영 관리자 페이지 `https://agenticlab-sh.github.io/skct_tool/admin.html`에는 기존 `🧪 테스트 사이트` 버튼이 유지됨 확인
 - 영향 범위
