@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKCT 고급 기능</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f8fafc;
+            --panel: #ffffff;
+            --line: #dbe2ea;
+            --text: #0f172a;
+            --muted: #64748b;
+            --accent: #2563eb;
+            --accent-dark: #1d4ed8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Pretendard', 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #eff6ff 0%, var(--bg) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .panel {
+            max-width: 420px;
+            margin: 0 auto;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        }
+        h1 {
+            margin: 0 0 6px;
+            font-size: 22px;
+        }
+        p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            font-size: 13px;
+        }
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+        }
+        input, textarea, pre {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font: inherit;
+            background: #fff;
+            color: var(--text);
+        }
+        textarea {
+            min-height: 108px;
+            resize: vertical;
+        }
+        pre {
+            min-height: 168px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f8fafc;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 14px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .primary {
+            background: var(--accent);
+            color: white;
+        }
+        .primary:hover { background: var(--accent-dark); }
+        .ghost {
+            background: #e2e8f0;
+            color: #334155;
+        }
+        .section {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 14px;
+        }
+        .hidden { display: none !important; }
+        .status {
+            font-size: 12px;
+            color: var(--muted);
+            min-height: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="panel stack">
+        <div>
+            <h1>고급 기능</h1>
+            <p>인증된 사용자만 사용할 수 있습니다.</p>
+        </div>
+
+        <section id="authSection" class="stack">
+            <div class="field">
+                <label for="advancedPasswordInput">비밀번호</label>
+                <input id="advancedPasswordInput" type="password" autocomplete="off" inputmode="numeric">
+            </div>
+            <div class="actions">
+                <button id="advancedLoginBtn" class="primary" type="button">확인</button>
+            </div>
+            <div id="authStatus" class="status"></div>
+        </section>
+
+        <section id="toolSection" class="stack hidden">
+            <div class="section stack">
+                <div>
+                    <label>현재 실행 상태</label>
+                    <pre id="advancedSnapshot"></pre>
+                </div>
+                <div class="actions">
+                    <button id="downloadStatsBtn" class="primary" type="button">문항별 상세 통계 TXT 다운로드</button>
+                    <button id="refreshSnapshotBtn" class="ghost" type="button">상태 새로고침</button>
+                </div>
+            </div>
+
+            <div class="section stack">
+                <div class="field">
+                    <label for="advancedPasswordList">허용 비밀번호 목록</label>
+                    <textarea id="advancedPasswordList" spellcheck="false"></textarea>
+                </div>
+                <div class="actions">
+                    <button id="savePasswordListBtn" class="primary" type="button">비밀번호 목록 저장</button>
+                </div>
+                <div id="toolStatus" class="status"></div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const bridge = window.opener && window.opener.SKCTAdvancedBridge;
+        const authSection = document.getElementById('authSection');
+        const toolSection = document.getElementById('toolSection');
+        const authStatus = document.getElementById('authStatus');
+        const toolStatus = document.getElementById('toolStatus');
+        const passwordInput = document.getElementById('advancedPasswordInput');
+        const passwordListArea = document.getElementById('advancedPasswordList');
+        const snapshotEl = document.getElementById('advancedSnapshot');
+
+        if (!bridge) {
+            authStatus.textContent = '원본 창과 연결되지 않아 사용할 수 없습니다.';
+            document.getElementById('advancedLoginBtn').disabled = true;
+        }
+
+        const formatSnapshot = () => {
+            if (!bridge) return;
+            const snapshot = bridge.getAdvancedSnapshot();
+            snapshotEl.textContent = [
+                `실행 상태: ${snapshot.timer.isRunning ? '진행 중' : '정지'}`,
+                `현재 페이즈: ${snapshot.timer.currentPhaseName}`,
+                `페이즈 남은 시간: ${Math.max(snapshot.timer.currentPhaseSeconds, 0)}초`,
+                `문항별 누적 시간: ${snapshot.timer.questionSpentSec}초`,
+                `설정 시간: 전체 ${snapshot.timer.configuredTotalMinutes}분 / 과목 ${snapshot.timer.subjectMinutes}분 / 쉬는시간 ${snapshot.timer.breakMinutes}분`,
+                `페이즈 합계: ${snapshot.timer.phaseTotalMinutes}분`,
+                `실제 적용 총합: ${snapshot.timer.effectiveTotalMinutes}분`,
+                `현재 문제: ${snapshot.question.currentKey || '-'}`,
+                `현재 인덱스: ${snapshot.question.currentIndex}`,
+                `모드: ${snapshot.question.mode}`
+            ].join('\n');
+        };
+
+        const enterTools = () => {
+            authSection.classList.add('hidden');
+            toolSection.classList.remove('hidden');
+            passwordListArea.value = bridge.getPasswordList().join('\n');
+            formatSnapshot();
+        };
+
+        document.getElementById('advancedLoginBtn').addEventListener('click', () => {
+            if (!bridge) return;
+            const password = passwordInput.value.trim();
+            if (!bridge.validatePassword(password)) {
+                authStatus.textContent = '비밀번호가 일치하지 않습니다.';
+                passwordInput.select();
+                return;
+            }
+            authStatus.textContent = '';
+            enterTools();
+        });
+
+        passwordInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                document.getElementById('advancedLoginBtn').click();
+            }
+        });
+
+        document.getElementById('downloadStatsBtn').addEventListener('click', () => {
+            if (!bridge) return;
+            bridge.downloadDetailedStatsText();
+            toolStatus.textContent = '텍스트 파일 다운로드를 시작했습니다.';
+        });
+
+        document.getElementById('refreshSnapshotBtn').addEventListener('click', () => {
+            formatSnapshot();
+            toolStatus.textContent = '현재 상태를 다시 읽었습니다.';
+        });
+
+        document.getElementById('savePasswordListBtn').addEventListener('click', () => {
+            if (!bridge) return;
+            const saved = bridge.savePasswordList(passwordListArea.value);
+            passwordListArea.value = saved.join('\n');
+            toolStatus.textContent = `비밀번호 ${saved.length}개를 저장했습니다.`;
+        });
+    </script>
+</body>
+</html>

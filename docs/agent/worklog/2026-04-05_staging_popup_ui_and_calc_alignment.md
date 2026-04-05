@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 20:42:56 KST
+작성일시: 2026-04-06 01:51:18 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -465,3 +465,41 @@
 - 검증
   - `node --check main.js`
   - `node --check staging/site/assets/scripts/app.bundle.js`
+
+## 숨김 고급 기능 분리 및 타이머/계산기 개선
+- 사용자 요청
+  - `통합 설정` 연타로만 들어갈 수 있는 숨김 고급 기능 추가
+  - 고급 기능 팝업은 비밀번호 목록 인증 후 사용
+  - 기본 비밀번호는 `0208`
+  - 문항 건너뛰기 시 문항별 남은 시간 즉시 초기화
+  - 문항별 상세 통계를 텍스트 파일로 다운로드
+  - 계산기 기록은 `Ans = 값`, `수식 = 결과`, 현재 줄 4줄 구조로 일반 계산기처럼 누적
+  - 전체 남은 시간이 예정보다 먼저 끝나는 현상 원인 점검
+- 수정 내용
+  - `index.html`, `staging/site/index.html`
+    - `통합 설정` 제목에 숨김 진입용 `settingsTitleTrigger` ID 부여
+  - `advanced-tools.html`, `staging/site/advanced-tools.html`
+    - 숨김 고급 기능 전용 팝업 신설
+    - 비밀번호 입력 후에만 상태 보기, TXT 다운로드, 비밀번호 목록 저장 기능 노출
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - `SKCTAdvancedBridge` 추가
+    - 비밀번호 목록 기본값 `0208`, 브라우저 저장소 관리 함수 추가
+    - `통합 설정` 제목 7회 연속 클릭 시 고급 기능 팝업 열기
+    - 문항 전환 함수를 `recordCurrentQuestionTiming + clearQuestionTools + advanceQuestion` 구조로 통합
+    - `문항 건너뛰기` 클릭 시 문항 시간 즉시 기록 후 `questionSpentSec = 0`으로 초기화
+    - 상세 통계 HTML 생성 로직을 모델/텍스트 다운로드 함수로 분리
+    - 계산기 이력에 `Ans = 결과값` 아카이브와 `수식 = 결과` 기록을 분리
+    - 설정 전체 시간과 페이즈 합계가 어긋날 때 조기 종료가 나지 않도록 `max(전체 설정값, 페이즈 합계)` 기준 총시간 적용
+  - `docs/agent/36_HIDDEN_ADVANCED_FEATURES.md`
+    - 숨김 진입, 인증, 일반 기능과의 경계, 파일 분리 규칙 문서화
+- 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 문자열 확인
+    - `settingsTitleTrigger`
+    - `SKCTAdvancedBridge`
+    - `Ans =`
+    - `downloadDetailedStatsText`
+- 배포 계획
+  - 운영 반영은 보류
+  - `staging/site/*`와 문서만 선택 커밋하여 테스트 URL에 먼저 배포

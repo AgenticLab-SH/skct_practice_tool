@@ -520,6 +520,41 @@ document.addEventListener('DOMContentLoaded', () => {
         return total === 79 && subj === 15 && brk === 1 && cfg.source !== 'user';
     };
 
+    const ADVANCED_PASSWORDS_STORAGE_KEY = 'stg_skct_advanced_passwords';
+    const DEFAULT_ADVANCED_PASSWORDS = ['0208'];
+    const ADVANCED_TRIGGER_TAP_COUNT = 7;
+    const ADVANCED_TRIGGER_TIMEOUT_MS = 1800;
+    const ADVANCED_POPUP_PATH = 'advanced-tools.html';
+
+    const normalizeAdvancedPasswords = (value) => {
+        const rawList = Array.isArray(value)
+            ? value
+            : String(value || '')
+                .split(/\r?\n|,/)
+                .map((item) => item.trim());
+        const deduped = [];
+        rawList.forEach((item) => {
+            if (!item || deduped.includes(item)) return;
+            deduped.push(item);
+        });
+        return deduped.length ? deduped : [...DEFAULT_ADVANCED_PASSWORDS];
+    };
+
+    const getAdvancedPasswordList = () => {
+        try {
+            const saved = JSON.parse(localStorage.getItem(ADVANCED_PASSWORDS_STORAGE_KEY) || 'null');
+            return normalizeAdvancedPasswords(saved);
+        } catch (error) {
+            return [...DEFAULT_ADVANCED_PASSWORDS];
+        }
+    };
+
+    const saveAdvancedPasswordList = (value) => {
+        const nextPasswords = normalizeAdvancedPasswords(value);
+        localStorage.setItem(ADVANCED_PASSWORDS_STORAGE_KEY, JSON.stringify(nextPasswords));
+        return nextPasswords;
+    };
+
     const omrState = {
         myAnswers: {},
         correctAnswers: {},
@@ -714,18 +749,38 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     };
 
-    const advanceQuestion = (isSkip = false) => {
-        if (timerIsRunning) {
-            const qKey = getCurrentQKey();
-            if (qKey) {
-                if (!questionTimings[qKey]) questionTimings[qKey] = { spent: 0, state: 'answered' };
-                questionTimings[qKey].spent += questionSpentSec;
-                if (isSkip) questionTimings[qKey].state = 'skipped';
-                else questionTimings[qKey].state = 'answered';
-                questionSpentSec = 0; // reset
-            }
+    const clearQuestionTools = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        notepad.value = '';
+        resetCalculator();
+    };
+
+    const recordCurrentQuestionTiming = (isSkip = false) => {
+        const qKey = getCurrentQKey();
+        if (!qKey) {
+            questionSpentSec = 0;
+            return;
         }
-        document.getElementById('globalClearBtn').click();
+        if (!questionTimings[qKey]) {
+            questionTimings[qKey] = { spent: 0, state: isSkip ? 'skipped' : 'answered' };
+        }
+        if (questionSpentSec > 0) {
+            questionTimings[qKey].spent += questionSpentSec;
+        }
+        questionTimings[qKey].state = isSkip ? 'skipped' : 'answered';
+        questionSpentSec = 0;
+    };
+
+    const advanceQuestion = (isSkip = false) => {
+        recordCurrentQuestionTiming(isSkip);
+        clearQuestionTools();
+        if (omrState.mode === 'answer') {
+            const maxQ = subjects.reduce((sum, s) => sum + s.count, 0);
+            if (omrState.currentGlobalIndex < maxQ - 1) {
+                omrState.currentGlobalIndex++;
+            }
+            renderOMR();
+        }
     };
 
     // 현재 globalIndex가 어떤 과목(subjectIndex)에 속하는지 반환
@@ -949,113 +1004,203 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const detailScoreBtn = document.getElementById('detailScoreBtn');
-    if (detailScoreBtn) {
-        detailScoreBtn.addEventListener('click', () => {
-            const tbody = document.getElementById('statTableBody');
-            const detailWrapper = document.getElementById('statDetailWrapper');
-            if(!tbody) return;
-            
-            let trHtml = '';
-            let detailHtml = '';
-            let allTimes = [];
-
-            subjects.forEach(subj => {
-                for (let i = 1; i <= subj.count; i++) {
-                    const qKey = `${subj.id}_${i}`;
-                    if (questionTimings[qKey]) {
-                        allTimes.push({
-                            key: qKey,
-                            subjId: subj.id,
-                            subjName: subj.name,
-                            num: i,
-                            spent: questionTimings[qKey].spent,
-                            state: questionTimings[qKey].state
-                        });
-                    }
+    const collectDetailedStatsModel = () => {
+        const allTimes = [];
+        subjects.forEach((subj) => {
+            for (let i = 1; i <= subj.count; i++) {
+                const qKey = `${subj.id}_${i}`;
+                if (questionTimings[qKey]) {
+                    allTimes.push({
+                        key: qKey,
+                        subjId: subj.id,
+                        subjName: subj.name,
+                        num: i,
+                        spent: questionTimings[qKey].spent,
+                        state: questionTimings[qKey].state
+                    });
                 }
-            });
-            
-            subjects.forEach(subj => {
-                let sAtt = 0;
-                let sCor = 0;
-                let wrongItems = [];
-                for (let i=1; i<=subj.count; i++) {
-                    const qKey = `${subj.id}_${i}`;
-                    const myAns = omrState.myAnswers[qKey];
-                    const corAns = omrState.correctAnswers[qKey];
-                    if (myAns) sAtt++;
-                    if (corAns && myAns === corAns) {
-                        sCor++;
-                    } else if (corAns) {
-                       let myAnsText = myAns ? myAns : "-";
-                       wrongItems.push(`<span style="background: ${myAns?'#fee2e2':'#f1f5f9'}; color: ${myAns?'#ef4444':'#64748b'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${myAns?'#fca5a5':'#cbd5e1'}; white-space: nowrap; font-size: 11px;">
-                            <strong>${i}번</strong>: 답(${myAnsText}) 정답(${corAns})
-                       </span>`);
-                    }
-                }
-                const rate = sAtt > 0 ? ((sCor / sAtt) * 100).toFixed(1) : 0;
-                trHtml += `
-                    <tr style="border-bottom: 1px solid #e2e8f0; height: 30px;">
-                        <td style="font-weight: bold; color: #1e293b;">${subj.name}</td>
-                        <td style="color: #64748b;">${subj.count}</td>
-                        <td style="color: #3b82f6;">${sAtt}</td>
-                        <td style="color: #22c55e;">${sCor}</td>
-                        <td style="color: #f59e0b; font-weight: bold;">${rate}%</td>
-                    </tr>
-                `;
-                const subjectTimes = allTimes.filter(t => t.subjId === subj.id);
-                const wrongHtml = wrongItems.length > 0
-                    ? `<div style="margin-bottom: 10px;">
-                            <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">오답/미응답</div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${wrongItems.join('')}</div>
-                       </div>`
-                    : `<div style="margin-bottom: 10px; color:#10b981; font-weight:600;">오답/미응답이 없습니다.</div>`;
-                const timeHtml = subjectTimes.length > 0
-                    ? `<div>
-                            <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">소요 시간</div>
-                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${subjectTimes.map(t => `<span style="background: ${t.state==='skipped' ? '#f1f5f9' : '#e0f2fe'}; color: ${t.state==='skipped' ? '#64748b' : '#0369a1'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${t.state==='skipped' ? '#cbd5e1' : '#bae6fd'}; white-space: nowrap; font-size: 11px;">
-                                <strong>${t.num}번</strong>: ${t.spent}초 소요${t.state==='skipped'?' (건너뜀)':''}
-                            </span>`).join('')}</div>
-                       </div>`
-                    : `<div style="color:#64748b;">기록된 소요 시간이 없습니다.</div>`;
-                detailHtml += `
-                    <details style="border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; padding:0 12px;" data-stat-subject="${subj.id}">
-                        <summary style="cursor:pointer; list-style:none; padding:12px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; font-weight:700; color:#1d4ed8;">
-                            <span>${subj.name}</span>
-                            <span style="font-size:11px; color:#475569; font-weight:600;">${sCor}/${sAtt || 0} 정답 · ${rate}% · ${subjectTimes.length}개 시간기록</span>
-                        </summary>
-                        <div style="padding:0 0 12px; border-top:1px dashed #bfdbfe;">
-                            <div style="padding-top:10px;">
-                                ${wrongHtml}
-                                ${timeHtml}
-                            </div>
-                        </div>
-                    </details>
-                `;
-            });
-            tbody.innerHTML = trHtml;
-            
-            let topTimeHtml = '';
-            if (allTimes.length > 0) {
-                const sortedTimes = [...allTimes].sort((a, b) => b.spent - a.spent);
-                const topHtml = sortedTimes.slice(0, 3).map((item, idx) => `
-                    <div style="color: ${idx===0 ? '#ef4444' : '#f97316'}; font-weight:bold; font-size:12px; margin-top:2px;">
-                        ${idx+1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.state === 'skipped' ? '건너뜀' : '마킹함'})
-                    </div>
-                `).join('');
-
-                topTimeHtml = `
-                    <div style="padding: 10px; background: #fffcf8; border: 1px solid #fed7aa; border-radius: 6px; margin-bottom: 8px;">
-                        <span style="font-size:11px; color:#c2410c; font-weight:bold;">🚨 가장 오래 걸린 문항 Top 3</span>
-                        ${topHtml}
-                    </div>`;
             }
-
-            if(detailWrapper) {
-                detailWrapper.innerHTML = topTimeHtml + (detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">표시할 과목별 상세 통계가 없습니다.</div>' : detailHtml);
-            }
-            document.getElementById('statModal').classList.remove('hidden');
         });
+
+        const subjectRows = subjects.map((subj) => {
+            let attempted = 0;
+            let correct = 0;
+            const wrongItems = [];
+            for (let i = 1; i <= subj.count; i++) {
+                const qKey = `${subj.id}_${i}`;
+                const myAns = omrState.myAnswers[qKey];
+                const corAns = omrState.correctAnswers[qKey];
+                if (myAns) attempted++;
+                if (corAns && myAns === corAns) {
+                    correct++;
+                } else if (corAns) {
+                    wrongItems.push({
+                        num: i,
+                        myAnswer: myAns || '-',
+                        correctAnswer: corAns,
+                        missed: !myAns
+                    });
+                }
+            }
+            const rate = attempted > 0 ? ((correct / attempted) * 100).toFixed(1) : '0.0';
+            const subjectTimes = allTimes.filter((item) => item.subjId === subj.id);
+            return {
+                id: subj.id,
+                name: subj.name,
+                count: subj.count,
+                attempted,
+                correct,
+                rate,
+                wrongItems,
+                subjectTimes
+            };
+        });
+
+        const topTimes = [...allTimes]
+            .sort((a, b) => b.spent - a.spent)
+            .slice(0, 3);
+
+        return { allTimes, subjectRows, topTimes };
+    };
+
+    const buildDetailedStatsText = () => {
+        const model = collectDetailedStatsModel();
+        const lines = [
+            'SKCT 문항별 상세 통계',
+            `생성 시각: ${new Date().toLocaleString('ko-KR')}`,
+            `모드: ${isPracticeMode ? '연습 모드' : '실전 모드'}`,
+            `설정 시간(입력값): 전체 ${configTotalMins}분 / 과목 ${configSubjectMins}분 / 쉬는시간 ${configBreakMins}분`,
+            `실제 총 진행 기준: ${Math.round(getEffectiveConfiguredTotalSeconds() / 60)}분`,
+            ''
+        ];
+
+        if (model.topTimes.length) {
+            lines.push('[가장 오래 걸린 문항 Top 3]');
+            model.topTimes.forEach((item, index) => {
+                lines.push(`${index + 1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.state === 'skipped' ? '건너뜀' : '마킹함'})`);
+            });
+            lines.push('');
+        }
+
+        model.subjectRows.forEach((row) => {
+            lines.push(`[${row.name}]`);
+            lines.push(`문항 수: ${row.count}`);
+            lines.push(`푼 문제: ${row.attempted}`);
+            lines.push(`맞은 개수: ${row.correct}`);
+            lines.push(`정답률: ${row.rate}%`);
+            if (row.wrongItems.length) {
+                lines.push('오답/미응답:');
+                row.wrongItems.forEach((item) => {
+                    lines.push(`- ${item.num}번 | 답 ${item.myAnswer} | 정답 ${item.correctAnswer}`);
+                });
+            } else {
+                lines.push('오답/미응답: 없음');
+            }
+            if (row.subjectTimes.length) {
+                lines.push('소요 시간:');
+                row.subjectTimes.forEach((item) => {
+                    lines.push(`- ${item.num}번 | ${item.spent}초${item.state === 'skipped' ? ' | 건너뜀' : ''}`);
+                });
+            } else {
+                lines.push('소요 시간: 기록 없음');
+            }
+            lines.push('');
+        });
+
+        if (!model.subjectRows.length) {
+            lines.push('표시할 통계가 없습니다.');
+        }
+        return lines.join('\n');
+    };
+
+    const downloadDetailedStatsText = () => {
+        const text = buildDetailedStatsText();
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+        anchor.href = url;
+        anchor.download = `skct-question-stats-${stamp}.txt`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
+
+    const openDetailedStatsModal = () => {
+        const tbody = document.getElementById('statTableBody');
+        const detailWrapper = document.getElementById('statDetailWrapper');
+        if (!tbody) return;
+
+        const model = collectDetailedStatsModel();
+        const trHtml = model.subjectRows.map((row) => `
+            <tr style="border-bottom: 1px solid #e2e8f0; height: 30px;">
+                <td style="font-weight: bold; color: #1e293b;">${row.name}</td>
+                <td style="color: #64748b;">${row.count}</td>
+                <td style="color: #3b82f6;">${row.attempted}</td>
+                <td style="color: #22c55e;">${row.correct}</td>
+                <td style="color: #f59e0b; font-weight: bold;">${row.rate}%</td>
+            </tr>
+        `).join('');
+        tbody.innerHTML = trHtml;
+
+        const topTimeHtml = model.topTimes.length
+            ? `
+                <div style="padding: 10px; background: #fffcf8; border: 1px solid #fed7aa; border-radius: 6px; margin-bottom: 8px;">
+                    <span style="font-size:11px; color:#c2410c; font-weight:bold;">🚨 가장 오래 걸린 문항 Top 3</span>
+                    ${model.topTimes.map((item, idx) => `
+                        <div style="color: ${idx === 0 ? '#ef4444' : '#f97316'}; font-weight:bold; font-size:12px; margin-top:2px;">
+                            ${idx + 1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.state === 'skipped' ? '건너뜀' : '마킹함'})
+                        </div>
+                    `).join('')}
+                </div>`
+            : '';
+
+        const detailHtml = model.subjectRows.map((row) => {
+            const wrongHtml = row.wrongItems.length
+                ? `<div style="margin-bottom: 10px;">
+                        <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">오답/미응답</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${row.wrongItems.map((item) => `
+                            <span style="background: ${item.missed ? '#f1f5f9' : '#fee2e2'}; color: ${item.missed ? '#64748b' : '#ef4444'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${item.missed ? '#cbd5e1' : '#fca5a5'}; white-space: nowrap; font-size: 11px;">
+                                <strong>${item.num}번</strong>: 답(${item.myAnswer}) 정답(${item.correctAnswer})
+                            </span>
+                        `).join('')}</div>
+                   </div>`
+                : `<div style="margin-bottom: 10px; color:#10b981; font-weight:600;">오답/미응답이 없습니다.</div>`;
+            const timeHtml = row.subjectTimes.length
+                ? `<div>
+                        <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">소요 시간</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${row.subjectTimes.map((item) => `
+                            <span style="background: ${item.state === 'skipped' ? '#f1f5f9' : '#e0f2fe'}; color: ${item.state === 'skipped' ? '#64748b' : '#0369a1'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${item.state === 'skipped' ? '#cbd5e1' : '#bae6fd'}; white-space: nowrap; font-size: 11px;">
+                                <strong>${item.num}번</strong>: ${item.spent}초 소요${item.state === 'skipped' ? ' (건너뜀)' : ''}
+                            </span>
+                        `).join('')}</div>
+                   </div>`
+                : `<div style="color:#64748b;">기록된 소요 시간이 없습니다.</div>`;
+            return `
+                <details style="border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; padding:0 12px;" data-stat-subject="${row.id}">
+                    <summary style="cursor:pointer; list-style:none; padding:12px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; font-weight:700; color:#1d4ed8;">
+                        <span>${row.name}</span>
+                        <span style="font-size:11px; color:#475569; font-weight:600;">${row.correct}/${row.attempted || 0} 정답 · ${row.rate}% · ${row.subjectTimes.length}개 시간기록</span>
+                    </summary>
+                    <div style="padding:0 0 12px; border-top:1px dashed #bfdbfe;">
+                        <div style="padding-top:10px;">
+                            ${wrongHtml}
+                            ${timeHtml}
+                        </div>
+                    </div>
+                </details>
+            `;
+        }).join('');
+
+        if (detailWrapper) {
+            detailWrapper.innerHTML = topTimeHtml + (detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">표시할 과목별 상세 통계가 없습니다.</div>' : detailHtml);
+        }
+        document.getElementById('statModal').classList.remove('hidden');
+    };
+
+    if (detailScoreBtn) {
+        detailScoreBtn.addEventListener('click', openDetailedStatsModal);
     }
 
 
@@ -1188,26 +1333,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('globalClearBtn').addEventListener('click', () => {
-        // Clear all states across problems
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        notepad.value = '';
-        // Note: SKCT initializes Calculator as well, so we can init it too.
-        calcState.current = '0';
-        calcState.expressionTokens = [];
-        calcState.waitingNew = false;
-        calcState.justEvaluated = false;
-        calcState.history = [];
-        renderCalcDisplay();
-        
-        // Advance question
-        if (omrState.mode === 'answer') {
-            const maxQ = subjects.reduce((sum, s) => sum + s.count, 0);
-            if (omrState.currentGlobalIndex < maxQ - 1) {
-                omrState.currentGlobalIndex++;
-            }
-            renderOMR();
-        }
+    document.getElementById('globalClearBtn').addEventListener('click', (event) => {
+        event.preventDefault();
+        advanceQuestion(true);
     });
 
     const omrResetBtn = document.getElementById('omrResetBtn');
@@ -1225,12 +1353,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 notepad.value = '';
-                calcState.current = '0';
-                calcState.expressionTokens = [];
-                calcState.waitingNew = false;
-                calcState.justEvaluated = false;
-                calcState.history = [];
-                renderCalcDisplay();
+                resetCalculator();
                 
                 document.getElementById('scoreResult').classList.add('hidden');
                 renderOMR();
@@ -1250,7 +1373,9 @@ document.addEventListener('DOMContentLoaded', () => {
         expressionTokens: [],
         waitingNew: false,
         justEvaluated: false,
-        history: []
+        history: [],
+        lastEvaluatedLine: '',
+        lastAnswerArchived: true
     };
 
     function getOperatorSymbol(operator) {
@@ -1280,6 +1405,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function pushCalcHistory(line) {
         calcState.history.push(line);
         calcState.history = calcState.history.slice(-3);
+    }
+
+    function archiveCurrentAnswerLine() {
+        if (!calcState.justEvaluated || calcState.lastAnswerArchived) return;
+        const ansLine = `Ans = ${calcState.current}`;
+        if (calcState.history.length && calcState.history[calcState.history.length - 1] === calcState.lastEvaluatedLine) {
+            calcState.history[calcState.history.length - 1] = ansLine;
+        } else {
+            pushCalcHistory(ansLine);
+        }
+        calcState.lastAnswerArchived = true;
     }
 
     function isOperatorToken(token) {
@@ -1360,14 +1496,26 @@ document.addEventListener('DOMContentLoaded', () => {
         calcHistory.scrollTop = calcHistory.scrollHeight;
     }
 
+    function resetCalculator() {
+        calcState.current = '0';
+        calcState.expressionTokens = [];
+        calcState.waitingNew = false;
+        calcState.justEvaluated = false;
+        calcState.history = [];
+        calcState.lastEvaluatedLine = '';
+        calcState.lastAnswerArchived = true;
+        renderCalcDisplay();
+    }
+
     function handleNumber(numStr) {
         if (calcState.waitingNew) {
             if (calcState.justEvaluated && !calcState.expressionTokens.length) {
-                calcState.expressionTokens = [];
+                archiveCurrentAnswerLine();
             }
             calcState.current = numStr === '.' ? '0.' : numStr;
             calcState.waitingNew = false;
             calcState.justEvaluated = false;
+            calcState.lastAnswerArchived = true;
         } else if (numStr === '.') {
             if (!calcState.current.includes('.')) {
                 calcState.current += '.';
@@ -1384,6 +1532,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleOperator(op) {
+        if (calcState.justEvaluated && !calcState.expressionTokens.length) {
+            archiveCurrentAnswerLine();
+        }
         if (!calcState.expressionTokens.length) {
             calcState.expressionTokens = [calcState.current, op];
         } else if (calcState.waitingNew) {
@@ -1397,6 +1548,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         calcState.waitingNew = true;
         calcState.justEvaluated = false;
+        calcState.lastAnswerArchived = true;
         renderCalcDisplay();
     }
 
@@ -1408,21 +1560,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const resultText = evaluateExpression(expressionTokens);
-        pushCalcHistory(formatExpression(expressionTokens));
+        const expressionLine = `${formatExpression(expressionTokens)} = ${resultText}`;
+        pushCalcHistory(expressionLine);
         calcState.current = resultText;
         calcState.expressionTokens = [];
         calcState.waitingNew = true;
         calcState.justEvaluated = true;
+        calcState.lastEvaluatedLine = expressionLine;
+        calcState.lastAnswerArchived = false;
         renderCalcDisplay();
     }
 
     function handleFn(fnStr) {
         if (fnStr === 'C') {
-            calcState.current = '0';
-            calcState.expressionTokens = [];
-            calcState.waitingNew = false;
-            calcState.justEvaluated = false;
-            calcState.history = [];
+            resetCalculator();
+            return;
         } else if (fnStr === 'BACK') {
             if (calcState.waitingNew && calcState.expressionTokens.length && isOperatorToken(calcState.expressionTokens[calcState.expressionTokens.length - 1])) {
                 calcState.expressionTokens.pop();
@@ -1440,6 +1592,7 @@ document.addEventListener('DOMContentLoaded', () => {
             calcState.current = result;
             calcState.waitingNew = false;
             calcState.justEvaluated = false;
+            calcState.lastAnswerArchived = true;
         } else if (fnStr === '=') {
             calculateResult();
         }
@@ -1499,6 +1652,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+    const getConfiguredPhaseTotalSeconds = () => {
+        const subjectTotal = subjects.length * configSubjectMins * 60;
+        const breakTotal = Math.max(subjects.length - 1, 0) * configBreakMins * 60;
+        return subjectTotal + breakTotal;
+    };
+
+    const getEffectiveConfiguredTotalSeconds = () => {
+        return Math.max(configTotalMins * 60, getConfiguredPhaseTotalSeconds());
+    };
+
     const buildPhases = () => {
         phases = [];
         subjects.forEach((subj, idx) => {
@@ -1546,7 +1709,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(guideEnabledInput) guideEnabledInput.checked = configGuideEnabled;
     if(guideSecInput) guideSecInput.value = configGuideSec;
     
-    totalSeconds = configTotalMins * 60;
+    totalSeconds = getEffectiveConfiguredTotalSeconds();
     buildPhases();
 
     const displayTotal = document.getElementById('displayTotalTime');
@@ -1618,7 +1781,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (subjectTimeInput) subjectTimeInput.value = configSubjectMins;
         if (breakTimeInput) breakTimeInput.value = configBreakMins;
 
-        totalSeconds = configTotalMins * 60;
+        totalSeconds = getEffectiveConfiguredTotalSeconds();
         buildPhases();
         updateTimerUI();
     };
@@ -1723,12 +1886,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof ctx !== 'undefined' && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
                 if (typeof notepad !== 'undefined') notepad.value = '';
                 if (typeof calcState !== 'undefined') {
-                    calcState.current = '0';
-                    calcState.expressionTokens = [];
-                    calcState.waitingNew = false;
-                    calcState.justEvaluated = false;
-                    calcState.history = [];
-                    if (typeof renderCalcDisplay === 'function') renderCalcDisplay();
+                    resetCalculator();
                 }
                 // ------------------------------------------------
                 if (currentPhaseIdx < phases.length) {
@@ -1890,7 +2048,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerIsRunning) {
                 stopTimer();
             }
-            totalSeconds = configTotalMins * 60;
+            totalSeconds = getEffectiveConfiguredTotalSeconds();
             lockedSubjectIndices.clear(); // 모드 변경 시 잠금 초기화
             buildPhases();
             updateTimerUI();
@@ -1899,6 +2057,83 @@ document.addEventListener('DOMContentLoaded', () => {
             settingsModal.classList.add('hidden');
         });
     }
+
+    const openAdvancedToolsPopup = () => {
+        const popup = window.open(
+            ADVANCED_POPUP_PATH,
+            'stg_skct_advanced_tools',
+            'width=460,height=720,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes'
+        );
+        if (!popup) {
+            alert('브라우저에서 팝업이 차단되어 고급 기능 창을 열 수 없습니다.');
+            return;
+        }
+        popup.focus();
+    };
+
+    const settingsTitleTrigger = document.getElementById('settingsTitleTrigger');
+    let advancedTapCount = 0;
+    let advancedTapTimeout = null;
+    if (settingsTitleTrigger) {
+        settingsTitleTrigger.addEventListener('click', () => {
+            advancedTapCount += 1;
+            if (advancedTapTimeout) {
+                clearTimeout(advancedTapTimeout);
+            }
+            advancedTapTimeout = window.setTimeout(() => {
+                advancedTapCount = 0;
+            }, ADVANCED_TRIGGER_TIMEOUT_MS);
+            if (advancedTapCount >= ADVANCED_TRIGGER_TAP_COUNT) {
+                advancedTapCount = 0;
+                clearTimeout(advancedTapTimeout);
+                advancedTapTimeout = null;
+                openAdvancedToolsPopup();
+            }
+        });
+    }
+
+    window.SKCTAdvancedBridge = {
+        validatePassword(password) {
+            const value = String(password || '').trim();
+            return getAdvancedPasswordList().includes(value);
+        },
+        getPasswordList() {
+            return getAdvancedPasswordList();
+        },
+        savePasswordList(rawValue) {
+            return saveAdvancedPasswordList(rawValue);
+        },
+        getAdvancedSnapshot() {
+            return {
+                passwordList: getAdvancedPasswordList(),
+                timer: {
+                    configuredTotalMinutes: configTotalMins,
+                    subjectMinutes: configSubjectMins,
+                    breakMinutes: configBreakMins,
+                    phaseTotalMinutes: Math.round(getConfiguredPhaseTotalSeconds() / 60),
+                    effectiveTotalMinutes: Math.round(getEffectiveConfiguredTotalSeconds() / 60),
+                    remainingSeconds: totalSeconds,
+                    questionSpentSec,
+                    currentPhaseIndex: currentPhaseIdx,
+                    currentPhaseName: currentPhaseIdx < phases.length ? phases[currentPhaseIdx].name : '모든 시험 종료',
+                    currentPhaseSeconds,
+                    isRunning: timerIsRunning
+                },
+                question: {
+                    currentKey: getCurrentQKey(),
+                    currentIndex: omrState.currentGlobalIndex,
+                    mode: omrState.mode
+                }
+            };
+        },
+        downloadDetailedStatsText() {
+            downloadDetailedStatsText();
+            return true;
+        },
+        buildDetailedStatsText() {
+            return buildDetailedStatsText();
+        }
+    };
 
     // Modal & Help Controls
     const helpToggle = document.getElementById('helpToggle');
