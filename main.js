@@ -77,6 +77,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
     };
 
+    const isLegacyDefaultTimerConfig = (cfg) => {
+        if (!cfg || typeof cfg !== 'object') return false;
+        const total = sanitizeMinutes(cfg.total, -1);
+        const subj = sanitizeMinutes(cfg.subj, -1);
+        const brk = sanitizeMinutes(cfg.brk, -1);
+        return total === 79 && subj === 15 && brk === 1 && cfg.source !== 'user';
+    };
+
     const omrState = {
         myAnswers: {},
         correctAnswers: {},
@@ -866,7 +874,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    const savedTimerCfg = isAdminPreviewMode ? null : JSON.parse(localStorage.getItem('skct_timer_cfg'));
+    let savedTimerCfg = null;
+    if (!isAdminPreviewMode) {
+        savedTimerCfg = JSON.parse(localStorage.getItem('skct_timer_cfg'));
+        if (isLegacyDefaultTimerConfig(savedTimerCfg)) {
+            localStorage.removeItem('skct_timer_cfg');
+            savedTimerCfg = null;
+        }
+    }
     if (savedTimerCfg) {
         configTotalMins = sanitizeMinutes(savedTimerCfg.total, 75);
         configSubjectMins = sanitizeMinutes(savedTimerCfg.subj, 15);
@@ -1206,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
             configTotalMins = sanitizeMinutes(document.getElementById('cfgTotal').value, 75);
             document.getElementById('cfgTotal').value = configTotalMins;
             if (!isAdminPreviewMode) {
-                localStorage.setItem('skct_timer_cfg', JSON.stringify({total: configTotalMins, subj: configSubjectMins, brk: configBreakMins}));
+                localStorage.setItem('skct_timer_cfg', JSON.stringify({total: configTotalMins, subj: configSubjectMins, brk: configBreakMins, source: 'user'}));
             }
             
             configGuideEnabled = document.getElementById('cfgGuideEnabled').checked;
