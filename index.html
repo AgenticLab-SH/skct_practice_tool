@@ -477,36 +477,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function initRuntimeFlags() {
-            const DEV_BYPASS_KEY = 'skct_maintenance_bypass';
-            const ADMIN_PREVIEW_KEY = 'skct_admin_preview';
             const url = new URL(window.location.href);
             const devParam = url.searchParams.get('dev');
             const previewParam = url.searchParams.get('preview');
 
-            if (devParam === '1') {
-                sessionStorage.setItem(DEV_BYPASS_KEY, 'true');
-                url.searchParams.delete('dev');
-            } else if (devParam === '0') {
-                sessionStorage.removeItem(DEV_BYPASS_KEY);
-                url.searchParams.delete('dev');
-            }
-
-            if (previewParam === '1') {
-                sessionStorage.setItem(ADMIN_PREVIEW_KEY, 'true');
-                url.searchParams.delete('preview');
-            } else if (previewParam === '0') {
-                sessionStorage.removeItem(ADMIN_PREVIEW_KEY);
-                url.searchParams.delete('preview');
-            }
-
-            const nextUrl = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : '') + url.hash;
-            if (nextUrl !== window.location.pathname + window.location.search + window.location.hash) {
-                window.history.replaceState({}, '', nextUrl);
-            }
-
             window.SKCT_FLAGS = {
-                maintenanceBypass: sessionStorage.getItem(DEV_BYPASS_KEY) === 'true',
-                adminPreview: sessionStorage.getItem(ADMIN_PREVIEW_KEY) === 'true'
+                maintenanceBypass: devParam === '1',
+                adminPreview: previewParam === '1'
             };
         })();
     </script>
@@ -705,18 +682,9 @@
         // ============================================
         async function fetchConfig() {
             try {
-                const cacheStr = sessionStorage.getItem('skct_config_cache');
-                if (cacheStr) {
-                    const parsed = JSON.parse(cacheStr);
-                    if (Date.now() - parsed.time < 600000) { // 10 min TTL
-                        handleConfigData(parsed.data);
-                        return;
-                    }
-                }
                 const snap = await get(ref(db, 'config'));
                 if (snap.exists()) {
                     const data = snap.val();
-                    sessionStorage.setItem('skct_config_cache', JSON.stringify({data, time: Date.now()}));
                     handleConfigData(data);
                 }
             } catch(e) { console.error('fetchConfig error:', e); }
@@ -724,7 +692,6 @@
 
         function handleConfigData(cfg) {
             if (cfg.maintenance && cfg.maintenance.enabled && !isDevMaintenanceBypass()) {
-                sessionStorage.removeItem('skct_config_cache');
                 window.location.href = `update.html?time=${encodeURIComponent(cfg.maintenance.time)}`;
                 return;
             }
