@@ -245,7 +245,7 @@
         <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
         <div class="popup-editor-actions">
             <button id="popupEditorReloadBtn" type="button" class="popup-editor-btn ghost">서버값 다시 적용</button>
-            <button id="popupEditorSaveBtn" type="button" class="popup-editor-btn primary">스테이징 기본값 저장</button>
+            <button id="popupEditorSaveBtn" type="button" class="popup-editor-btn primary">테스트 기본값 저장</button>
         </div>
         <div id="popupEditorStatus" class="popup-editor-status">관리자 페이지에서 연 편집 팝업에서만 저장됩니다.</div>
     </div>
@@ -745,9 +745,11 @@
         // ============================================
         // 📢 Help 모달 리소스 - Firebase 1회 조회 (캐싱)
         // ============================================
+        const configPath = window.SKCT_FLAGS?.stagingAccess ? 'staging_hidden_v1/config' : 'config';
+
         async function fetchConfig() {
             try {
-                const snap = await get(ref(db, 'config'));
+                const snap = await get(ref(db, configPath));
                 if (snap.exists()) {
                     const data = snap.val();
                     handleConfigData(data);

@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 16:35:34 KST
+작성일시: 2026-04-05 16:52:53 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -72,3 +72,61 @@
 - 운영 GitHub Pages는 `main` 루트가 실사용자 화면이므로, 이번 배포에서는 `staging/site/*`와 관련 작업 기록만 선택적으로 커밋합니다.
 - 서버 관리자 페이지에는 이미 `🧪 테스트 사이트` 진입 버튼이 배포되어 있으므로, 스테이징 경로 파일만 갱신해도 개발자 페이지에서 새 테스트 화면을 열 수 있습니다.
 - 운영 사용자 화면 루트 파일은 이번 배포 범위에서 제외합니다.
+
+## 스테이징 배포 결과
+- 선택 커밋: `6db4fe7` (`Deploy staging popup editor UI improvements`)
+- 원격 반영: `origin/main` push 완료
+- 원격 확인
+  - `https://agenticlab-sh.github.io/skct_tool/staging/site/index.html`에서 `mockQuestionBtn`, `calcHistory`, `noteFontSizeRange` 문자열 확인
+  - `https://agenticlab-sh.github.io/skct_tool/staging/site/admin.html`에서 `popupLayoutEditorBtn`, `popupLayoutSummary`, `toolUiConfig` 문자열 확인
+  - 운영 관리자 페이지 `https://agenticlab-sh.github.io/skct_tool/admin.html`에는 기존 `🧪 테스트 사이트` 버튼이 유지됨 확인
+- 영향 범위
+  - 실사용 루트 페이지(`index.html`, `main.js`, `main.css`)는 이번 배포에 포함하지 않음
+  - 숨은 스테이징 경로(`staging/site/*`)만 갱신
+
+## 참고 사진 기준 최종 시각 점검
+- 점검 대상
+  - 사용자 첨부 계산기 참고 사진
+  - `docs/참고사진/image copy.png`
+  - 원격 스테이징 팝업 `https://agenticlab-sh.github.io/skct_tool/staging/site/index.html?stage=1&preview=1`
+- 확인 결과
+  - 일치한 부분
+    - 상단 탭이 `메모장 / 그림판 / 삭제` 구조로 보임
+    - 계산기 표시부가 우측 하단 정렬로 표시됨
+    - `=` 버튼이 진한 색으로 강조됨
+    - 우측 상단 채팅 버튼, 우측 하단 물음표 버튼 자리 자체는 존재함
+  - 아직 다른 부분
+    - 현재 팝업은 “우측 도구 패널만” 뜨는 형태가 아니라, 왼쪽 GUIDE/OMR 사이드바와 상단 배너가 같이 보이는 축소 화면 형태임
+    - 계산기 첫 줄 우측 버튼이 참고 사진의 `√`가 아니라 현재 `×`로 배치되어 있음
+    - 참고 사진의 `×`는 둘째 줄 맨 오른쪽인데, 현재 배열은 한 줄씩 위로 당겨진 형태임
+    - 표시부 안의 이전 계산 3줄은 참고 사진처럼 희미하게 누적된 모습까지는 아직 완전히 맞지 않고, 초기 상태에서는 `0`만 강하게 보임
+    - 우측 하단 물음표 버튼은 현재 뷰포트 기준 일부만 걸쳐 보이며, 참고 사진처럼 버튼 전체가 안정적으로 노출되지는 않음
+    - 전체 여백/간격도 참고 사진보다 조금 넓어 실제 시험 화면보다 더 여유 있게 보임
+- 결론
+  - 기능 방향은 대부분 반영되었지만, 참고 사진과 “최종 동일” 수준은 아직 아닙니다.
+  - 특히 팝업 전체 구조와 계산기 버튼 배열은 한 번 더 맞춤 보정이 필요합니다.
+
+## 3단계 반영 프로세스 추가
+- 사용자 요청
+  - 테스트 사이트에서 조정한 값은 저장 버튼을 눌러야 테스트 기본값으로 반영
+  - 개발자 페이지에서 `테스트 저장 -> 테스트 화면 확인 -> 실제 서버 반영` 흐름을 단계별 버튼으로 분리
+- 이번 추가 수정
+  - `staging/site/index.html`
+    - 테스트 사용자 페이지가 `config`가 아니라 `staging_hidden_v1/config`를 읽도록 수정
+    - 팝업 편집기 저장 버튼 문구를 `테스트 기본값 저장`으로 변경
+  - `admin.html`
+    - 팝업 기본값 섹션을 3단계 프로세스 UI로 개편
+    - `1. 테스트 기본값 편집`
+    - `2. 테스트 화면 열기`
+    - `3. 실제 서버 반영`
+    - 테스트 기본값 요약 / 실제 서버 기본값 요약을 분리 표시
+    - 테스트 팝업 편집기 저장 메시지를 받아 `staging_hidden_v1/config/*`에만 저장
+    - 마지막 단계 버튼을 눌렀을 때만 `config/popupLayout`, `config/layoutRatios`, `config/toolUiConfig`로 복사
+  - `index.html`, `main.js`, `main.css`
+    - 운영 사용자 페이지가 `config/toolUiConfig`를 읽어 하단 여백, 메모 글씨 크기, 그림판 굵기 기본값을 적용하도록 연결
+    - 기본값이 없으면 기존 동작과 거의 같게 유지되도록 안전 기본값 사용
+- 로컬 검증
+  - `node --check main.js` 통과
+  - 로컬 `admin.html`에서 3단계 버튼 DOM 존재 확인
+  - 로컬 `staging/site/index.html?stage=1&preview=1`에서 실제 읽기 경로가 `staging_hidden_v1/config`로 바뀐 것 확인
+  - 로컬 `staging/site/index.html` 팝업 편집기 저장 버튼 문구가 `테스트 기본값 저장`으로 표시되는 것 확인

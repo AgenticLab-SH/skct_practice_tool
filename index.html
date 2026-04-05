@@ -137,6 +137,7 @@
                     </div>
                 </div>
             </header>
+            <div class="layout-resizer horizontal hidden" id="topBarResizer" aria-hidden="true"></div>
 
             <!-- Tools Grid -->
             <div class="tools-layout" style="position: relative;">
@@ -174,6 +175,8 @@
                     </div>
                 </section>
 
+                <div class="layout-resizer horizontal hidden" id="toolsSectionResizer" aria-hidden="true"></div>
+
                 <!-- Calculator (Bottom right area in layout logic) -->
                 <section class="calculator-section">
                     <div class="calc-display-wrapper" style="position: relative; width: 100%;">
@@ -208,6 +211,17 @@
             </div>
         </main>
 
+    </div>
+
+    <div id="popupEditorPanel" class="popup-editor-panel hidden" aria-live="polite">
+        <div class="popup-editor-title">팝업 기본값 편집</div>
+        <div class="popup-editor-desc">창 위치와 크기, 분리선을 직접 조절한 뒤 서버 기본값으로 저장하세요.</div>
+        <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
+        <div class="popup-editor-actions">
+            <button id="popupEditorReloadBtn" type="button" class="popup-editor-btn ghost">서버값 다시 적용</button>
+            <button id="popupEditorSaveBtn" type="button" class="popup-editor-btn primary">서버 기본값 저장</button>
+        </div>
+        <div id="popupEditorStatus" class="popup-editor-status">관리자 페이지에서 연 팝업에서만 저장됩니다.</div>
     </div>
 
     <!-- Help Modal Overlay -->
@@ -493,14 +507,16 @@
             const url = new URL(window.location.href);
             const devParam = url.searchParams.get('dev');
             const previewParam = url.searchParams.get('preview');
+            const popupEditorParam = url.searchParams.get('popupEditor');
 
             window.SKCT_FLAGS = {
                 maintenanceBypass: devParam === '1',
-                adminPreview: previewParam === '1'
+                adminPreview: previewParam === '1',
+                popupEditor: popupEditorParam === '1'
             };
         })();
     </script>
-    <script src="main.js?v=202604051202"></script>
+    <script src="main.js?v=202604051520"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -757,13 +773,21 @@
                 }
             }
             // Layout Ratios Sync (사용자가 로컬 저장하지 않은 경우에만 원격 기본값 적용)
-            if (cfg.layoutRatios && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('skct_layout_ratios'))) {
+            if (cfg.layoutRatios && (window.SKCT_FLAGS?.adminPreview || window.name === 'skct_popup_mode' || !localStorage.getItem('skct_layout_ratios'))) {
                 if (window.applyRemoteLayoutRatios) {
                     window.applyRemoteLayoutRatios(
                         cfg.layoutRatios.timer,
                         cfg.layoutRatios.utils,
                         cfg.layoutRatios.calc
                     );
+                }
+            }
+            if (cfg.popupLayout && window.applyRemotePopupLayout) {
+                window.applyRemotePopupLayout(cfg.popupLayout);
+            }
+            if (cfg.toolUiConfig && (window.SKCT_FLAGS?.adminPreview || window.name === 'skct_popup_mode' || !localStorage.getItem('skct_tool_ui'))) {
+                if (window.applyRemoteToolUiConfig) {
+                    window.applyRemoteToolUiConfig(cfg.toolUiConfig);
                 }
             }
 
