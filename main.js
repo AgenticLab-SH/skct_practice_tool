@@ -1154,9 +1154,9 @@ document.addEventListener('DOMContentLoaded', () => {
         notepad.value = '';
         // Note: SKCT initializes Calculator as well, so we can init it too.
         calcState.current = '0';
-        calcState.storedValue = null;
-        calcState.operator = null;
+        calcState.expressionTokens = [];
         calcState.waitingNew = false;
+        calcState.justEvaluated = false;
         calcState.history = [];
         updateCalcDisplay();
         
@@ -1186,9 +1186,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 notepad.value = '';
                 calcState.current = '0';
-                calcState.storedValue = null;
-                calcState.operator = null;
+                calcState.expressionTokens = [];
                 calcState.waitingNew = false;
+                calcState.justEvaluated = false;
                 calcState.history = [];
                 updateCalcDisplay();
                 
@@ -1207,9 +1207,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const CALC_MAX_INPUT_LENGTH = 32;
     const calcState = {
         current: '0',
-        storedValue: null,
-        operator: null,
+        expressionTokens: [],
         waitingNew: false,
+        justEvaluated: false,
         history: []
     };
 
@@ -1242,10 +1242,64 @@ document.addEventListener('DOMContentLoaded', () => {
         calcState.history = calcState.history.slice(-3);
     }
 
+    function isOperatorToken(token) {
+        return ['+', '-', '*', '/'].includes(token);
+    }
+
+    function formatExpression(tokens) {
+        return tokens.map((token) => isOperatorToken(token) ? getOperatorSymbol(token) : token).join(' ');
+    }
+
     function getPendingCalcLine() {
-        if (!calcState.operator || calcState.storedValue === null) return null;
-        const rightText = calcState.waitingNew ? '' : ` ${calcState.current}`;
-        return `${calcState.storedValue} ${getOperatorSymbol(calcState.operator)}${rightText}`;
+        if (!calcState.expressionTokens.length) return null;
+        if (calcState.waitingNew) {
+            return formatExpression(calcState.expressionTokens);
+        }
+        return formatExpression([...calcState.expressionTokens, calcState.current]);
+    }
+
+    function evaluateExpression(tokens) {
+        if (!tokens.length) return '0';
+        const values = [parseFloat(tokens[0])];
+        const operators = [];
+
+        for (let i = 1; i < tokens.length; i += 2) {
+            operators.push(tokens[i]);
+            values.push(parseFloat(tokens[i + 1]));
+        }
+
+        if (values.some((value) => !Number.isFinite(value))) {
+            return 'Error';
+        }
+
+        const collapsedValues = [values[0]];
+        const collapsedOperators = [];
+
+        for (let i = 0; i < operators.length; i++) {
+            const operator = operators[i];
+            const nextValue = values[i + 1];
+            if (operator === '*' || operator === '/') {
+                const leftValue = collapsedValues.pop();
+                if (operator === '/' && nextValue === 0) {
+                    return 'Error';
+                }
+                collapsedValues.push(operator === '*' ? leftValue * nextValue : leftValue / nextValue);
+            } else {
+                collapsedOperators.push(operator);
+                collapsedValues.push(nextValue);
+            }
+        }
+
+        let result = collapsedValues[0];
+        for (let i = 0; i < collapsedOperators.length; i++) {
+            const operator = collapsedOperators[i];
+            const nextValue = collapsedValues[i + 1];
+            result = operator === '+' ? result + nextValue : result - nextValue;
+        }
+
+        return Number.isFinite(result)
+            ? String(Math.round(result * 100000000) / 100000000)
+            : 'Error';
     }
 
     function updateCalcDisplay() {
@@ -1268,49 +1322,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function resetCalculator() {
         calcState.current = '0';
-        calcState.storedValue = null;
-        calcState.operator = null;
+        calcState.expressionTokens = [];
         calcState.waitingNew = false;
+        calcState.justEvaluated = false;
         calcState.history = [];
         updateCalcDisplay();
     }
 
-    function calculateResult(commitHistory = true) {
-        if (!calcState.operator || calcState.storedValue === null) return;
+    function calculateResult() {
+        if (!calcState.expressionTokens.length) return;
 
-        const leftValue = calcState.storedValue;
-        const rightValue = calcState.current;
-        const prev = parseFloat(leftValue);
-        const curr = parseFloat(rightValue);
-        let res = 0;
-
-        switch (calcState.operator) {
-            case '+': res = prev + curr; break;
-            case '-': res = prev - curr; break;
-            case '*': res = prev * curr; break;
-            case '/': res = curr !== 0 ? prev / curr : 'Error'; break;
+        const expressionTokens = [...calcState.expressionTokens];
+        if (isOperatorToken(expressionTokens[expressionTokens.length - 1])) {
+            expressionTokens.push(calcState.current);
         }
 
-        if (res !== 'Error') {
-            res = Math.round(res * 100000000) / 100000000;
-        }
-
-        const resultText = String(res);
-        if (commitHistory) {
-            pushCalcHistory(`${leftValue} ${getOperatorSymbol(calcState.operator)} ${rightValue}`);
-        }
-
+        const resultText = evaluateExpression(expressionTokens);
+        pushCalcHistory(formatExpression(expressionTokens));
         calcState.current = resultText;
-        calcState.operator = null;
-        calcState.storedValue = null;
+        calcState.expressionTokens = [];
         calcState.waitingNew = true;
+        calcState.justEvaluated = true;
         updateCalcDisplay();
     }
 
     function handleNumber(numStr) {
         if (calcState.waitingNew) {
+            if (calcState.justEvaluated && !calcState.expressionTokens.length) {
+                calcState.expressionTokens = [];
+            }
             calcState.current = numStr === '.' ? '0.' : numStr;
             calcState.waitingNew = false;
+            calcState.justEvaluated = false;
         } else if (numStr === '.') {
             if (!calcState.current.includes('.')) {
                 calcState.current += '.';
@@ -1327,12 +1370,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleOperator(op) {
-        if (calcState.operator && !calcState.waitingNew) {
-            calculateResult(true);
+        if (!calcState.expressionTokens.length) {
+            calcState.expressionTokens = [calcState.current, op];
+        } else if (calcState.waitingNew) {
+            if (isOperatorToken(calcState.expressionTokens[calcState.expressionTokens.length - 1])) {
+                calcState.expressionTokens[calcState.expressionTokens.length - 1] = op;
+            } else {
+                calcState.expressionTokens.push(op);
+            }
+        } else {
+            calcState.expressionTokens.push(calcState.current, op);
         }
-        calcState.storedValue = calcState.current;
-        calcState.operator = op;
         calcState.waitingNew = true;
+        calcState.justEvaluated = false;
         updateCalcDisplay();
     }
 
@@ -1341,7 +1391,11 @@ document.addEventListener('DOMContentLoaded', () => {
             resetCalculator();
             return;
         } else if (fnStr === 'BACK') {
-            if (!calcState.waitingNew && calcState.current !== '0' && calcState.current !== 'Error') {
+            if (calcState.waitingNew && calcState.expressionTokens.length && isOperatorToken(calcState.expressionTokens[calcState.expressionTokens.length - 1])) {
+                calcState.expressionTokens.pop();
+                calcState.waitingNew = false;
+                calcState.justEvaluated = false;
+            } else if (!calcState.waitingNew && calcState.current !== '0' && calcState.current !== 'Error') {
                 calcState.current = calcState.current.slice(0, -1);
                 if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
             }
@@ -1350,17 +1404,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = Number.isFinite(currentValue) && currentValue >= 0
                 ? String(Math.round(Math.sqrt(currentValue) * 100000000) / 100000000)
                 : 'Error';
-            pushCalcHistory(`√${calcState.current}`);
             calcState.current = result;
-            if (calcState.operator && calcState.storedValue !== null) {
-                calcState.waitingNew = false;
-            } else {
-                calcState.storedValue = null;
-                calcState.operator = null;
-                calcState.waitingNew = true;
-            }
+            calcState.waitingNew = false;
+            calcState.justEvaluated = false;
         } else if (fnStr === '=') {
-            calculateResult(true);
+            calculateResult();
         }
         updateCalcDisplay();
     }
@@ -1406,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         } 
         else if (key === 'Enter' || key === '=') {
-            calculateResult(true);
+            calculateResult();
             e.preventDefault();
         }
         else if (key === 'Backspace') {
@@ -1648,9 +1696,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof notepad !== 'undefined') notepad.value = '';
                 if (typeof calcState !== 'undefined') {
                     calcState.current = '0';
-                    calcState.storedValue = null;
-                    calcState.operator = null;
+                    calcState.expressionTokens = [];
                     calcState.waitingNew = false;
+                    calcState.justEvaluated = false;
                     calcState.history = [];
                     if (typeof updateCalcDisplay === 'function') updateCalcDisplay();
                 }
