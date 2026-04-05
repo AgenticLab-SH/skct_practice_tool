@@ -203,6 +203,13 @@
                         스테이징 기본값을 불러오는 중...
                     </div>
                 </div>
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <label>🔒 고급 기능 인증 비밀번호</label>
+                    <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.6;">
+                        스테이징 고급 이용자 팝업 인증에 사용할 비밀번호 목록입니다. 줄바꿈 또는 쉼표로 여러 개를 입력할 수 있으며, 이 정보는 개발자 페이지에서만 보입니다.
+                    </div>
+                    <textarea id="settingAdvancedPasswords" class="form-textarea" placeholder="예: 0208" style="min-height:88px;"></textarea>
+                </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         유용한 링크 (Help 창 하단에 추가됨)
@@ -457,6 +464,22 @@
         };
     }
 
+    function normalizeAdvancedFeatureConfig(raw) {
+        const source = Array.isArray(raw?.passwords)
+            ? raw.passwords
+            : String(raw?.passwords || '')
+                .split(/\r?\n|,/)
+                .map((item) => item.trim());
+        const passwords = [];
+        source.forEach((item) => {
+            if (!item || passwords.includes(item)) return;
+            passwords.push(item);
+        });
+        return {
+            passwords: passwords.length ? passwords : ['0208']
+        };
+    }
+
     function formatPopupLayoutSummary(popupLayout, layoutRatios, toolUiConfig) {
         const popup = normalizePopupLayout(popupLayout);
         const ratios = normalizeLayoutRatios(layoutRatios);
@@ -632,6 +655,8 @@
     function startDashboard() {
         listenStats();
         loadPostsOnce();
+        renderAdvancedFeatureForm();
+        renderPopupLayoutSummary();
         listenConfig();
     }
 
@@ -926,6 +951,7 @@
         useful_links: [],
         sponsors: [],
         supportConfig: {},
+        advancedFeatureConfig: normalizeAdvancedFeatureConfig(),
         layoutRatios: normalizeLayoutRatios(),
         popupLayout: normalizePopupLayout(),
         toolUiConfig: normalizeToolUiConfig()
@@ -1002,6 +1028,14 @@
         document.getElementById('supportContactUrl').value = support.contactUrl || '';
         document.getElementById('supportButtonLabel').value = support.buttonLabel || '';
         document.getElementById('supportButtonUrl').value = support.buttonUrl || '';
+    }
+
+    function renderAdvancedFeatureForm() {
+        const advancedFeatureConfig = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
+        const passwordField = document.getElementById('settingAdvancedPasswords');
+        if (passwordField) {
+            passwordField.value = advancedFeatureConfig.passwords.join('\n');
+        }
     }
 
     document.getElementById('clearZombiesBtn').addEventListener('click', async () => {
@@ -1092,6 +1126,7 @@
             if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
             if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
             if (cfg.supportConfig) loadedConfig.supportConfig = cfg.supportConfig;
+            if (cfg.advancedFeatureConfig) loadedConfig.advancedFeatureConfig = normalizeAdvancedFeatureConfig(cfg.advancedFeatureConfig);
             
             if (cfg.timerDefaults) {
                 const timerDefaults = normalizeTimerDefaults(cfg.timerDefaults.total, cfg.timerDefaults.subj, cfg.timerDefaults.brk);
@@ -1123,6 +1158,7 @@
             renderNoticeForm();
             renderLinksForm();
             renderSupportForm();
+            renderAdvancedFeatureForm();
             renderSponsorsPreview();
             renderPopupLayoutSummary();
             document.getElementById('settingAppName').value = loadedConfig.appName;
@@ -1213,6 +1249,9 @@
             buttonUrl: document.getElementById('supportButtonUrl').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonUrl
         };
         loadedConfig.supportConfig = supportConfig;
+        loadedConfig.advancedFeatureConfig = normalizeAdvancedFeatureConfig({
+            passwords: document.getElementById('settingAdvancedPasswords').value
+        });
 
         await set(ref(db, 'staging_hidden_v1/config/appName'), appName);
         await set(ref(db, 'staging_hidden_v1/config/useful_links'), links);
@@ -1224,6 +1263,8 @@
         await set(ref(db, 'staging_hidden_v1/config/popupLayout'), loadedConfig.popupLayout);
         await set(ref(db, 'staging_hidden_v1/config/toolUiConfig'), loadedConfig.toolUiConfig);
         await set(ref(db, 'staging_hidden_v1/config/supportConfig'), supportConfig);
+        await set(ref(db, 'staging_hidden_v1/config/advancedFeatureConfig'), loadedConfig.advancedFeatureConfig);
+        renderAdvancedFeatureForm();
         renderPopupLayoutSummary();
         toast('✅ 글로벌 & 기본 설정 저장 완료');
     });

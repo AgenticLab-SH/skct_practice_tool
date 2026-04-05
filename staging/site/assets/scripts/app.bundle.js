@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
+    const DEFAULT_ADVANCED_FEATURE_CONFIG = { passwords: ['0208'] };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'stg-skct-popup-preview',
         saveRequest: 'stg-skct-popup-save-request',
@@ -61,11 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteFontSizeValue = document.getElementById('noteFontSizeValue');
     const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
-    const advancedToolsSection = document.getElementById('advancedToolsSection');
-    const advancedFeatureGuideBtn = document.getElementById('advancedFeatureGuideBtn');
+    const advancedToggle = document.getElementById('advancedToggle');
+    const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
-    const advancedPasswordListField = document.getElementById('advancedPasswordListField');
-    const advancedPasswordSaveBtn = document.getElementById('advancedPasswordSaveBtn');
     const advancedToolsStatus = document.getElementById('advancedToolsStatus');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
@@ -133,6 +132,22 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function normalizeAdvancedFeatureConfig(raw) {
+        const source = Array.isArray(raw?.passwords)
+            ? raw.passwords
+            : String(raw?.passwords || '')
+                .split(/\r?\n|,/)
+                .map((item) => item.trim());
+        const passwords = [];
+        source.forEach((item) => {
+            if (!item || passwords.includes(item)) return;
+            passwords.push(item);
+        });
+        return {
+            passwords: passwords.length ? passwords : [...DEFAULT_ADVANCED_FEATURE_CONFIG.passwords]
+        };
+    }
+
     function buildPopupWindowMetrics(windowConfig) {
         const normalized = normalizePopupLayout({ window: windowConfig });
         const { availWidth, availHeight, availLeft, availTop } = getScreenMetrics();
@@ -164,6 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let remotePopupLayout = normalizePopupLayout();
     let currentPopupLayout = normalizePopupLayout();
     let remoteToolUiConfig = normalizeToolUiConfig();
+    let remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig();
     let currentToolUiConfig = normalizeToolUiConfig(
         isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('stg_skct_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
     );
@@ -541,40 +557,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return total === 79 && subj === 15 && brk === 1 && cfg.source !== 'user';
     };
 
-    const ADVANCED_PASSWORDS_STORAGE_KEY = 'stg_skct_advanced_passwords';
-    const DEFAULT_ADVANCED_PASSWORDS = ['0208'];
     const ADVANCED_TRIGGER_TAP_COUNT = 7;
     const ADVANCED_TRIGGER_TIMEOUT_MS = 1800;
     const ADVANCED_POPUP_PATH = 'advanced-tools.html';
 
-    const normalizeAdvancedPasswords = (value) => {
-        const rawList = Array.isArray(value)
-            ? value
-            : String(value || '')
-                .split(/\r?\n|,/)
-                .map((item) => item.trim());
-        const deduped = [];
-        rawList.forEach((item) => {
-            if (!item || deduped.includes(item)) return;
-            deduped.push(item);
-        });
-        return deduped.length ? deduped : [...DEFAULT_ADVANCED_PASSWORDS];
-    };
-
-    const getAdvancedPasswordList = () => {
-        try {
-            const saved = JSON.parse(localStorage.getItem(ADVANCED_PASSWORDS_STORAGE_KEY) || 'null');
-            return normalizeAdvancedPasswords(saved);
-        } catch (error) {
-            return [...DEFAULT_ADVANCED_PASSWORDS];
-        }
-    };
-
-    const saveAdvancedPasswordList = (value) => {
-        const nextPasswords = normalizeAdvancedPasswords(value);
-        localStorage.setItem(ADVANCED_PASSWORDS_STORAGE_KEY, JSON.stringify(nextPasswords));
-        return nextPasswords;
-    };
+    const getAdvancedPasswordList = () => [...remoteAdvancedFeatureConfig.passwords];
 
     const buildAdvancedLaunchUrl = () => {
         const url = new URL(window.location.href);
@@ -1856,6 +1843,10 @@ document.addEventListener('DOMContentLoaded', () => {
         applyToolUiConfig(remoteToolUiConfig, { persist: false, notifyPopupEditor: false });
     };
 
+    window.applyRemoteAdvancedFeatureConfig = (advancedFeatureConfig) => {
+        remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig(advancedFeatureConfig);
+    };
+
     // 부드러운 알람 비프음 (Web Audio API)
     let audioCtx = null;
     const initAudio = () => {
@@ -2120,40 +2111,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (advancedToolsSection) {
-        advancedToolsSection.classList.toggle('hidden', !isAdvancedMode);
-    }
-    if (advancedPasswordListField && isAdvancedMode) {
-        advancedPasswordListField.value = getAdvancedPasswordList().join('\n');
-    }
-    if (advancedFeatureGuideBtn) {
-        advancedFeatureGuideBtn.addEventListener('click', () => {
-            alert([
-                '현재 창은 숨김 인증을 통과한 고급 기능 버전입니다.',
-                '',
-                '포함된 고급 기능',
-                '1. 문항별 상세 통계 TXT 다운로드',
-                '- 현재 시험 기록을 텍스트 파일로 저장합니다.',
-                '',
-                '2. 허용 비밀번호 목록 관리',
-                '- 이 고급 버전에 다시 들어올 수 있는 비밀번호 목록을 직접 저장합니다.',
-                '',
-                '진입 방식',
-                '- 일반 설정 화면에서는 보이지 않으며, 통합 설정 제목 연타 후 인증을 통과한 창에서만 사용 가능합니다.'
-            ].join('\n'));
+    if (advancedToggle && advancedFeatureModal) {
+        advancedToggle.addEventListener('click', () => {
+            if (!isAdvancedMode) return;
+            if (advancedToolsStatus) advancedToolsStatus.textContent = '';
+            advancedFeatureModal.classList.remove('hidden');
         });
     }
     if (advancedStatsDownloadBtn) {
         advancedStatsDownloadBtn.addEventListener('click', () => {
             downloadDetailedStatsText();
             if (advancedToolsStatus) advancedToolsStatus.textContent = '문항별 상세 통계 TXT 다운로드를 시작했습니다.';
-        });
-    }
-    if (advancedPasswordSaveBtn) {
-        advancedPasswordSaveBtn.addEventListener('click', () => {
-            const saved = saveAdvancedPasswordList(advancedPasswordListField?.value || '');
-            if (advancedPasswordListField) advancedPasswordListField.value = saved.join('\n');
-            if (advancedToolsStatus) advancedToolsStatus.textContent = `비밀번호 ${saved.length}개를 저장했습니다.`;
         });
     }
 
@@ -2197,18 +2165,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const value = String(password || '').trim();
             return getAdvancedPasswordList().includes(value);
         },
-        getPasswordList() {
-            return getAdvancedPasswordList();
-        },
-        savePasswordList(rawValue) {
-            return saveAdvancedPasswordList(rawValue);
-        },
         activateAdvancedSession() {
             return activateAdvancedSession();
         },
         getAdvancedSnapshot() {
             return {
-                passwordList: getAdvancedPasswordList(),
                 timer: {
                     configuredTotalMinutes: configTotalMins,
                     subjectMinutes: configSubjectMins,
