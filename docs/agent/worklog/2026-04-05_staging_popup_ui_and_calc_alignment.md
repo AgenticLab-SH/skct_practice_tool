@@ -179,6 +179,20 @@
   - `staging_hidden_v1/config/toolUiConfig.json` → `bottomPaddingRatio: 0.11`, `sideButtonColumnRatio: 0.09`, `noteFontSize: 12`, `canvasLineWidth: 2`
   - `staging_hidden_v1/config/popupLayout.json` → `window 0.269 / 0.98 / 0.731 / 0`, `omrWidthRatio: 0.34`
   - `staging_hidden_v1/config/layoutRatios.json` → `timer: 8.6`, `utils: 45.0`, `calc: 46.4`
+
+## 추가 수정: 계산기 표시부 4줄 고정 체감 및 버튼 영역 확대
+- 사용자 요청
+  - 계산기 내역 표시 칸은 4줄만 보이는 크기로 조정
+  - 현재 라인은 이전 3줄보다 조금 더 큰 글씨로 표시
+  - 비워진 공간만큼 계산기 버튼 높이를 늘림
+- 수정 내용
+  - `staging/site/assets/styles/main.css`
+    - 표시부를 `flex: 0 0 auto` + 고정 높이 `clamp(84px, 17vh, 104px)`로 제한
+    - 표시부 패딩과 줄 간격을 줄여 3개 이력 + 현재값 1개가 안정적으로 들어오게 조정
+    - 현재 줄 폰트를 `clamp(15px, 5vw, 26px)`로 키우고, 이력 줄은 더 작게 축소
+    - 버튼 그리드를 `flex: 1 1 auto`로 바꿔 남는 높이를 버튼이 더 가져가도록 조정
+- 검증 결과
+  - CSS diff 기준 표시부 높이 고정, 현재 줄 확대, 버튼 영역 flex 확대 반영 확인
   - `https://agenticlab-sh.github.io/skct_tool/staging/site/admin.html`에서 `popupLayoutEditorBtn`, `popupLayoutSummary`, `toolUiConfig` 문자열 확인
   - 운영 관리자 페이지 `https://agenticlab-sh.github.io/skct_tool/admin.html`에는 기존 `🧪 테스트 사이트` 버튼이 유지됨 확인
 - 영향 범위
