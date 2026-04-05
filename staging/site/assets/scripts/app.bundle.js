@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
         window: { widthRatio: 0.269, heightRatio: 0.98, leftRatio: 0.731, topRatio: 0 },
-        omrWidthRatio: 0.34
+        omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const POPUP_EDITOR_MESSAGE_TYPES = {
@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 leftRatio: roundRatio(clampNumber(Number.isFinite(leftRatio) ? leftRatio : fallbackWindow.leftRatio, 0, Math.max(0, 1 - safeWidthRatio))),
                 topRatio: roundRatio(clampNumber(Number.isFinite(topRatio) ? topRatio : fallbackWindow.topRatio, 0, Math.max(0, 1 - safeHeightRatio)))
             },
-            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.16, 0.7) : DEFAULT_POPUP_LAYOUT.omrWidthRatio)
+            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.12, 0.7) : DEFAULT_POPUP_LAYOUT.omrWidthRatio)
         };
     }
 
@@ -166,10 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyPopupOmrWidthRatio(widthRatio) {
-        currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(parseFloat(widthRatio), 0.16, 0.7));
+        currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(parseFloat(widthRatio), 0.12, 0.7));
         if (!appContainerEl) return;
         const maxWidth = Math.round(appContainerEl.clientWidth * 0.8);
-        const nextWidth = clampNumber(Math.round(appContainerEl.clientWidth * currentPopupLayout.omrWidthRatio), 130, maxWidth);
+        const nextWidth = clampNumber(Math.round(appContainerEl.clientWidth * currentPopupLayout.omrWidthRatio), 120, maxWidth);
         document.documentElement.style.setProperty('--omr-width', `${nextWidth}px`);
     }
 
@@ -594,11 +594,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mousemove', (e) => {
         if (!isResizingOmr) return;
         let newWidth = e.clientX;
-        if (newWidth < 130) newWidth = 130; // 좁혀진 레이아웃에 맞춰 최소폭 하향
+        if (newWidth < 120) newWidth = 120; // 팝업에서도 5지선다가 보이도록 최소폭 재조정
         if (newWidth > document.body.clientWidth * 0.8) newWidth = document.body.clientWidth * 0.8; // 최대폭
         document.documentElement.style.setProperty('--omr-width', `${newWidth}px`);
         if (isPopupMode && appContainerEl) {
-            currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(newWidth / appContainerEl.clientWidth, 0.16, 0.7));
+            currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(newWidth / appContainerEl.clientWidth, 0.12, 0.7));
             schedulePopupEditorSync();
         }
     });
@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isPopupMode) {
                 localStorage.setItem('stg_skct_omr_width', currentWidth);
             } else if (appContainerEl) {
-                currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(parseFloat(currentWidth) / appContainerEl.clientWidth, 0.16, 0.7));
+                currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(parseFloat(currentWidth) / appContainerEl.clientWidth, 0.12, 0.7));
                 schedulePopupEditorSync();
             }
             resizeCanvas(); // OMR 너비 변동으로 캔버스 폭 변경 대응
