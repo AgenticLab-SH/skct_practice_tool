@@ -1236,6 +1236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* --- Calculator Logic --- */
     const calcHistory = document.getElementById('calcHistory');
+    const CALC_MAX_INPUT_LENGTH = 32;
     const calcState = {
         current: '0',
         storedValue: null,
@@ -1250,8 +1251,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return operator || '';
     }
 
-    function limitCalcLength(value) {
-        return value.length <= 18 ? value : value.slice(0, 18);
+    function limitCalcInput(value) {
+        return value.length <= CALC_MAX_INPUT_LENGTH ? value : value.slice(0, CALC_MAX_INPUT_LENGTH);
     }
 
     function getCurrentCalcLine() {
@@ -1262,16 +1263,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return calcState.current;
     }
 
+    function escapeCalcLine(line) {
+        return String(line)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+    }
+
+    function getCalcLineSizeClass(line, isCurrent = false) {
+        const length = String(line).length;
+        if (length > (isCurrent ? 26 : 24)) return 'calc-line-tight';
+        if (length > (isCurrent ? 18 : 16)) return 'calc-line-compact';
+        return '';
+    }
+
     function pushCalcHistory(line) {
-        calcState.history.push(limitCalcLength(line));
+        calcState.history.push(line);
         calcState.history = calcState.history.slice(-3);
     }
 
     function renderCalcDisplay() {
         if (!calcHistory) return;
-        const lines = calcState.history.map((line) => `<div class="calc-line history-line">${line}</div>`);
-        lines.push(`<div class="calc-line current-line">${limitCalcLength(getCurrentCalcLine())}</div>`);
+        const lines = calcState.history.map((line) => {
+            const sizeClass = getCalcLineSizeClass(line, false);
+            return `<div class="calc-line history-line ${sizeClass}">${escapeCalcLine(line)}</div>`;
+        });
+        const currentLine = getCurrentCalcLine();
+        const currentSizeClass = getCalcLineSizeClass(currentLine, true);
+        lines.push(`<div class="calc-line current-line ${currentSizeClass}">${escapeCalcLine(currentLine)}</div>`);
         calcHistory.innerHTML = lines.join('');
+        calcHistory.scrollTop = calcHistory.scrollHeight;
     }
 
     function handleNumber(numStr) {
@@ -1289,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             calcState.current += numStr;
         }
-        calcState.current = limitCalcLength(calcState.current);
+        calcState.current = limitCalcInput(calcState.current);
         renderCalcDisplay();
     }
 

@@ -1154,9 +1154,10 @@ document.addEventListener('DOMContentLoaded', () => {
         notepad.value = '';
         // Note: SKCT initializes Calculator as well, so we can init it too.
         calcState.current = '0';
-        calcState.previous = null;
+        calcState.storedValue = null;
         calcState.operator = null;
         calcState.waitingNew = false;
+        calcState.history = [];
         updateCalcDisplay();
         
         // Advance question
@@ -1185,9 +1186,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 notepad.value = '';
                 calcState.current = '0';
-                calcState.previous = null;
+                calcState.storedValue = null;
                 calcState.operator = null;
                 calcState.waitingNew = false;
+                calcState.history = [];
                 updateCalcDisplay();
                 
                 document.getElementById('scoreResult').classList.add('hidden');
@@ -1201,66 +1203,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* --- Calculator Logic --- */
-    const calcDisplay = document.getElementById('calcDisplay');
+    const calcHistory = document.getElementById('calcHistory');
+    const CALC_MAX_INPUT_LENGTH = 32;
     const calcState = {
         current: '0',
-        previous: null,
+        storedValue: null,
         operator: null,
-        waitingNew: false
+        waitingNew: false,
+        history: []
     };
 
-    function updateCalcDisplay() {
-        // Prevent display of extremely long decimals
-        let displayStr = calcState.current;
-        if(displayStr.length > 12) {
-            // Very hacky display fit
-            displayStr = displayStr.substring(0, 12);
-        }
-        calcDisplay.value = displayStr;
-
-        const opDisplay = document.getElementById('calcOpDisplay');
-        if (opDisplay) {
-            let symbol = '';
-            if (calcState.operator === '*') symbol = '×';
-            else if (calcState.operator === '/') symbol = '÷';
-            else if (calcState.operator === '+') symbol = '+';
-            else if (calcState.operator === '-') symbol = '-';
-            opDisplay.innerText = symbol;
-        }
+    function getOperatorSymbol(operator) {
+        if (operator === '*') return '×';
+        if (operator === '/') return '÷';
+        return operator || '';
     }
 
-    function handleNumber(numStr) {
-        if (calcState.waitingNew) {
-            calcState.current = numStr === '.' ? '0.' : numStr;
-            calcState.waitingNew = false;
-        } else {
-            if (numStr === '.') {
-                if (!calcState.current.includes('.')) {
-                    calcState.current += '.';
-                }
-            } else if (calcState.current === '0') {
-                calcState.current = numStr;
-            } else {
-                calcState.current += numStr;
-            }
+    function limitCalcInput(value) {
+        return value.length <= CALC_MAX_INPUT_LENGTH ? value : value.slice(0, CALC_MAX_INPUT_LENGTH);
+    }
+
+    function getCurrentCalcLine() {
+        if (calcState.operator && calcState.storedValue !== null) {
+            const rightText = calcState.waitingNew ? '' : ` ${calcState.current}`;
+            return `${calcState.storedValue} ${getOperatorSymbol(calcState.operator)}${rightText}`;
         }
+        return calcState.current;
+    }
+
+    function escapeCalcLine(line) {
+        return String(line)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;');
+    }
+
+    function getCalcLineSizeClass(line, isCurrent = false) {
+        const length = String(line).length;
+        if (length > (isCurrent ? 26 : 24)) return 'calc-line-tight';
+        if (length > (isCurrent ? 18 : 16)) return 'calc-line-compact';
+        return '';
+    }
+
+    function pushCalcHistory(line) {
+        calcState.history.push(line);
+        calcState.history = calcState.history.slice(-3);
+    }
+
+    function updateCalcDisplay() {
+        if (!calcHistory) return;
+        const lines = calcState.history.map((line) => {
+            const sizeClass = getCalcLineSizeClass(line, false);
+            return `<div class="calc-line history-line ${sizeClass}">${escapeCalcLine(line)}</div>`;
+        });
+        const currentLine = getCurrentCalcLine();
+        const currentSizeClass = getCalcLineSizeClass(currentLine, true);
+        lines.push(`<div class="calc-line current-line ${currentSizeClass}">${escapeCalcLine(currentLine)}</div>`);
+        calcHistory.innerHTML = lines.join('');
+        calcHistory.scrollTop = calcHistory.scrollHeight;
+    }
+
+    function resetCalculator() {
+        calcState.current = '0';
+        calcState.storedValue = null;
+        calcState.operator = null;
+        calcState.waitingNew = false;
+        calcState.history = [];
         updateCalcDisplay();
     }
 
-    function handleOperator(op) {
-        if (calcState.operator && !calcState.waitingNew) {
-            calculateResult();
-        }
-        calcState.previous = calcState.current;
-        calcState.operator = op;
-        calcState.waitingNew = true;
-    }
+    function calculateResult(commitHistory = true) {
+        if (!calcState.operator || calcState.storedValue === null) return;
 
-    function calculateResult() {
-        if (!calcState.operator || calcState.previous === null) return;
-        
-        let prev = parseFloat(calcState.previous);
-        let curr = parseFloat(calcState.current);
+        const leftValue = calcState.storedValue;
+        const rightValue = calcState.current;
+        const prev = parseFloat(leftValue);
+        const curr = parseFloat(rightValue);
         let res = 0;
 
         switch (calcState.operator) {
@@ -1270,29 +1288,77 @@ document.addEventListener('DOMContentLoaded', () => {
             case '/': res = curr !== 0 ? prev / curr : 'Error'; break;
         }
 
-        // Float accuracy precision
-        if(res !== 'Error') {
+        if (res !== 'Error') {
             res = Math.round(res * 100000000) / 100000000;
         }
 
-        calcState.current = String(res);
+        const resultText = String(res);
+        if (commitHistory) {
+            pushCalcHistory(`${leftValue} ${getOperatorSymbol(calcState.operator)} ${rightValue} = ${resultText}`);
+        }
+
+        calcState.current = resultText;
         calcState.operator = null;
-        calcState.previous = null;
+        calcState.storedValue = null;
+        calcState.waitingNew = true;
+        updateCalcDisplay();
+    }
+
+    function handleNumber(numStr) {
+        if (calcState.waitingNew) {
+            calcState.current = numStr === '.' ? '0.' : numStr;
+            calcState.waitingNew = false;
+        } else if (numStr === '.') {
+            if (!calcState.current.includes('.')) {
+                calcState.current += '.';
+            }
+        } else if (numStr === '00') {
+            calcState.current = calcState.current === '0' ? '0' : `${calcState.current}00`;
+        } else if (calcState.current === '0') {
+            calcState.current = numStr;
+        } else {
+            calcState.current += numStr;
+        }
+        calcState.current = limitCalcInput(calcState.current);
+        updateCalcDisplay();
+    }
+
+    function handleOperator(op) {
+        if (calcState.operator && !calcState.waitingNew) {
+            calculateResult(false);
+        }
+        calcState.storedValue = calcState.current;
+        calcState.operator = op;
         calcState.waitingNew = true;
         updateCalcDisplay();
     }
 
     function handleFn(fnStr) {
         if (fnStr === 'C') {
-            calcState.current = '0';
-            calcState.previous = null;
+            resetCalculator();
+            return;
+        } else if (fnStr === 'BACK') {
+            if (!calcState.waitingNew && calcState.current !== '0' && calcState.current !== 'Error') {
+                calcState.current = calcState.current.slice(0, -1);
+                if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
+            }
+        } else if (fnStr === 'SQRT') {
+            const currentValue = parseFloat(calcState.current);
+            const result = Number.isFinite(currentValue) && currentValue >= 0
+                ? String(Math.round(Math.sqrt(currentValue) * 100000000) / 100000000)
+                : 'Error';
+            pushCalcHistory(`√${calcState.current} = ${result}`);
+            calcState.current = result;
+            calcState.storedValue = null;
             calcState.operator = null;
-            calcState.waitingNew = false;
+            calcState.waitingNew = true;
         } else if (fnStr === '=') {
-            calculateResult();
+            calculateResult(true);
         }
         updateCalcDisplay();
     }
+
+    updateCalcDisplay();
 
     // UI Buttons
     document.querySelectorAll('.calc-btn').forEach(btn => {
@@ -1319,25 +1385,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const key = e.key;
 
         // Numbers
-        if (/[0-9\.]/.test(key)) {
+        if (/[0-9]/.test(key)) {
             handleNumber(key);
             e.preventDefault();
         } 
+        else if (key === '.') {
+            handleNumber('.');
+            e.preventDefault();
+        }
         // Operators
         else if (['+', '-', '*', '/'].includes(key)) {
             handleOperator(key);
             e.preventDefault();
         } 
         else if (key === 'Enter' || key === '=') {
-            calculateResult();
+            calculateResult(true);
             e.preventDefault();
         }
         else if (key === 'Backspace') {
-            if (!calcState.waitingNew && calcState.current !== '0') {
-                calcState.current = calcState.current.slice(0, -1);
-                if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
-                updateCalcDisplay();
-            }
+            handleFn('BACK');
+            e.preventDefault();
+        }
+        else if (key.toLowerCase() === 'c') {
+            handleFn('C');
             e.preventDefault();
         }
         // Explicitly block Delete, Escape from clearing the calc as requested
@@ -1571,9 +1641,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof notepad !== 'undefined') notepad.value = '';
                 if (typeof calcState !== 'undefined') {
                     calcState.current = '0';
-                    calcState.previous = null;
+                    calcState.storedValue = null;
                     calcState.operator = null;
                     calcState.waitingNew = false;
+                    calcState.history = [];
                     if (typeof updateCalcDisplay === 'function') updateCalcDisplay();
                 }
                 // ------------------------------------------------
@@ -1826,9 +1897,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // (hitscounter.dev 로직이 Firebase total_visits로 대체되어 완전히 제거됨)
 
-    // Disable implicit focusing on calcDisplay
-    const calcDisplayEl = document.getElementById('calcDisplay');
-    if(calcDisplayEl) calcDisplayEl.addEventListener('mousedown', (e) => e.preventDefault());
+    // Prevent the calculator history panel from stealing focus on click.
+    const calcHistoryEl = document.getElementById('calcHistory');
+    if (calcHistoryEl) calcHistoryEl.addEventListener('mousedown', (e) => e.preventDefault());
 
     /* --- Window Popup Mode Logic --- */
     function launchPopupMode() {

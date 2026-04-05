@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 17:19:59 KST
+작성일시: 2026-04-05 17:29:51 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -181,3 +181,33 @@
   - 로컬 실제 팝업에서 상단 분리선 10px 드래그 시 `timer/util/calc` 높이가 정상적으로 재분배되는 것 확인
   - 로컬 실제 팝업에서 중간 분리선 20px 드래그 시 `utility/calc` 높이가 정상적으로 재분배되는 것 확인
   - 아래로 과도하게 확장되는 현상 재현되지 않음
+
+## 계산기 수식 전체 표시 이식
+- 사용자 요청
+  - `=`를 누르기 전까지 현재 수식이 끊기지 않고 보여야 함
+  - 테스트 쪽 계산기 개선본을 운영 서버 계산기에도 반영
+  - 계산기 영역만 수정
+- 수정 대상
+  - `index.html`
+  - `main.css`
+  - `main.js`
+  - `staging/site/assets/styles/main.css`
+  - `staging/site/assets/scripts/app.bundle.js`
+- 구현 내용
+  - 운영 계산기 마크업을 staging 계산기 구조로 교체
+    - `계산기` 라벨
+    - 계산 기록 3줄 + 현재 입력 1줄 구조
+    - `BACK`, `SQRT`, `00` 키 포함
+  - 운영 계산기 로직을 staging 기반으로 이식
+    - `storedValue / operator / waitingNew / history` 상태 사용
+    - `=` 전에는 `왼쪽값 연산자 오른쪽값` 전체 수식이 현재 줄에 유지
+    - `=` 후에는 결과가 이력으로 쌓이고 다음 연산으로 이어 계산 가능
+  - 수식 잘림 방지 보정
+    - 현재 입력 줄은 줄바꿈 가능하게 변경
+    - 긴 수식은 길이에 따라 글씨 크기를 자동으로 낮춤
+    - 표시용 강제 18자 자르기 로직 제거
+- 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 운영 `index.html`에서 `calcHistory`, `BACK`, `SQRT`, `00` 키 마크업 반영 확인
+  - 운영 `main.js`에서 구형 `calcDisplay / previous` 참조 제거 확인

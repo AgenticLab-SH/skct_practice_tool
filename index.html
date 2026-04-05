@@ -179,32 +179,35 @@
 
                 <!-- Calculator (Bottom right area in layout logic) -->
                 <section class="calculator-section">
-                    <div class="calc-display-wrapper" style="position: relative; width: 100%;">
-                        <span id="calcOpDisplay" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: bold; color: #94a3b8;"></span>
-                        <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+                    <div class="section-panel-label">계산기</div>
+                    <div class="calc-display-shell">
+                        <div id="calcHistory" class="calc-history" aria-live="polite"></div>
                     </div>
                     <div class="calc-keys">
                         <button class="calc-btn fn-btn" data-val="C">C</button>
+                        <button class="calc-btn fn-btn" data-val="BACK">←</button>
                         <button class="calc-btn op-btn" data-val="/">÷</button>
-                        <button class="calc-btn op-btn" data-val="*">×</button>
-                        <button class="calc-btn op-btn" data-val="-">-</button>
+                        <button class="calc-btn fn-btn sqrt-btn" data-val="SQRT">√</button>
 
                         <button class="calc-btn num-btn" data-val="7">7</button>
                         <button class="calc-btn num-btn" data-val="8">8</button>
                         <button class="calc-btn num-btn" data-val="9">9</button>
-                        <button class="calc-btn op-btn grid-row-span" data-val="+">+</button>
+                        <button class="calc-btn op-btn" data-val="*">×</button>
 
                         <button class="calc-btn num-btn" data-val="4">4</button>
                         <button class="calc-btn num-btn" data-val="5">5</button>
                         <button class="calc-btn num-btn" data-val="6">6</button>
+                        <button class="calc-btn op-btn" data-val="-">-</button>
 
                         <button class="calc-btn num-btn" data-val="1">1</button>
                         <button class="calc-btn num-btn" data-val="2">2</button>
                         <button class="calc-btn num-btn" data-val="3">3</button>
-                        <button class="calc-btn fn-btn grid-row-span equal-btn" data-val="=">=</button>
+                        <button class="calc-btn op-btn" data-val="+">+</button>
 
-                        <button class="calc-btn num-btn grid-col-span-2" data-val="0">0</button>
+                        <button class="calc-btn num-btn" data-val="0">0</button>
+                        <button class="calc-btn num-btn" data-val="00">00</button>
                         <button class="calc-btn num-btn" data-val=".">.</button>
+                        <button class="calc-btn fn-btn equal-btn" data-val="=">=</button>
                     </div>
                 </section>
 

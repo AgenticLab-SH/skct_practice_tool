@@ -744,54 +744,128 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     background-color: var(--calc-bg);
     display: flex;
     flex-direction: column;
-    padding: 5px;
+    padding: 10px 10px 0;
+    min-height: 180px;
 }
 
-.calc-display {
-    width: 100%;
+.section-panel-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #6b7280;
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+}
+
+.calc-display-shell {
+    min-height: 104px;
+    padding: 10px 12px;
+    border: 1px solid #d7d9df;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #f8f7f8 0%, #eeedf0 100%);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    margin-bottom: 8px;
+    overflow-y: auto;
+}
+
+.calc-history {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    gap: 4px;
     text-align: right;
+    color: #2f2a2d;
+    font-family: Consolas, monospace;
+}
+
+.calc-history::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.calc-line {
+    width: 100%;
+    line-height: 1.08;
+    text-align: right;
+}
+
+.calc-line.history-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    font-size: 13px;
+    color: #807279;
+}
+
+.calc-line.current-line {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-all;
     font-size: 24px;
-    padding: 10px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--ui-radius);
-    background: var(--panel-bg);
-    margin-bottom: 5px;
-    font-family: monospace;
-    font-weight: bold;
-    outline: none;
-    color: var(--text-main);
+    font-weight: 700;
+    color: #1f1a1d;
+}
+
+.calc-line.history-line.calc-line-compact {
+    font-size: 11px;
+    letter-spacing: -0.02em;
+}
+
+.calc-line.current-line.calc-line-compact {
+    font-size: 19px;
+    letter-spacing: -0.02em;
+}
+
+.calc-line.history-line.calc-line-tight {
+    font-size: 10px;
+    letter-spacing: -0.04em;
+}
+
+.calc-line.current-line.calc-line-tight {
+    font-size: 15px;
+    letter-spacing: -0.04em;
 }
 
 .calc-keys {
     flex: 1;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(5, 1fr);
-    gap: 4px;
+    grid-template-rows: repeat(5, minmax(36px, 1fr));
+    gap: 6px;
+    padding-bottom: 10px;
 }
 
 .calc-btn {
-    border: 1px solid var(--border-color);
-    border-radius: var(--ui-radius);
-    background-color: var(--calc-btn-bg);
-    font-size: 16px;
+    border: 1px solid #d3c9ce;
+    border-radius: 9px;
+    background: linear-gradient(180deg, #ffffff 0%, #f3eff1 100%);
+    font-size: 17px;
     cursor: pointer;
     user-select: none;
-    transition: background 0.1s;
-    color: var(--text-main);
-    font-weight: 600;
+    transition: background 0.12s, transform 0.12s;
+    color: #2b2327;
+    font-weight: 700;
+    box-shadow: 0 2px 5px rgba(168, 138, 156, 0.16);
 }
 
-.calc-btn:hover { background-color: var(--calc-btn-hover); }
+.calc-btn:hover { background: linear-gradient(180deg, #fffefe 0%, #ece6e9 100%); }
+.calc-btn:active { transform: translateY(1px); }
 
-.op-btn { background-color: var(--calc-op-bg); color: var(--primary-hover); }
-.op-btn:hover { background-color: #bae6fd; }
+.op-btn { background: linear-gradient(180deg, #fef4f4 0%, #f8dde0 100%); color: #b4232c; }
+.op-btn:hover { background: linear-gradient(180deg, #fce9eb 0%, #f5d3d8 100%); }
 
-.fn-btn { background-color: #fee2e2; color: var(--danger-color); }
-.fn-btn:hover { background-color: #fecaca; }
+.fn-btn { background: linear-gradient(180deg, #f3f4f6 0%, #e4e7eb 100%); color: #475569; }
+.fn-btn:hover { background: linear-gradient(180deg, #eceef2 0%, #d9dde3 100%); }
 
-.equal-btn { background-color: var(--primary-color); color: white; border: none; }
-.equal-btn:hover { background-color: var(--primary-hover); }
+.sqrt-btn {
+    background: linear-gradient(180deg, #fef4f4 0%, #f8dde0 100%);
+    color: #b4232c;
+}
+.sqrt-btn:hover { background: linear-gradient(180deg, #fce9eb 0%, #f5d3d8 100%); }
+
+.equal-btn { background: linear-gradient(180deg, #d74d56 0%, #bc3941 100%); color: white; border-color: #bc3941; }
+.equal-btn:hover { background: linear-gradient(180deg, #df5b64 0%, #c74149 100%); }
 
 .grid-col-span-2 { grid-column: span 2; }
 .grid-row-span { grid-row: span 2; }
