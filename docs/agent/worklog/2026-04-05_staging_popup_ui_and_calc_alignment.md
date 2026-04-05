@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-05 20:03:58 KST
+작성일시: 2026-04-05 20:37:22 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -416,3 +416,36 @@
   - 계산기 섹션 자체를 포커스 가능한 영역으로 만들고, 계산 목록/빈 영역 클릭 시 계산기 섹션으로 포커스를 이동하도록 변경
   - 메모장에 포커스가 남아 있던 경우 클릭 시 먼저 blur되도록 보정
   - 계산 버튼 자체 클릭은 기존 버튼 동작을 방해하지 않도록 제외
+## 운영 OMR 폭 축소 및 팝업 재검증
+- 사용자 요청
+  - 현재 팝업 창 크기는 유지한 채 OMR 폭을 더 좁혀 메인 도구 영역 여백을 최대한 확보
+  - 다만 OMR을 켰을 때 5번 선택지까지 보여야 하며, 최종값은 캡처를 보며 판단
+  - 실제 서버에도 반영
+- 원인
+  - 기존 운영 기본값 `OMR 34%`에서는 팝업 폭 약 400px 기준으로 OMR 자체보다 내부 여백이 커서 5번 선택지가 잘렸음
+- 실측 확인
+  - Chrome DevTools로 운영 팝업과 로컬 수정본을 14인치에 가까운 창 크기로 캡처
+  - `28%` 적용 시 5번이 다시 잘리는 것 확인
+  - `30%` 적용 시 5지선다가 모두 보이고, 메모장/계산기 폭도 더 확보되는 것 확인
+- 수정 내용
+  - `main.css`, `staging/site/assets/styles/main.css`
+    - `.omr-body` 우측 패딩 `5px -> 3px`
+    - `.subject-group` 패딩/간격 축소
+    - `.subject-title` 간격/폰트 축소
+    - `.q-num` 폭 `18px -> 14px`
+    - `.q-options` 간격 `2px -> 1px`
+    - `.q-opt` 크기 `20px -> 15px`
+    - `.q-skip-btn`도 함께 축소
+  - `main.js`, `staging/site/assets/scripts/app.bundle.js`
+    - 팝업 OMR 기본값 `0.34 -> 0.30`
+    - 팝업 OMR 최소폭 `130px -> 120px`
+    - 팝업 OMR 비율 하한 `0.16 -> 0.12`
+  - `admin.html`
+    - 관리자 popupLayout 정규화 fallback을 `0.30` 기준으로 보정
+- 운영 Firebase 갱신
+  - `config/popupLayout.omrWidthRatio = 0.30`
+  - `staging_hidden_v1/config/popupLayout.omrWidthRatio = 0.30`
+- 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 로컬 팝업 캡처에서 `30%` 상태로 5번까지 모두 노출 확인

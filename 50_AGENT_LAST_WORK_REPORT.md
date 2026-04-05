@@ -1,5 +1,5 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-05 20:03:58 KST
+작성일시: 2026-04-05 20:37:22 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
 
@@ -281,3 +281,33 @@
   - `config/popupLayout` → `window 0.269 / 0.98 / 0.731 / 0`, `omrWidthRatio 0.34`
   - `config/layoutRatios` → `timer 8.6 / utils 45.0 / calc 46.4`
   - `config/toolUiConfig` → `bottomPaddingRatio 0.11 / sideButtonColumnRatio 0.09 / noteFontSize 12 / canvasLineWidth 2`
+## 2026-04-05 운영 OMR 폭 축소 및 팝업 최적화
+- 운영 기준 커밋은 `b85a0be`입니다.
+- 사용자 요청
+  - 팝업 창 크기는 그대로 유지하면서 OMR 폭을 더 줄이고, OMR을 켰을 때도 5번 선택지까지 보여야 함
+  - 적정값은 실제 팝업 캡처를 보며 판단하고 운영 서버까지 반영
+- 원인
+  - 기존 기본값 `OMR 34%` 자체보다, OMR 내부 패딩과 번호/선택지 버튼 크기가 커서 팝업 폭 400px대에서 5번이 잘렸음
+- 수정 내용
+  - 운영 `main.css`, 스테이징 `staging/site/assets/styles/main.css`
+    - OMR 내부 오른쪽 패딩 축소
+    - 과목 카드 패딩/간격 축소
+    - 문항 번호 폭, 선택지 원형 버튼 크기, 버튼 간격 축소
+    - 건너뛰기 버튼도 같이 축소
+  - 운영 `main.js`, 스테이징 `staging/site/assets/scripts/app.bundle.js`
+    - 팝업 OMR 기본값을 `34% -> 30%`로 조정
+    - 팝업 OMR 리사이즈 최소폭을 `130px -> 120px`로 조정
+    - 팝업 OMR 비율 하한을 더 낮춰 편집기/관리자 정규화와 동기화
+  - `admin.html`
+    - 관리자 요약/정규화 fallback도 `30%` 기준으로 갱신
+- 캡처 기준 판단
+  - `28%`에서는 5번 선택지가 다시 잘렸음
+  - `30%`에서는 5지선다가 모두 보이면서 메인 도구 영역도 더 넓어졌음
+- 운영 Firebase 실제값
+  - `config/popupLayout` → `window 0.269 / 0.98 / 0.731 / 0`, `omrWidthRatio 0.30`
+  - `staging_hidden_v1/config/popupLayout`도 같은 값으로 맞춤
+- 검증
+  - `node --check main.js` 통과
+  - `node --check staging/site/assets/scripts/app.bundle.js` 통과
+  - 14인치에 가까운 팝업 폭(약 400px)에서 실제 캡처로 `30%` 상태 확인
+  - `30%`에서는 1~5 선택지가 모두 보이는 것 확인
