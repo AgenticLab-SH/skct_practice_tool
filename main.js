@@ -906,9 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timerInterval = null;
         }
         timerIsRunning = false;
-        if (timerPlayBtn) {
-            timerPlayBtn.innerText = '▶ 시작 / 정지';
-        }
+        syncTimerPlayButtonLabel(false);
         updateTimerUI();
         applyPhaseToOMR();
     };
@@ -1599,6 +1597,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${m}:${s}`;
     };
 
+    const syncTimerPlayButtonLabel = (isRunning) => {
+        if (!timerPlayBtn) return;
+        timerPlayBtn.textContent = isRunning ? '■' : '▶';
+        timerPlayBtn.setAttribute('aria-label', isRunning ? '타이머 중지' : '타이머 시작');
+        timerPlayBtn.title = isRunning ? '타이머 중지' : '타이머 시작';
+    };
+
     const updateTimerUI = () => {
         if(!displayTotal) return;
         displayTotal.innerText = `${formatTime(totalSeconds)}`;
@@ -1739,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             clearInterval(timerInterval);
             timerIsRunning = false;
-            timerPlayBtn.innerText = '▶ 시작 / 정지';
+            syncTimerPlayButtonLabel(false);
             currentPhaseIdx = phases.length;
             updateTimerUI();
             playBeep(440, 300, 3); // 전체 시간 종료
@@ -1783,7 +1788,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     clearInterval(timerInterval);
                     timerIsRunning = false;
-                    timerPlayBtn.innerText = '▶ 시작 / 정지';
+                    syncTimerPlayButtonLabel(false);
                     playBeep(440, 500, 3); // 전체 종료
                     // 실전 모드: 마지막 과목도 잠금
                     if (!isPracticeMode) {
@@ -1830,6 +1835,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 초기 렌더링 갱신 ---
     updateTimerUI();
     applyPhaseToOMR();
+    syncTimerPlayButtonLabel(timerIsRunning);
 
     if(timerPlayBtn) {
         timerPlayBtn.addEventListener('click', () => {
@@ -1838,12 +1844,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (timerIsRunning) {
                 clearInterval(timerInterval);
                 timerIsRunning = false;
-                timerPlayBtn.innerText = '▶ 시작 / 정지';
+                syncTimerPlayButtonLabel(false);
                 applyPhaseToOMR();
             } else {
                 timerInterval = setInterval(timerTick, 1000);
                 timerIsRunning = true;
-                timerPlayBtn.innerText = '⏸ 일시정지';
+                syncTimerPlayButtonLabel(true);
                 applyPhaseToOMR();
             }
         });
