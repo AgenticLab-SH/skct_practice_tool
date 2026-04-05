@@ -802,6 +802,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return start;
     };
 
+    const isAnswerEditableIndex = (questionIndex, subjectLocked) => {
+        if (subjectLocked) return false;
+        if (isPracticeMode) return true;
+        return questionIndex <= omrState.currentGlobalIndex;
+    };
+
     // Render OMR
     function renderOMR() {
         let globalIndex = 0;
@@ -855,15 +861,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     let disabledAttr = '';
-                    if (omrState.mode === 'answer') {
-                        if (isPracticeMode) {
-                            // 연습 모드: 모든 문항 자유 입력
-                            disabledAttr = '';
-                        } else if (isSubjLocked) {
-                            disabledAttr = 'disabled';
-                        } else if (!isCurrent) {
-                            disabledAttr = 'disabled';
-                        }
+                    if (omrState.mode === 'answer' && !isAnswerEditableIndex(currentIdx, isSubjLocked)) {
+                        disabledAttr = 'disabled';
                     }
 
                     optionsHtml += `<button class="q-opt ${extraClass}" data-key="${qKey}" data-opt="${opt}" data-gidx="${currentIdx}" ${disabledAttr}>${opt}</button>`;
@@ -902,8 +901,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (isPracticeMode) {
                             // 연습 모드: 클릭한 문항 위치로 currentGlobalIndex 이동 후 advance
                             omrState.currentGlobalIndex = gIdx;
+                            advanceQuestion(false);
+                        } else if (gIdx === omrState.currentGlobalIndex) {
+                            advanceQuestion(false);
+                        } else {
+                            renderOMR();
                         }
-                        advanceQuestion(false);
                     }
                 } else {
                     omrState.correctAnswers[key] = (omrState.correctAnswers[key] === opt) ? null : opt;
@@ -1877,43 +1880,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentPhaseSeconds > 0) {
                 currentPhaseSeconds--;
             } else {
-                // 페이즈 종료 → 알람음 재생
-                const endedPhase = phases[currentPhaseIdx];
-                const endedPhaseIdx = currentPhaseIdx;
-                currentPhaseIdx++;
-                
-                // --- 도구 초기화 (과목 전환 혹은 쉬는 시간 진입 시) ---
-                if (typeof ctx !== 'undefined' && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-                if (typeof notepad !== 'undefined') notepad.value = '';
-                if (typeof calcState !== 'undefined') {
-                    resetCalculator();
-                }
-                // ------------------------------------------------
-                if (currentPhaseIdx < phases.length) {
-                    currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
-                    if (endedPhase.type === 'subject') {
-                        playBeep(659, 400, 2); // 과목 종료: 부드러운 더블 차임 (E5)
-                        // 실전 모드: 종료된 과목 잠금
-                        if (!isPracticeMode) {
-                            const subjIdx = Math.floor(endedPhaseIdx / 2);
-                            lockedSubjectIndices.add(subjIdx);
-                        }
-                    } else {
-                        playBeep(523, 400, 1); // 쉬는시간 종료: 단일 차임 (C5)
-                    }
-                    applyPhaseToOMR();
-                } else {
-                    clearInterval(timerInterval);
-                    timerIsRunning = false;
-                    syncTimerPlayButtonLabel(false);
-                    playBeep(440, 500, 3); // 전체 종료
-                    // 실전 모드: 마지막 과목도 잠금
-                    if (!isPracticeMode) {
-                        const subjIdx = Math.floor((currentPhaseIdx - 1) / 2);
-                        lockedSubjectIndices.add(subjIdx);
-                    }
-                    applyPhaseToOMR();
-                }
+                advancePhaseBoundary();
             }
         }
         updateTimerUI();
@@ -1949,6 +1916,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const advancePhaseBoundary = ({ skipRemainingPhaseSeconds = false } = {}) => {
+        if (currentPhaseIdx >= phases.length) return;
+        const endedPhase = phases[currentPhaseIdx];
+        const endedPhaseIdx = currentPhaseIdx;
+
+        if (skipRemainingPhaseSeconds && currentPhaseSeconds > 0) {
+            totalSeconds = Math.max(totalSeconds - currentPhaseSeconds, 0);
+        }
+
+        currentPhaseIdx++;
+
+        if (typeof ctx !== 'undefined' && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (typeof notepad !== 'undefined') notepad.value = '';
+        if (typeof calcState !== 'undefined') {
+            resetCalculator();
+        }
+
+        if (currentPhaseIdx < phases.length) {
+            currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
+            if (endedPhase.type === 'subject') {
+                playBeep(659, 400, 2);
+                if (!isPracticeMode) {
+                    const subjIdx = Math.floor(endedPhaseIdx / 2);
+                    lockedSubjectIndices.add(subjIdx);
+                }
+            } else if (!skipRemainingPhaseSeconds) {
+                playBeep(523, 400, 1);
+            }
+            applyPhaseToOMR();
+        } else {
+            clearInterval(timerInterval);
+            timerIsRunning = false;
+            syncTimerPlayButtonLabel(false);
+            playBeep(440, 500, 3);
+            if (!isPracticeMode) {
+                const subjIdx = Math.floor((currentPhaseIdx - 1) / 2);
+                lockedSubjectIndices.add(subjIdx);
+            }
+            applyPhaseToOMR();
+        }
+    };
+
+    const skipCurrentBreak = () => {
+        if (!timerIsRunning || currentPhaseIdx >= phases.length) return;
+        const currentPhase = phases[currentPhaseIdx];
+        if (currentPhase?.type !== 'break') return;
+        advancePhaseBoundary({ skipRemainingPhaseSeconds: true });
+        updateTimerUI();
+    };
+
     // --- 초기 렌더링 갱신 ---
     updateTimerUI();
     applyPhaseToOMR();
@@ -1969,6 +1986,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 syncTimerPlayButtonLabel(true);
                 applyPhaseToOMR();
             }
+        });
+    }
+
+    const breakSkipBtn = document.getElementById('breakSkipBtn');
+    if (breakSkipBtn) {
+        breakSkipBtn.addEventListener('click', () => {
+            skipCurrentBreak();
         });
     }
 
