@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         subjects.forEach((subj, subjIdx) => {
             const group = document.createElement('div');
             group.className = 'subject-group';
-            const isSubjLocked = lockedSubjectIndices.has(subjIdx) && (!isPracticeMode && timerIsRunning);
+            const isSubjLocked = lockedSubjectIndices.has(subjIdx) && !isPracticeMode;
             if (isSubjLocked) group.classList.add('subject-locked');
             group.innerHTML = `<div class="subject-title">${subj.name}${isSubjLocked ? ' <span class="lock-badge">🔒 시간종료</span>' : ''}</div>`;
             
@@ -354,8 +354,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     let disabledAttr = '';
                     if (omrState.mode === 'answer') {
-                        if (isPracticeMode || !timerIsRunning) {
-                            // 연습 모드이거나 타이머 정지 시: 모든 문항 자유 입력
+                        if (isPracticeMode) {
+                            // 연습 모드: 모든 문항 자유 입력
                             disabledAttr = '';
                         } else if (isSubjLocked) {
                             disabledAttr = 'disabled';
