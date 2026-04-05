@@ -6,8 +6,8 @@
     <title>SKCT Tool - Admin Dashboard</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-    <link rel="stylesheet" href="admin.css">
-    <link rel="icon" href="images/sk_ci.png">
+    <link rel="stylesheet" href="assets/styles/admin.css">
+    <link rel="icon" href="assets/images/sk_ci.png">
 </head>
 <body>
 
@@ -29,7 +29,6 @@
         <h1>🛡️ SKCT Tool Admin</h1>
         <div class="top-nav-actions">
             <a href="index.html?dev=1&preview=1" target="_blank" id="sitePreviewLink">🔗 사이트 보기</a>
-            <a href="staging/site/index.html?stage=1&preview=1" target="_blank" id="stagingPreviewLink">🧪 테스트 사이트</a>
             <button class="btn-logout" id="logoutBtn">로그아웃</button>
         </div>
     </nav>
@@ -385,23 +384,6 @@
         return 'index.html?dev=1&preview=1';
     }
 
-    function buildStagingPreviewUrl() {
-        return 'staging/site/index.html?stage=1&preview=1';
-    }
-
-    function openPopupWindow(url, windowName) {
-        let w = parseInt(localStorage.getItem('skct_popup_width'), 10) || 350;
-        let h = parseInt(localStorage.getItem('skct_popup_height'), 10) || 800;
-        let left = parseInt(localStorage.getItem('skct_popup_left'), 10);
-        let top = parseInt(localStorage.getItem('skct_popup_top'), 10);
-
-        if (isNaN(left)) left = Math.round((screen.width - w) / 2);
-        if (isNaN(top)) top = Math.round((screen.height - h) / 2);
-
-        const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
-        return window.open(url, windowName, popupParams);
-    }
-
     // ── State ──
     let adminHash = null;
     let isLoggedIn = false;
@@ -420,13 +402,13 @@
         if (!pw) return;
 
         // Get admin hash from Firebase
-        const snap = await get(ref(db, 'config/adminHash'));
+        const snap = await get(ref(db, 'staging_hidden_v1/config/adminHash'));
         if (!snap.exists()) {
             // No admin hash set — first time setup
             const confirmSetup = confirm('관리자 비밀번호가 아직 설정되지 않았습니다.\n지금 입력한 비밀번호를 관리자 비밀번호로 설정할까요?');
             if (confirmSetup) {
                 const hash = await sha256(pw);
-                await set(ref(db, 'config/adminHash'), hash);
+                await set(ref(db, 'staging_hidden_v1/config/adminHash'), hash);
                 adminHash = hash;
                 enterDashboard();
                 toast('✅ 관리자 비밀번호가 설정되었습니다!');
@@ -463,22 +445,19 @@
         sitePreviewLink.href = buildSitePreviewUrl();
         sitePreviewLink.addEventListener('click', (e) => {
             e.preventDefault();
-            const popup = openPopupWindow(buildSitePreviewUrl(), 'skct_popup_mode');
+
+            let w = parseInt(localStorage.getItem('stg_skct_popup_width'), 10) || 350;
+            let h = parseInt(localStorage.getItem('stg_skct_popup_height'), 10) || 800;
+            let left = parseInt(localStorage.getItem('stg_skct_popup_left'), 10);
+            let top = parseInt(localStorage.getItem('stg_skct_popup_top'), 10);
+
+            if (isNaN(left)) left = Math.round((screen.width - w) / 2);
+            if (isNaN(top)) top = Math.round((screen.height - h) / 2);
+
+            const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+            const popup = window.open(buildSitePreviewUrl(), 'stg_skct_popup_mode', popupParams);
             if (!popup) {
                 toast('팝업이 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용해주세요.', true);
-            }
-        });
-    }
-
-    const stagingPreviewLink = document.getElementById('stagingPreviewLink');
-    if (stagingPreviewLink) {
-        stagingPreviewLink.href = buildStagingPreviewUrl();
-        stagingPreviewLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.setItem('stg_skct_admin_gate_until', String(Date.now() + 60 * 60 * 1000));
-            const popup = openPopupWindow(buildStagingPreviewUrl(), 'stg_skct_popup_mode');
-            if (!popup) {
-                toast('테스트 사이트 팝업이 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용해주세요.', true);
             }
         });
     }
@@ -495,7 +474,7 @@
         // Active visitors polling (10s) with strict Heartbeat filter
         async function fetchAdminActiveVisitors() {
             try {
-                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json');
+                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/staging_hidden_v1/active_visitors.json');
                 const data = await res.json();
                 let count = 0;
                 const now = Date.now();
@@ -519,8 +498,8 @@
         async function fetchAdminAnalytics() {
             try {
                 const [totalRes, dailyRes] = await Promise.all([
-                    fetch('https://skct-tool-default-rtdb.firebaseio.com/total_visits.json'),
-                    fetch('https://skct-tool-default-rtdb.firebaseio.com/daily_visits.json')
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/staging_hidden_v1/total_visits.json'),
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/staging_hidden_v1/daily_visits.json')
                 ]);
                 const totalVisits = await totalRes.json() || 0;
                 const dailyVisits = await dailyRes.json() || {};
@@ -542,7 +521,7 @@
 
     // ── Posts ──
     async function loadPostsOnce() {
-        const snap = await get(ref(db, 'posts'));
+        const snap = await get(ref(db, 'staging_hidden_v1/posts'));
         allPosts = {};
         let count = 0;
         if (snap.exists()) snap.forEach(c => { allPosts[c.key] = { ...c.val(), id: c.key }; count++; });
@@ -618,36 +597,36 @@
     async function handlePostAction(action, pid) {
         switch (action) {
             case 'pin': {
-                const snap = await get(ref(db, `posts/${pid}/pinned`));
-                await update(ref(db, `posts/${pid}`), { pinned: !(snap.val() || false) });
+                const snap = await get(ref(db, `staging_hidden_v1/posts/${pid}/pinned`));
+                await update(ref(db, `staging_hidden_v1/posts/${pid}`), { pinned: !(snap.val() || false) });
                 toast('📌 고정 상태 변경됨');
                 loadPostsOnce();
                 break;
             }
             case 'move': {
                 if (!confirm('이 게시글을 FAQ로 이동할까요?')) return;
-                await update(ref(db, `posts/${pid}`), { category: 'faq' });
+                await update(ref(db, `staging_hidden_v1/posts/${pid}`), { category: 'faq' });
                 toast('📌 FAQ로 이동 완료');
                 loadPostsOnce();
                 break;
             }
             case 'delete': {
                 if (!confirm('이 게시글을 삭제할까요?')) return;
-                await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
+                await update(ref(db, `staging_hidden_v1/posts/${pid}`), { deleted: true, deletedAt: Date.now() });
                 toast('🗑️ 삭제됨');
                 loadPostsOnce();
                 break;
             }
             case 'restore': {
-                await update(ref(db, `posts/${pid}`), { deleted: false, deletedAt: null });
+                await update(ref(db, `staging_hidden_v1/posts/${pid}`), { deleted: false, deletedAt: null });
                 toast('♻️ 복원됨');
                 loadPostsOnce();
                 break;
             }
             case 'harddelete': {
                 if (!confirm('⚠️ 완전히 삭제합니다. 복구가 불가능합니다. 계속할까요?')) return;
-                await remove(ref(db, `posts/${pid}`));
-                await remove(ref(db, `replies/${pid}`));
+                await remove(ref(db, `staging_hidden_v1/posts/${pid}`));
+                await remove(ref(db, `staging_hidden_v1/replies/${pid}`));
                 toast('💀 완전 삭제됨');
                 loadPostsOnce();
                 break;
@@ -671,7 +650,7 @@
         const body = document.getElementById('replyModalBody');
         body.innerHTML = '<div style="text-align:center; color:var(--adm-text-muted); padding:20px;">로딩 중...</div>';
 
-        const snap = await get(ref(db, `replies/${pid}`));
+        const snap = await get(ref(db, `staging_hidden_v1/replies/${pid}`));
         let replies = [];
         if (snap.exists()) snap.forEach(c => { replies.push({ ...c.val(), id: c.key }); });
         replies.sort((a, b) => a.timestamp - b.timestamp);
@@ -714,24 +693,24 @@
             btn.onclick = async () => {
                 const a = btn.dataset.ract, rid = btn.dataset.rid;
                 if (a === 'rpin') {
-                    const s = await get(ref(db, `replies/${pid}/${rid}/pinned`));
-                    await update(ref(db, `replies/${pid}/${rid}`), { pinned: !(s.val() || false) });
+                    const s = await get(ref(db, `staging_hidden_v1/replies/${pid}/${rid}/pinned`));
+                    await update(ref(db, `staging_hidden_v1/replies/${pid}/${rid}`), { pinned: !(s.val() || false) });
                     toast('📌 댓글 고정 변경');
                     openReplyModal(pid);
                 } else if (a === 'rdel') {
                     if (!confirm('댓글을 삭제할까요?')) return;
-                    await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
-                    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c || 0) - 1, 0));
+                    await update(ref(db, `staging_hidden_v1/replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
+                    await runTransaction(ref(db, `staging_hidden_v1/posts/${pid}/replyCount`), c => Math.max((c || 0) - 1, 0));
                     toast('🗑️ 댓글 삭제됨');
                     openReplyModal(pid);
                 } else if (a === 'rrestore') {
-                    await update(ref(db, `replies/${pid}/${rid}`), { deleted: false, deletedAt: null });
-                    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c || 0) + 1);
+                    await update(ref(db, `staging_hidden_v1/replies/${pid}/${rid}`), { deleted: false, deletedAt: null });
+                    await runTransaction(ref(db, `staging_hidden_v1/posts/${pid}/replyCount`), c => (c || 0) + 1);
                     toast('♻️ 댓글 복원됨');
                     openReplyModal(pid);
                 } else if (a === 'rhard') {
                     if (!confirm('⚠️ 완전 삭제합니다.')) return;
-                    await remove(ref(db, `replies/${pid}/${rid}`));
+                    await remove(ref(db, `staging_hidden_v1/replies/${pid}/${rid}`));
                     toast('💀 완전 삭제됨');
                     openReplyModal(pid);
                 }
@@ -749,11 +728,11 @@
         if (!currentReplyPid) return;
         const content = document.getElementById('adminReplyInput').value.trim();
         if (!content) { toast('내용을 입력하세요', true); return; }
-        await set(push(ref(db, `replies/${currentReplyPid}`)), {
+        await set(push(ref(db, `staging_hidden_v1/replies/${currentReplyPid}`)), {
             nickname: '🛡️ 관리자', passwordHash: '', content,
             timestamp: Date.now(), isAdmin: true, pinned: true, deleted: false
         });
-        await runTransaction(ref(db, `posts/${currentReplyPid}/replyCount`), c => (c || 0) + 1);
+        await runTransaction(ref(db, `staging_hidden_v1/posts/${currentReplyPid}/replyCount`), c => (c || 0) + 1);
         document.getElementById('adminReplyInput').value = '';
         toast('✅ 관리자 답글 등록');
         openReplyModal(currentReplyPid);
@@ -846,7 +825,7 @@
     document.getElementById('clearZombiesBtn').addEventListener('click', async () => {
         if(!confirm('모든 방문자의 접속 상태가 0명으로 초기화되며, 실제 접속자는 새로고침 시 다시 정상 집계됩니다. 진행할까요?')) return;
         try {
-            await set(ref(db, 'active_visitors'), null);
+            await set(ref(db, 'staging_hidden_v1/active_visitors'), null);
             toast('✅ 실시간 접속자 데이터가 초기화되었습니다.');
         } catch(e) {
             toast('❌ 초기화 오류: ' + e.message);
@@ -911,7 +890,7 @@
     document.getElementById('noticeTarget').addEventListener('change', renderNoticeForm);
 
     function listenConfig() {
-        onValue(ref(db, 'config'), snap => {
+        onValue(ref(db, 'staging_hidden_v1/config'), snap => {
             if (!snap.exists()) return;
             const cfg = snap.val();
             
@@ -975,7 +954,7 @@
             updated: new Date().toISOString().slice(0, 10)
         };
         loadedConfig[target] = notice;
-        await set(ref(db, `config/${target}`), notice);
+        await set(ref(db, `staging_hidden_v1/config/${target}`), notice);
         toast('✅ 공지 저장 완료 (' + (target === 'notice_help' ? 'Help' : '커뮤니티') + ')');
     });
 
@@ -985,7 +964,7 @@
             minLikes: parseInt(document.getElementById('popMinLikes').value) || 5,
             minComments: parseInt(document.getElementById('popMinComments').value) || 3
         };
-        await set(ref(db, 'config/popularConfig'), config);
+        await set(ref(db, 'staging_hidden_v1/config/popularConfig'), config);
         toast('✅ 인기글 기준 저장 완료');
     });
 
@@ -1042,14 +1021,14 @@
         };
         loadedConfig.supportConfig = supportConfig;
 
-        await set(ref(db, 'config/appName'), appName);
-        await set(ref(db, 'config/useful_links'), links);
-        await set(ref(db, 'config/maintenance'), maintenance);
-        await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
-        await set(ref(db, 'config/timerDefaults'), timerDefaults);
-        await set(ref(db, 'config/guideDefaults'), guideDefaults);
-        await set(ref(db, 'config/layoutRatios'), layoutRatios);
-        await set(ref(db, 'config/supportConfig'), supportConfig);
+        await set(ref(db, 'staging_hidden_v1/config/appName'), appName);
+        await set(ref(db, 'staging_hidden_v1/config/useful_links'), links);
+        await set(ref(db, 'staging_hidden_v1/config/maintenance'), maintenance);
+        await set(ref(db, 'staging_hidden_v1/config/sponsors'), loadedConfig.sponsors || []);
+        await set(ref(db, 'staging_hidden_v1/config/timerDefaults'), timerDefaults);
+        await set(ref(db, 'staging_hidden_v1/config/guideDefaults'), guideDefaults);
+        await set(ref(db, 'staging_hidden_v1/config/layoutRatios'), layoutRatios);
+        await set(ref(db, 'staging_hidden_v1/config/supportConfig'), supportConfig);
         toast('✅ 글로벌 & 기본 설정 저장 완료');
     });
 
@@ -1057,3 +1036,5 @@
 
 </body>
 </html>
+
+

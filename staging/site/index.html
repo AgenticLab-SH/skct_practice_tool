@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta name="naver-site-verification" content="3bc47cc21835d959a4218c4c4fc9cdd26ef66ee7" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKCT 온라인 연습 도구 | OMR & 타이머 & 메모장 & 계산기 무료</title>
+    <meta name="description" content="SKCT(SK 인적성 검사) 완벽 대비를 위한 무료 온라인 OMR 및 타이머. 다중 페이즈 타이머, 메모장, 그림판, 화면 계산기를 실전처럼 연습하세요. SK그룹 취준생 필수 도구!">
+    <meta name="keywords" content="SKCT, SK그룹, SK 인적성, SKCT 타이머, SKCT OMR, SKCT 계산기, SKCT 연습, 인적성 검사, 인적성 연습, 취업 준비, 취준생, 실전 모의고사, SKCT 무료, SKCT 메모장">
+    <meta name="author" content="AgenticLab">
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Open Graph (SNS 공유시 썸네일 카드 노출) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="SKCT 온라인 연습 도구 | OMR & 타이머">
+    <meta property="og:description" content="실전 SKCT 환경 완벽 구현! OMR, 타이머, 메모장, 계산기를 무료로 사용해보세요.">
+    <meta property="og:url" content="https://agenticlab-sh.github.io/skct_tool/staging/site/">
+    <meta property="og:image" content="https://agenticlab-sh.github.io/skct_tool/staging/site/assets/images/og-image.png">
+    <meta property="og:locale" content="ko_KR">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SKCT 온라인 연습 도구 | OMR & 타이머">
+    <meta name="twitter:description" content="실전 SKCT 환경 완벽 구현! OMR, 타이머, 메모장, 계산기를 무료로 사용해보세요.">
+    <meta name="twitter:image" content="https://agenticlab-sh.github.io/skct_tool/staging/site/assets/images/og-image.png">
+    <link rel="canonical" href="https://agenticlab-sh.github.io/skct_tool/staging/site/">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZLHB1RM91X"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-ZLHB1RM91X');
+    </script>
+    <link rel="stylesheet" href="assets/styles/main.css">
+    <!-- Google Fonts & Pretendard -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="icon" href="assets/images/sk_ci.png">
+</head>
+<body>
+    <div style="position:sticky; top:0; z-index:10001; padding:8px 14px; background:linear-gradient(135deg,#0f172a,#1e293b); color:#f8fafc; font-size:12px; font-weight:700; text-align:center; letter-spacing:0.02em;">
+        🧪 숨은 테스트 사이트 · 운영 데이터 읽기 전용 · 방문/좋아요/댓글/설정 저장 차단
+    </div>
+    <!-- SEO & Screen Reader 용 숨김 텍스트 (Google 검색 노출 극대화) -->
+    <h1 class="sr-only">SKCT 연습 툴 - SKCT 실제화면과 동일한 온라인 SKCT 환경 가이드</h1>
+    <p class="sr-only">본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!</p>
+
+    <div class="app-container">
+
+        <!-- OMR Sidebar (Left) -->
+        <aside class="omr-sidebar collapsed" id="omrSidebar">
+            <div class="sidebar-controls" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 8px;">
+                <div class="help-toggle" id="helpToggle" title="사용 가이드">
+                    <span>G</span><span>U</span><span>I</span><span>D</span><span>E</span>
+                </div>
+                <div class="omr-toggle" id="omrToggleBtn" title="연습용 OMR 탭 열기/닫기">
+                    <span style="font-size:9px; letter-spacing:0; line-height:1.2;">연습용</span><span style="font-size:9px; letter-spacing:0; line-height:1.2;">OMR</span>
+                </div>
+                <div class="settings-toggle" id="settingsToggle" title="타이머 & 레이아웃 설정">
+                    <span style="font-size:14px;">⚙</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.3;">설정</span>
+                </div>
+                <div class="popup-toggle" id="popupToggle" title="화면을 더 좁게 쓰기 위한 팝업 모드 열기">
+                    <span style="font-size:14px;">↗</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">화면 더<br>줄이기</span>
+                </div>
+                <div class="extension-toggle" id="extensionToggle" title="초간단 링커리어 무적모드(테스트 기능) 확장프로그램 설치">
+                    <span style="font-size:15px; filter: drop-shadow(0 0 2px rgba(16,185,129,0.8));">🛡️</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">무적모드<br>(테스트)</span>
+                </div>
+                <!-- 구분선 -->
+                <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
+                <div class="stats-toggle" id="statsToggle" title="실시간 현황 & 최근 7일 그래프">
+                    <span style="font-size:14px;">🔥</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">접속자 수</span>
+                </div>
+                <div class="comment-toggle" id="commentToggle" title="커뮤니티 게시판 (공지 / Q&A / 후기)">
+                    <span style="font-size:14px;">💬</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">게시판</span>
+                </div>
+                <!-- 구분선 -->
+                <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
+                <div class="donate-toggle" id="donateToggle" title="게시자에게 커피 사주기 (투네이션)">
+                    <span style="font-size:15px;">☕</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">커피<br>후원</span>
+                </div>
+            </div>
+            <div class="omr-content hidden" id="omrContent">
+                <!-- 탭 접기 (최상단) -->
+                <div class="omr-top-bar">
+                    <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 탭 접기</button>
+                    <span id="omrModeLabel" class="omr-mode-label">응시 모드</span>
+                </div>
+
+                <!-- OMR 칸 (절반 높이) -->
+                <div class="omr-body" id="omrBody">
+                    <!-- Sections will be injected via JS -->
+                </div>
+
+                <!-- 하단 세로 배열 버튼 -->
+                <div class="omr-actions">
+                    <button id="globalClearBtn" class="omr-action-btn skip-btn">문항 건너뛰기</button>
+                    <button id="modeToggleBtn" class="omr-action-btn mode-btn">📝 정답 입력 모드로 전환</button>
+                    <button id="scoreBtn" class="omr-action-btn grade-btn">📊 채점 및 통계 확인</button>
+                    <div id="scoreResult" class="score-result hidden">
+                        <div class="stat-line"><span>푼 문제</span> <strong id="statAttempted">0 / 100</strong></div>
+                        <div class="stat-line"><span>맞은 개수</span> <strong id="statCorrect">0</strong></div>
+                        <div class="stat-line"><span>정답률(푼 문제 대비)</span> <strong id="statRate">0%</strong></div>
+                    </div>
+                    <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden">📋 과목별 상세 통계</button>
+                    <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 RESET</button>
+                </div>
+            </div>
+            
+
+            <div class="omr-resizer" id="omrResizer"></div>
+        </aside>
+
+        <!-- Main View (Right Side Tools) -->
+        <main class="main-content">
+
+            <!-- Top / Timer Bar -->
+            <header class="top-bar">
+                <button id="popupBtn" class="popup-btn" title="가로폭을 더 얇게 줄일 수 있는 팝업 모드로 열기">화면 더 줄이기</button>
+                <div class="timer-wrapper" style="margin-left:auto; display: flex; align-items: center; gap: 12px; background: #0f172a; border: 1px solid #334155; padding: 6px 14px; border-radius: 8px;">
+                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                        <span style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">전체 남은 시간</span>
+                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">75:00</span>
+                    </div>
+                    <div style="width: 1px; height: 24px; background: #334155;"></div>
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <span id="displayPhaseName" style="color: #60a5fa; font-size: 11px; font-weight: bold; margin-bottom: 2px;">1과목 언어이해</span>
+                        <div style="display:flex; align-items:baseline; gap:8px;">
+                            <span id="displayPhaseTime" style="color: #4ade80; font-family: 'Consolas', monospace; font-size: 20px; font-weight: bold; line-height: 1;">15:00</span>
+                        </div>
+                        <div id="guideTimerWrapper" style="font-size:10px; color:#94a3b8; font-weight:bold; margin-top:4px; display:none;">
+                            가이드: <span id="displayGuideTime" style="color:#38bdf8; font-family:'Consolas', monospace;">00:00</span>
+                        </div>
+                    </div>
+                    <div class="timer-controls" style="margin-left: 8px;">
+                        <button id="timerPlayBtn" style="padding: 6px 14px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px;">▶ 시작 / 정지</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Tools Grid -->
+            <div class="tools-layout" style="position: relative;">
+
+                <!-- Break Time Overlay (Moved from sidebar) -->
+                <div id="omrBreakOverlay" class="omr-break-overlay hidden">
+                    <span style="font-size:32px;">☕</span>
+                    <div style="font-weight:bold; font-size:16px; color:#f97316; margin-top:10px;">쉬는 시간입니다</div>
+                    <div style="font-size:12px; color:#64748b; margin-top:5px; padding:0 10px;">다음 과목이 시작될 때까지 통제됩니다.</div>
+                    <div style="margin-top:20px; font-size:11px; color:#94a3b8; padding-top:10px; border-top:1px dashed rgba(0,0,0,0.1);">
+                        <span id="breakSupportHint">개발에 큰 힘이 됩니다. 좌측 <span style="color:#f59e0b;">☕</span> 아이콘을 통해 후원 부탁드립니다.</span>
+                    </div>
+                </div>
+
+                <!-- Utilities (Top right area in layout logic, but here taking upper flow) -->
+                <section class="utility-section">
+                    <div class="tool-header">
+                        <div class="tool-tabs">
+                            <button id="tabNotepad" class="tab-btn active">메모장</button>
+                            <button id="tabCanvas" class="tab-btn">그림판</button>
+                        </div>
+                        <button id="clearCurrentToolBtn" class="clear-btn">지우기</button>
+                    </div>
+
+                    <div class="tool-body">
+                        <!-- Notepad -->
+                        <div id="notepadWrapper" class="tool-wrapper">
+                            <textarea id="notepad" placeholder="이곳에 텍스트를 입력하거나 붙여넣기(Ctrl+V) 하세요..."></textarea>
+                        </div>
+
+                        <!-- Drawing Board -->
+                        <div id="canvasWrapper" class="tool-wrapper hidden">
+                            <canvas id="drawingBoard"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calculator (Bottom right area in layout logic) -->
+                <section class="calculator-section">
+                    <div class="calc-display-wrapper" style="position: relative; width: 100%;">
+                        <span id="calcOpDisplay" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: bold; color: #94a3b8;"></span>
+                        <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+                    </div>
+                    <div class="calc-keys">
+                        <button class="calc-btn fn-btn" data-val="C">C</button>
+                        <button class="calc-btn op-btn" data-val="/">÷</button>
+                        <button class="calc-btn op-btn" data-val="*">×</button>
+                        <button class="calc-btn op-btn" data-val="-">-</button>
+
+                        <button class="calc-btn num-btn" data-val="7">7</button>
+                        <button class="calc-btn num-btn" data-val="8">8</button>
+                        <button class="calc-btn num-btn" data-val="9">9</button>
+                        <button class="calc-btn op-btn grid-row-span" data-val="+">+</button>
+
+                        <button class="calc-btn num-btn" data-val="4">4</button>
+                        <button class="calc-btn num-btn" data-val="5">5</button>
+                        <button class="calc-btn num-btn" data-val="6">6</button>
+
+                        <button class="calc-btn num-btn" data-val="1">1</button>
+                        <button class="calc-btn num-btn" data-val="2">2</button>
+                        <button class="calc-btn num-btn" data-val="3">3</button>
+                        <button class="calc-btn fn-btn grid-row-span equal-btn" data-val="=">=</button>
+
+                        <button class="calc-btn num-btn grid-col-span-2" data-val="0">0</button>
+                        <button class="calc-btn num-btn" data-val=".">.</button>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Help Modal Overlay -->
+    <div id="helpModal" class="modal-overlay hidden">
+        <div class="modal-content help-modal-content">
+            <div class="modal-header help-modal-header">
+                <h3>📖 사용 가이드</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="help-modal-body">
+                <!-- 개발자 공지 (JS에서 주입) -->
+                <div id="devNotice"></div>
+                <div id="sponsorTicker"></div>
+
+                <!-- 사용 예시 사진 섹션 -->
+                <div style="margin-bottom: 5px;">
+                    <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">📷 실제 툴 사용 권장 예시</div>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ PDF 활용 예시</div>
+                            <img src="assets/images/real_non_omr_image.png" alt="PDF 및 연습 도구 분할 화면" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; text-align:center;">좌측에 PDF나 e-book을 띄워두고 이 예시 사진과 동일한 비율로 맞춰서 화면을 구성하시고 연습하시면 됩니다.</div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 연습용 모드 (OMR 사용)</div>
+                            <img src="assets/images/omr_using_image.png" alt="OMR 보조 모드" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; text-align:center;">정답 마킹 및 채점을 위해 OMR을 펼쳐두고 연습할 수 있습니다.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #64748b; padding: 10px 14px; border-radius: 4px; font-size: 12px; color: #334155; margin-bottom: 18px; line-height: 1.5;">
+                    <strong style="color:#1e293b;">[참고사항]</strong><br>
+                    1. <strong>실제 시험장 사용 불가</strong>: 실제 온라인 SKCT 시험은 전용 보안 프로그램에서 진행되므로 본 연습 툴을 병행하여 띄워둘 수 없습니다.<br>
+                    2. <strong>유사 환경 구현</strong>: 본 도구는 실제 시험의 타이머 작동 방식, 리셋되는 메모장, 제한적 계산기 등 UI/UX를 최대한 비슷하게 체험하도록 제작한 모의 연습 도구입니다.<br>
+                    3. <strong>OMR은 연습 전용</strong>: 실제 시험에는 OMR이 없으며 문제 에 직접 정답을 체크하는 방식입니다. 본 서비스의 OMR 기능은 여러분의 채점 편의를 위해 가상으로 추가된 기능입니다.
+                </div>
+
+                <!-- 기능 안내 -->
+                <div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-bottom: 10px;">🗺️ 기능 안내</div>
+                <div class="guide-diagram" style="background:#1e293b; border-radius:8px; padding:15px; color:white; font-size:13px; display:flex; gap:10px;">
+                    <div style="flex:1; border:2px solid #3b82f6; padding:10px; border-radius:4px; position:relative;">
+                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>
+                        <p>📖 <strong>GUIDE</strong> — 가이드 문서</p>
+                        <p>📝 <strong>OMR</strong> — 답안 마킹/채점</p>
+                        <p>⚙ <strong>설정</strong> — 타이머·높이비율</p>
+                        <p>🔥 <strong>접속자 수</strong> — 실시간 접속자</p>
+                        <p>💬 <strong>게시판</strong> — 커뮤니티</p>
+                        <p>☕ <strong>커피후원</strong> — 제작자 응원</p>
+                        <hr style="border-color:#334155; margin: 8px 0;">
+                        <p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제</strong></p>
+                        <p style="color:#93c5fd;">[건너뛰기] = 마킹 없이 스킵</p>
+                    </div>
+                    <div style="flex:2; display:flex; flex-direction:column; gap:10px;">
+                        <div style="border:2px solid #a855f7; padding:10px; border-radius:4px; text-align:center;">
+                            <strong>🕒 다중 페이즈 타이머</strong><br>
+                            과목 → 쉬는시간 사이클 <strong>자동 전환 및 소리 알림</strong><br>
+                            <span style="color:#c4b5fd;">⚙ 설정에서 시간 조절 가능</span>
+                        </div>
+                        <div style="border:2px solid #eab308; padding:10px; border-radius:4px; text-align:center; flex:3;">
+                            <strong>✏️ 연습장 (메모장 & 그림판)</strong><br>
+                            다음 문제 넘어가면 <strong>자동 초기화</strong><br>
+                            <span style="color:#fde68a;">실제 SKCT와 동일한 동작</span>
+                        </div>
+                        <div style="border:2px solid #22c55e; padding:10px; border-radius:4px; text-align:center; flex:2;">
+                            <strong>🧮 키보드 사용 가능한 계산기</strong><br>
+                            <strong>버튼 구현</strong><br>
+                            <span style="color:#86efac;">실제 시험과 동일한 제한</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 통합 설정 Modal (타이머 + 높이 비율) -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 320px;">
+            <div class="modal-header">
+                <h3>⚙ 통합 설정</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+                <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
+                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 12:02:00 +09:00</div>
+                    <div><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1202</div>
+                </div>
+                <!-- 모드 설정 -->
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🎯 모드 설정</div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155; margin:0; flex:1;">
+                            <input type="checkbox" id="cfgPracticeMode" style="margin:0; width:16px; height:16px; accent-color:#3b82f6;">
+                            <span style="font-weight:600;">연습 모드</span>
+                        </label>
+                    </div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:6px; line-height:1.4; padding:0 4px;">
+                        OFF = <strong style="color:#475569;">실전 모드</strong>: 과목 시간 종료 시 자동 잠금 및 다음 과목 강제 전환<br>
+                        ON = <strong style="color:#475569;">연습 모드</strong>: 시간 제한·강제 전환 없이 자유롭게 마킹
+                    </div>
+                </div>
+                <!-- 타이머 설정 -->
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🕒 타이머 설정</div>
+                    <div class="settings-row" style="margin-bottom:8px;">
+                        <label style="color:#334155;">전체 제한 시간 (분)</label>
+                        <input type="number" id="cfgTotal" value="75" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                    <div class="settings-row" style="margin-bottom:8px;">
+                        <label style="color:#334155;">각 과목당 시간 (분)</label>
+                        <input type="number" id="cfgSubj" value="15" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                    <div class="settings-row" style="margin-bottom:0;">
+                        <label style="color:#334155;">과목 간 쉬는 시간 (분)</label>
+                        <input type="number" id="cfgBreak" value="1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                </div>
+                <!-- 문항 가이드 설정 -->
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                        ⏱️ 문항별 시간 가이드
+                        <label style="font-size:11px; font-weight:normal; display:flex; align-items:center; gap:4px; margin:0;">
+                            <input type="checkbox" id="cfgGuideEnabled" checked style="margin:0;"> 표시하기
+                        </label>
+                    </div>
+                    <div class="settings-row" style="margin-bottom:0;">
+                        <label style="color:#334155;">1문항당 권장 시간 (초)</label>
+                        <input type="number" id="cfgGuideSec" value="45" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                </div>
+                <!-- 높이 비율 설정 -->
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📐 높이 비율 설정 (우측 영역)</div>
+                    <div class="settings-row" style="margin-bottom:8px;">
+                        <label style="color:#334155;">타이머 영역</label>
+                        <input type="number" id="ratioTimer" value="0.2" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                    <div class="settings-row" style="margin-bottom:8px;">
+                        <label style="color:#334155;">메모/그림 영역</label>
+                        <input type="number" id="ratioUtils" value="1" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                    <div class="settings-row" style="margin-bottom:0;">
+                        <label style="color:#334155;">계산기 영역</label>
+                        <input type="number" id="ratioCalc" value="2" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
+                    </div>
+                </div>
+                <button id="settingsApplyBtn" style="padding:10px; background:#3b82f6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer; font-size:14px;">✅ 적용하고 닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Stats Modal Overlay -->
+    <div id="statModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>과목별 상세 통계</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body">
+                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                            <th style="padding: 8px;">과목명</th>
+                            <th style="padding: 8px;">문항 수</th>
+                            <th style="padding: 8px;">푼 문제</th>
+                            <th style="padding: 8px;">맞은 개수</th>
+                            <th style="padding: 8px;">정답률</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statTableBody">
+                        <!-- rows injected via js -->
+                    </tbody>
+                </table>
+                <div id="statDetailWrapper" style="margin-top: 15px; border-top: 1px dashed #cbd5e1; padding-top: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; overflow-x: hidden;">
+                    <!-- details injected via js -->
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Donation Custom Modal -->
+    <div id="donateModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 420px; padding: 25px;">
+            <div class="modal-header" style="border-bottom: none; padding-bottom: 0px; margin-bottom: 10px;">
+                <h3 id="donateModalTitle" style="color: #6366f1; font-size: 18px; line-height: 1.4;">☕ 우리의 공동 툴,<br>쾌적하게 지켜나가기</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body" style="font-size: 14px; line-height: 1.6; color: #475569; padding-right: 0;">
+                <p id="donateModalLead" style="margin-bottom: 12px; margin-top: 0;">우리가 함께 지켜나가는 <strong>'결제/광고 없는' SKCT 연습 공간</strong>입니다! ✍️</p>
+                <p id="donateModalBody" style="margin-bottom: 12px;">저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 집중할 수 있도록 상업적 배너 광고나 결제 유도를 일절 넣지 않고 사비로 <strong>100% 무료 서버</strong>를 가동 중입니다.</p>
+                <p id="donateModalPromise" style="margin-bottom: 12px;">최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 커지고 있지만, 끝까지 이 <strong style="color:#ef4444;">'광고 없는 무료 개방'</strong> 원칙을 고수하려 합니다.</p>
+                <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px dashed #93c5fd; margin-bottom: 20px; font-size: 13px; color: #334155;">
+                    <div id="donateModalHighlight">만약 이 쾌적한 <strong>'모두의 툴'</strong>이 여러분의 합격 준비에 약간이나마 유용하셨다면, <strong style="color:#2563eb;">투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 후원에 동참</strong>해 주시길 조심스레 부탁드립니다.<br><br>
+                    이 공간이 다음 달에도 거뜬히 유지되려면 여러분 한 분 한 분의 십시일반 참여가 필수적입니다! 💕</div>
+                    <div id="donateModalContact" style="margin-top: 10px; font-size: 12px; color: #475569; display: none;"></div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="close-modal" id="donateLaterBtn" style="flex:1; padding:12px; background:#e2e8f0; color:#475569; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:13px; transition: background 0.2s;">나중에 하기</button>
+                    <button id="donateConfirmBtn" style="flex:2; padding:12px; background:linear-gradient(135deg, #6366f1, #8b5cf6); color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; font-size:14px; transition: opacity 0.2s;">☕ 쿨하게 지원하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats (통계) Modal -->
+    <div id="statsModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>🔥 실시간 접속자 현황</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:20px;">
+                <!-- 1. 실시간 현재 접속자 -->
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
+                        <span style="display: inline-block; width: 12px; height: 12px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite;"></span>
+                        <span style="font-size: 16px; color: #475569; font-weight: bold;">실시간 접속자 수</span>
+                    </div>
+                    <div id="activeVisitorCount" style="font-size: 36px; font-weight: 900; color: #10b981; letter-spacing: -1px;">로딩 중...</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(10초 주기 업데이트)</div>
+                </div>
+
+                <!-- 2. 최근 7일 접속자 그래프 -->
+                <div style="border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                    <div style="font-weight: bold; color: #1e293b; margin-bottom: 10px; text-align: center;">📈 최근 7일 접속자 추세</div>
+                    <div style="width: 100%; height: 200px; position: relative;">
+                        <canvas id="visitorChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. 총 누적 접속자 -->
+                <div style="border-top: 1px dashed #cbd5e1; padding-top: 15px; text-align: center;">
+                    <span style="font-size: 13px; color: #64748b; margin-bottom: 5px; display: block;">🗓️ 누적 방문자</span>
+                    <div id="visitorCountDisplay" style="font-size: 18px; font-weight: bold; color: #3b82f6;">로딩 중...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Community Modal -->
+    <div id="cmModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="cm-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <h3 id="cmTitle" style="margin:0;">💬 커뮤니티</h3>
+                    <button id="cmRefreshBtn" style="font-size:11px; padding:2px 6px; border:1px solid #cbd5e1; border-radius:4px; background:white; cursor:pointer; color:#475569;" title="데이터 새로고침">🔄 새로고침</button>
+                </div>
+                <button class="btn-close" id="cmCloseBtn">×</button>
+            </div>
+            <!-- 개발자 공지 (Firebase에서 실시간 로드) -->
+            <div id="cmNotice"></div>
+            <div class="cm-tabs">
+                <button class="cm-tab" data-tab="popular">🔥 인기글</button>
+                <button class="cm-tab active" data-tab="qna">❓ Q&A</button>
+                <button class="cm-tab" data-tab="tip">💡 SKCT Tip</button>
+                <button class="cm-tab" data-tab="review">⭐ 사용후기</button>
+                <button class="cm-tab" data-tab="improvement">🔧 개선요청</button>
+                <button class="cm-tab" data-tab="faq">📌 FAQ</button>
+            </div>
+            <div class="cm-write" id="cmWriteForm" style="flex-direction:column;gap:6px;">
+                <div style="display:flex;gap:6px;">
+                    <input type="text" id="cmNick" placeholder="(자유로운)닉네임" maxlength="20" style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none;">
+                    <input type="password" id="cmPw" placeholder="(자유로운)비밀번호" style="flex:1;padding:7px 10px;border:1px solid #cbd5e1;border-radius:6px;font-size:13px;outline:none;">
+                </div>
+                <div style="display:flex;gap:6px;">
+                    <textarea id="cmInput" placeholder="내용을 입력하세요... (최대 1000자)" rows="2"></textarea>
+                    <button id="cmSubmitBtn">등록</button>
+                </div>
+            </div>
+            <div class="cm-list" id="cmPostList"></div>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function initRuntimeFlags() {
+            const url = new URL(window.location.href);
+            const stageParam = url.searchParams.get('stage');
+            const previewParam = url.searchParams.get('preview');
+            const gateUntil = parseInt(localStorage.getItem('stg_skct_admin_gate_until') || '0', 10);
+            const hasAdminGate = gateUntil > Date.now();
+
+            window.SKCT_FLAGS = {
+                maintenanceBypass: true,
+                adminPreview: previewParam === '1',
+                stagingReadOnly: true,
+                stagingAccess: stageParam === '1' && hasAdminGate
+            };
+
+            if (!window.SKCT_FLAGS.stagingAccess) {
+                const nextParams = new URLSearchParams();
+                nextParams.set('time', '개발자 전용 테스트 사이트');
+                window.location.replace(`update.html?${nextParams.toString()}`);
+            }
+        })();
+    </script>
+    <script type="module" src="assets/scripts/app.bundle.js?v=202604051241"></script>
+
+    <!-- Firebase SDK (ES Module) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+        import { getDatabase, ref, onValue, onDisconnect, set, push, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
+            authDomain: "skct-tool.firebaseapp.com",
+            databaseURL: "https://skct-tool-default-rtdb.firebaseio.com",
+            projectId: "skct-tool",
+            storageBucket: "skct-tool.firebasestorage.app",
+            messagingSenderId: "1098212167923",
+            appId: "1:1098212167923:web:cfe9f159f5f8820e84e786",
+            measurementId: "G-F00PXNPBJ5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const isDevMaintenanceBypass = () => window.SKCT_FLAGS?.maintenanceBypass === true;
+        const isReadOnlyStaging = window.SKCT_FLAGS?.stagingReadOnly === true;
+
+        // Firebase Presence System (현재 접속자)
+        if (!isReadOnlyStaging) {
+            const connectedRef = ref(db, ".info/connected");
+            const sessionId = sessionStorage.getItem('stg_skct_session_id') || ('sess_' + Math.random().toString(36).substr(2, 9));
+            sessionStorage.setItem('stg_skct_session_id', sessionId);
+            const myConnectionsRef = ref(db, "active_visitors/" + sessionId);
+
+            let heartbeatInterval = null;
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    onDisconnect(myConnectionsRef).remove().catch(e => {});
+                    set(myConnectionsRef, Date.now());
+                    if (heartbeatInterval) clearInterval(heartbeatInterval);
+                    heartbeatInterval = setInterval(() => {
+                        set(myConnectionsRef, Date.now());
+                    }, 30000);
+                } else {
+                    if (heartbeatInterval) clearInterval(heartbeatInterval);
+                }
+            });
+        }
+
+        let presencePollTimer = null;
+        async function fetchActiveVisitors() {
+            try {
+                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json');
+                const data = await res.json();
+                let count = 0;
+                const now = Date.now();
+                if(data) {
+                    for(let key in data) {
+                        const lastActive = data[key];
+                        if(typeof lastActive === 'number' && (now - lastActive) < 90000) {
+                            count++;
+                        }
+                    }
+                }
+                const displayEl = document.getElementById('activeVisitorCount');
+                if(displayEl) displayEl.textContent = count + " 명";
+            } catch (e) {
+                console.error("Presence fetch error:", e);
+            }
+        }
+
+        window.startPresencePolling = () => {
+            fetchActiveVisitors();
+            if (presencePollTimer) clearInterval(presencePollTimer);
+            presencePollTimer = setInterval(fetchActiveVisitors, 10000); // 10초 주기
+        };
+
+        window.stopPresencePolling = () => {
+            if (presencePollTimer) {
+                clearInterval(presencePollTimer);
+                presencePollTimer = null;
+            }
+        };
+
+        // ============================================
+        // 📊 일일 방문자 카운터 (하루 1회, LocalStorage 기반 중복 방지)
+        // ============================================
+        (function incrementDailyVisit() {
+            if (isReadOnlyStaging) return;
+            const d = new Date();
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const date = String(d.getDate()).padStart(2, '0');
+            const today = `${year}-${month}-${date}`;
+            const lastVisitDate = localStorage.getItem('stg_skct_last_visit_date');
+            if (lastVisitDate === today) return; // 오늘 이미 카운트됨
+
+            localStorage.setItem('stg_skct_last_visit_date', today);
+
+            // daily_visits/{today} +1
+            const dailyRef = ref(db, 'daily_visits/' + today);
+            runTransaction(dailyRef, (current) => (current || 0) + 1);
+
+            // total_visits +1
+            const totalRef = ref(db, 'total_visits');
+            runTransaction(totalRef, (current) => (current || 0) + 1);
+        })();
+
+        // ============================================
+        // 📈 일일 접속자 통계 & Chart.js 렌더링
+        // ============================================
+        const { get } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js");
+
+        async function fetchVisitorStats() {
+            try {
+                const [totalRes, dailyRes] = await Promise.all([
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/total_visits.json'),
+                    fetch('https://skct-tool-default-rtdb.firebaseio.com/daily_visits.json')
+                ]);
+                const totalVisits = await totalRes.json() || 0;
+                const dailyVisits = await dailyRes.json() || {};
+
+                // 최근 7일 데이터 구성 (서버 오픈일: 2026-04-03 이후만)
+                const LAUNCH_DATE = '2026-04-03';
+                const today = new Date();
+                const last7days = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date(today);
+                    d.setDate(d.getDate() - i);
+                    const year = d.getFullYear();
+                    const month = String(d.getMonth() + 1).padStart(2, '0');
+                    const date = String(d.getDate()).padStart(2, '0');
+                    const key = `${year}-${month}-${date}`;
+                    if (key < LAUNCH_DATE) {
+                        last7days.push({ date: '', users: null });
+                        continue;
+                    }
+                    const label = month + '-' + date;
+                    last7days.push({ date: label, users: dailyVisits[key] || 0 });
+                }
+
+                return { totalUsersApprox: totalVisits, last7days };
+            } catch (e) {
+                console.error('fetchVisitorStats error:', e);
+                return { totalUsersApprox: 0, last7days: [] };
+            }
+        }
+
+        fetchVisitorStats().then(data => {
+            const displayEl = document.getElementById('visitorCountDisplay');
+            if (displayEl && data) displayEl.textContent = data.totalUsersApprox.toLocaleString() + " 명";
+        });
+
+        const statsToggleBtn = document.getElementById('statsToggle');
+        const statsModal = document.getElementById('statsModal');
+        let visitorChartInstance = null;
+
+        if (statsToggleBtn && statsModal) {
+            statsToggleBtn.addEventListener('click', async () => {
+                statsModal.classList.remove('hidden');
+                if (typeof window.startPresencePolling === 'function') window.startPresencePolling();
+
+                try {
+                    const data = await fetchVisitorStats();
+                    if (!data) return;
+
+                    const labels = data.last7days.map(d => d.date);
+                    const chartData = data.last7days.map(d => d.users);
+
+                    const safeChartData = (chartData || []).map(v => Number(v) || 0);
+                    const computedMax = Math.max(...safeChartData, 5);
+                    const suggestedMax = computedMax + 2;
+
+                    const ctx = document.getElementById('visitorChart').getContext('2d');
+                    if (visitorChartInstance) visitorChartInstance.destroy();
+
+                    visitorChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '일일 접속자',
+                                data: chartData,
+                                borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                borderWidth: 2, tension: 0.3, fill: true,
+                                pointBackgroundColor: '#2563eb', pointRadius: 4,
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 }, suggestedMax: suggestedMax } }
+                        }
+                    });
+                } catch (err) { console.error("차트 렌더링 실패:", err); }
+            });
+        }
+
+        // ============================================
+        // 📢 Help 모달 리소스 - Firebase 1회 조회 (캐싱)
+        // ============================================
+        async function fetchConfig() {
+            try {
+                const snap = await get(ref(db, 'config'));
+                if (snap.exists()) {
+                    const data = snap.val();
+                    handleConfigData(data);
+                }
+            } catch(e) { console.error('fetchConfig error:', e); }
+        }
+
+        function handleConfigData(cfg) {
+            if (cfg.maintenance && cfg.maintenance.enabled && !isDevMaintenanceBypass()) {
+                window.location.href = `update.html?time=${encodeURIComponent(cfg.maintenance.time)}`;
+                return;
+            }
+            if (cfg.appName) {
+                document.title = cfg.appName;
+            }
+            if (typeof renderNotice === 'function') {
+                window.__skctNoticeLoaded = true;
+                // 하위호환
+                const noticeData = cfg.notice_help || cfg.notice;
+                if (noticeData) renderNotice(noticeData);
+            }
+            if (cfg.useful_links && cfg.useful_links.length > 0) {
+                let html = `<div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-top: 15px; margin-bottom: 8px;">🔗 유용한 링크</div>`;
+                html += `<div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 15px;">`;
+                cfg.useful_links.forEach(link => {
+                    html += `<a href="${link.url}" target="_blank" style="display:block; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6; text-decoration:none; font-weight:600; font-size:13px; transition:all 0.2s;">
+                        ${link.title} <span style="float:right;">↗</span>
+                    </a>`;
+                });
+                html += `</div>`;
+                const helpBody = document.querySelector('.help-modal-body');
+                if (helpBody) {
+                    const container = document.createElement('div');
+                    container.innerHTML = html;
+                    helpBody.appendChild(container);
+                }
+            }
+            if (typeof window.applySupportConfig === 'function') {
+                window.applySupportConfig(cfg.supportConfig);
+            }
+            
+            // Timer Defaults Sync
+            // Timer Defaults Sync
+            if (cfg.timerDefaults && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('stg_skct_timer_cfg'))) {
+                if (window.applyRemoteTimerDefaults) {
+                    window.applyRemoteTimerDefaults(
+                        cfg.timerDefaults.total,
+                        cfg.timerDefaults.subj,
+                        cfg.timerDefaults.brk
+                    );
+                }
+            }
+            if (cfg.guideDefaults && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('stg_skct_guide_cfg'))) {
+                if (window.applyRemoteGuideDefaults) {
+                    window.applyRemoteGuideDefaults(
+                        cfg.guideDefaults.enabled,
+                        cfg.guideDefaults.sec
+                    );
+                }
+            }
+            // Layout Ratios Sync (사용자가 로컬 저장하지 않은 경우에만 원격 기본값 적용)
+            if (cfg.layoutRatios && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('stg_skct_layout_ratios'))) {
+                if (window.applyRemoteLayoutRatios) {
+                    window.applyRemoteLayoutRatios(
+                        cfg.layoutRatios.timer,
+                        cfg.layoutRatios.utils,
+                        cfg.layoutRatios.calc
+                    );
+                }
+            }
+
+            if (cfg.sponsors && cfg.sponsors.length > 0) {
+                const tickerEl = document.getElementById('sponsorTicker');
+                if (tickerEl) {
+                    let html = `<div style="margin-bottom:14px; padding:10px 14px; background:linear-gradient(135deg, #fdf4ff 0%, #fff 100%); border:1px solid #fbcfe8; border-left:4px solid #f472b6; border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); display:flex; gap:10px; align-items:flex-start;">
+                        <div style="flex-shrink:0; font-size:18px; margin-top:2px;">💖</div>
+                        <div style="flex:1; overflow:hidden; position:relative; height:80px;">`;
+
+                    cfg.sponsors.forEach((s, i) => {
+                        html += `<div class="sponsor-item" style="position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; justify-content:center; opacity:${i===0?1:0}; transition: opacity 0.5s, transform 0.5s; transform: translateY(${i===0?'0':'15px'}); font-size:13px; color:#475569;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;">
+                                <div><span style="font-weight:bold; color:#be185d;">${s.name}님</span> (${s.amount})</div>
+                                <div style="font-size:10px; color:#94a3b8; flex-shrink:0;">${s.date}</div>
+                            </div>
+                            <div style="flex:1; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; white-space:normal; line-height:1.5; font-size:12px;">
+                                ${s.message}
+                            </div>
+                        </div>`;
+                    });
+
+                    html += `</div></div>`;
+                    tickerEl.innerHTML = html;
+
+                    if (cfg.sponsors.length > 1 && !window.__sponsorTickerStarted) {
+                        window.__sponsorTickerStarted = true;
+                        let idx = 0;
+                        setInterval(() => {
+                            const items = tickerEl.querySelectorAll('.sponsor-item');
+                            if(!items.length) return;
+                            items[idx].style.opacity = '0';
+                            items[idx].style.transform = 'translateY(-15px)';
+
+                            idx = (idx + 1) % items.length;
+
+                            items[idx].style.transition = 'none';
+                            items[idx].style.transform = 'translateY(15px)';
+                            items[idx].style.opacity = '0';
+                            void items[idx].offsetWidth;
+
+                            items[idx].style.transition = 'opacity 0.5s, transform 0.5s';
+                            items[idx].style.opacity = '1';
+                            items[idx].style.transform = 'translateY(0)';
+                        }, 4000);
+                    }
+                }
+            }
+        }
+        fetchConfig();
+    </script>
+    <!-- Extension Install Modal (무적모드 테스트 기능 팝업) -->
+    <div class="modal-overlay hidden" id="extensionModal" style="z-index: 10000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="max-width: 520px; padding: 0;">
+            <div class="modal-header" style="padding: 16px 20px; margin-bottom: 0;">
+                <h3 style="display: flex; align-items: center; gap: 8px;">🛡️ 링커리어 스크린차단 해제 (테스트 기능)</h3>
+                <span class="modal-close btn-close" id="extensionClose">&times;</span>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- 설치 상태 확인 영역 -->
+                <div id="extStatusCheck" style="text-align:center; margin-bottom: 20px;">
+                    <div style="font-size:40px; margin-bottom:10px;">⏳</div>
+                    <div style="font-weight:bold; color:#94a3b8;">설치 상태 확인 중...</div>
+                </div>
+
+                <!-- 미설치 시 표시되는 전체 안내 -->
+                <div id="extInstallGuide" class="hidden">
+
+                    <!-- ★ 두괄식 핵심 메시지 -->
+                    <div style="background: linear-gradient(135deg, #eff6ff, #f0fdf4); border: 2px solid #93c5fd; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; text-align: center;">
+                        <div style="font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 6px;">설치 한 번이면, 가림막 걱정 없이 편하게 연습!</div>
+                        <div style="font-size: 11px; color: #b45309; font-weight: 700; margin-bottom: 8px;">현재는 테스트 기능으로 제공됩니다.</div>
+                        <div style="font-size: 13px; color: #475569; line-height: 1.6;">크롬에 이 확장 프로그램을 설치하면, 링커리어 CBT 가림막이 <strong style="color:#dc2626;">자동으로 완전 제거</strong>됩니다.<br>설치 이후에는 <strong>아무 조작 없이도</strong> 항상 무적 상태입니다.</div>
+                    </div>
+
+                    <!-- ★ 왜 필요한지 (Before / After) -->
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight: 700; color: #1e293b; font-size: 14px; margin-bottom: 10px;">❓ 왜 이게 필요한가요?</div>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; margin-bottom: 4px;">😰</div>
+                                <div style="font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 4px;">미설치 시</div>
+                                <div style="font-size: 11px; color: #7f1d1d; line-height: 1.5;">SKCT Tool 클릭만 해도<br><strong>즉시 가림막</strong>이 뜨며<br>문제 화면이 전부 가려짐</div>
+                            </div>
+                            <div style="flex: 1; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px; text-align: center;">
+                                <div style="font-size: 24px; margin-bottom: 4px;">😎</div>
+                                <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-bottom: 4px;">설치 후</div>
+                                <div style="font-size: 11px; color: #14532d; line-height: 1.5;">창 전환, 마우스 이동 모두<br><strong>완전 자유</strong><br>가림막이 절대 뜨지 않음</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 핵심 장점 3가지 -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 18px;">
+                        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 18px;">🤖</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 4px;">완전 자동</div>
+                            <div style="font-size: 10px; color: #64748b;">설치 후 조작 불필요</div>
+                        </div>
+                        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 18px;">♾️</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 4px;">한 번이면 영구</div>
+                            <div style="font-size: 10px; color: #64748b;">크롬 삭제 전까지 유지</div>
+                        </div>
+                        <div style="flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; text-align: center;">
+                            <div style="font-size: 18px;">🛡️</div>
+                            <div style="font-size: 11px; font-weight: 700; color: #334155; margin-top: 4px;">가림막 완파</div>
+                            <div style="font-size: 10px; color: #64748b;">모든 종류 자동 제거</div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 설치 방법 3단계 -->
+                    <div style="margin-bottom: 18px;">
+                        <div style="font-weight: 700; color: #1e293b; font-size: 14px; margin-bottom: 10px;">⚙️ 초간단 설치 3단계</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                <div style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">1</div>
+                                <div style="font-size: 13px; color: #334155; line-height: 1.5;">아래 <strong style="color:#16a34a;">다운로드 버튼</strong>을 눌러 ZIP 파일을 받으세요.</div>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                <div style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">2</div>
+                                <div style="font-size: 13px; color: #334155; line-height: 1.5;">크롬 주소창에 <code style="background:#e2e8f0; padding:2px 6px; border-radius:4px; font-size:12px;">chrome://extensions</code> 입력 → 우측 상단 <strong style="color:#6366f1;">[개발자 모드]</strong> 켜기</div>
+                            </div>
+                            <div style="display: flex; align-items: flex-start; gap: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+                                <div style="background: #3b82f6; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0;">3</div>
+                                <div style="font-size: 13px; color: #334155; line-height: 1.5;">다운받은 <strong style="color:#ec4899;">ZIP 파일을 그대로 화면에 끌어다 놓기</strong>만 하면 끝!<br><span style="font-size:11px; color:#64748b;">압축 해제 필요 없음. 드래그 앤 드롭으로 즉시 설치됩니다.</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ★ 다운로드 버튼 -->
+                    <div style="text-align: center; margin-bottom: 18px;">
+                        <a href="assets/packages/stg_skct_extension.zip" download style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #10b981, #059669); color: white; font-size: 16px; font-weight: 800; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transition: all 0.2s;">
+                            🚀 무적모드(테스트 기능) 다운로드 (ZIP)
+                        </a>
+                    </div>
+
+                    <!-- ★ 사용 방법 -->
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                        <div style="font-weight: 700; color: #166534; font-size: 13px; margin-bottom: 6px;">✅ 설치 후 사용 방법</div>
+                        <div style="font-size: 12px; color: #15803d; line-height: 1.6;">
+                            <strong>아무것도 하지 않아도 됩니다.</strong> 링커리어 CBT 접속만 하면 확장 프로그램이 자동으로 가림막 차단을 활성화합니다. 별도의 버튼 클릭이나 설정이 필요 없습니다.
+                        </div>
+                    </div>
+
+                    <!-- ★ FAQ -->
+                    <div style="border-top: 1px solid #e2e8f0; padding-top: 12px;">
+                        <div style="font-weight: 700; color: #1e293b; font-size: 13px; margin-bottom: 8px;">💬 자주 묻는 질문</div>
+                        <div style="font-size: 12px; color: #475569; line-height: 1.6;">
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color:#3b82f6;">Q. 매번 켜야 하나요?</strong><br>
+                                아닙니다. 크롬에서 제거하지 않는 한 영구적으로 자동 작동합니다.
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong style="color:#3b82f6;">Q. 실제 시험에서도 쓸 수 있나요?</strong><br>
+                                아닙니다. 실전 시험은 전용 보안 프로그램이 설치되므로 이 방법은 연습용 CBT 전용입니다.
+                            </div>
+                            <div>
+                                <strong style="color:#3b82f6;">Q. 링커리어 외 다른 사이트에서도 되나요?</strong><br>
+                                blur/visibilitychange 방식의 가림막을 사용하는 대부분의 CBT 사이트에서 동작합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
