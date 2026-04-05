@@ -9,50 +9,311 @@ const getDb = () => getDatabase(getApp());
 document.addEventListener('DOMContentLoaded', () => {
     const runtimeFlags = window.SKCT_FLAGS || {};
     const isAdminPreviewMode = runtimeFlags.adminPreview === true;
+    const isPopupMode = window.name === 'stg_skct_popup_mode';
+    const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
+    const DEFAULT_LAYOUT_RATIOS = { timer: 0.2, utils: 1, calc: 2 };
+    const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.04, noteFontSize: 14, canvasLineWidth: 4 };
+    const POPUP_EDITOR_MESSAGE_TYPES = {
+        preview: 'stg-skct-popup-preview',
+        saveRequest: 'stg-skct-popup-save-request',
+        saveResult: 'stg-skct-popup-save-result'
+    };
+    const appContainerEl = document.querySelector('.app-container');
+    const mainContentEl = document.querySelector('.main-content');
+    const topBarEl = document.querySelector('.top-bar');
+    const utilitySectionEl = document.querySelector('.utility-section');
+    const calculatorSectionEl = document.querySelector('.calculator-section');
+    const topBarResizerEl = document.getElementById('topBarResizer');
+    const toolsSectionResizerEl = document.getElementById('toolsSectionResizer');
+    const popupEditorPanelEl = document.getElementById('popupEditorPanel');
+    const popupEditorMetricsEl = document.getElementById('popupEditorMetrics');
+    const popupEditorStatusEl = document.getElementById('popupEditorStatus');
+    const popupEditorReloadBtn = document.getElementById('popupEditorReloadBtn');
+    const popupEditorSaveBtn = document.getElementById('popupEditorSaveBtn');
+    const popupBottomPaddingRange = document.getElementById('popupBottomPaddingRange');
+    const popupBottomPaddingValue = document.getElementById('popupBottomPaddingValue');
+    const ratioTimer = document.getElementById('ratioTimer');
+    const ratioUtils = document.getElementById('ratioUtils');
+    const ratioCalc = document.getElementById('ratioCalc');
+    const noteFontSizeRange = document.getElementById('noteFontSizeRange');
+    const noteFontSizeValue = document.getElementById('noteFontSizeValue');
+    const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
+    const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
+    let popupLayoutSyncTimeout = null;
+    let popupMoveWatcher = null;
+    let lastPopupEditorSignature = '';
+    let lastPopupWindowOnlySignature = '';
     const showReadOnlyNotice = () => {
         alert('이 테스트 사이트는 운영 데이터를 읽기 전용으로만 표시합니다.\n좋아요, 댓글, 글 작성, 관리자 저장은 모두 차단됩니다.');
     };
 
+    document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
+
+    function clampNumber(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function roundRatio(value) {
+        return Math.round(value * 1000) / 1000;
+    }
+
+    function getScreenMetrics() {
+        const availWidth = screen.availWidth || screen.width || window.outerWidth || 1440;
+        const availHeight = screen.availHeight || screen.height || window.outerHeight || 900;
+        const availLeft = Number.isFinite(screen.availLeft) ? screen.availLeft : 0;
+        const availTop = Number.isFinite(screen.availTop) ? screen.availTop : 0;
+        return { availWidth, availHeight, availLeft, availTop };
+    }
+
+    function createLegacyPopupWindowDefaults() {
+        const { availWidth, availHeight } = getScreenMetrics();
+        const width = clampNumber(350, 300, availWidth);
+        const height = clampNumber(800, 520, availHeight);
+        return {
+            widthRatio: roundRatio(width / availWidth),
+            heightRatio: roundRatio(height / availHeight),
+            leftRatio: roundRatio(Math.max(0, (availWidth - width) / 2) / availWidth),
+            topRatio: roundRatio(Math.max(0, (availHeight - height) / 2) / availHeight)
+        };
+    }
+
+    function normalizePopupLayout(raw) {
+        const fallbackWindow = createLegacyPopupWindowDefaults();
+        const sourceWindow = raw?.window || {};
+        const widthRatio = parseFloat(sourceWindow.widthRatio);
+        const heightRatio = parseFloat(sourceWindow.heightRatio);
+        const safeWidthRatio = Number.isFinite(widthRatio) ? clampNumber(widthRatio, 0.18, 0.8) : fallbackWindow.widthRatio;
+        const safeHeightRatio = Number.isFinite(heightRatio) ? clampNumber(heightRatio, 0.45, 0.98) : fallbackWindow.heightRatio;
+        const leftRatio = parseFloat(sourceWindow.leftRatio);
+        const topRatio = parseFloat(sourceWindow.topRatio);
+        const omrWidthRatio = parseFloat(raw?.omrWidthRatio);
+        return {
+            window: {
+                widthRatio: roundRatio(safeWidthRatio),
+                heightRatio: roundRatio(safeHeightRatio),
+                leftRatio: roundRatio(clampNumber(Number.isFinite(leftRatio) ? leftRatio : fallbackWindow.leftRatio, 0, Math.max(0, 1 - safeWidthRatio))),
+                topRatio: roundRatio(clampNumber(Number.isFinite(topRatio) ? topRatio : fallbackWindow.topRatio, 0, Math.max(0, 1 - safeHeightRatio)))
+            },
+            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.16, 0.7) : 0.34)
+        };
+    }
+
+    function normalizeToolUiConfig(raw) {
+        return {
+            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || DEFAULT_TOOL_UI_CONFIG.bottomPaddingRatio, 0, 0.18)),
+            noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || DEFAULT_TOOL_UI_CONFIG.noteFontSize, 12, 22),
+            canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || DEFAULT_TOOL_UI_CONFIG.canvasLineWidth, 2, 12)
+        };
+    }
+
+    function buildPopupWindowMetrics(windowConfig) {
+        const normalized = normalizePopupLayout({ window: windowConfig });
+        const { availWidth, availHeight, availLeft, availTop } = getScreenMetrics();
+        const width = clampNumber(Math.round(availWidth * normalized.window.widthRatio), 300, availWidth);
+        const height = clampNumber(Math.round(availHeight * normalized.window.heightRatio), 520, availHeight);
+        const maxLeft = Math.max(0, availWidth - width);
+        const maxTop = Math.max(0, availHeight - height);
+        const left = Math.round(availLeft + clampNumber(availWidth * normalized.window.leftRatio, 0, maxLeft));
+        const top = Math.round(availTop + clampNumber(availHeight * normalized.window.topRatio, 0, maxTop));
+        return { width, height, left, top };
+    }
+
+    function capturePopupWindowRatios() {
+        const { availWidth, availHeight, availLeft, availTop } = getScreenMetrics();
+        const widthRatio = clampNumber(window.outerWidth / availWidth, 0.18, 0.8);
+        const heightRatio = clampNumber(window.outerHeight / availHeight, 0.45, 0.98);
+        const maxLeft = Math.max(0, availWidth - window.outerWidth);
+        const maxTop = Math.max(0, availHeight - window.outerHeight);
+        const leftPx = clampNumber(window.screenX - availLeft, 0, maxLeft);
+        const topPx = clampNumber(window.screenY - availTop, 0, maxTop);
+        return {
+            widthRatio: roundRatio(widthRatio),
+            heightRatio: roundRatio(heightRatio),
+            leftRatio: roundRatio(clampNumber(leftPx / availWidth, 0, Math.max(0, 1 - widthRatio))),
+            topRatio: roundRatio(clampNumber(topPx / availHeight, 0, Math.max(0, 1 - heightRatio)))
+        };
+    }
+
+    let remotePopupLayout = normalizePopupLayout();
+    let currentPopupLayout = normalizePopupLayout();
+    let remoteToolUiConfig = normalizeToolUiConfig();
+    let currentToolUiConfig = normalizeToolUiConfig(
+        isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('stg_skct_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
+    );
+
+    function syncToolsBottomPadding() {
+        const baseHeight = mainContentEl?.clientHeight || window.innerHeight || 900;
+        const paddingPx = Math.round(baseHeight * currentToolUiConfig.bottomPaddingRatio);
+        document.documentElement.style.setProperty('--tools-bottom-padding', `${paddingPx}px`);
+        if (popupBottomPaddingRange) popupBottomPaddingRange.value = String(currentToolUiConfig.bottomPaddingRatio);
+        if (popupBottomPaddingValue) popupBottomPaddingValue.textContent = `${(currentToolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%`;
+    }
+
+    function applyPopupOmrWidthRatio(widthRatio) {
+        currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(parseFloat(widthRatio), 0.16, 0.7));
+        if (!appContainerEl) return;
+        const maxWidth = Math.round(appContainerEl.clientWidth * 0.8);
+        const nextWidth = clampNumber(Math.round(appContainerEl.clientWidth * currentPopupLayout.omrWidthRatio), 130, maxWidth);
+        document.documentElement.style.setProperty('--omr-width', `${nextWidth}px`);
+    }
+
+    function setPopupEditorStatus(message, type = '') {
+        if (!popupEditorStatusEl) return;
+        popupEditorStatusEl.textContent = message;
+        popupEditorStatusEl.className = `popup-editor-status${type ? ` ${type}` : ''}`;
+    }
+
+    function readCurrentLayoutRatios() {
+        const styles = getComputedStyle(document.documentElement);
+        return {
+            timer: roundRatio(parseFloat(styles.getPropertyValue('--timer-ratio')) || DEFAULT_LAYOUT_RATIOS.timer),
+            utils: roundRatio(parseFloat(styles.getPropertyValue('--utils-ratio')) || DEFAULT_LAYOUT_RATIOS.utils),
+            calc: roundRatio(parseFloat(styles.getPropertyValue('--calc-ratio')) || DEFAULT_LAYOUT_RATIOS.calc)
+        };
+    }
+
+    function setLayoutRatios(timer, utils, calc, options = {}) {
+        const {
+            persist = !isAdminPreviewMode && !isPopupMode,
+            syncInputs = true,
+            notifyPopupEditor = isPopupEditorMode
+        } = options;
+        const tR = roundRatio(clampNumber(parseFloat(timer) || DEFAULT_LAYOUT_RATIOS.timer, 0.05, 98));
+        const uR = roundRatio(clampNumber(parseFloat(utils) || DEFAULT_LAYOUT_RATIOS.utils, 0.05, 98));
+        const cR = roundRatio(clampNumber(parseFloat(calc) || DEFAULT_LAYOUT_RATIOS.calc, 0.05, 98));
+        document.documentElement.style.setProperty('--timer-ratio', tR);
+        document.documentElement.style.setProperty('--utils-ratio', uR);
+        document.documentElement.style.setProperty('--calc-ratio', cR);
+        if (syncInputs) {
+            if (ratioTimer) ratioTimer.value = tR;
+            if (ratioUtils) ratioUtils.value = uR;
+            if (ratioCalc) ratioCalc.value = cR;
+        }
+        if (persist) {
+            localStorage.setItem('stg_skct_layout_ratios', JSON.stringify({ timer: tR, utils: uR, calc: cR }));
+        }
+        if (typeof resizeCanvas === 'function') {
+            requestAnimationFrame(resizeCanvas);
+        }
+        if (notifyPopupEditor) {
+            schedulePopupEditorSync();
+        }
+    }
+
+    function applyRatiosFromHeights(timerHeight, utilityHeight, calcHeight) {
+        const totalHeight = Math.max(timerHeight + utilityHeight + calcHeight, 1);
+        setLayoutRatios(
+            (timerHeight / totalHeight) * 100,
+            (utilityHeight / totalHeight) * 100,
+            (calcHeight / totalHeight) * 100,
+            { persist: false, notifyPopupEditor: true }
+        );
+    }
+
+    function applyToolUiConfig(rawConfig, options = {}) {
+        const {
+            persist = !isAdminPreviewMode && !isPopupMode,
+            notifyPopupEditor = isPopupEditorMode
+        } = options;
+        currentToolUiConfig = normalizeToolUiConfig({ ...currentToolUiConfig, ...(rawConfig || {}) });
+        const notepadEl = document.getElementById('notepad');
+        if (notepadEl) {
+            document.documentElement.style.setProperty('--notepad-font-size', `${currentToolUiConfig.noteFontSize}px`);
+            notepadEl.style.fontSize = `${currentToolUiConfig.noteFontSize}px`;
+        }
+        if (noteFontSizeRange) noteFontSizeRange.value = String(currentToolUiConfig.noteFontSize);
+        if (noteFontSizeValue) noteFontSizeValue.textContent = String(currentToolUiConfig.noteFontSize);
+        if (canvasLineWidthRange) canvasLineWidthRange.value = String(currentToolUiConfig.canvasLineWidth);
+        if (canvasLineWidthValue) canvasLineWidthValue.textContent = String(currentToolUiConfig.canvasLineWidth);
+        syncToolsBottomPadding();
+        if (persist) {
+            localStorage.setItem('stg_skct_tool_ui', JSON.stringify(currentToolUiConfig));
+        }
+        if (notifyPopupEditor) {
+            schedulePopupEditorSync();
+        }
+    }
+
+    function capturePopupEditorPayload() {
+        return {
+            popupLayout: {
+                window: capturePopupWindowRatios(),
+                omrWidthRatio: currentPopupLayout.omrWidthRatio
+            },
+            layoutRatios: readCurrentLayoutRatios(),
+            toolUiConfig: currentToolUiConfig
+        };
+    }
+
+    function renderPopupEditorMetrics() {
+        if (!popupEditorMetricsEl) return;
+        const payload = capturePopupEditorPayload();
+        popupEditorMetricsEl.innerHTML = `
+            <div>창 크기: ${(payload.popupLayout.window.widthRatio * 100).toFixed(1)}% x ${(payload.popupLayout.window.heightRatio * 100).toFixed(1)}%</div>
+            <div>창 위치: 왼쪽 ${(payload.popupLayout.window.leftRatio * 100).toFixed(1)}% / 위 ${(payload.popupLayout.window.topRatio * 100).toFixed(1)}%</div>
+            <div>OMR 폭: ${(payload.popupLayout.omrWidthRatio * 100).toFixed(1)}%</div>
+            <div>세로 비율: 타이머 ${payload.layoutRatios.timer.toFixed(1)} / 메모 ${payload.layoutRatios.utils.toFixed(1)} / 계산기 ${payload.layoutRatios.calc.toFixed(1)}</div>
+            <div>도구 기본값: 하단 여백 ${(currentToolUiConfig.bottomPaddingRatio * 100).toFixed(1)}%, 메모 ${currentToolUiConfig.noteFontSize}px, 그림판 ${currentToolUiConfig.canvasLineWidth}px</div>
+        `;
+    }
+
+    function postPopupEditorMessage(type, payload) {
+        if (!isPopupEditorMode || !window.opener || window.opener.closed) return false;
+        window.opener.postMessage({ type, payload }, window.location.origin);
+        return true;
+    }
+
+    function syncPopupEditorSnapshot(force = false) {
+        if (!isPopupEditorMode) return;
+        renderPopupEditorMetrics();
+        const payload = capturePopupEditorPayload();
+        const signature = JSON.stringify(payload);
+        if (!force && signature === lastPopupEditorSignature) return;
+        lastPopupEditorSignature = signature;
+        lastPopupWindowOnlySignature = JSON.stringify(payload.popupLayout.window);
+        postPopupEditorMessage(POPUP_EDITOR_MESSAGE_TYPES.preview, payload);
+    }
+
+    function schedulePopupEditorSync(delay = 120) {
+        if (!isPopupEditorMode) return;
+        clearTimeout(popupLayoutSyncTimeout);
+        popupLayoutSyncTimeout = setTimeout(() => syncPopupEditorSnapshot(), delay);
+    }
+
+    function applyPopupWindowToCurrentWindow(windowConfig) {
+        if (!isPopupMode) return;
+        const { width, height, left, top } = buildPopupWindowMetrics(windowConfig);
+        try {
+            window.resizeTo(width, height);
+            window.moveTo(left, top);
+        } catch (error) {
+            console.warn('popup window resize/move failed', error);
+        }
+    }
+
     /* --- State Restoration from LocalStorage --- */
-    const savedOmrWidth = localStorage.getItem('stg_skct_omr_width');
+    const savedOmrWidth = !isPopupMode ? localStorage.getItem('stg_skct_omr_width') : null;
     if (savedOmrWidth) {
         document.documentElement.style.setProperty('--omr-width', `${savedOmrWidth}px`);
     }
 
-    // Layout Ratios Settings
-    const savedRatios = isAdminPreviewMode
-        ? { timer: 0.2, utils: 1, calc: 2 }
-        : (JSON.parse(localStorage.getItem('stg_skct_layout_ratios')) || { timer: 0.2, utils: 1, calc: 2 });
-    document.documentElement.style.setProperty('--timer-ratio', savedRatios.timer);
-    document.documentElement.style.setProperty('--utils-ratio', savedRatios.utils);
-    document.documentElement.style.setProperty('--calc-ratio', savedRatios.calc);
-    
-    const ratioTimer = document.getElementById('ratioTimer');
-    const ratioUtils = document.getElementById('ratioUtils');
-    const ratioCalc = document.getElementById('ratioCalc');
-    
-    if (ratioTimer) ratioTimer.value = savedRatios.timer;
-    if (ratioUtils) ratioUtils.value = savedRatios.utils;
-    if (ratioCalc) ratioCalc.value = savedRatios.calc;
+    const savedRatios = (!isAdminPreviewMode && !isPopupMode)
+        ? (JSON.parse(localStorage.getItem('stg_skct_layout_ratios')) || DEFAULT_LAYOUT_RATIOS)
+        : DEFAULT_LAYOUT_RATIOS;
+    setLayoutRatios(savedRatios.timer, savedRatios.utils, savedRatios.calc, {
+        persist: false,
+        syncInputs: true,
+        notifyPopupEditor: false
+    });
+    applyToolUiConfig(currentToolUiConfig, { persist: false, notifyPopupEditor: false });
+    if (isPopupMode) {
+        applyPopupOmrWidthRatio(currentPopupLayout.omrWidthRatio);
+    }
 
     const applyRatios = () => {
         if (!ratioTimer) return;
-        const tR = parseFloat(ratioTimer.value) || 0;
-        const uR = parseFloat(ratioUtils.value) || 0;
-        const cR = parseFloat(ratioCalc.value) || 0;
-        
-        document.documentElement.style.setProperty('--timer-ratio', tR);
-        document.documentElement.style.setProperty('--utils-ratio', uR);
-        document.documentElement.style.setProperty('--calc-ratio', cR);
-        
-        if (!isAdminPreviewMode) {
-            localStorage.setItem('stg_skct_layout_ratios', JSON.stringify({ timer: tR, utils: uR, calc: cR }));
-        }
-        // flex가 변경되면 utils 영역 높이가 바뀌므로 캔버스 리사이즈
-        if (typeof resizeCanvas === 'function') {
-            requestAnimationFrame(resizeCanvas);
-        }
+        setLayoutRatios(ratioTimer.value, ratioUtils.value, ratioCalc.value);
     };
 
     if (ratioTimer) {
@@ -61,19 +322,80 @@ document.addEventListener('DOMContentLoaded', () => {
         ratioCalc.addEventListener('input', applyRatios);
     }
 
-    // Save window size if we are in popup mode
+    if (popupBottomPaddingRange) {
+        popupBottomPaddingRange.addEventListener('input', () => {
+            applyToolUiConfig({ bottomPaddingRatio: popupBottomPaddingRange.value }, { persist: false, notifyPopupEditor: true });
+        });
+    }
+
     let winResizeTimeout = null;
     window.addEventListener('resize', () => {
-        if (window.name === 'stg_skct_popup_mode') {
+        syncToolsBottomPadding();
+        if (isPopupMode) {
             clearTimeout(winResizeTimeout);
             winResizeTimeout = setTimeout(() => {
-                localStorage.setItem('stg_skct_popup_width', window.outerWidth);
-                localStorage.setItem('stg_skct_popup_height', window.outerHeight);
-                localStorage.setItem('stg_skct_popup_left', window.screenX);
-                localStorage.setItem('stg_skct_popup_top', window.screenY);
+                applyPopupOmrWidthRatio(currentPopupLayout.omrWidthRatio);
+                schedulePopupEditorSync();
             }, 500);
         }
     });
+
+    if (isPopupEditorMode) {
+        popupEditorPanelEl?.classList.remove('hidden');
+        topBarResizerEl?.classList.remove('hidden');
+        toolsSectionResizerEl?.classList.remove('hidden');
+        setPopupEditorStatus('창 위치와 하단 여백, 분리선을 조절한 뒤 저장하세요.');
+
+        popupEditorReloadBtn?.addEventListener('click', () => {
+            currentPopupLayout = normalizePopupLayout(remotePopupLayout);
+            currentToolUiConfig = normalizeToolUiConfig(remoteToolUiConfig);
+            applyPopupWindowToCurrentWindow(currentPopupLayout.window);
+            applyPopupOmrWidthRatio(currentPopupLayout.omrWidthRatio);
+            applyToolUiConfig(currentToolUiConfig, { persist: false, notifyPopupEditor: false });
+            syncPopupEditorSnapshot(true);
+            setPopupEditorStatus('서버에 저장된 스테이징 기본값을 다시 적용했습니다.');
+        });
+
+        popupEditorSaveBtn?.addEventListener('click', () => {
+            const posted = postPopupEditorMessage(POPUP_EDITOR_MESSAGE_TYPES.saveRequest, capturePopupEditorPayload());
+            setPopupEditorStatus(
+                posted ? '관리자 페이지에 저장 요청을 보냈습니다...' : '관리자 페이지와 연결되지 않아 저장할 수 없습니다.',
+                posted ? '' : 'error'
+            );
+        });
+
+        window.addEventListener('message', (event) => {
+            if (event.origin !== window.location.origin) return;
+            const message = event.data || {};
+            if (message.type !== POPUP_EDITOR_MESSAGE_TYPES.saveResult) return;
+            if (message.success) {
+                remotePopupLayout = normalizePopupLayout(message.payload?.popupLayout);
+                remoteToolUiConfig = normalizeToolUiConfig(message.payload?.toolUiConfig);
+                currentPopupLayout = normalizePopupLayout(remotePopupLayout);
+                applyPopupOmrWidthRatio(currentPopupLayout.omrWidthRatio);
+                setLayoutRatios(
+                    message.payload?.layoutRatios?.timer,
+                    message.payload?.layoutRatios?.utils,
+                    message.payload?.layoutRatios?.calc,
+                    { persist: false, notifyPopupEditor: false }
+                );
+                applyToolUiConfig(remoteToolUiConfig, { persist: false, notifyPopupEditor: false });
+                renderPopupEditorMetrics();
+                setPopupEditorStatus('스테이징 기본값 저장이 완료되었습니다.', 'success');
+            } else {
+                setPopupEditorStatus(message.error || '저장 중 오류가 발생했습니다.', 'error');
+            }
+        });
+
+        popupMoveWatcher = window.setInterval(() => {
+            const signature = JSON.stringify(capturePopupWindowRatios());
+            if (signature !== lastPopupWindowOnlySignature) {
+                lastPopupEditorSignature = '';
+                schedulePopupEditorSync(0);
+            }
+        }, 400);
+        syncPopupEditorSnapshot(true);
+    }
 
     /* --- OMR & Scoring Logic --- */
     const subjects = [
@@ -238,6 +560,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (newWidth < 130) newWidth = 130; // 좁혀진 레이아웃에 맞춰 최소폭 하향
         if (newWidth > document.body.clientWidth * 0.8) newWidth = document.body.clientWidth * 0.8; // 최대폭
         document.documentElement.style.setProperty('--omr-width', `${newWidth}px`);
+        if (isPopupMode && appContainerEl) {
+            currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(newWidth / appContainerEl.clientWidth, 0.16, 0.7));
+            schedulePopupEditorSync();
+        }
     });
 
     document.addEventListener('mouseup', () => {
@@ -246,10 +572,94 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.style.cursor = 'default';
             document.body.style.userSelect = 'auto';
             const currentWidth = getComputedStyle(document.documentElement).getPropertyValue('--omr-width').replace('px', '').trim();
-            localStorage.setItem('stg_skct_omr_width', currentWidth);
+            if (!isPopupMode) {
+                localStorage.setItem('stg_skct_omr_width', currentWidth);
+            } else if (appContainerEl) {
+                currentPopupLayout.omrWidthRatio = roundRatio(clampNumber(parseFloat(currentWidth) / appContainerEl.clientWidth, 0.16, 0.7));
+                schedulePopupEditorSync();
+            }
             resizeCanvas(); // OMR 너비 변동으로 캔버스 폭 변경 대응
         }
     });
+
+    if (isPopupEditorMode && topBarResizerEl && toolsSectionResizerEl && topBarEl && utilitySectionEl && calculatorSectionEl) {
+        const MIN_TIMER_HEIGHT = 44;
+        const MIN_UTILITY_HEIGHT = 120;
+        const MIN_CALC_HEIGHT = 170;
+
+        function readSectionHeights() {
+            return {
+                timerHeight: topBarEl.getBoundingClientRect().height,
+                utilityHeight: utilitySectionEl.getBoundingClientRect().height,
+                calcHeight: calculatorSectionEl.getBoundingClientRect().height
+            };
+        }
+
+        function finishHorizontalResize() {
+            document.body.style.cursor = 'default';
+            document.body.style.userSelect = 'auto';
+            topBarResizerEl.classList.remove('active');
+            toolsSectionResizerEl.classList.remove('active');
+            schedulePopupEditorSync();
+        }
+
+        let topBarResizeSession = null;
+        let toolsResizeSession = null;
+
+        topBarResizerEl.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            topBarResizeSession = { startY: event.clientY, heights: readSectionHeights() };
+            topBarResizerEl.classList.add('active');
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        toolsSectionResizerEl.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            toolsResizeSession = { startY: event.clientY, heights: readSectionHeights() };
+            toolsSectionResizerEl.classList.add('active');
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (topBarResizeSession) {
+                const { timerHeight, utilityHeight, calcHeight } = topBarResizeSession.heights;
+                const totalHeight = timerHeight + utilityHeight + calcHeight;
+                const desiredTimerHeight = clampNumber(
+                    timerHeight + (event.clientY - topBarResizeSession.startY),
+                    MIN_TIMER_HEIGHT,
+                    totalHeight - (MIN_UTILITY_HEIGHT + MIN_CALC_HEIGHT)
+                );
+                const remainingHeight = totalHeight - desiredTimerHeight;
+                const toolsTotal = Math.max(utilityHeight + calcHeight, 1);
+                const utilityShare = utilityHeight / toolsTotal;
+                const nextUtilityHeight = remainingHeight * utilityShare;
+                const nextCalcHeight = remainingHeight - nextUtilityHeight;
+                applyRatiosFromHeights(desiredTimerHeight, nextUtilityHeight, nextCalcHeight);
+            }
+
+            if (toolsResizeSession) {
+                const { timerHeight, utilityHeight, calcHeight } = toolsResizeSession.heights;
+                const toolsTotal = utilityHeight + calcHeight;
+                const desiredUtilityHeight = clampNumber(
+                    utilityHeight + (event.clientY - toolsResizeSession.startY),
+                    MIN_UTILITY_HEIGHT,
+                    toolsTotal - MIN_CALC_HEIGHT
+                );
+                const nextCalcHeight = toolsTotal - desiredUtilityHeight;
+                applyRatiosFromHeights(timerHeight, desiredUtilityHeight, nextCalcHeight);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (topBarResizeSession || toolsResizeSession) {
+                topBarResizeSession = null;
+                toolsResizeSession = null;
+                finishHorizontalResize();
+            }
+        });
+    }
 
     // Question Timing
     let questionTimings = {}; // { "math_1": { spent: 45, state: 'answered' | 'skipped' } }
@@ -620,12 +1030,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const notepadWrapper = document.getElementById('notepadWrapper');
     const canvasWrapper = document.getElementById('canvasWrapper');
     const notepad = document.getElementById('notepad');
+    const noteFontControl = document.getElementById('noteFontControl');
+    const canvasLineWidthControl = document.getElementById('canvasLineWidthControl');
+
+    const updateToolControlVisibility = () => {
+        noteFontControl?.classList.toggle('hidden', notepadWrapper.classList.contains('hidden'));
+        canvasLineWidthControl?.classList.toggle('hidden', canvasWrapper.classList.contains('hidden'));
+    };
 
     tabNotepad.addEventListener('click', () => {
         tabNotepad.classList.add('active');
         tabCanvas.classList.remove('active');
         notepadWrapper.classList.remove('hidden');
         canvasWrapper.classList.add('hidden');
+        updateToolControlVisibility();
     });
 
     tabCanvas.addEventListener('click', () => {
@@ -633,8 +1051,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tabNotepad.classList.remove('active');
         canvasWrapper.classList.remove('hidden');
         notepadWrapper.classList.add('hidden');
+        updateToolControlVisibility();
         resizeCanvas(); // Ensure canvas fits when revealed
     });
+
+    updateToolControlVisibility();
 
     /* --- Drawing Board (Canvas) Logic --- */
     const canvas = document.getElementById('drawingBoard');
@@ -657,8 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        // 흐물흐물한 크레용 느낌 모방 (투명도 + 굵기)
-        ctx.lineWidth = 4;
+        ctx.lineWidth = currentToolUiConfig.canvasLineWidth;
         ctx.strokeStyle = 'rgba(40, 40, 60, 0.9)';
 
         ctx.drawImage(tempCanvas, 0, 0);
@@ -727,6 +1147,15 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('touchmove', draw);
     canvas.addEventListener('touchend', stopDrawing);
 
+    noteFontSizeRange?.addEventListener('input', () => {
+        applyToolUiConfig({ noteFontSize: noteFontSizeRange.value });
+    });
+
+    canvasLineWidthRange?.addEventListener('input', () => {
+        applyToolUiConfig({ canvasLineWidth: canvasLineWidthRange.value });
+        ctx.lineWidth = currentToolUiConfig.canvasLineWidth;
+    });
+
     /* --- global Utilities --- */
     document.getElementById('clearCurrentToolBtn').addEventListener('click', () => {
         if (!canvasWrapper.classList.contains('hidden')) {
@@ -742,10 +1171,11 @@ document.addEventListener('DOMContentLoaded', () => {
         notepad.value = '';
         // Note: SKCT initializes Calculator as well, so we can init it too.
         calcState.current = '0';
-        calcState.previous = null;
+        calcState.storedValue = null;
         calcState.operator = null;
         calcState.waitingNew = false;
-        updateCalcDisplay();
+        calcState.history = [];
+        renderCalcDisplay();
         
         // Advance question
         if (omrState.mode === 'answer') {
@@ -773,10 +1203,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 notepad.value = '';
                 calcState.current = '0';
-                calcState.previous = null;
+                calcState.storedValue = null;
                 calcState.operator = null;
                 calcState.waitingNew = false;
-                updateCalcDisplay();
+                calcState.history = [];
+                renderCalcDisplay();
                 
                 document.getElementById('scoreResult').classList.add('hidden');
                 renderOMR();
@@ -789,66 +1220,81 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* --- Calculator Logic --- */
-    const calcDisplay = document.getElementById('calcDisplay');
+    const calcHistory = document.getElementById('calcHistory');
     const calcState = {
         current: '0',
-        previous: null,
+        storedValue: null,
         operator: null,
-        waitingNew: false
+        waitingNew: false,
+        history: []
     };
 
-    function updateCalcDisplay() {
-        // Prevent display of extremely long decimals
-        let displayStr = calcState.current;
-        if(displayStr.length > 12) {
-            // Very hacky display fit
-            displayStr = displayStr.substring(0, 12);
-        }
-        calcDisplay.value = displayStr;
+    function getOperatorSymbol(operator) {
+        if (operator === '*') return '×';
+        if (operator === '/') return '÷';
+        return operator || '';
+    }
 
-        const opDisplay = document.getElementById('calcOpDisplay');
-        if (opDisplay) {
-            let symbol = '';
-            if (calcState.operator === '*') symbol = '×';
-            else if (calcState.operator === '/') symbol = '÷';
-            else if (calcState.operator === '+') symbol = '+';
-            else if (calcState.operator === '-') symbol = '-';
-            opDisplay.innerText = symbol;
+    function limitCalcLength(value) {
+        return value.length <= 18 ? value : value.slice(0, 18);
+    }
+
+    function getCurrentCalcLine() {
+        if (calcState.operator && calcState.storedValue !== null) {
+            const rightText = calcState.waitingNew ? '' : ` ${calcState.current}`;
+            return `${calcState.storedValue} ${getOperatorSymbol(calcState.operator)}${rightText}`;
         }
+        return calcState.current;
+    }
+
+    function pushCalcHistory(line) {
+        calcState.history.push(limitCalcLength(line));
+        calcState.history = calcState.history.slice(-3);
+    }
+
+    function renderCalcDisplay() {
+        if (!calcHistory) return;
+        const lines = calcState.history.map((line) => `<div class="calc-line history-line">${line}</div>`);
+        lines.push(`<div class="calc-line current-line">${limitCalcLength(getCurrentCalcLine())}</div>`);
+        calcHistory.innerHTML = lines.join('');
     }
 
     function handleNumber(numStr) {
         if (calcState.waitingNew) {
             calcState.current = numStr === '.' ? '0.' : numStr;
             calcState.waitingNew = false;
-        } else {
-            if (numStr === '.') {
-                if (!calcState.current.includes('.')) {
-                    calcState.current += '.';
-                }
-            } else if (calcState.current === '0') {
-                calcState.current = numStr;
-            } else {
-                calcState.current += numStr;
+        } else if (numStr === '.') {
+            if (!calcState.current.includes('.')) {
+                calcState.current += '.';
             }
+        } else if (numStr === '00') {
+            calcState.current = calcState.current === '0' ? '0' : `${calcState.current}00`;
+        } else if (calcState.current === '0') {
+            calcState.current = numStr;
+        } else {
+            calcState.current += numStr;
         }
-        updateCalcDisplay();
+        calcState.current = limitCalcLength(calcState.current);
+        renderCalcDisplay();
     }
 
     function handleOperator(op) {
         if (calcState.operator && !calcState.waitingNew) {
-            calculateResult();
+            calculateResult(false);
         }
-        calcState.previous = calcState.current;
+        calcState.storedValue = calcState.current;
         calcState.operator = op;
         calcState.waitingNew = true;
+        renderCalcDisplay();
     }
 
-    function calculateResult() {
-        if (!calcState.operator || calcState.previous === null) return;
-        
-        let prev = parseFloat(calcState.previous);
-        let curr = parseFloat(calcState.current);
+    function calculateResult(commitHistory = true) {
+        if (!calcState.operator || calcState.storedValue === null) return;
+
+        const leftValue = calcState.storedValue;
+        const rightValue = calcState.current;
+        const prev = parseFloat(leftValue);
+        const curr = parseFloat(rightValue);
         let res = 0;
 
         switch (calcState.operator) {
@@ -858,31 +1304,49 @@ document.addEventListener('DOMContentLoaded', () => {
             case '/': res = curr !== 0 ? prev / curr : 'Error'; break;
         }
 
-        // Float accuracy precision
-        if(res !== 'Error') {
+        if (res !== 'Error') {
             res = Math.round(res * 100000000) / 100000000;
         }
 
-        calcState.current = String(res);
+        const resultText = String(res);
+        if (commitHistory) {
+            pushCalcHistory(`${leftValue} ${getOperatorSymbol(calcState.operator)} ${rightValue} = ${resultText}`);
+        }
+
+        calcState.current = resultText;
         calcState.operator = null;
-        calcState.previous = null;
+        calcState.storedValue = null;
         calcState.waitingNew = true;
-        updateCalcDisplay();
+        renderCalcDisplay();
     }
 
     function handleFn(fnStr) {
         if (fnStr === 'C') {
             calcState.current = '0';
-            calcState.previous = null;
+            calcState.storedValue = null;
             calcState.operator = null;
             calcState.waitingNew = false;
+        } else if (fnStr === 'BACK') {
+            if (!calcState.waitingNew && calcState.current !== '0' && calcState.current !== 'Error') {
+                calcState.current = calcState.current.slice(0, -1);
+                if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
+            }
         } else if (fnStr === '=') {
-            calculateResult();
+            calculateResult(true);
         }
-        updateCalcDisplay();
+        renderCalcDisplay();
     }
 
-    // UI Buttons
+    renderCalcDisplay();
+
+    document.getElementById('mockChatBtn')?.addEventListener('click', () => {
+        alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
+    });
+
+    document.getElementById('mockQuestionBtn')?.addEventListener('click', () => {
+        alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
+    });
+
     document.querySelectorAll('.calc-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const val = e.target.dataset.val;
@@ -891,46 +1355,36 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (e.target.classList.contains('op-btn')) {
                 handleOperator(val);
             } else if (e.target.classList.contains('fn-btn')) {
-                // If it's pure C/Equal
                 handleFn(val);
             }
         });
     });
 
-    // Keyboard Support
     window.addEventListener('keydown', (e) => {
-        // Prevent if user is typing in notepad or timer
         if (document.activeElement === notepad || document.activeElement.tagName === 'INPUT') {
             return;
         }
 
         const key = e.key;
-
-        // Numbers
-        if (/[0-9\.]/.test(key)) {
+        if (/[0-9]/.test(key)) {
             handleNumber(key);
             e.preventDefault();
-        } 
-        // Operators
-        else if (['+', '-', '*', '/'].includes(key)) {
+        } else if (key === '.') {
+            handleNumber('.');
+            e.preventDefault();
+        } else if (['+', '-', '*', '/'].includes(key)) {
             handleOperator(key);
             e.preventDefault();
-        } 
-        else if (key === 'Enter' || key === '=') {
-            calculateResult();
+        } else if (key === 'Enter' || key === '=') {
+            calculateResult(true);
             e.preventDefault();
-        }
-        else if (key === 'Backspace') {
-            if (!calcState.waitingNew && calcState.current !== '0') {
-                calcState.current = calcState.current.slice(0, -1);
-                if (calcState.current === '' || calcState.current === '-') calcState.current = '0';
-                updateCalcDisplay();
-            }
+        } else if (key === 'Backspace') {
+            handleFn('BACK');
             e.preventDefault();
-        }
-        // Explicitly block Delete, Escape from clearing the calc as requested
-        else if (key === 'Delete' || key === 'Escape') {
-            // Do nothing intentionally
+        } else if (key.toLowerCase() === 'c') {
+            handleFn('C');
+            e.preventDefault();
+        } else if (key === 'Delete' || key === 'Escape') {
             e.preventDefault();
         }
     });
@@ -1062,21 +1516,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.applyRemoteLayoutRatios = (timer, utils, calc) => {
-        const tR = parseFloat(timer) || 0.2;
-        const uR = parseFloat(utils) || 1;
-        const cR = parseFloat(calc) || 2;
+        setLayoutRatios(timer, utils, calc, {
+            persist: false,
+            notifyPopupEditor: false
+        });
+    };
 
-        document.documentElement.style.setProperty('--timer-ratio', tR);
-        document.documentElement.style.setProperty('--utils-ratio', uR);
-        document.documentElement.style.setProperty('--calc-ratio', cR);
+    window.applyRemotePopupLayout = (popupLayout) => {
+        remotePopupLayout = normalizePopupLayout(popupLayout);
+        if (!isPopupMode) return;
+        currentPopupLayout = normalizePopupLayout(remotePopupLayout);
+        applyPopupOmrWidthRatio(currentPopupLayout.omrWidthRatio);
+        schedulePopupEditorSync();
+    };
 
-        if (ratioTimer) ratioTimer.value = tR;
-        if (ratioUtils) ratioUtils.value = uR;
-        if (ratioCalc) ratioCalc.value = cR;
-
-        if (typeof resizeCanvas === 'function') {
-            requestAnimationFrame(resizeCanvas);
-        }
+    window.applyRemoteToolUiConfig = (toolUiConfig) => {
+        remoteToolUiConfig = normalizeToolUiConfig(toolUiConfig);
+        applyToolUiConfig(remoteToolUiConfig, { persist: false, notifyPopupEditor: false });
     };
 
     // 부드러운 알람 비프음 (Web Audio API)
@@ -1407,22 +1863,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // (hitscounter.dev 로직이 Firebase total_visits로 대체되어 완전히 제거됨)
 
-    // Disable implicit focusing on calcDisplay
-    const calcDisplayEl = document.getElementById('calcDisplay');
+    // Disable implicit focusing on calc history area
+    const calcDisplayEl = document.getElementById('calcHistory');
     if(calcDisplayEl) calcDisplayEl.addEventListener('mousedown', (e) => e.preventDefault());
 
     /* --- Window Popup Mode Logic --- */
     function launchPopupMode() {
-        let w = parseInt(localStorage.getItem('stg_skct_popup_width')) || 350;
-        let h = parseInt(localStorage.getItem('stg_skct_popup_height')) || 800;
-        let left = parseInt(localStorage.getItem('stg_skct_popup_left'));
-        let top = parseInt(localStorage.getItem('stg_skct_popup_top'));
-
-        if (isNaN(left)) left = Math.round((screen.width - w) / 2);
-        if (isNaN(top)) top = Math.round((screen.height - h) / 2);
-
         const popupUrl = window.location.href;
-        const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+        const { width, height, left, top } = buildPopupWindowMetrics(remotePopupLayout.window);
+        const popupParams = `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
         const newWin = window.open(popupUrl, 'stg_skct_popup_mode', popupParams);
 
         if (!newWin) {

@@ -191,6 +191,18 @@
                         </div>
                     </div>
                 </div>
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <label style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                        <span>↗ 스테이징 팝업 기본값 편집</span>
+                        <button class="btn btn-ghost btn-sm" id="popupLayoutEditorBtn" type="button" style="padding:4px 10px; font-size:11px;">팝업 편집기 열기</button>
+                    </label>
+                    <div style="font-size:11px; color:var(--adm-text-muted); margin-top:8px; line-height:1.6;">
+                        스테이징 팝업에서 창 크기, 위치, OMR 폭, 세로 분할, 하단 여백, 메모 글씨 크기, 그림판 굵기를 직접 맞춘 뒤 저장합니다.
+                    </div>
+                    <div id="popupLayoutSummary" style="margin-top:10px; padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.65;">
+                        스테이징 기본값을 불러오는 중...
+                    </div>
+                </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
                         유용한 링크 (Help 창 하단에 추가됨)
@@ -380,8 +392,108 @@
         setTimeout(() => el.className = 'toast', 3000);
     }
 
+    function clampNumber(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+    }
+
+    function roundRatio(value) {
+        return Math.round(value * 1000) / 1000;
+    }
+
+    function getScreenMetrics() {
+        const availWidth = screen.availWidth || screen.width || window.outerWidth || 1440;
+        const availHeight = screen.availHeight || screen.height || window.outerHeight || 900;
+        const availLeft = Number.isFinite(screen.availLeft) ? screen.availLeft : 0;
+        const availTop = Number.isFinite(screen.availTop) ? screen.availTop : 0;
+        return { availWidth, availHeight, availLeft, availTop };
+    }
+
+    function createLegacyPopupWindowDefaults() {
+        const { availWidth, availHeight } = getScreenMetrics();
+        const width = clampNumber(350, 300, availWidth);
+        const height = clampNumber(800, 520, availHeight);
+        return {
+            widthRatio: roundRatio(width / availWidth),
+            heightRatio: roundRatio(height / availHeight),
+            leftRatio: roundRatio(Math.max(0, (availWidth - width) / 2) / availWidth),
+            topRatio: roundRatio(Math.max(0, (availHeight - height) / 2) / availHeight)
+        };
+    }
+
+    function normalizePopupLayout(raw) {
+        const fallbackWindow = createLegacyPopupWindowDefaults();
+        const sourceWindow = raw?.window || {};
+        const widthRatio = parseFloat(sourceWindow.widthRatio);
+        const heightRatio = parseFloat(sourceWindow.heightRatio);
+        const safeWidthRatio = Number.isFinite(widthRatio) ? clampNumber(widthRatio, 0.18, 0.8) : fallbackWindow.widthRatio;
+        const safeHeightRatio = Number.isFinite(heightRatio) ? clampNumber(heightRatio, 0.45, 0.98) : fallbackWindow.heightRatio;
+        const leftRatio = parseFloat(sourceWindow.leftRatio);
+        const topRatio = parseFloat(sourceWindow.topRatio);
+        const omrWidthRatio = parseFloat(raw?.omrWidthRatio);
+        return {
+            window: {
+                widthRatio: roundRatio(safeWidthRatio),
+                heightRatio: roundRatio(safeHeightRatio),
+                leftRatio: roundRatio(clampNumber(Number.isFinite(leftRatio) ? leftRatio : fallbackWindow.leftRatio, 0, Math.max(0, 1 - safeWidthRatio))),
+                topRatio: roundRatio(clampNumber(Number.isFinite(topRatio) ? topRatio : fallbackWindow.topRatio, 0, Math.max(0, 1 - safeHeightRatio)))
+            },
+            omrWidthRatio: roundRatio(Number.isFinite(omrWidthRatio) ? clampNumber(omrWidthRatio, 0.16, 0.7) : 0.34)
+        };
+    }
+
+    function normalizeLayoutRatios(raw) {
+        return {
+            timer: roundRatio(clampNumber(parseFloat(raw?.timer) || 0.2, 0.05, 98)),
+            utils: roundRatio(clampNumber(parseFloat(raw?.utils) || 1, 0.05, 98)),
+            calc: roundRatio(clampNumber(parseFloat(raw?.calc) || 2, 0.05, 98))
+        };
+    }
+
+    function normalizeToolUiConfig(raw) {
+        return {
+            bottomPaddingRatio: roundRatio(clampNumber(parseFloat(raw?.bottomPaddingRatio) || 0.04, 0, 0.18)),
+            noteFontSize: clampNumber(parseInt(raw?.noteFontSize, 10) || 14, 12, 22),
+            canvasLineWidth: clampNumber(parseInt(raw?.canvasLineWidth, 10) || 4, 2, 12)
+        };
+    }
+
+    function formatPopupLayoutSummary(popupLayout, layoutRatios, toolUiConfig) {
+        const popup = normalizePopupLayout(popupLayout);
+        const ratios = normalizeLayoutRatios(layoutRatios);
+        const toolUi = normalizeToolUiConfig(toolUiConfig);
+        return `
+            <div><strong>창 크기</strong>: ${(popup.window.widthRatio * 100).toFixed(1)}% x ${(popup.window.heightRatio * 100).toFixed(1)}%</div>
+            <div><strong>창 위치</strong>: 왼쪽 ${(popup.window.leftRatio * 100).toFixed(1)}% / 위 ${(popup.window.topRatio * 100).toFixed(1)}%</div>
+            <div><strong>OMR 폭</strong>: ${(popup.omrWidthRatio * 100).toFixed(1)}%</div>
+            <div><strong>세로 비율</strong>: 타이머 ${ratios.timer.toFixed(1)} / 메모 ${ratios.utils.toFixed(1)} / 계산기 ${ratios.calc.toFixed(1)}</div>
+            <div><strong>도구 기본값</strong>: 하단 여백 ${(toolUi.bottomPaddingRatio * 100).toFixed(1)}%, 메모 ${toolUi.noteFontSize}px, 그림판 ${toolUi.canvasLineWidth}px</div>
+        `;
+    }
+
     function buildSitePreviewUrl() {
-        return 'index.html?dev=1&preview=1';
+        return 'index.html?stage=1&preview=1';
+    }
+
+    function buildPopupEditorUrl() {
+        return 'index.html?stage=1&preview=1&popupEditor=1';
+    }
+
+    function buildPopupWindowMetrics(popupLayout) {
+        const normalized = normalizePopupLayout(popupLayout);
+        const { availWidth, availHeight, availLeft, availTop } = getScreenMetrics();
+        const width = clampNumber(Math.round(availWidth * normalized.window.widthRatio), 300, availWidth);
+        const height = clampNumber(Math.round(availHeight * normalized.window.heightRatio), 520, availHeight);
+        const maxLeft = Math.max(0, availWidth - width);
+        const maxTop = Math.max(0, availHeight - height);
+        const left = Math.round(availLeft + clampNumber(availWidth * normalized.window.leftRatio, 0, maxLeft));
+        const top = Math.round(availTop + clampNumber(availHeight * normalized.window.topRatio, 0, maxTop));
+        return { width, height, left, top };
+    }
+
+    function openPopupWindow(url, windowName) {
+        const popupMetrics = buildPopupWindowMetrics(loadedConfig.popupLayout);
+        const popupParams = `width=${popupMetrics.width},height=${popupMetrics.height},left=${popupMetrics.left},top=${popupMetrics.top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
+        return window.open(url, windowName, popupParams);
     }
 
     // ── State ──
@@ -445,22 +557,76 @@
         sitePreviewLink.href = buildSitePreviewUrl();
         sitePreviewLink.addEventListener('click', (e) => {
             e.preventDefault();
-
-            let w = parseInt(localStorage.getItem('stg_skct_popup_width'), 10) || 350;
-            let h = parseInt(localStorage.getItem('stg_skct_popup_height'), 10) || 800;
-            let left = parseInt(localStorage.getItem('stg_skct_popup_left'), 10);
-            let top = parseInt(localStorage.getItem('stg_skct_popup_top'), 10);
-
-            if (isNaN(left)) left = Math.round((screen.width - w) / 2);
-            if (isNaN(top)) top = Math.round((screen.height - h) / 2);
-
-            const popupParams = `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,directories=no`;
-            const popup = window.open(buildSitePreviewUrl(), 'stg_skct_popup_mode', popupParams);
+            localStorage.setItem('stg_skct_admin_gate_until', String(Date.now() + 60 * 60 * 1000));
+            const popup = openPopupWindow(buildSitePreviewUrl(), 'stg_skct_popup_mode');
             if (!popup) {
                 toast('팝업이 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용해주세요.', true);
             }
         });
     }
+
+    const popupLayoutEditorBtn = document.getElementById('popupLayoutEditorBtn');
+    if (popupLayoutEditorBtn) {
+        popupLayoutEditorBtn.addEventListener('click', () => {
+            localStorage.setItem('stg_skct_admin_gate_until', String(Date.now() + 60 * 60 * 1000));
+            const popup = openPopupWindow(buildPopupEditorUrl(), 'stg_skct_popup_mode');
+            if (!popup) {
+                toast('팝업 편집기가 차단되었습니다. 브라우저에서 이 사이트의 팝업을 허용해주세요.', true);
+            }
+        });
+    }
+
+    window.addEventListener('message', async (event) => {
+        if (event.origin !== window.location.origin) return;
+        const message = event.data || {};
+        if (!message.type || !message.type.startsWith('stg-skct-popup-')) return;
+
+        if (message.type === 'stg-skct-popup-preview') {
+            loadedConfig.popupLayout = normalizePopupLayout(message.payload?.popupLayout);
+            loadedConfig.layoutRatios = normalizeLayoutRatios(message.payload?.layoutRatios);
+            loadedConfig.toolUiConfig = normalizeToolUiConfig(message.payload?.toolUiConfig);
+            document.getElementById('settingRatioTimer').value = loadedConfig.layoutRatios.timer;
+            document.getElementById('settingRatioUtils').value = loadedConfig.layoutRatios.utils;
+            document.getElementById('settingRatioCalc').value = loadedConfig.layoutRatios.calc;
+            renderPopupLayoutSummary();
+            return;
+        }
+
+        if (message.type === 'stg-skct-popup-save-request') {
+            try {
+                loadedConfig.popupLayout = normalizePopupLayout(message.payload?.popupLayout);
+                loadedConfig.layoutRatios = normalizeLayoutRatios(message.payload?.layoutRatios);
+                loadedConfig.toolUiConfig = normalizeToolUiConfig(message.payload?.toolUiConfig);
+                document.getElementById('settingRatioTimer').value = loadedConfig.layoutRatios.timer;
+                document.getElementById('settingRatioUtils').value = loadedConfig.layoutRatios.utils;
+                document.getElementById('settingRatioCalc').value = loadedConfig.layoutRatios.calc;
+
+                await set(ref(db, 'staging_hidden_v1/config/popupLayout'), loadedConfig.popupLayout);
+                await set(ref(db, 'staging_hidden_v1/config/layoutRatios'), loadedConfig.layoutRatios);
+                await set(ref(db, 'staging_hidden_v1/config/toolUiConfig'), loadedConfig.toolUiConfig);
+
+                renderPopupLayoutSummary();
+                toast('✅ 스테이징 팝업 기본값 저장 완료');
+                event.source?.postMessage({
+                    type: 'stg-skct-popup-save-result',
+                    success: true,
+                    payload: {
+                        popupLayout: loadedConfig.popupLayout,
+                        layoutRatios: loadedConfig.layoutRatios,
+                        toolUiConfig: loadedConfig.toolUiConfig
+                    }
+                }, event.origin);
+            } catch (error) {
+                console.error(error);
+                toast('스테이징 팝업 기본값 저장 실패', true);
+                event.source?.postMessage({
+                    type: 'stg-skct-popup-save-result',
+                    success: false,
+                    error: '관리자 페이지에서 저장 중 오류가 발생했습니다.'
+                }, event.origin);
+            }
+        }
+    });
 
     // ── Dashboard Init ──
     function startDashboard() {
@@ -753,7 +919,17 @@
     };
 
     // ── Config (Notice + PopularConfig + Global) ──
-    let loadedConfig = { notice_help: {}, notice_community: {}, appName: "SKCT 연습 도구", useful_links: [], sponsors: [], supportConfig: {} };
+    let loadedConfig = {
+        notice_help: {},
+        notice_community: {},
+        appName: "SKCT 연습 도구",
+        useful_links: [],
+        sponsors: [],
+        supportConfig: {},
+        layoutRatios: normalizeLayoutRatios(),
+        popupLayout: normalizePopupLayout(),
+        toolUiConfig: normalizeToolUiConfig()
+    };
 
     const DEFAULT_SUPPORT_CONFIG = {
         modalTitle: "☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!",
@@ -778,6 +954,12 @@
             brk: safeBreak
         };
     };
+
+    function renderPopupLayoutSummary() {
+        const summaryEl = document.getElementById('popupLayoutSummary');
+        if (!summaryEl) return;
+        summaryEl.innerHTML = formatPopupLayoutSummary(loadedConfig.popupLayout, loadedConfig.layoutRatios, loadedConfig.toolUiConfig);
+    }
 
     function renderNoticeForm() {
         const target = document.getElementById('noticeTarget').value;
@@ -924,15 +1106,25 @@
             }
 
             if (cfg.layoutRatios) {
-                document.getElementById('settingRatioTimer').value = cfg.layoutRatios.timer ?? 0.2;
-                document.getElementById('settingRatioUtils').value = cfg.layoutRatios.utils ?? 1;
-                document.getElementById('settingRatioCalc').value = cfg.layoutRatios.calc ?? 2;
+                loadedConfig.layoutRatios = normalizeLayoutRatios(cfg.layoutRatios);
+                document.getElementById('settingRatioTimer').value = loadedConfig.layoutRatios.timer;
+                document.getElementById('settingRatioUtils').value = loadedConfig.layoutRatios.utils;
+                document.getElementById('settingRatioCalc').value = loadedConfig.layoutRatios.calc;
+            }
+
+            if (cfg.popupLayout) {
+                loadedConfig.popupLayout = normalizePopupLayout(cfg.popupLayout);
+            }
+
+            if (cfg.toolUiConfig) {
+                loadedConfig.toolUiConfig = normalizeToolUiConfig(cfg.toolUiConfig);
             }
 
             renderNoticeForm();
             renderLinksForm();
             renderSupportForm();
             renderSponsorsPreview();
+            renderPopupLayoutSummary();
             document.getElementById('settingAppName').value = loadedConfig.appName;
 
             // Popular config
@@ -1006,6 +1198,7 @@
             utils: parseFloat(document.getElementById('settingRatioUtils').value) || 1,
             calc: parseFloat(document.getElementById('settingRatioCalc').value) || 2
         };
+        loadedConfig.layoutRatios = normalizeLayoutRatios(layoutRatios);
 
         const supportConfig = {
             modalTitle: document.getElementById('supportModalTitle').value.trim() || DEFAULT_SUPPORT_CONFIG.modalTitle,
@@ -1027,8 +1220,11 @@
         await set(ref(db, 'staging_hidden_v1/config/sponsors'), loadedConfig.sponsors || []);
         await set(ref(db, 'staging_hidden_v1/config/timerDefaults'), timerDefaults);
         await set(ref(db, 'staging_hidden_v1/config/guideDefaults'), guideDefaults);
-        await set(ref(db, 'staging_hidden_v1/config/layoutRatios'), layoutRatios);
+        await set(ref(db, 'staging_hidden_v1/config/layoutRatios'), loadedConfig.layoutRatios);
+        await set(ref(db, 'staging_hidden_v1/config/popupLayout'), loadedConfig.popupLayout);
+        await set(ref(db, 'staging_hidden_v1/config/toolUiConfig'), loadedConfig.toolUiConfig);
         await set(ref(db, 'staging_hidden_v1/config/supportConfig'), supportConfig);
+        renderPopupLayoutSummary();
         toast('✅ 글로벌 & 기본 설정 저장 완료');
     });
 

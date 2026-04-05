@@ -140,6 +140,7 @@
                     </div>
                 </div>
             </header>
+            <div class="layout-resizer horizontal hidden" id="topBarResizer" aria-hidden="true"></div>
 
             <!-- Tools Grid -->
             <div class="tools-layout" style="position: relative;">
@@ -160,8 +161,20 @@
                         <div class="tool-tabs">
                             <button id="tabNotepad" class="tab-btn active">메모장</button>
                             <button id="tabCanvas" class="tab-btn">그림판</button>
+                            <button id="clearCurrentToolBtn" class="tab-btn tool-action-btn">삭제</button>
                         </div>
-                        <button id="clearCurrentToolBtn" class="clear-btn">지우기</button>
+                        <div class="tool-adjusters">
+                            <label id="noteFontControl" class="tool-adjuster">
+                                <span>글씨</span>
+                                <input type="range" id="noteFontSizeRange" min="12" max="22" step="1" value="14">
+                                <strong id="noteFontSizeValue">14</strong>
+                            </label>
+                            <label id="canvasLineWidthControl" class="tool-adjuster hidden">
+                                <span>굵기</span>
+                                <input type="range" id="canvasLineWidthRange" min="2" max="12" step="1" value="4">
+                                <strong id="canvasLineWidthValue">4</strong>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="tool-body">
@@ -177,40 +190,64 @@
                     </div>
                 </section>
 
+                <div class="layout-resizer horizontal hidden" id="toolsSectionResizer" aria-hidden="true"></div>
+
                 <!-- Calculator (Bottom right area in layout logic) -->
                 <section class="calculator-section">
-                    <div class="calc-display-wrapper" style="position: relative; width: 100%;">
-                        <span id="calcOpDisplay" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; font-weight: bold; color: #94a3b8;"></span>
-                        <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+                    <div class="calc-display-shell">
+                        <div id="calcHistory" class="calc-history" aria-live="polite"></div>
                     </div>
                     <div class="calc-keys">
                         <button class="calc-btn fn-btn" data-val="C">C</button>
+                        <button class="calc-btn fn-btn" data-val="BACK">←</button>
                         <button class="calc-btn op-btn" data-val="/">÷</button>
                         <button class="calc-btn op-btn" data-val="*">×</button>
-                        <button class="calc-btn op-btn" data-val="-">-</button>
 
                         <button class="calc-btn num-btn" data-val="7">7</button>
                         <button class="calc-btn num-btn" data-val="8">8</button>
                         <button class="calc-btn num-btn" data-val="9">9</button>
-                        <button class="calc-btn op-btn grid-row-span" data-val="+">+</button>
+                        <button class="calc-btn op-btn" data-val="-">-</button>
 
                         <button class="calc-btn num-btn" data-val="4">4</button>
                         <button class="calc-btn num-btn" data-val="5">5</button>
                         <button class="calc-btn num-btn" data-val="6">6</button>
+                        <button class="calc-btn op-btn" data-val="+">+</button>
 
                         <button class="calc-btn num-btn" data-val="1">1</button>
                         <button class="calc-btn num-btn" data-val="2">2</button>
                         <button class="calc-btn num-btn" data-val="3">3</button>
                         <button class="calc-btn fn-btn grid-row-span equal-btn" data-val="=">=</button>
 
-                        <button class="calc-btn num-btn grid-col-span-2" data-val="0">0</button>
+                        <button class="calc-btn num-btn" data-val="0">0</button>
+                        <button class="calc-btn num-btn" data-val="00">00</button>
                         <button class="calc-btn num-btn" data-val=".">.</button>
                     </div>
                 </section>
 
+                <button id="mockChatBtn" class="skct-floating-btn chat-btn" type="button" aria-label="채팅 버튼 자리">
+                    <span class="chat-bubble-icon" aria-hidden="true"></span>
+                </button>
+                <button id="mockQuestionBtn" class="skct-floating-btn question-btn" type="button" aria-label="물음표 버튼 자리">?</button>
+
             </div>
         </main>
 
+    </div>
+
+    <div id="popupEditorPanel" class="popup-editor-panel hidden" aria-live="polite">
+        <div class="popup-editor-title">스테이징 팝업 기본값 편집</div>
+        <div class="popup-editor-desc">창 위치, 크기, 세로 비율, 하단 여백을 조절한 뒤 스테이징 기본값으로 저장하세요.</div>
+        <label class="popup-editor-field">
+            <span>하단 여백</span>
+            <input type="range" id="popupBottomPaddingRange" min="0" max="0.18" step="0.005" value="0.04">
+            <strong id="popupBottomPaddingValue">4.0%</strong>
+        </label>
+        <div id="popupEditorMetrics" class="popup-editor-metrics"></div>
+        <div class="popup-editor-actions">
+            <button id="popupEditorReloadBtn" type="button" class="popup-editor-btn ghost">서버값 다시 적용</button>
+            <button id="popupEditorSaveBtn" type="button" class="popup-editor-btn primary">스테이징 기본값 저장</button>
+        </div>
+        <div id="popupEditorStatus" class="popup-editor-status">관리자 페이지에서 연 편집 팝업에서만 저장됩니다.</div>
     </div>
 
     <!-- Help Modal Overlay -->
@@ -492,12 +529,14 @@
             const url = new URL(window.location.href);
             const stageParam = url.searchParams.get('stage');
             const previewParam = url.searchParams.get('preview');
+            const popupEditorParam = url.searchParams.get('popupEditor');
             const gateUntil = parseInt(localStorage.getItem('stg_skct_admin_gate_until') || '0', 10);
             const hasAdminGate = gateUntil > Date.now();
 
             window.SKCT_FLAGS = {
                 maintenanceBypass: true,
                 adminPreview: previewParam === '1',
+                popupEditor: popupEditorParam === '1',
                 stagingReadOnly: true,
                 stagingAccess: stageParam === '1' && hasAdminGate
             };
@@ -509,7 +548,7 @@
             }
         })();
     </script>
-    <script type="module" src="assets/scripts/app.bundle.js?v=202604051241"></script>
+    <script type="module" src="assets/scripts/app.bundle.js?v=202604051835"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -770,13 +809,21 @@
                 }
             }
             // Layout Ratios Sync (사용자가 로컬 저장하지 않은 경우에만 원격 기본값 적용)
-            if (cfg.layoutRatios && (window.SKCT_FLAGS?.adminPreview || !localStorage.getItem('stg_skct_layout_ratios'))) {
+            if (cfg.layoutRatios && (window.SKCT_FLAGS?.adminPreview || window.name === 'stg_skct_popup_mode' || !localStorage.getItem('stg_skct_layout_ratios'))) {
                 if (window.applyRemoteLayoutRatios) {
                     window.applyRemoteLayoutRatios(
                         cfg.layoutRatios.timer,
                         cfg.layoutRatios.utils,
                         cfg.layoutRatios.calc
                     );
+                }
+            }
+            if (cfg.popupLayout && window.applyRemotePopupLayout) {
+                window.applyRemotePopupLayout(cfg.popupLayout);
+            }
+            if (cfg.toolUiConfig && (window.SKCT_FLAGS?.adminPreview || window.name === 'stg_skct_popup_mode' || !localStorage.getItem('stg_skct_tool_ui'))) {
+                if (window.applyRemoteToolUiConfig) {
+                    window.applyRemoteToolUiConfig(cfg.toolUiConfig);
                 }
             }
 
