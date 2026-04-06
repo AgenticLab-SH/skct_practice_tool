@@ -94,7 +94,7 @@ skct_tool/
 
 ## 📧 문의
 
-- **이메일**: drgon28@naver.com
+- **이메일**: zhdlsqpdj@gmail.com
 - **GitHub**: [@AgenticLab-SH](https://github.com/AgenticLab-SH)
 
 ---
