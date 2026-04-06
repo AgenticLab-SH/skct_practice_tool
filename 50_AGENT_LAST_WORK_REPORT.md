@@ -1,7 +1,15 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-07 10:51:35 KST
+작성일시: 2026-04-07 02:42:30 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
+
+## 2026-04-07 운영 반영: 고급모드 타이머 폭/버튼 대비 보정
+- 운영 사용자 화면 [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)와 스테이징 [main.css](/C:/dev/01_career/_assets/tools/skct_tool/staging/site/assets/styles/main.css)의 고급모드 타이머 셸 폭을 다시 줄였습니다.
+- 타이머 요약 블록 최소 폭, 버튼 그리드 폭, 상단 바 좌우 패딩을 함께 압축해서 OMR을 펼쳤을 때 우측 버튼이 화면 밖으로 밀리는 현상을 줄였습니다.
+- `▶ / 다음 / 과↺ / 전↺` 버튼은 더 진한 색과 얇은 외곽선을 써서 캡처 화면처럼 흐리게 보이던 문제를 완화했습니다.
+- 비활성 버튼도 회색이지만 글자 대비가 유지되도록 다시 조정했습니다.
+- 로컬에서 `node --check main.js`, `http://127.0.0.1:8125/index.html?advanced=1` 로딩 확인까지 마쳤습니다.
+- 운영 코드 기준 최신 커밋은 `0ca52a7`입니다.
 
 ## 2026-04-07 운영 반영: 고급모드 타이머 초기화
 - 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.js](/C:/dev/01_career/_assets/tools/skct_tool/main.js), [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)에 고급모드 전용 `과목 초기화`, `전체 초기화` 버튼을 추가했습니다.
