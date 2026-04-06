@@ -547,8 +547,8 @@ body.advanced-mode .advanced-calc-slot {
 .q-num {
     width: 24px;
     flex: 0 0 24px;
-    text-align: right;
-    margin-right: 1px;
+    text-align: left;
+    margin-right: 0;
     font-weight: 600;
     font-size: 10px;
     font-variant-numeric: tabular-nums;
