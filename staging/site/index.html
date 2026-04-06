@@ -30,7 +30,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="assets/styles/main.css?v=202604061600">
+    <link rel="stylesheet" href="assets/styles/main.css?v=202604071015">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="assets/images/sk_ci.png">
@@ -145,6 +145,8 @@
                     <div class="timer-controls" style="margin-left: 8px;">
                         <button id="timerPlayBtn" style="width: 46px; padding: 6px 0; justify-content: center; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center;" aria-label="타이머 시작" title="타이머 시작">▶</button>
                         <button id="subjectSkipBtn" class="advanced-action-only timer-skip-btn" type="button" title="현재 과목을 종료하고 다음 과목으로 바로 이동">다음 과목</button>
+                        <button id="subjectResetBtn" class="advanced-action-only timer-skip-btn timer-reset-btn" type="button" title="현재 과목 타이머를 처음부터 다시 시작">과목 초기화</button>
+                        <button id="fullResetBtn" class="advanced-action-only timer-skip-btn timer-full-reset-btn" type="button" title="전체 타이머를 처음 상태로 다시 세팅">전체 초기화</button>
                     </div>
                 </div>
             </header>
@@ -703,7 +705,7 @@
             }
         })();
     </script>
-    <script type="module" src="assets/scripts/app.bundle.js?v=202604061600"></script>
+    <script type="module" src="assets/scripts/app.bundle.js?v=202604071015"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">

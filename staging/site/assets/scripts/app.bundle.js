@@ -2363,14 +2363,24 @@ document.addEventListener('DOMContentLoaded', () => {
         timerPlayBtn.title = isRunning ? '타이머 중지' : '타이머 시작';
     };
 
+    const getCurrentPhase = () => currentPhaseIdx < phases.length ? phases[currentPhaseIdx] : null;
+
     const canSkipToNextSubject = () => {
         if (!isAdvancedMode || isPracticeMode) return false;
         if (!timerIsRunning) return false;
         if (currentPhaseIdx >= phases.length) return false;
-        const currentPhase = phases[currentPhaseIdx];
+        const currentPhase = getCurrentPhase();
         if (currentPhase?.type !== 'subject') return false;
         return currentPhaseIdx + 2 < phases.length;
     };
+
+    const canResetCurrentSubjectTimer = () => {
+        if (!isAdvancedMode) return false;
+        const currentPhase = getCurrentPhase();
+        return currentPhase?.type === 'subject';
+    };
+
+    const canResetFullTimer = () => isAdvancedMode && phases.length > 0;
 
     const updateSubjectSkipButton = () => {
         const subjectSkipBtn = document.getElementById('subjectSkipBtn');
@@ -2392,6 +2402,38 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             subjectSkipBtn.title = '현재 과목을 종료하고 다음 과목으로 바로 이동';
         }
+    };
+
+    const updateSubjectResetButton = () => {
+        const subjectResetBtn = document.getElementById('subjectResetBtn');
+        if (!subjectResetBtn) return;
+        const enabled = canResetCurrentSubjectTimer();
+        subjectResetBtn.disabled = !enabled;
+        if (!isAdvancedMode) {
+            subjectResetBtn.title = '고급모드에서만 사용할 수 있습니다.';
+        } else if (currentPhaseIdx >= phases.length) {
+            subjectResetBtn.title = '이미 모든 과목이 종료되었습니다.';
+        } else if (getCurrentPhase()?.type !== 'subject') {
+            subjectResetBtn.title = '과목 진행 중일 때만 사용할 수 있습니다.';
+        } else {
+            subjectResetBtn.title = '현재 과목 타이머를 처음부터 다시 시작';
+        }
+    };
+
+    const updateFullResetButton = () => {
+        const fullResetBtn = document.getElementById('fullResetBtn');
+        if (!fullResetBtn) return;
+        const enabled = canResetFullTimer();
+        fullResetBtn.disabled = !enabled;
+        fullResetBtn.title = enabled
+            ? '전체 타이머를 처음 상태로 다시 세팅'
+            : '고급모드에서만 사용할 수 있습니다.';
+    };
+
+    const updateTimerActionButtons = () => {
+        updateSubjectSkipButton();
+        updateSubjectResetButton();
+        updateFullResetButton();
     };
 
     const updateTimerUI = () => {
@@ -2433,7 +2475,7 @@ document.addEventListener('DOMContentLoaded', () => {
             guideWrapper.style.display = 'none';
         }
 
-        updateSubjectSkipButton();
+        updateTimerActionButtons();
     };
 
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
@@ -2633,6 +2675,71 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerUI();
     };
 
+    const clearQuestionTimingsForSubjectRange = (startSubjectIdx, endSubjectIdx = startSubjectIdx) => {
+        for (let subjectIdx = startSubjectIdx; subjectIdx <= endSubjectIdx; subjectIdx++) {
+            const subject = subjects[subjectIdx];
+            if (!subject) continue;
+            const prefix = `${subject.id}_`;
+            Object.keys(questionTimings).forEach((key) => {
+                if (key.startsWith(prefix)) {
+                    delete questionTimings[key];
+                }
+            });
+        }
+    };
+
+    const clearLockedSubjectsFrom = (startSubjectIdx) => {
+        [...lockedSubjectIndices].forEach((subjectIdx) => {
+            if (subjectIdx >= startSubjectIdx) {
+                lockedSubjectIndices.delete(subjectIdx);
+            }
+        });
+    };
+
+    const computeRemainingTotalSecondsFromSubject = (subjectIdx, currentSubjectSeconds) => {
+        let remaining = Math.max(0, currentSubjectSeconds);
+        for (let idx = subjectIdx + 1; idx < subjects.length; idx++) {
+            remaining += configSubjectMins * 60;
+        }
+        return remaining;
+    };
+
+    const resetCurrentSubjectTimer = () => {
+        if (!canResetCurrentSubjectTimer()) return;
+        stopTimer();
+        const subjectIdx = Math.floor(currentPhaseIdx / 2);
+        currentPhaseIdx = subjectIdx * 2;
+        currentPhaseSeconds = phases[currentPhaseIdx].mins * 60;
+        totalSeconds = computeRemainingTotalSecondsFromSubject(subjectIdx, currentPhaseSeconds);
+        questionSpentSec = 0;
+        clearQuestionTimingsForSubjectRange(subjectIdx);
+        clearLockedSubjectsFrom(subjectIdx);
+        omrState.currentGlobalIndex = getSubjectStartIndex(subjectIdx);
+        if (omrState.mode !== 'answer') {
+            omrState.mode = 'answer';
+            updateModeUI();
+        }
+        applyPhaseToOMR();
+        updateTimerUI();
+    };
+
+    const resetAllTimerProgress = () => {
+        if (!canResetFullTimer()) return;
+        stopTimer();
+        totalSeconds = getEffectiveConfiguredTotalSeconds();
+        buildPhases();
+        questionSpentSec = 0;
+        questionTimings = {};
+        lockedSubjectIndices.clear();
+        omrState.currentGlobalIndex = 0;
+        if (omrState.mode !== 'answer') {
+            omrState.mode = 'answer';
+            updateModeUI();
+        }
+        applyPhaseToOMR();
+        updateTimerUI();
+    };
+
     const skipCurrentSubjectToNext = () => {
         if (!canSkipToNextSubject()) return;
         totalSeconds = Math.max(0, totalSeconds - Math.max(0, currentPhaseSeconds));
@@ -2680,6 +2787,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (subjectSkipBtn) {
         subjectSkipBtn.addEventListener('click', () => {
             skipCurrentSubjectToNext();
+        });
+    }
+
+    const subjectResetBtn = document.getElementById('subjectResetBtn');
+    if (subjectResetBtn) {
+        subjectResetBtn.addEventListener('click', () => {
+            resetCurrentSubjectTimer();
+        });
+    }
+
+    const fullResetBtn = document.getElementById('fullResetBtn');
+    if (fullResetBtn) {
+        fullResetBtn.addEventListener('click', () => {
+            resetAllTimerProgress();
         });
     }
 

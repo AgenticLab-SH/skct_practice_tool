@@ -511,6 +511,22 @@ body.advanced-mode .advanced-calc-slot {
     background: #6d28d9;
 }
 
+.timer-reset-btn {
+    background: #0f766e;
+}
+
+.timer-reset-btn:hover {
+    background: #0d9488;
+}
+
+.timer-full-reset-btn {
+    background: #b45309;
+}
+
+.timer-full-reset-btn:hover {
+    background: #c2410c;
+}
+
 .timer-skip-btn:disabled {
     background: #475569;
     color: rgba(255,255,255,0.75);
