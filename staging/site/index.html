@@ -105,9 +105,11 @@
                     <button id="modeToggleBtn" class="omr-action-btn mode-btn">📝 정답 입력 모드로 전환</button>
                     <button id="scoreBtn" class="omr-action-btn grade-btn">📊 채점 및 통계 확인</button>
                     <div id="scoreResult" class="score-result hidden">
-                        <div class="stat-line"><span>푼 문제</span> <strong id="statAttempted">0 / 100</strong></div>
-                        <div class="stat-line"><span>맞은 개수</span> <strong id="statCorrect">0</strong></div>
-                        <div class="stat-line"><span>정답률(푼 문제 대비)</span> <strong id="statRate">0%</strong></div>
+                        <div class="stat-line"><span>맞은 / 푼 / 전체</span> <strong id="statSummary">0 / 0 / 100</strong></div>
+                        <div class="stat-line"><span>정답률(푼 문제 대비)</span> <strong id="statRateAttempted">0%</strong></div>
+                        <div class="stat-line"><span>정답률(전체 문제 대비)</span> <strong id="statRateOverall">0%</strong></div>
+                        <div class="stat-line"><span>건너뛴 문제</span> <strong id="statSkipped">0</strong></div>
+                        <div class="stat-line"><span>못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
                     </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
                     <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 RESET</button>
@@ -381,6 +383,19 @@
                         ON = <strong style="color:#475569;">연습 모드</strong>: 시간 제한·강제 전환 없이 자유롭게 마킹
                     </div>
                 </div>
+                <div>
+                    <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📊 채점 기준</div>
+                    <div style="display:flex; flex-direction:column; gap:8px; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155; margin:0;">
+                            <input type="checkbox" id="cfgSkippedAsWrong" style="margin:0; width:16px; height:16px; accent-color:#3b82f6;">
+                            <span style="font-weight:600;">건너뛴 문제를 오답으로 처리</span>
+                        </label>
+                        <div style="font-size:11px; color:#94a3b8; line-height:1.45;">
+                            OFF = 건너뜀으로 별도 집계<br>
+                            ON = 상세 통계와 오답 복기에서 건너뜀도 오답으로 함께 봄
+                        </div>
+                    </div>
+                </div>
                 <!-- 타이머 설정 -->
                 <div>
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🕒 타이머 설정</div>
@@ -488,9 +503,9 @@
                     <thead>
                         <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
                             <th style="padding: 8px;">과목명</th>
-                            <th style="padding: 8px;">문항 수</th>
-                            <th style="padding: 8px;">푼 문제</th>
-                            <th style="padding: 8px;">맞은 개수</th>
+                            <th style="padding: 8px;">맞은/푼/전체</th>
+                            <th style="padding: 8px;">건너뜀</th>
+                            <th style="padding: 8px;">못 풂</th>
                             <th style="padding: 8px;">정답률</th>
                         </tr>
                     </thead>
