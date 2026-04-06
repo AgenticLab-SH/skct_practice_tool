@@ -112,7 +112,7 @@
         <div class="section-card">
             <div class="section-header">
                 <h2>⚙️ 일반 설정 및 유용한 링크</h2>
-                <button class="btn btn-primary btn-sm" id="settingsSaveBtn">💾 저장</button>
+                <button class="btn btn-primary btn-sm" id="settingsSaveBtn">💾 전체 저장</button>
             </div>
             <div class="section-body">
                 <div class="form-group" style="padding:10px 12px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
@@ -204,17 +204,42 @@
                     </div>
                 </div>
                 <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
-                    <label>🔒 고급 기능 인증 비밀번호</label>
-                    <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.6;">
-                        스테이징 고급 이용자 팝업 인증에 사용할 비밀번호 목록입니다. 줄바꿈 또는 쉼표로 여러 개를 입력할 수 있으며, 이 정보는 개발자 페이지에서만 보입니다.
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+                        <label style="margin:0;">🔒 고급 구독 관리</label>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost btn-sm" id="advancedSubscriptionAddBtn" type="button" style="padding:4px 10px; font-size:11px;">+ 구독 추가</button>
+                            <button class="btn btn-primary btn-sm" id="advancedFeatureSaveBtn" type="button" style="padding:4px 10px; font-size:11px;">💾 고급 구독 저장</button>
+                        </div>
                     </div>
-                    <textarea id="settingAdvancedPasswords" class="form-textarea" placeholder="예: 0208" style="min-height:88px;"></textarea>
+                    <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.6;">
+                        비밀번호는 평문으로 서버에 저장하지 않고 해시로만 저장합니다. 이 표는 수동 등록용이며, 나중에 토스 결제 연동 시 같은 구조로 자동 추가될 수 있게 설계합니다.
+                    </div>
+                    <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
+                        <table style="width:100%; min-width:980px; border-collapse:collapse; font-size:12px;">
+                            <thead>
+                                <tr style="background:#eff6ff; color:#1e3a8a;">
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">상태</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">구독명</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">사용자 식별</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">새 비밀번호</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">만료일</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">외부 ID</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">메모</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="advancedSubscriptionTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display:flex; justify-content:space-between; align-items:center;">
-                        유용한 링크 (Help 창 하단에 추가됨)
-                        <button class="btn btn-ghost btn-sm" id="addLinkBtn" style="padding:2px 8px; font-size:11px;">+ 링크 추가</button>
-                    </label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+                        <label style="margin:0;">유용한 링크 (Help 창 하단에 추가됨)</label>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost btn-sm" id="addLinkBtn" style="padding:2px 8px; font-size:11px;">+ 링크 추가</button>
+                            <button class="btn btn-primary btn-sm" id="generalMetaSaveBtn" type="button" style="padding:4px 10px; font-size:11px;">💾 앱/링크 저장</button>
+                        </div>
+                    </div>
                     <div id="usefulLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
                         <!-- dynamic items -->
                     </div>
@@ -254,18 +279,27 @@
                             <input type="number" id="supportTickerSeconds" class="form-input" min="1" step="0.5" placeholder="예: 4">
                         </div>
                     </div>
+                    <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+                        <button class="btn btn-primary btn-sm" id="supportSaveBtn" type="button">💾 후원 문구 저장</button>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label style="display:flex; justify-content:space-between; align-items:center;">
-                        💖 투네이션 후원 내역 (CSV 업데이트)
-                        <label class="btn btn-ghost btn-sm" style="padding:2px 8px; font-size:11px; cursor:pointer;" title="투네이션에서 다운받은 CSV 파일을 선택하세요">
-                            + CSV 업로드
-                            <input type="file" id="sponsorCsvUpload" accept=".csv" style="display:none;">
-                        </label>
-                    </label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+                        <label style="margin:0;">💖 투네이션 후원 내역 (CSV 업데이트)</label>
+                        <div style="display:flex; gap:8px;">
+                            <label class="btn btn-ghost btn-sm" style="padding:2px 8px; font-size:11px; cursor:pointer;" title="투네이션에서 다운받은 CSV 파일을 선택하세요">
+                                + CSV 업로드
+                                <input type="file" id="sponsorCsvUpload" accept=".csv" style="display:none;">
+                            </label>
+                            <button class="btn btn-primary btn-sm" id="sponsorsSaveBtn" type="button">💾 후원 내역 저장</button>
+                        </div>
+                    </div>
                     <div id="sponsorsContainer" style="display:flex; flex-direction:column; gap:4px; max-height:150px; overflow-y:auto; background:#f8fafc; padding:8px; border-radius:4px; border:1px solid #e2e8f0; font-size:12px; color:#475569;">
                         <!-- dynamic items -->
                     </div>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin-top:10px; padding-top:12px; border-top:1px dashed #e2e8f0;">
+                    <button class="btn btn-primary btn-sm" id="runtimeDefaultsSaveBtn" type="button">💾 타이머/레이아웃 저장</button>
                 </div>
                 <div class="form-group" style="padding-top: 15px; border-top: 1px dashed #e2e8f0; margin-top: 15px;">
                     <label style="display:flex; justify-content:space-between; align-items:center;">
@@ -468,20 +502,93 @@
         };
     }
 
-    function normalizeAdvancedFeatureConfig(raw) {
-        const source = Array.isArray(raw?.passwords)
-            ? raw.passwords
-            : String(raw?.passwords || '')
-                .split(/\r?\n|,/)
-                .map((item) => item.trim());
-        const passwords = [];
-        source.forEach((item) => {
-            if (!item || passwords.includes(item)) return;
-            passwords.push(item);
-        });
+    const DEFAULT_ADVANCED_FEATURE_CONFIG = {
+        subscriptions: [
+            {
+                id: 'seed-0208',
+                planName: '기본 테스트 이용권',
+                memberLabel: '운영자 기본값',
+                status: 'active',
+                passwordSalt: 'stg-seed-20260406',
+                passwordHash: 'ec4d8853177f2e445b66f5cc1c9e7776caa0df0575b4ff2fb3acb3fb04908cf5',
+                expiresAt: '',
+                externalId: '',
+                note: '기본 이스터에그 비밀번호'
+            }
+        ]
+    };
+
+    function buildLegacySubscription(password, index = 0) {
         return {
-            passwords: passwords.length ? passwords : ['0208']
+            id: `legacy-${index + 1}`,
+            planName: '기존 수동 등록',
+            memberLabel: '',
+            status: 'active',
+            passwordSalt: '',
+            passwordHash: '',
+            expiresAt: '',
+            externalId: '',
+            note: '기존 평문 비밀번호 마이그레이션 필요',
+            _plainPassword: String(password || '').trim()
         };
+    }
+
+    function normalizeAdvancedSubscription(raw, index = 0) {
+        const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
+        const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
+        return {
+            id: String(raw?.id || `subscription-${index + 1}`),
+            planName: String(raw?.planName || fallback.planName).trim() || fallback.planName,
+            memberLabel: String(raw?.memberLabel || '').trim(),
+            status,
+            passwordSalt: String(raw?.passwordSalt || '').trim(),
+            passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
+            expiresAt: String(raw?.expiresAt || '').trim(),
+            externalId: String(raw?.externalId || '').trim(),
+            note: String(raw?.note || '').trim(),
+            _plainPassword: String(raw?._plainPassword || '').trim()
+        };
+    }
+
+    function normalizeAdvancedFeatureConfig(raw) {
+        if (Array.isArray(raw?.subscriptions) && raw.subscriptions.length) {
+            const subscriptions = raw.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index));
+            return { subscriptions: subscriptions.length ? subscriptions : DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index)) };
+        }
+        const legacySource = (Array.isArray(raw?.passwords)
+            ? raw.passwords
+            : String(raw?.passwords || '').split(/\r?\n|,/))
+            .map((item) => String(item || '').trim())
+            .filter(Boolean);
+        if (legacySource.length) {
+            return {
+                subscriptions: legacySource.map((item, index) => buildLegacySubscription(item, index))
+            };
+        }
+        return {
+            subscriptions: DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index))
+        };
+    }
+
+    function createEmptySubscriptionRow() {
+        return {
+            id: (crypto.randomUUID ? crypto.randomUUID() : `subscription-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`),
+            planName: '신규 고급 이용권',
+            memberLabel: '',
+            status: 'active',
+            passwordSalt: '',
+            passwordHash: '',
+            expiresAt: '',
+            externalId: '',
+            note: '',
+            _plainPassword: ''
+        };
+    }
+
+    async function hashAdvancedPassword(password, salt) {
+        const encoder = new TextEncoder();
+        const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${salt}::${password}`));
+        return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
     }
 
     function formatPopupLayoutSummary(popupLayout, layoutRatios, toolUiConfig) {
@@ -1037,11 +1144,123 @@
     }
 
     function renderAdvancedFeatureForm() {
+        const tableBody = document.getElementById('advancedSubscriptionTableBody');
+        if (!tableBody) return;
         const advancedFeatureConfig = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
-        const passwordField = document.getElementById('settingAdvancedPasswords');
-        if (passwordField) {
-            passwordField.value = advancedFeatureConfig.passwords.join('\n');
+        if (!advancedFeatureConfig.subscriptions.length) {
+            advancedFeatureConfig.subscriptions = [createEmptySubscriptionRow()];
         }
+        loadedConfig.advancedFeatureConfig = advancedFeatureConfig;
+        tableBody.innerHTML = '';
+        advancedFeatureConfig.subscriptions.forEach((subscription, index) => {
+            const row = document.createElement('tr');
+            row.dataset.subscriptionId = subscription.id;
+            row.style.borderBottom = '1px solid #e2e8f0';
+            const passwordState = subscription.passwordHash
+                ? '<span style="color:#0f766e; font-weight:700;">해시 저장됨</span>'
+                : '<span style="color:#b45309; font-weight:700;">새 비밀번호 필요</span>';
+            row.innerHTML = `
+                <td style="padding:8px;">
+                    <select class="form-select" data-field="status" style="min-width:90px;">
+                        <option value="active" ${subscription.status === 'active' ? 'selected' : ''}>active</option>
+                        <option value="paused" ${subscription.status === 'paused' ? 'selected' : ''}>paused</option>
+                        <option value="expired" ${subscription.status === 'expired' ? 'selected' : ''}>expired</option>
+                    </select>
+                </td>
+                <td style="padding:8px;"><input class="form-input" data-field="planName" value="${esc(subscription.planName)}" placeholder="예: 월 구독"></td>
+                <td style="padding:8px;"><input class="form-input" data-field="memberLabel" value="${esc(subscription.memberLabel)}" placeholder="예: 홍길동 / 이메일"></td>
+                <td style="padding:8px;">
+                    <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPassword || '')}" placeholder="변경 시에만 입력">
+                    <div style="font-size:10px; color:#64748b; margin-top:4px;">${passwordState}</div>
+                </td>
+                <td style="padding:8px;"><input class="form-input" data-field="expiresAt" type="date" value="${esc(subscription.expiresAt)}"></td>
+                <td style="padding:8px;"><input class="form-input" data-field="externalId" value="${esc(subscription.externalId)}" placeholder="예: toss-order-001"></td>
+                <td style="padding:8px;"><input class="form-input" data-field="note" value="${esc(subscription.note)}" placeholder="메모"></td>
+                <td style="padding:8px; text-align:center;">
+                    <button type="button" class="btn btn-ghost btn-sm" data-action="remove-subscription" style="color:#ef4444; border-color:#fecaca;">삭제</button>
+                </td>
+            `;
+            row.querySelector('[data-action="remove-subscription"]').addEventListener('click', () => {
+                const subs = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.filter((item) => item.id !== subscription.id);
+                loadedConfig.advancedFeatureConfig = { subscriptions: subs.length ? subs : [createEmptySubscriptionRow()] };
+                renderAdvancedFeatureForm();
+            });
+            tableBody.appendChild(row);
+        });
+    }
+
+    function collectUsefulLinks() {
+        const links = [];
+        document.querySelectorAll('#usefulLinksContainer > div').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            if (inputs[0].value.trim() && inputs[1].value.trim()) {
+                links.push({ title: inputs[0].value.trim(), url: inputs[1].value.trim() });
+            }
+        });
+        loadedConfig.useful_links = links;
+        return links;
+    }
+
+    function collectSupportConfig() {
+        const supportConfig = {
+            modalTitle: document.getElementById('supportModalTitle').value.trim() || DEFAULT_SUPPORT_CONFIG.modalTitle,
+            modalLead: document.getElementById('supportModalLead').value.trim() || DEFAULT_SUPPORT_CONFIG.modalLead,
+            modalBody: document.getElementById('supportModalBody').value.trim() || DEFAULT_SUPPORT_CONFIG.modalBody,
+            modalPromise: document.getElementById('supportModalPromise').value.trim() || DEFAULT_SUPPORT_CONFIG.modalPromise,
+            modalHighlight: document.getElementById('supportModalHighlight').value.trim() || DEFAULT_SUPPORT_CONFIG.modalHighlight,
+            breakFooter: document.getElementById('supportBreakFooter').value.trim() || DEFAULT_SUPPORT_CONFIG.breakFooter,
+            contactText: document.getElementById('supportContactText').value.trim(),
+            contactUrl: document.getElementById('supportContactUrl').value.trim(),
+            buttonLabel: document.getElementById('supportButtonLabel').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonLabel,
+            buttonUrl: document.getElementById('supportButtonUrl').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonUrl,
+            sponsorTickerSeconds: Math.max(1, parseFloat(document.getElementById('supportTickerSeconds').value) || DEFAULT_SUPPORT_CONFIG.sponsorTickerSeconds)
+        };
+        loadedConfig.supportConfig = supportConfig;
+        return supportConfig;
+    }
+
+    async function collectAdvancedFeatureConfigFromTable() {
+        const rows = Array.from(document.querySelectorAll('#advancedSubscriptionTableBody tr'));
+        const subscriptions = [];
+        const currentMap = new Map(
+            normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.map((item) => [item.id, item])
+        );
+        for (const row of rows) {
+            const status = row.querySelector('[data-field="status"]').value;
+            const planName = row.querySelector('[data-field="planName"]').value.trim() || '신규 고급 이용권';
+            const memberLabel = row.querySelector('[data-field="memberLabel"]').value.trim();
+            const newPassword = row.querySelector('[data-field="newPassword"]').value.trim();
+            const expiresAt = row.querySelector('[data-field="expiresAt"]').value;
+            const externalId = row.querySelector('[data-field="externalId"]').value.trim();
+            const note = row.querySelector('[data-field="note"]').value.trim();
+            const current = currentMap.get(row.dataset.subscriptionId) || createEmptySubscriptionRow();
+            const nextRow = {
+                id: current.id || createEmptySubscriptionRow().id,
+                planName,
+                memberLabel,
+                status,
+                passwordSalt: current.passwordSalt || '',
+                passwordHash: current.passwordHash || '',
+                expiresAt,
+                externalId,
+                note
+            };
+            const sourcePassword = newPassword || current._plainPassword || '';
+            if (sourcePassword) {
+                nextRow.passwordSalt = current.passwordSalt || (crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`);
+                nextRow.passwordHash = await hashAdvancedPassword(sourcePassword, nextRow.passwordSalt);
+            }
+            if (!nextRow.passwordSalt || !nextRow.passwordHash) {
+                continue;
+            }
+            subscriptions.push(nextRow);
+        }
+        loadedConfig.advancedFeatureConfig = {
+            subscriptions: subscriptions.length
+                ? subscriptions
+                : DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index))
+        };
+        return loadedConfig.advancedFeatureConfig;
     }
 
     document.getElementById('clearZombiesBtn').addEventListener('click', async () => {
@@ -1058,6 +1277,13 @@
         if (!loadedConfig.useful_links) loadedConfig.useful_links = [];
         loadedConfig.useful_links.push({ title: '', url: '' });
         renderLinksForm();
+    });
+
+    document.getElementById('advancedSubscriptionAddBtn').addEventListener('click', () => {
+        const config = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
+        config.subscriptions.push(createEmptySubscriptionRow());
+        loadedConfig.advancedFeatureConfig = config;
+        renderAdvancedFeatureForm();
     });
 
     function parseToonationCSV(csvText) {
@@ -1202,27 +1428,23 @@
         toast('✅ 인기글 기준 저장 완료');
     });
 
-    // Save general settings
-    document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
+    async function saveGeneralMetaSettings(silent = false) {
         const appName = document.getElementById('settingAppName').value.trim();
         loadedConfig.appName = appName;
-        // gather links
-        const links = [];
-        document.querySelectorAll('#usefulLinksContainer > div').forEach(row => {
-            const inputs = row.querySelectorAll('input');
-            if(inputs[0].value.trim() && inputs[1].value.trim()) {
-                links.push({ title: inputs[0].value.trim(), url: inputs[1].value.trim() });
-            }
-        });
-        loadedConfig.useful_links = links;
-        
-        loadedConfig.useful_links = links;
+        const links = collectUsefulLinks();
 
         const maintenance = {
             enabled: document.getElementById('settingMaintenanceEnabled').checked,
             time: document.getElementById('settingMaintenanceTime').value.trim() || '11:00'
         };
 
+        await set(ref(db, 'staging_hidden_v1/config/appName'), appName);
+        await set(ref(db, 'staging_hidden_v1/config/useful_links'), links);
+        await set(ref(db, 'staging_hidden_v1/config/maintenance'), maintenance);
+        if (!silent) toast('✅ 앱/링크 설정 저장 완료');
+    }
+
+    async function saveRuntimeDefaults(silent = false) {
         const timerDefaults = normalizeTimerDefaults(
             document.getElementById('settingTimerTotal').value,
             document.getElementById('settingTimerSubj').value,
@@ -1241,39 +1463,47 @@
             calc: parseFloat(document.getElementById('settingRatioCalc').value) || 2
         };
         loadedConfig.layoutRatios = normalizeLayoutRatios(layoutRatios);
-
-        const supportConfig = {
-            modalTitle: document.getElementById('supportModalTitle').value.trim() || DEFAULT_SUPPORT_CONFIG.modalTitle,
-            modalLead: document.getElementById('supportModalLead').value.trim() || DEFAULT_SUPPORT_CONFIG.modalLead,
-            modalBody: document.getElementById('supportModalBody').value.trim() || DEFAULT_SUPPORT_CONFIG.modalBody,
-            modalPromise: document.getElementById('supportModalPromise').value.trim() || DEFAULT_SUPPORT_CONFIG.modalPromise,
-            modalHighlight: document.getElementById('supportModalHighlight').value.trim() || DEFAULT_SUPPORT_CONFIG.modalHighlight,
-            breakFooter: document.getElementById('supportBreakFooter').value.trim() || DEFAULT_SUPPORT_CONFIG.breakFooter,
-            contactText: document.getElementById('supportContactText').value.trim(),
-            contactUrl: document.getElementById('supportContactUrl').value.trim(),
-            buttonLabel: document.getElementById('supportButtonLabel').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonLabel,
-            buttonUrl: document.getElementById('supportButtonUrl').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonUrl,
-            sponsorTickerSeconds: Math.max(1, parseFloat(document.getElementById('supportTickerSeconds').value) || DEFAULT_SUPPORT_CONFIG.sponsorTickerSeconds)
-        };
-        loadedConfig.supportConfig = supportConfig;
-        loadedConfig.advancedFeatureConfig = normalizeAdvancedFeatureConfig({
-            passwords: document.getElementById('settingAdvancedPasswords').value
-        });
-
-        await set(ref(db, 'staging_hidden_v1/config/appName'), appName);
-        await set(ref(db, 'staging_hidden_v1/config/useful_links'), links);
-        await set(ref(db, 'staging_hidden_v1/config/maintenance'), maintenance);
-        await set(ref(db, 'staging_hidden_v1/config/sponsors'), loadedConfig.sponsors || []);
         await set(ref(db, 'staging_hidden_v1/config/timerDefaults'), timerDefaults);
         await set(ref(db, 'staging_hidden_v1/config/guideDefaults'), guideDefaults);
         await set(ref(db, 'staging_hidden_v1/config/layoutRatios'), loadedConfig.layoutRatios);
         await set(ref(db, 'staging_hidden_v1/config/popupLayout'), loadedConfig.popupLayout);
         await set(ref(db, 'staging_hidden_v1/config/toolUiConfig'), loadedConfig.toolUiConfig);
-        await set(ref(db, 'staging_hidden_v1/config/supportConfig'), supportConfig);
-        await set(ref(db, 'staging_hidden_v1/config/advancedFeatureConfig'), loadedConfig.advancedFeatureConfig);
-        renderAdvancedFeatureForm();
         renderPopupLayoutSummary();
-        toast('✅ 글로벌 & 기본 설정 저장 완료');
+        if (!silent) toast('✅ 타이머/레이아웃 저장 완료');
+    }
+
+    async function saveSupportSettings(silent = false) {
+        const supportConfig = collectSupportConfig();
+        await set(ref(db, 'staging_hidden_v1/config/supportConfig'), supportConfig);
+        if (!silent) toast('✅ 후원/운영 문구 저장 완료');
+    }
+
+    async function saveSponsors(silent = false) {
+        await set(ref(db, 'staging_hidden_v1/config/sponsors'), loadedConfig.sponsors || []);
+        if (!silent) toast('✅ 후원 내역 저장 완료');
+    }
+
+    async function saveAdvancedSubscriptions(silent = false) {
+        const advancedFeatureConfig = await collectAdvancedFeatureConfigFromTable();
+        await set(ref(db, 'staging_hidden_v1/config/advancedFeatureConfig'), advancedFeatureConfig);
+        renderAdvancedFeatureForm();
+        if (!silent) toast('✅ 고급 구독 저장 완료');
+    }
+
+    document.getElementById('generalMetaSaveBtn').addEventListener('click', saveGeneralMetaSettings);
+    document.getElementById('runtimeDefaultsSaveBtn').addEventListener('click', saveRuntimeDefaults);
+    document.getElementById('supportSaveBtn').addEventListener('click', saveSupportSettings);
+    document.getElementById('sponsorsSaveBtn').addEventListener('click', saveSponsors);
+    document.getElementById('advancedFeatureSaveBtn').addEventListener('click', saveAdvancedSubscriptions);
+
+    // Save general settings
+    document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
+        await saveGeneralMetaSettings(true);
+        await saveRuntimeDefaults(true);
+        await saveSupportSettings(true);
+        await saveSponsors(true);
+        await saveAdvancedSubscriptions(true);
+        toast('✅ 전체 설정 저장 완료');
     });
 
 </script>

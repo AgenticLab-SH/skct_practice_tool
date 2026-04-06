@@ -32,7 +32,21 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
-    const DEFAULT_ADVANCED_FEATURE_CONFIG = { passwords: ['0208'] };
+    const DEFAULT_ADVANCED_FEATURE_CONFIG = {
+        subscriptions: [
+            {
+                id: 'seed-0208',
+                planName: '기본 테스트 이용권',
+                memberLabel: '운영자 기본값',
+                status: 'active',
+                passwordSalt: 'stg-seed-20260406',
+                passwordHash: 'ec4d8853177f2e445b66f5cc1c9e7776caa0df0575b4ff2fb3acb3fb04908cf5',
+                expiresAt: '',
+                externalId: '',
+                note: '기본 이스터에그 비밀번호'
+            }
+        ]
+    };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'stg-skct-popup-preview',
         saveRequest: 'stg-skct-popup-save-request',
@@ -64,6 +78,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
     const advancedGuideToggle = document.getElementById('advancedGuideToggle');
     const advancedGuideModal = document.getElementById('advancedGuideModal');
+    const advancedAccessPasswordInput = document.getElementById('advancedAccessPasswordInput');
+    const advancedAccessSubmitBtn = document.getElementById('advancedAccessSubmitBtn');
+    const advancedAccessStatus = document.getElementById('advancedAccessStatus');
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
@@ -141,19 +158,33 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function normalizeAdvancedFeatureConfig(raw) {
-        const source = Array.isArray(raw?.passwords)
-            ? raw.passwords
-            : String(raw?.passwords || '')
-                .split(/\r?\n|,/)
-                .map((item) => item.trim());
-        const passwords = [];
-        source.forEach((item) => {
-            if (!item || passwords.includes(item)) return;
-            passwords.push(item);
-        });
+    function normalizeAdvancedSubscription(raw, index = 0) {
+        const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
+        const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
         return {
-            passwords: passwords.length ? passwords : [...DEFAULT_ADVANCED_FEATURE_CONFIG.passwords]
+            id: String(raw?.id || `subscription-${index + 1}`),
+            planName: String(raw?.planName || fallback.planName).trim() || fallback.planName,
+            memberLabel: String(raw?.memberLabel || '').trim(),
+            status,
+            passwordSalt: String(raw?.passwordSalt || '').trim(),
+            passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
+            expiresAt: String(raw?.expiresAt || '').trim(),
+            externalId: String(raw?.externalId || '').trim(),
+            note: String(raw?.note || '').trim()
+        };
+    }
+
+    function normalizeAdvancedFeatureConfig(raw) {
+        const source = Array.isArray(raw?.subscriptions) && raw.subscriptions.length
+            ? raw.subscriptions
+            : DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions;
+        const subscriptions = source
+            .map((item, index) => normalizeAdvancedSubscription(item, index))
+            .filter((item) => item.passwordSalt && item.passwordHash);
+        return {
+            subscriptions: subscriptions.length
+                ? subscriptions
+                : DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index))
         };
     }
 
@@ -578,8 +609,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADVANCED_TRIGGER_TIMEOUT_MS = 1800;
     const ADVANCED_POPUP_PATH = 'advanced-tools.html';
 
-    const getAdvancedPasswordList = () => [...remoteAdvancedFeatureConfig.passwords];
-
     const buildAdvancedLaunchUrl = () => {
         const url = new URL(window.location.href);
         url.searchParams.set('advanced', '1');
@@ -596,6 +625,59 @@ document.addEventListener('DOMContentLoaded', () => {
             targetUrl: buildAdvancedLaunchUrl(),
             popupName: 'stg_skct_popup_mode'
         };
+    };
+
+    const getSubscriptionExpiryTime = (value) => {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return Number.POSITIVE_INFINITY;
+        const parsed = Date.parse(`${trimmed}T23:59:59+09:00`);
+        return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    };
+
+    const isActiveAdvancedSubscription = (subscription) => {
+        if (!subscription) return false;
+        if (subscription.status !== 'active') return false;
+        return getSubscriptionExpiryTime(subscription.expiresAt) >= Date.now();
+    };
+
+    const hashAdvancedPassword = async (password, salt) => {
+        const encoder = new TextEncoder();
+        const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${salt}::${password}`));
+        return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    };
+
+    const validateAdvancedPassword = async (password) => {
+        const value = String(password || '').trim();
+        if (!value) return false;
+        const activeSubscriptions = remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription);
+        for (const subscription of activeSubscriptions) {
+            const digest = await hashAdvancedPassword(value, subscription.passwordSalt);
+            if (digest === subscription.passwordHash) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const openAdvancedModeWindow = () => {
+        const launch = activateAdvancedSession();
+        if (isPopupMode) {
+            window.name = launch.popupName;
+            window.location.assign(launch.targetUrl);
+            return true;
+        }
+        const { width, height, left, top } = buildPopupWindowMetrics(remotePopupLayout.window);
+        const popup = window.open(
+            launch.targetUrl,
+            launch.popupName,
+            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`
+        );
+        if (popup) {
+            popup.focus();
+            return true;
+        }
+        window.location.assign(launch.targetUrl);
+        return false;
     };
 
     const omrState = {
@@ -1022,13 +1104,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const detailScoreBtn = document.getElementById('detailScoreBtn');
     const formatRateText = (value) => `${(Math.round((Number(value) || 0) * 10) / 10).toFixed(1).replace(/\.0$/, '')}%`;
-    const escapeHtml = (value) => String(value)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-
     const buildQuestionStatItem = (subj, num) => {
         const key = `${subj.id}_${num}`;
         const myAnswer = omrState.myAnswers[key] ?? null;
@@ -2252,6 +2327,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advancedGuideToggle && advancedGuideModal) {
         advancedGuideToggle.addEventListener('click', () => {
             if (isAdvancedMode) return;
+            if (advancedAccessStatus) advancedAccessStatus.textContent = '';
+            if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
             advancedGuideModal.classList.remove('hidden');
         });
     }
@@ -2305,9 +2382,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.SKCTAdvancedBridge = {
-        validatePassword(password) {
-            const value = String(password || '').trim();
-            return getAdvancedPasswordList().includes(value);
+        async validatePassword(password) {
+            return validateAdvancedPassword(password);
         },
         activateAdvancedSession() {
             return activateAdvancedSession();
@@ -2342,6 +2418,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return buildDetailedStatsText();
         }
     };
+
+    if (advancedAccessSubmitBtn) {
+        advancedAccessSubmitBtn.addEventListener('click', async () => {
+            if (isAdvancedMode) return;
+            const password = advancedAccessPasswordInput?.value || '';
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = '비밀번호를 확인하고 있습니다...';
+                advancedAccessStatus.style.color = '#64748b';
+            }
+            const isValid = await validateAdvancedPassword(password);
+            if (!isValid) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = '비밀번호가 일치하지 않거나 만료된 이용권입니다.';
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+                if (advancedAccessPasswordInput) {
+                    advancedAccessPasswordInput.focus();
+                    advancedAccessPasswordInput.select();
+                }
+                return;
+            }
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = '고급 버전 팝업을 여는 중입니다.';
+                advancedAccessStatus.style.color = '#0f766e';
+            }
+            openAdvancedModeWindow();
+        });
+    }
+
+    if (advancedAccessPasswordInput) {
+        advancedAccessPasswordInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                advancedAccessSubmitBtn?.click();
+            }
+        });
+    }
 
     // Modal & Help Controls
     const helpToggle = document.getElementById('helpToggle');

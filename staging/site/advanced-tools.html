@@ -143,10 +143,12 @@
             loginButton.disabled = true;
         };
 
-        loginButton.addEventListener('click', () => {
+        loginButton.addEventListener('click', async () => {
             if (!bridge) return;
             const password = passwordInput.value.trim();
-            if (!bridge.validatePassword(password)) {
+            authStatus.textContent = '비밀번호를 확인하고 있습니다.';
+            const isValid = await bridge.validatePassword(password);
+            if (!isValid) {
                 authStatus.textContent = '비밀번호가 일치하지 않습니다.';
                 passwordInput.select();
                 return;
