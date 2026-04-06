@@ -1,6 +1,12 @@
 # SKCT Tool 운영 노하우 완전 가이드
+작성일시: 2026-04-06 14:44:17 KST
 
-> 마지막 수정: 2026-04-03
+이 문서는 예전부터 누적된 운영 노하우 문서입니다.  
+최신 구조와 현재 기준을 먼저 보려면 아래 문서를 우선 확인하는 것이 좋습니다.
+
+- [README.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/README.md)
+- [SKCT_TOOL_전체구조_및_운영기준.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/SKCT_TOOL_전체구조_및_운영기준.md)
+- [SKCT_TOOL_기능_변경이력_요약.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/SKCT_TOOL_기능_변경이력_요약.md)
 
 ---
 

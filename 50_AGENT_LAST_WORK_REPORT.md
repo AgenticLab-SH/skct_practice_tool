@@ -1,7 +1,15 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-06 13:45:10 KST
+작성일시: 2026-04-06 15:10:41 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
+
+## 2026-04-06 운영 반영: 고급 진입/구독 관리 개선
+- 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.js](/C:/dev/01_career/_assets/tools/skct_tool/main.js), [advanced-tools.html](/C:/dev/01_career/_assets/tools/skct_tool/advanced-tools.html)에 스테이징에서 검증한 고급 진입 UX를 이식했습니다.
+- 일반 화면의 `고급 안내` 모달에서 바로 비밀번호 입력, `비밀번호 보기`, `인증된 브라우저면 바로 열기`, 현재 이용권 상태 요약이 동작합니다.
+- 운영 Firebase `config/advancedFeatureConfig`는 기존 평문 목록 `0208`, `dgd0392`를 해시 기반 `subscriptions` 구조로 직접 마이그레이션했습니다.
+- 운영 관리자 페이지 [admin.html](/C:/dev/01_career/_assets/tools/skct_tool/admin.html)는 이제 `고급 구독 관리` 표 기반으로 상태, 만료일, 외부 ID, 메모, 새 비밀번호를 다룹니다.
+- 저장 버튼도 `앱/링크`, `타이머/레이아웃`, `후원 문구`, `후원 내역`, `고급 구독`으로 나눴고, `전체 저장`은 이 개별 저장을 묶어 실행하도록 정리했습니다.
+- 운영 코드 기준 최신 커밋은 `0b02d9f`입니다.
 
 ## 핵심 원인
 - `0b08056` 커밋에서 메인 페이지 진입 시 자동으로 팝업을 여는 로직이 다시 들어오면서, 사용자가 첫 화면 대신 `팝업 모드 실행 중...` 안내 화면에 갇히는 회귀가 발생했습니다.
