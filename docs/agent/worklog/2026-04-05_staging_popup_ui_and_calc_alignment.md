@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 10:02:25 KST
+작성일시: 2026-04-06 10:17:39 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -717,3 +717,24 @@
   - `staging/site/index.html`
   - 일반 안내 모달의 `1. 우측 버튼 열` 설명을 `실제 skct 환경과 유사하게 여백과 버튼들이 제공됩니다`로 변경
   - 고급 이용자 전용 모달 문구는 그대로 유지
+
+## 후원 목록 애니메이션 속도 관리자 조절 추가
+- 사용자 요청
+  - 후원 목록 애니메이션 속도를 개발자 페이지에서 조절 가능하게 변경
+- 반영 파일
+  - `admin.html`
+  - `index.html`
+  - `main.js`
+  - `staging/site/admin.html`
+  - `staging/site/index.html`
+  - `staging/site/assets/scripts/app.bundle.js`
+- 수정 내용
+  - 관리자 페이지 `후원/운영 문구 관리`에 `후원 목록 전환 속도(초)` 입력칸 추가
+  - `supportConfig.sponsorTickerSeconds`를 운영/스테이징 모두 저장/로드하도록 연결
+  - 사용자 페이지 후원 ticker의 기존 `4000ms` 하드코드를 제거하고 저장값 기반으로 회전 속도 계산
+  - 후원 목록이 다시 렌더링될 때 기존 interval을 정리하도록 `clearInterval` 처리 추가
+  - 캐시 버스팅을 위해 `index.html`, `staging/site/index.html`의 스크립트 버전을 `v=202604061035`로 갱신
+- 로컬 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 코드 검색으로 `supportTickerSeconds` 저장/로드와 ticker interval 사용처 확인
