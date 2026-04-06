@@ -55,6 +55,10 @@
                     <span style="font-size:14px;">⚙</span>
                     <span style="font-size:8px; letter-spacing:0; line-height:1.3;">설정</span>
                 </div>
+                <div class="advanced-guide-toggle normal-only" id="advancedGuideToggle" title="고급 기능 안내">
+                    <span style="font-size:14px;">🔒</span>
+                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">고급<br>안내</span>
+                </div>
                 <div class="advanced-only" style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
                 <div class="advanced-toggle advanced-only" id="advancedToggle" title="고급 이용자 전용 기능">
                     <span style="font-size:14px;">🔒</span>
@@ -224,6 +228,32 @@
             </div>
         </main>
 
+    </div>
+
+    <div id="advancedGuideModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 460px;">
+            <div class="modal-header">
+                <h3>🔒 고급 기능 안내</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+                <div style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
+                    고급 이용자 버전에서는 아래 기능이 추가로 제공됩니다.
+                </div>
+                <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155; line-height:1.7;">
+                    <div><strong>1. 우측 버튼 열</strong><br>채팅/물음표 자리와 우측 여백이 실제 팝업 레이아웃처럼 함께 유지됩니다.</div>
+                    <div><strong>2. 무적모드(테스트)</strong><br>일반 버전에서는 숨겨진 테스트 기능 안내가 포함됩니다.</div>
+                    <div><strong>3. 문항별 상세 통계 TXT 다운로드</strong><br>현재 시험 기록을 텍스트 파일로 저장할 수 있습니다.</div>
+                    <div><strong>4. 도구 설정</strong><br>메모장 글씨 크기와 그림판 선 굵기를 별도로 조절할 수 있습니다.</div>
+                    <div><strong>5. 문항별 시간 가이드</strong><br>상단 가이드 타이머와 관련 설정이 활성화됩니다.</div>
+                    <div><strong>6. 계산기 고급 동작</strong><br>`Ans` 누적, `=` 입력 계산, 이전 결과 이어 계산, 루트 버튼이 제공됩니다.</div>
+                    <div><strong>7. 실전 보정 기능</strong><br>쉬는 시간 건너뛰기와 이전 문항 재선택 기능을 사용할 수 있습니다.</div>
+                </div>
+                <div style="padding:12px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; font-size:13px; line-height:1.7; color:#1e3a8a;">
+                    고급 기능 사용 문의: <strong>drgon28@naver.com</strong>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="popupEditorPanel" class="popup-editor-panel hidden collapsed" aria-live="polite">
@@ -812,7 +842,7 @@
                 return;
             }
             if (cfg.appName) {
-                document.title = cfg.appName;
+                document.title = window.SKCT_FLAGS?.advanced === true ? `${cfg.appName} | 고급버전` : cfg.appName;
             }
             if (typeof renderNotice === 'function') {
                 window.__skctNoticeLoaded = true;

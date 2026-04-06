@@ -53,10 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteFontSizeValue = document.getElementById('noteFontSizeValue');
     const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
+    const advancedGuideToggle = document.getElementById('advancedGuideToggle');
+    const advancedGuideModal = document.getElementById('advancedGuideModal');
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
     const advancedToolsStatus = document.getElementById('advancedToolsStatus');
+    const settingsVersionRow = document.getElementById('settingsVersionRow');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
@@ -64,6 +67,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
     document.body.classList.toggle('advanced-mode', isAdvancedMode);
+    if (isAdvancedMode) {
+        document.title = `${document.title} | 고급버전`;
+        if (settingsVersionRow) {
+            settingsVersionRow.innerHTML = '<strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1252 (고급버전)';
+        }
+    }
 
     function clampNumber(value, min, max) {
         return Math.min(max, Math.max(min, value));
@@ -167,6 +176,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function syncToolsRightRail() {
+        if (!isAdvancedMode) {
+            document.documentElement.style.setProperty('--tools-right-rail-button-size', '0px');
+            document.documentElement.style.setProperty('--tools-right-rail-reserve', '0px');
+            if (popupSideColumnRange) popupSideColumnRange.value = String(currentToolUiConfig.sideButtonColumnRatio);
+            if (popupSideColumnValue) popupSideColumnValue.textContent = `${(currentToolUiConfig.sideButtonColumnRatio * 100).toFixed(1)}%`;
+            return;
+        }
         const baseWidth = document.querySelector('.tools-layout')?.clientWidth || mainContentEl?.clientWidth || window.innerWidth || 360;
         const buttonPx = clampNumber(Math.round(baseWidth * currentToolUiConfig.sideButtonColumnRatio), 22, 78);
         document.documentElement.style.setProperty('--tools-right-rail-button-size', `${buttonPx}px`);
@@ -1048,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const resEl = document.getElementById('scoreResult');
         resEl.classList.remove('hidden');
         const detailScoreBtn = document.getElementById('detailScoreBtn');
-        if(detailScoreBtn) detailScoreBtn.classList.remove('hidden');
+        if(detailScoreBtn && isAdvancedMode) detailScoreBtn.classList.remove('hidden');
         renderOMR();
     });
 
@@ -1820,7 +1836,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const guideWrapper = document.getElementById('guideTimerWrapper');
         const displayGuide = document.getElementById('displayGuideTime');
         const qKey = getCurrentQKey();
-        if (guideWrapper && displayGuide && configGuideEnabled && !isPracticeMode && timerIsRunning && qKey && currentPhaseIdx < phases.length && phases[currentPhaseIdx].type !== 'break') {
+        if (guideWrapper && displayGuide && isAdvancedMode && configGuideEnabled && !isPracticeMode && timerIsRunning && qKey && currentPhaseIdx < phases.length && phases[currentPhaseIdx].type !== 'break') {
             guideWrapper.style.display = 'block';
             const remaining = configGuideSec - questionSpentSec;
             if (remaining >= 0) {
@@ -2151,6 +2167,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (advancedGuideToggle && advancedGuideModal) {
+        advancedGuideToggle.addEventListener('click', () => {
+            if (isAdvancedMode) return;
+            advancedGuideModal.classList.remove('hidden');
+        });
+    }
     if (advancedToggle && advancedFeatureModal) {
         advancedToggle.addEventListener('click', () => {
             if (!isAdvancedMode) return;

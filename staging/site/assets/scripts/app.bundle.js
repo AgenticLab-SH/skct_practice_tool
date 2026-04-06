@@ -62,6 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const noteFontSizeValue = document.getElementById('noteFontSizeValue');
     const canvasLineWidthRange = document.getElementById('canvasLineWidthRange');
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
+    const advancedGuideToggle = document.getElementById('advancedGuideToggle');
+    const advancedGuideModal = document.getElementById('advancedGuideModal');
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
@@ -2125,6 +2127,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (advancedGuideToggle && advancedGuideModal) {
+        advancedGuideToggle.addEventListener('click', () => {
+            if (isAdvancedMode) return;
+            advancedGuideModal.classList.remove('hidden');
+        });
+    }
     if (advancedToggle && advancedFeatureModal) {
         advancedToggle.addEventListener('click', () => {
             if (!isAdvancedMode) return;

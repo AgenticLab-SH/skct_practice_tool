@@ -246,6 +246,39 @@ body.advanced-mode .advanced-only {
     display: flex !important;
 }
 
+.normal-only {
+    display: flex !important;
+}
+
+body.advanced-mode .normal-only {
+    display: none !important;
+}
+
+.advanced-panel-only,
+.advanced-action-only,
+.advanced-layout-only {
+    display: none !important;
+}
+
+body.advanced-mode .advanced-panel-only {
+    display: block !important;
+}
+
+body.advanced-mode .advanced-action-only,
+body.advanced-mode .advanced-layout-only {
+    display: flex !important;
+}
+
+.advanced-calc-slot {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+body.advanced-mode .advanced-calc-slot {
+    visibility: visible;
+    pointer-events: auto;
+}
+
 .advanced-toggle {
     width: 30px;
     align-items: center;
@@ -264,6 +297,28 @@ body.advanced-mode .advanced-only {
 
 .advanced-toggle:hover {
     background-color: #1f2937;
+    transform: scale(1.1);
+}
+
+.advanced-guide-toggle {
+    width: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    background-color: #1d4ed8;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    padding: 8px 0;
+    border-radius: 4px;
+    gap: 2px;
+    transition: transform 0.2s;
+}
+
+.advanced-guide-toggle:hover {
+    background-color: #1e40af;
     transform: scale(1.1);
 }
 
