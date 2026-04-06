@@ -2038,6 +2038,37 @@ document.addEventListener('DOMContentLoaded', () => {
         timerPlayBtn.title = isRunning ? '타이머 중지' : '타이머 시작';
     };
 
+    const canSkipToNextSubject = () => {
+        if (!isAdvancedMode || isPracticeMode) return false;
+        if (!timerIsRunning) return false;
+        if (currentPhaseIdx >= phases.length) return false;
+        const currentPhase = phases[currentPhaseIdx];
+        if (currentPhase?.type !== 'subject') return false;
+        return currentPhaseIdx + 2 < phases.length;
+    };
+
+    const updateSubjectSkipButton = () => {
+        const subjectSkipBtn = document.getElementById('subjectSkipBtn');
+        if (!subjectSkipBtn) return;
+        const enabled = canSkipToNextSubject();
+        subjectSkipBtn.disabled = !enabled;
+        if (!isAdvancedMode) {
+            subjectSkipBtn.title = '고급모드에서만 사용할 수 있습니다.';
+        } else if (isPracticeMode) {
+            subjectSkipBtn.title = '응시 모드에서만 사용할 수 있습니다.';
+        } else if (!timerIsRunning) {
+            subjectSkipBtn.title = '타이머 실행 중에만 사용할 수 있습니다.';
+        } else if (currentPhaseIdx >= phases.length) {
+            subjectSkipBtn.title = '이미 모든 과목이 종료되었습니다.';
+        } else if (phases[currentPhaseIdx]?.type === 'break') {
+            subjectSkipBtn.title = '쉬는 시간에는 사용할 수 없습니다.';
+        } else if (currentPhaseIdx + 2 >= phases.length) {
+            subjectSkipBtn.title = '다음 과목이 남아 있을 때만 사용할 수 있습니다.';
+        } else {
+            subjectSkipBtn.title = '현재 과목을 종료하고 다음 과목으로 바로 이동';
+        }
+    };
+
     const updateTimerUI = () => {
         if(!displayTotal) return;
         displayTotal.innerText = `${formatTime(totalSeconds)}`;
@@ -2076,6 +2107,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (guideWrapper) {
             guideWrapper.style.display = 'none';
         }
+
+        updateSubjectSkipButton();
     };
 
     window.applyRemoteTimerDefaults = (total, subj, brk) => {
@@ -2275,6 +2308,17 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerUI();
     };
 
+    const skipCurrentSubjectToNext = () => {
+        if (!canSkipToNextSubject()) return;
+        totalSeconds = Math.max(0, totalSeconds - Math.max(0, currentPhaseSeconds));
+        questionSpentSec = 0;
+        advancePhaseBoundary({ skipRemainingPhaseSeconds: true });
+        if (currentPhaseIdx < phases.length && phases[currentPhaseIdx]?.type === 'break') {
+            advancePhaseBoundary({ skipRemainingPhaseSeconds: true });
+        }
+        updateTimerUI();
+    };
+
     // --- 초기 렌더링 갱신 ---
     updateTimerUI();
     applyPhaseToOMR();
@@ -2289,11 +2333,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 timerIsRunning = false;
                 syncTimerPlayButtonLabel(false);
                 applyPhaseToOMR();
+                updateTimerUI();
             } else {
                 timerInterval = setInterval(timerTick, 1000);
                 timerIsRunning = true;
                 syncTimerPlayButtonLabel(true);
                 applyPhaseToOMR();
+                updateTimerUI();
             }
         });
     }
@@ -2302,6 +2348,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (breakSkipBtn) {
         breakSkipBtn.addEventListener('click', () => {
             skipCurrentBreak();
+        });
+    }
+
+    const subjectSkipBtn = document.getElementById('subjectSkipBtn');
+    if (subjectSkipBtn) {
+        subjectSkipBtn.addEventListener('click', () => {
+            skipCurrentSubjectToNext();
         });
     }
 
