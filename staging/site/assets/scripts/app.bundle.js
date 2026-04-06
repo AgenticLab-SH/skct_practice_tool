@@ -519,7 +519,8 @@ document.addEventListener('DOMContentLoaded', () => {
         contactText: "",
         contactUrl: "",
         buttonLabel: "☕ 쿨하게 지원하기",
-        buttonUrl: "https://toon.at/donate/foreveryonehappy"
+        buttonUrl: "https://toon.at/donate/foreveryonehappy",
+        sponsorTickerSeconds: 4
     };
 
     function applySupportConfig(config) {

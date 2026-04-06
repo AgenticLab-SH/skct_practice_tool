@@ -621,7 +621,7 @@
             };
         })();
     </script>
-    <script src="main.js?v=202604060950"></script>
+    <script src="main.js?v=202604061035"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -902,6 +902,8 @@
             if (cfg.sponsors && cfg.sponsors.length > 0) {
                 const tickerEl = document.getElementById('sponsorTicker');
                 if (tickerEl) {
+                    const tickerSeconds = Math.max(1, parseFloat(cfg.supportConfig?.sponsorTickerSeconds) || 4);
+                    const tickerIntervalMs = Math.round(tickerSeconds * 1000);
                     let html = `<div style="margin-bottom:14px; padding:10px 14px; background:linear-gradient(135deg, #fdf4ff 0%, #fff 100%); border:1px solid #fbcfe8; border-left:4px solid #f472b6; border-radius:6px; box-shadow:0 1px 2px rgba(0,0,0,0.05); display:flex; gap:10px; align-items:flex-start;">
                         <div style="flex-shrink:0; font-size:18px; margin-top:2px;">💖</div>
                         <div style="flex:1; overflow:hidden; position:relative; height:80px;">`;
@@ -921,10 +923,14 @@
                     html += `</div></div>`;
                     tickerEl.innerHTML = html;
 
-                    if (cfg.sponsors.length > 1 && !window.__sponsorTickerStarted) {
-                        window.__sponsorTickerStarted = true;
+                    if (window.__sponsorTickerIntervalId) {
+                        clearInterval(window.__sponsorTickerIntervalId);
+                        window.__sponsorTickerIntervalId = null;
+                    }
+
+                    if (cfg.sponsors.length > 1) {
                         let idx = 0;
-                        setInterval(() => {
+                        window.__sponsorTickerIntervalId = setInterval(() => {
                             const items = tickerEl.querySelectorAll('.sponsor-item');
                             if(!items.length) return;
                             items[idx].style.opacity = '0';
@@ -940,7 +946,7 @@
                             items[idx].style.transition = 'opacity 0.5s, transform 0.5s';
                             items[idx].style.opacity = '1';
                             items[idx].style.transform = 'translateY(0)';
-                        }, 4000);
+                        }, tickerIntervalMs);
                     }
                 }
             }

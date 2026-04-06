@@ -318,6 +318,10 @@
                                 <input type="text" id="supportButtonUrl" class="form-input" placeholder="https://toon.at/donate/...">
                             </div>
                         </div>
+                        <div>
+                            <span style="font-size:11px; color:var(--adm-text-muted);">후원 목록 전환 속도(초)</span>
+                            <input type="number" id="supportTickerSeconds" class="form-input" min="1" step="0.5" placeholder="예: 4">
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -1089,7 +1093,8 @@
         contactText: "",
         contactUrl: "",
         buttonLabel: "☕ 쿨하게 지원하기",
-        buttonUrl: "https://toon.at/donate/foreveryonehappy"
+        buttonUrl: "https://toon.at/donate/foreveryonehappy",
+        sponsorTickerSeconds: 4
     };
 
     const normalizeTimerDefaults = (total, subj, brk) => {
@@ -1156,6 +1161,7 @@
         document.getElementById('supportContactUrl').value = support.contactUrl || '';
         document.getElementById('supportButtonLabel').value = support.buttonLabel || '';
         document.getElementById('supportButtonUrl').value = support.buttonUrl || '';
+        document.getElementById('supportTickerSeconds').value = support.sponsorTickerSeconds || DEFAULT_SUPPORT_CONFIG.sponsorTickerSeconds;
     }
 
     function renderAdvancedFeatureForm() {
@@ -1397,7 +1403,8 @@
             contactText: document.getElementById('supportContactText').value.trim(),
             contactUrl: document.getElementById('supportContactUrl').value.trim(),
             buttonLabel: document.getElementById('supportButtonLabel').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonLabel,
-            buttonUrl: document.getElementById('supportButtonUrl').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonUrl
+            buttonUrl: document.getElementById('supportButtonUrl').value.trim() || DEFAULT_SUPPORT_CONFIG.buttonUrl,
+            sponsorTickerSeconds: Math.max(1, parseFloat(document.getElementById('supportTickerSeconds').value) || DEFAULT_SUPPORT_CONFIG.sponsorTickerSeconds)
         };
         loadedConfig.supportConfig = supportConfig;
         loadedConfig.advancedFeatureConfig = normalizeAdvancedFeatureConfig({
