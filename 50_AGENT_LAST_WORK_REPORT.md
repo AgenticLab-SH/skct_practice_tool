@@ -1,7 +1,14 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-06 16:35:43 KST
+작성일시: 2026-04-06 18:31:20 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
+
+## 2026-04-06 운영 반영: 고급모드 정오표 일괄입력
+- 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.js](/C:/dev/01_career/_assets/tools/skct_tool/main.js), [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)에 고급모드 전용 `📥 정오표 일괄입력` 기능을 이식했습니다.
+- 고급모드 정답 입력 상태에서만 버튼이 보이며, 정오표 표를 그대로 붙여넣어 정답을 한 번에 반영할 수 있습니다.
+- `NO. / 정답 / 입력답 / 정오 / 정답률`처럼 헤더가 반복되는 형식도 읽고, 탭/다중 공백/파이프/쉼표 구분 형식도 파싱합니다.
+- 자동으로 `문항 번호 열`, `정답 열`을 추정하고, 애매하면 사용자가 드롭다운으로 직접 바꾼 뒤 미리보기 후 적용할 수 있습니다.
+- 운영 코드 기준 최신 커밋은 `86b82fa`입니다.
 
 ## 2026-04-06 운영 반영: 고급 진입/구독 관리 개선
 - 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.js](/C:/dev/01_career/_assets/tools/skct_tool/main.js), [advanced-tools.html](/C:/dev/01_career/_assets/tools/skct_tool/advanced-tools.html)에 스테이징에서 검증한 고급 진입 UX를 이식했습니다.
