@@ -516,7 +516,7 @@ body.advanced-mode .advanced-calc-slot {
     align-items: center;
     margin-bottom: 1px;
     padding: 1px 0;
-    gap: 2px;
+    gap: 0;
     transition: background 0.2s;
 }
 .q-row.current-q {
@@ -545,8 +545,8 @@ body.advanced-mode .advanced-calc-slot {
     pointer-events: none;
 }
 .q-num {
-    width: 24px;
-    flex: 0 0 24px;
+    width: 18px;
+    flex: 0 0 18px;
     text-align: left;
     margin-right: 0;
     font-weight: 600;
