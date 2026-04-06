@@ -913,7 +913,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 qRow.innerHTML = `
                     <div class="q-num">${i}.</div>
-                    <div class="q-options" style="display:flex; align-items:center; gap:4px;">
+                    <div class="q-options">
                         ${optionsHtml}
                     </div>
                 `;
