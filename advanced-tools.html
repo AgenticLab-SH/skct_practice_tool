@@ -164,9 +164,13 @@
             if (!syncReadyState()) return;
             const password = passwordInput.value.trim();
             authStatus.textContent = '비밀번호를 확인하고 있습니다.';
-            const isValid = await bridge.validatePassword(password);
-            if (!isValid) {
-                authStatus.textContent = '비밀번호가 일치하지 않습니다.';
+            const result = bridge.validatePasswordDetailed
+                ? await bridge.validatePasswordDetailed(password)
+                : { ok: await bridge.validatePassword(password), reason: 'invalid' };
+            if (!result.ok) {
+                authStatus.textContent = result.reason === 'expired'
+                    ? '비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
+                    : '비밀번호가 일치하지 않습니다.';
                 passwordInput.select();
                 return;
             }

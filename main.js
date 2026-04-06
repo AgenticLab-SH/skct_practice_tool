@@ -718,20 +718,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
     };
 
-    const validateAdvancedPassword = async (password) => {
+    const validateAdvancedPasswordDetailed = async (password) => {
         const value = String(password || '').trim();
-        if (!value) return false;
+        if (!value) return { ok: false, reason: 'empty' };
         if (remoteAdvancedFeatureConfig.legacyPasswords.includes(value)) {
-            return true;
+            return { ok: true, reason: 'active' };
         }
-        const activeSubscriptions = remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription);
-        for (const subscription of activeSubscriptions) {
+        let matchedInactiveSubscription = false;
+        for (const subscription of remoteAdvancedFeatureConfig.subscriptions) {
             const digest = await hashAdvancedPassword(value, subscription.passwordSalt);
-            if (digest === subscription.passwordHash) {
-                return true;
+            if (digest !== subscription.passwordHash) continue;
+            if (isActiveAdvancedSubscription(subscription)) {
+                return { ok: true, reason: 'active' };
             }
+            matchedInactiveSubscription = true;
         }
-        return false;
+        return { ok: false, reason: matchedInactiveSubscription ? 'expired' : 'invalid' };
+    };
+
+    const validateAdvancedPassword = async (password) => {
+        const result = await validateAdvancedPasswordDetailed(password);
+        return result.ok;
     };
 
     const updateAdvancedAccessPanel = () => {
@@ -2518,6 +2525,9 @@ document.addEventListener('DOMContentLoaded', () => {
         async validatePassword(password) {
             return validateAdvancedPassword(password);
         },
+        async validatePasswordDetailed(password) {
+            return validateAdvancedPasswordDetailed(password);
+        },
         activateAdvancedSession() {
             return activateAdvancedSession();
         },
@@ -2577,8 +2587,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 advancedAccessStatus.textContent = '비밀번호를 확인하고 있습니다...';
                 advancedAccessStatus.style.color = '#64748b';
             }
-            const isValid = await validateAdvancedPassword(password);
-            if (!isValid) {
+            const validationResult = await validateAdvancedPasswordDetailed(password);
+            if (!validationResult.ok) {
                 const failState = registerAdvancedPasswordFailure();
                 if (advancedAccessStatus) {
                     const nextCooldownRemainingMs = Number.isFinite(failState.lockedUntil)
@@ -2586,7 +2596,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         : 0;
                     advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
                         ? `비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
-                        : '비밀번호가 일치하지 않거나 만료된 이용권입니다.';
+                        : validationResult.reason === 'expired'
+                            ? '비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
+                            : '비밀번호가 일치하지 않습니다.';
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
                 if (advancedAccessPasswordInput) {
