@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 13:36:18 KST
+작성일시: 2026-04-06 13:45:10 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -839,3 +839,22 @@
 - 반영 커밋
   - 스테이징 코드: `45306c4`
   - 운영 코드: `52ea5cc`
+
+## 공개 문의 이메일 교체
+- 사용자 요청
+  - 웹에 노출되는 문의 이메일을 `drgon28@naver.com`에서 `zhdlsqpdj@gmail.com`으로 교체
+  - 운영 반영까지 수행
+- 확인 결과
+  - 실제 웹 노출 경로는 `index.html`, `staging/site/index.html` 2곳
+  - 공개 README에도 같은 메일이 있어 함께 교체
+  - 운영/스테이징 Firebase `supportConfig.contactUrl`은 빈 값이라 런타임에서 구 메일을 다시 노출시키는 원격 설정은 없었음
+- 반영 파일
+  - `index.html`
+  - `staging/site/index.html`
+  - `README.md`
+- 검증
+  - `rg -F "drgon28@naver.com"`로 교체 대상 파일 내 잔여 문자열 없음 확인
+  - 원격 운영 HTML에서 `zhdlsqpdj@gmail.com` 존재, 구 메일 미존재 확인
+  - 원격 스테이징 HTML에서도 동일하게 확인
+- 반영 커밋
+  - 운영 코드: `eb59be3`
