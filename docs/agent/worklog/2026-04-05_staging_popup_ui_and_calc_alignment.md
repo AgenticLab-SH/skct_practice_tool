@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 13:10:04 KST
+작성일시: 2026-04-06 13:36:18 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -809,3 +809,33 @@
   - `node --check main.js`
   - `node --check staging/site/assets/scripts/app.bundle.js`
   - 코드 검색으로 `supportTickerSeconds` 저장/로드와 ticker interval 사용처 확인
+
+## 문항 통계 요약 확장 및 건너뜀 오답 처리 설정 추가
+- 사용자 요청
+  - 통계 요약을 `맞은 / 푼 / 전체`, `정답률(푼 문제 대비)`, `정답률(전체 문제 대비)`, `건너뛴 문제`, `못 푼 문제` 구조로 확장
+  - 고급 모드 상세 통계에는 문항 번호, 소요시간, 입력답, 정답, 결과를 체계적으로 표시
+  - 일반/고급 설정 모두에서 `건너뛴 문제를 오답 처리` 여부를 선택 가능하게 추가
+- 사실 확인
+  - `건너뛴 문제는 오답풀이에서 답 입력이 안 된다`는 제보는 로직 버그가 아니었음
+  - 기존에도 정답 입력 모드에서는 건너뛴 문제를 다시 눌러 정답 입력이 가능했고, 이번 작업의 핵심은 통계 모델과 안내 체계 보강이었음
+- 반영 파일
+  - `staging/site/index.html`
+  - `staging/site/assets/scripts/app.bundle.js`
+  - `index.html`
+  - `main.js`
+- 수정 내용
+  - 일반 요약 패널을 기존 3줄에서 5줄 구조로 확장
+  - 상세 통계 텍스트/TXT와 모달에 전체 요약, 과목별 `맞은/푼/전체`, `건너뜀`, `못 풂`, 이중 정답률을 추가
+  - 문항별 상세 행에 `입력답`, `정답`, `결과`, `소요시간`을 함께 표시
+  - `건너뜀 오답 처리`가 켜져 있으면 건너뛴 문항을 `건너뜀(오답)`으로 집계하고, 꺼져 있으면 `건너뜀`으로 별도 유지
+  - 설정 저장 시 `skct_score_cfg`, `stg_skct_score_cfg`로 로컬 저장되게 연결
+  - 설정 변경 후 이미 열린 통계 패널/상세 모달도 즉시 다시 계산되도록 재렌더링 추가
+- 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 로컬 서버 `http://127.0.0.1:8124/index.html`, `http://127.0.0.1:8124/staging/site/index.html` 응답 `200` 확인
+  - 원격 스테이징 응답에서 `statSummary`, `cfgSkippedAsWrong`, `stg_skct_score_cfg`, `건너뜀 오답 처리` 문자열 확인
+  - 원격 운영 응답에서 `statSummary`, `cfgSkippedAsWrong`, `skct_score_cfg`, `건너뜀 오답 처리` 문자열 확인
+- 반영 커밋
+  - 스테이징 코드: `45306c4`
+  - 운영 코드: `52ea5cc`
