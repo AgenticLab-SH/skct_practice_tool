@@ -1160,6 +1160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeToggleBtn = document.getElementById('modeToggleBtn');
     const omrModeLabel = document.getElementById('omrModeLabel');
     const omrModeHint = document.getElementById('omrModeHint');
+    const bulkCorrectImportBtn = document.getElementById('bulkCorrectImportBtn');
 
     const updateModeUI = () => {
         if (omrState.mode === 'answer') {
@@ -1182,6 +1183,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrModeHint.textContent = '미응답(건너뛴) 문제도 번호를 바로 클릭해 정답을 입력할 수 있습니다.';
                 omrModeHint.classList.remove('hidden');
             }
+        }
+        if (bulkCorrectImportBtn) {
+            bulkCorrectImportBtn.classList.toggle('hidden', !(isAdvancedMode && omrState.mode === 'score'));
+        }
+        if (omrState.mode !== 'score' && bulkCorrectImportModal) {
+            bulkCorrectImportModal.classList.add('hidden');
         }
     };
 
@@ -1216,7 +1223,310 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const detailScoreBtn = document.getElementById('detailScoreBtn');
+    const bulkCorrectImportModal = document.getElementById('bulkCorrectImportModal');
+    const bulkCorrectImportInput = document.getElementById('bulkCorrectImportInput');
+    const bulkCorrectImportParseBtn = document.getElementById('bulkCorrectImportParseBtn');
+    const bulkCorrectQuestionCol = document.getElementById('bulkCorrectQuestionCol');
+    const bulkCorrectAnswerCol = document.getElementById('bulkCorrectAnswerCol');
+    const bulkCorrectImportSummary = document.getElementById('bulkCorrectImportSummary');
+    const bulkCorrectImportPreview = document.getElementById('bulkCorrectImportPreview');
+    const bulkCorrectImportStatus = document.getElementById('bulkCorrectImportStatus');
+    const bulkCorrectImportApplyBtn = document.getElementById('bulkCorrectImportApplyBtn');
+    let bulkCorrectImportState = { parsed: null, preview: null };
     const formatRateText = (value) => `${(Math.round((Number(value) || 0) * 10) / 10).toFixed(1).replace(/\.0$/, '')}%`;
+
+    const getTotalQuestionCount = () => subjects.reduce((sum, subj) => sum + subj.count, 0);
+
+    const tokenizeBulkImportLine = (line) => {
+        const cleaned = String(line || '')
+            .replace(/[{}]/g, ' ')
+            .replace(/[“”"]/g, '')
+            .trim();
+        if (!cleaned) return [];
+        let parts = [];
+        if (cleaned.includes('\t')) {
+            parts = cleaned.split(/\t+/);
+        } else if (cleaned.includes('|')) {
+            parts = cleaned.split(/\s*\|\s*/);
+        } else if (cleaned.includes(',')) {
+            parts = cleaned.split(/\s*,\s*/);
+        } else if (/\s{2,}/.test(cleaned)) {
+            parts = cleaned.split(/\s{2,}/);
+        } else {
+            parts = cleaned.split(/\s+/);
+        }
+        return parts.map((part) => part.trim()).filter(Boolean);
+    };
+
+    const normalizeBulkHeaderToken = (value) => String(value || '').replace(/[.\-_:]/g, '').trim().toLowerCase();
+
+    const isLikelyBulkHeaderRow = (cells) => {
+        const joined = cells.map(normalizeBulkHeaderToken).join(' ');
+        if (!joined) return false;
+        return /(no|번호|문항|정답|입력답|정오|정답률|correct|answer|result|rate|user)/i.test(joined);
+    };
+
+    const deriveBulkColumnLabels = (headerRows, maxCols) => {
+        const labels = [];
+        for (let col = 0; col < maxCols; col++) {
+            const counts = new Map();
+            headerRows.forEach((row) => {
+                const value = String(row[col] || '').trim();
+                if (!value) return;
+                counts.set(value, (counts.get(value) || 0) + 1);
+            });
+            const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
+            labels.push(top ? top[0] : `열 ${col + 1}`);
+        }
+        return labels;
+    };
+
+    const parseBulkQuestionNumber = (value) => {
+        const match = String(value || '').match(/\d+/);
+        if (!match) return null;
+        const num = parseInt(match[0], 10);
+        return Number.isInteger(num) ? num : null;
+    };
+
+    const parseBulkChoice = (value) => {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return null;
+        const circledMap = { '①': 1, '②': 2, '③': 3, '④': 4, '⑤': 5 };
+        if (circledMap[trimmed]) return circledMap[trimmed];
+        const match = trimmed.match(/[1-5]/);
+        if (!match) return null;
+        const num = parseInt(match[0], 10);
+        return num >= 1 && num <= 5 ? num : null;
+    };
+
+    const parseBulkCorrectImportText = (text) => {
+        const lines = String(text || '').split(/\r?\n/);
+        const rows = [];
+        const headerRows = [];
+        let currentHeader = [];
+        lines.forEach((line, lineIndex) => {
+            const cells = tokenizeBulkImportLine(line);
+            if (!cells.length) return;
+            if (isLikelyBulkHeaderRow(cells)) {
+                currentHeader = cells.slice();
+                headerRows.push(cells.slice());
+                return;
+            }
+            if (!cells.some((cell) => /\d|①|②|③|④|⑤/.test(cell))) return;
+            rows.push({
+                lineNumber: lineIndex + 1,
+                cells,
+                header: currentHeader.slice()
+            });
+        });
+        const maxCols = Math.max(
+            rows.reduce((max, row) => Math.max(max, row.cells.length), 0),
+            headerRows.reduce((max, row) => Math.max(max, row.length), 0)
+        );
+        return {
+            rows,
+            headerRows,
+            columnLabels: deriveBulkColumnLabels(headerRows, maxCols),
+            maxCols
+        };
+    };
+
+    const detectBulkQuestionColumn = (parsed) => {
+        let bestIndex = 0;
+        let bestScore = Number.NEGATIVE_INFINITY;
+        const totalQuestions = getTotalQuestionCount();
+        for (let col = 0; col < parsed.maxCols; col++) {
+            const label = normalizeBulkHeaderToken(parsed.columnLabels[col]);
+            let score = 0;
+            if (/(^no$|^no\.?$|번호|문항|num|number)/i.test(label)) score += 50;
+            let lastNum = null;
+            parsed.rows.forEach((row) => {
+                const num = parseBulkQuestionNumber(row.cells[col]);
+                if (num == null) return;
+                if (num >= 1 && num <= totalQuestions) score += 3;
+                if (lastNum != null && num === lastNum + 1) score += 1;
+                lastNum = num;
+            });
+            if (score > bestScore) {
+                bestScore = score;
+                bestIndex = col;
+            }
+        }
+        return bestIndex;
+    };
+
+    const detectBulkAnswerColumn = (parsed, questionCol) => {
+        let bestIndex = Math.min(1, Math.max(0, parsed.maxCols - 1));
+        let bestScore = Number.NEGATIVE_INFINITY;
+        for (let col = 0; col < parsed.maxCols; col++) {
+            if (col === questionCol) continue;
+            const label = normalizeBulkHeaderToken(parsed.columnLabels[col]);
+            let score = 0;
+            if (/정답|correct/.test(label)) score += 80;
+            if (/입력답|user|my|응답/.test(label)) score -= 50;
+            parsed.rows.forEach((row) => {
+                if (parseBulkChoice(row.cells[col]) != null) score += 2;
+            });
+            if (score > bestScore) {
+                bestScore = score;
+                bestIndex = col;
+            }
+        }
+        return bestIndex;
+    };
+
+    const renderBulkColumnOptions = (parsed, selectedQuestionCol, selectedAnswerCol) => {
+        if (!bulkCorrectQuestionCol || !bulkCorrectAnswerCol) return;
+        const optionsHtml = Array.from({ length: parsed.maxCols }, (_, index) => {
+            const label = escapeHtml(parsed.columnLabels[index] || `열 ${index + 1}`);
+            return `<option value="${index}">${label} (${index + 1})</option>`;
+        }).join('');
+        bulkCorrectQuestionCol.innerHTML = optionsHtml;
+        bulkCorrectAnswerCol.innerHTML = optionsHtml;
+        bulkCorrectQuestionCol.value = String(selectedQuestionCol);
+        bulkCorrectAnswerCol.value = String(selectedAnswerCol);
+    };
+
+    const buildBulkCorrectPreview = (parsed, questionCol, answerCol) => {
+        const mapped = new Map();
+        let invalidRowCount = 0;
+        let duplicateCount = 0;
+        parsed.rows.forEach((row) => {
+            const questionNo = parseBulkQuestionNumber(row.cells[questionCol]);
+            const answer = parseBulkChoice(row.cells[answerCol]);
+            if (questionNo == null || answer == null) {
+                invalidRowCount++;
+                return;
+            }
+            if (mapped.has(questionNo)) duplicateCount++;
+            mapped.set(questionNo, {
+                questionNo,
+                answer,
+                rawQuestion: row.cells[questionCol] || '',
+                rawAnswer: row.cells[answerCol] || ''
+            });
+        });
+        return {
+            mappedRows: [...mapped.values()].sort((a, b) => a.questionNo - b.questionNo),
+            invalidRowCount,
+            duplicateCount
+        };
+    };
+
+    const renderBulkCorrectPreview = () => {
+        const parsed = bulkCorrectImportState.parsed;
+        if (!parsed || !parsed.rows.length || parsed.maxCols === 0) {
+            bulkCorrectImportState.preview = null;
+            if (bulkCorrectImportSummary) bulkCorrectImportSummary.textContent = '붙여넣은 데이터에서 표 형태를 찾지 못했습니다.';
+            if (bulkCorrectImportPreview) bulkCorrectImportPreview.textContent = 'NO./정답 같은 헤더가 있거나, 문항 번호와 정답이 포함된 줄 단위 데이터여야 합니다.';
+            if (bulkCorrectImportApplyBtn) bulkCorrectImportApplyBtn.disabled = true;
+            return;
+        }
+        const questionCol = Number(bulkCorrectQuestionCol?.value ?? 0);
+        const answerCol = Number(bulkCorrectAnswerCol?.value ?? 1);
+        const preview = buildBulkCorrectPreview(parsed, questionCol, answerCol);
+        bulkCorrectImportState.preview = preview;
+        if (bulkCorrectImportSummary) {
+            bulkCorrectImportSummary.textContent = `데이터 줄 ${parsed.rows.length}개 중 ${preview.mappedRows.length}문항을 정답으로 읽었습니다.`;
+        }
+        if (bulkCorrectImportStatus) {
+            const notes = [];
+            if (preview.invalidRowCount > 0) notes.push(`무시된 줄 ${preview.invalidRowCount}개`);
+            if (preview.duplicateCount > 0) notes.push(`중복 문항 ${preview.duplicateCount}개(마지막 값 사용)`);
+            bulkCorrectImportStatus.textContent = notes.length ? notes.join(' · ') : '이 설정으로 바로 반영할 수 있습니다.';
+        }
+        if (bulkCorrectImportApplyBtn) {
+            bulkCorrectImportApplyBtn.disabled = preview.mappedRows.length === 0;
+        }
+        if (bulkCorrectImportPreview) {
+            if (!preview.mappedRows.length) {
+                bulkCorrectImportPreview.textContent = '현재 선택한 열 조합으로는 반영할 정답을 찾지 못했습니다.';
+            } else {
+                const rowsHtml = preview.mappedRows.slice(0, 12).map((item) => `
+                    <tr>
+                        <td>${item.questionNo}</td>
+                        <td>${item.answer}</td>
+                        <td>${escapeHtml(item.rawQuestion)}</td>
+                        <td>${escapeHtml(item.rawAnswer)}</td>
+                    </tr>
+                `).join('');
+                const moreHtml = preview.mappedRows.length > 12
+                    ? `<div style="margin-top:8px; color:#64748b;">그 외 ${preview.mappedRows.length - 12}문항도 함께 반영됩니다.</div>`
+                    : '';
+                bulkCorrectImportPreview.innerHTML = `
+                    <div><strong>미리보기</strong> · 문항 번호와 정답이 이렇게 들어갑니다.</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>문항</th>
+                                <th>정답</th>
+                                <th>문항 원본</th>
+                                <th>정답 원본</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                    ${moreHtml}
+                `;
+            }
+        }
+    };
+
+    const openBulkCorrectImportModal = () => {
+        if (!isAdvancedMode || omrState.mode !== 'score' || !bulkCorrectImportModal) return;
+        bulkCorrectImportModal.classList.remove('hidden');
+        if (bulkCorrectImportInput?.value.trim()) {
+            bulkCorrectImportParseBtn?.click();
+        } else if (bulkCorrectImportStatus) {
+            bulkCorrectImportStatus.textContent = '정오표 표를 붙여넣고 분석 버튼을 눌러주세요.';
+        }
+    };
+
+    const parseBulkCorrectImport = () => {
+        const parsed = parseBulkCorrectImportText(bulkCorrectImportInput?.value || '');
+        bulkCorrectImportState.parsed = parsed;
+        if (!parsed.rows.length || parsed.maxCols === 0) {
+            renderBulkCorrectPreview();
+            return;
+        }
+        const questionCol = detectBulkQuestionColumn(parsed);
+        const answerCol = detectBulkAnswerColumn(parsed, questionCol);
+        renderBulkColumnOptions(parsed, questionCol, answerCol);
+        renderBulkCorrectPreview();
+    };
+
+    const getQuestionKeyByNumber = (questionNo) => {
+        if (!Number.isInteger(questionNo) || questionNo < 1) return null;
+        let base = 0;
+        for (const subj of subjects) {
+            const start = base + 1;
+            const end = base + subj.count;
+            if (questionNo >= start && questionNo <= end) {
+                return `${subj.id}_${questionNo - base}`;
+            }
+            base = end;
+        }
+        return null;
+    };
+
+    const applyBulkCorrectImport = () => {
+        const preview = bulkCorrectImportState.preview;
+        if (!preview || !preview.mappedRows.length) {
+            if (bulkCorrectImportStatus) bulkCorrectImportStatus.textContent = '반영할 정답이 없습니다.';
+            return;
+        }
+        preview.mappedRows.forEach((item) => {
+            const key = getQuestionKeyByNumber(item.questionNo);
+            if (key) {
+                omrState.correctAnswers[key] = item.answer;
+            }
+        });
+        if (bulkCorrectImportStatus) {
+            bulkCorrectImportStatus.textContent = `${preview.mappedRows.length}문항의 정답을 반영했습니다.`;
+        }
+        updateScoreSummaryPanel();
+        renderOMR();
+    };
 
     const buildQuestionStatItem = (subj, num) => {
         const key = `${subj.id}_${num}`;
@@ -1538,6 +1848,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (detailScoreBtn) {
         detailScoreBtn.addEventListener('click', openDetailedStatsModal);
+    }
+    if (bulkCorrectImportBtn) {
+        bulkCorrectImportBtn.addEventListener('click', openBulkCorrectImportModal);
+    }
+    if (bulkCorrectImportParseBtn) {
+        bulkCorrectImportParseBtn.addEventListener('click', parseBulkCorrectImport);
+    }
+    if (bulkCorrectQuestionCol) {
+        bulkCorrectQuestionCol.addEventListener('change', renderBulkCorrectPreview);
+    }
+    if (bulkCorrectAnswerCol) {
+        bulkCorrectAnswerCol.addEventListener('change', renderBulkCorrectPreview);
+    }
+    if (bulkCorrectImportApplyBtn) {
+        bulkCorrectImportApplyBtn.addEventListener('click', applyBulkCorrectImport);
     }
 
 

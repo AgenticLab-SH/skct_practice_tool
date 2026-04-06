@@ -30,7 +30,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604061600">
+    <link rel="stylesheet" href="main.css?v=202604061825">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -112,6 +112,7 @@
                         <div class="stat-line"><span>못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
                     </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
+                    <button id="bulkCorrectImportBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📥 정오표 일괄입력</button>
                     <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 RESET</button>
                 </div>
             </div>
@@ -547,6 +548,42 @@
     </div>
     </div>
 
+    <div id="bulkCorrectImportModal" class="modal-overlay hidden">
+        <div class="modal-content bulk-import-modal">
+            <div class="modal-header">
+                <h3>📥 정오표 일괄입력</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body bulk-import-body">
+                <div class="bulk-import-note">
+                    정오표 표를 그대로 붙여넣으면 정답 열을 자동 인식합니다. 자동 인식이 애매하면 아래 열 선택에서 직접 바꾼 뒤 적용하면 됩니다.
+                </div>
+                <textarea id="bulkCorrectImportInput" class="bulk-import-textarea" placeholder="예시)&#10;NO.    정답    입력답    정오    정답률&#10;1      2       1       X      49.3%&#10;2      3       4       X      55.6%"></textarea>
+                <div class="bulk-import-toolbar">
+                    <button id="bulkCorrectImportParseBtn" type="button" class="bulk-import-btn primary">붙여넣기 분석</button>
+                    <div id="bulkCorrectImportSummary" class="bulk-import-summary">아직 분석 전입니다.</div>
+                </div>
+                <div class="bulk-import-select-grid">
+                    <label class="bulk-import-field">
+                        <span>문항 번호 열</span>
+                        <select id="bulkCorrectQuestionCol"></select>
+                    </label>
+                    <label class="bulk-import-field">
+                        <span>정답 열</span>
+                        <select id="bulkCorrectAnswerCol"></select>
+                    </label>
+                </div>
+                <div id="bulkCorrectImportPreview" class="bulk-import-preview">
+                    분석 결과가 여기에 표시됩니다.
+                </div>
+                <div class="bulk-import-toolbar">
+                    <div id="bulkCorrectImportStatus" class="bulk-import-status">고급모드의 정답 입력 상태에서만 사용할 수 있습니다.</div>
+                    <button id="bulkCorrectImportApplyBtn" type="button" class="bulk-import-btn success" disabled>정답 일괄 반영</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Donation Custom Modal -->
     <div id="donateModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 420px; padding: 25px;">
@@ -659,7 +696,7 @@
             };
         })();
     </script>
-    <script src="main.js?v=202604061600"></script>
+    <script src="main.js?v=202604061825"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
