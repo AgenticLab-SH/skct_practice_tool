@@ -137,16 +137,35 @@
         const authStatus = document.getElementById('authStatus');
         const passwordInput = document.getElementById('advancedPasswordInput');
         const loginButton = document.getElementById('advancedLoginBtn');
+        const syncReadyState = () => {
+            if (!bridge) return;
+            if (bridge.isConfigReady && !bridge.isConfigReady()) {
+                authStatus.textContent = '원본 창에서 고급 구독 정보를 불러오는 중입니다.';
+                loginButton.disabled = true;
+                return false;
+            }
+            loginButton.disabled = false;
+            if (!authStatus.textContent || authStatus.textContent.includes('불러오는 중')) {
+                authStatus.textContent = '';
+            }
+            return true;
+        };
 
         if (!bridge) {
             authStatus.textContent = '원본 창과 연결되지 않아 사용할 수 없습니다.';
             loginButton.disabled = true;
-        };
+        } else {
+            syncReadyState();
+            window.setInterval(syncReadyState, 500);
+        }
 
-        loginButton.addEventListener('click', () => {
+        loginButton.addEventListener('click', async () => {
             if (!bridge) return;
+            if (!syncReadyState()) return;
             const password = passwordInput.value.trim();
-            if (!bridge.validatePassword(password)) {
+            authStatus.textContent = '비밀번호를 확인하고 있습니다.';
+            const isValid = await bridge.validatePassword(password);
+            if (!isValid) {
                 authStatus.textContent = '비밀번호가 일치하지 않습니다.';
                 passwordInput.select();
                 return;

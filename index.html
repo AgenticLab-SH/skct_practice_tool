@@ -30,7 +30,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604061155">
+    <link rel="stylesheet" href="main.css?v=202604061525">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -344,8 +344,8 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
-                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 12:52:36 +09:00</div>
-                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1252</div>
+                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-06 15:25:00 +09:00</div>
+                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525</div>
                 </div>
                 <!-- 모드 설정 -->
                 <div>
@@ -448,6 +448,28 @@
                 <button class="close-modal btn-close">×</button>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+                <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
+                    <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
+                        고급 구독 정보를 불러오는 중입니다.
+                    </div>
+                    <div style="font-size:13px; line-height:1.65; color:#1e3a8a;">
+                        이미 고급 이용권이 있다면 여기서 바로 비밀번호를 입력하고 고급 버전 팝업을 열 수 있습니다.
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="고급 비밀번호 입력" style="flex:1; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">고급 모드 열기</button>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; color:#475569;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input id="advancedAccessReveal" type="checkbox">
+                            비밀번호 보기
+                        </label>
+                        <button id="advancedAccessReuseBtn" type="button" style="padding:6px 10px; background:#ffffff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;">
+                            인증된 브라우저면 바로 열기
+                        </button>
+                    </div>
+                    <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
+                </div>
                 <div style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
                     고급 이용자 버전에서는 아래 기능이 추가로 제공됩니다.
                 </div>
@@ -637,7 +659,7 @@
             };
         })();
     </script>
-    <script src="main.js?v=202604061155"></script>
+    <script src="main.js?v=202604061525"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -911,8 +933,8 @@
                     window.applyRemoteToolUiConfig(cfg.toolUiConfig);
                 }
             }
-            if (cfg.advancedFeatureConfig && window.applyRemoteAdvancedFeatureConfig) {
-                window.applyRemoteAdvancedFeatureConfig(cfg.advancedFeatureConfig);
+            if (window.applyRemoteAdvancedFeatureConfig) {
+                window.applyRemoteAdvancedFeatureConfig(cfg.advancedFeatureConfig || null);
             }
 
             if (cfg.sponsors && cfg.sponsors.length > 0) {

@@ -4,7 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupMode = window.name === 'skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const ADVANCED_UNLOCK_STORAGE_KEY = 'skct_advanced_unlock';
+    const ADVANCED_PASSWORD_FAIL_STORAGE_KEY = 'skct_advanced_password_failures';
     const ADVANCED_UNLOCK_DURATION_MS = 1000 * 60 * 30;
+    const ADVANCED_FAIL_WINDOW_MS = 1000 * 60 * 10;
+    const ADVANCED_MAX_FAIL_COUNT = 5;
+    const ADVANCED_FAIL_COOLDOWN_MS = 1000 * 30;
     const readAdvancedUnlockState = () => {
         try {
             return JSON.parse(localStorage.getItem(ADVANCED_UNLOCK_STORAGE_KEY) || 'null');
@@ -16,6 +20,43 @@ document.addEventListener('DOMContentLoaded', () => {
         const state = readAdvancedUnlockState();
         return Boolean(state && Number.isFinite(state.expiresAt) && state.expiresAt > Date.now());
     };
+    const getAdvancedUnlockRemainingMs = () => {
+        const state = readAdvancedUnlockState();
+        if (!state || !Number.isFinite(state.expiresAt)) return 0;
+        return Math.max(0, state.expiresAt - Date.now());
+    };
+    const readAdvancedFailState = () => {
+        try {
+            return JSON.parse(localStorage.getItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY) || 'null');
+        } catch (error) {
+            return null;
+        }
+    };
+    const writeAdvancedFailState = (state) => {
+        localStorage.setItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY, JSON.stringify(state));
+    };
+    const resetAdvancedFailState = () => {
+        localStorage.removeItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY);
+    };
+    const getAdvancedCooldownRemainingMs = () => {
+        const state = readAdvancedFailState();
+        if (!state || !Number.isFinite(state.lockedUntil)) return 0;
+        return Math.max(0, state.lockedUntil - Date.now());
+    };
+    const registerAdvancedPasswordFailure = () => {
+        const now = Date.now();
+        const current = readAdvancedFailState();
+        const attempts = Array.isArray(current?.attempts)
+            ? current.attempts.filter((value) => Number.isFinite(value) && now - value <= ADVANCED_FAIL_WINDOW_MS)
+            : [];
+        attempts.push(now);
+        const nextState = { attempts };
+        if (attempts.length >= ADVANCED_MAX_FAIL_COUNT) {
+            nextState.lockedUntil = now + ADVANCED_FAIL_COOLDOWN_MS;
+        }
+        writeAdvancedFailState(nextState);
+        return nextState;
+    };
     const isAdvancedMode = runtimeFlags.advanced === true && hasAdvancedUnlock();
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
@@ -23,7 +64,21 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
-    const DEFAULT_ADVANCED_FEATURE_CONFIG = { passwords: ['0208'] };
+    const DEFAULT_ADVANCED_FEATURE_CONFIG = {
+        subscriptions: [
+            {
+                id: 'seed-0208',
+                planName: '기본 운영 이용권',
+                memberLabel: '운영자 기본값',
+                status: 'active',
+                passwordSalt: 'seed-20260406',
+                passwordHash: 'a1c558a1b233a95e200e0d78af383b407fc9326d5b46ee8107cf5a4dccba5ac9',
+                expiresAt: '',
+                externalId: '',
+                note: '기본 이스터에그 비밀번호'
+            }
+        ]
+    };
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'skct-popup-layout-preview',
         saveRequest: 'skct-popup-layout-save-request',
@@ -55,6 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
     const advancedGuideToggle = document.getElementById('advancedGuideToggle');
     const advancedGuideModal = document.getElementById('advancedGuideModal');
+    const advancedAccessSummary = document.getElementById('advancedAccessSummary');
+    const advancedAccessPasswordInput = document.getElementById('advancedAccessPasswordInput');
+    const advancedAccessSubmitBtn = document.getElementById('advancedAccessSubmitBtn');
+    const advancedAccessReveal = document.getElementById('advancedAccessReveal');
+    const advancedAccessReuseBtn = document.getElementById('advancedAccessReuseBtn');
+    const advancedAccessStatus = document.getElementById('advancedAccessStatus');
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
@@ -64,13 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
     let lastPopupWindowOnlySignature = '';
+    let isAdvancedConfigReady = false;
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
     document.body.classList.toggle('advanced-mode', isAdvancedMode);
     if (isAdvancedMode) {
         document.title = `${document.title} | 고급버전`;
         if (settingsVersionRow) {
-            settingsVersionRow.innerHTML = '<strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1252 (고급버전)';
+            settingsVersionRow.innerHTML = '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525 (고급버전)';
         }
     }
 
@@ -130,19 +192,45 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    function normalizeAdvancedFeatureConfig(raw) {
-        const source = Array.isArray(raw?.passwords)
-            ? raw.passwords
-            : String(raw?.passwords || '')
-                .split(/\r?\n|,/)
-                .map((item) => item.trim());
-        const passwords = [];
-        source.forEach((item) => {
-            if (!item || passwords.includes(item)) return;
-            passwords.push(item);
-        });
+    function normalizeAdvancedSubscription(raw, index = 0) {
+        const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
+        const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
         return {
-            passwords: passwords.length ? passwords : [...DEFAULT_ADVANCED_FEATURE_CONFIG.passwords]
+            id: String(raw?.id || `subscription-${index + 1}`),
+            planName: String(raw?.planName || fallback.planName).trim() || fallback.planName,
+            memberLabel: String(raw?.memberLabel || '').trim(),
+            status,
+            passwordSalt: String(raw?.passwordSalt || '').trim(),
+            passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
+            expiresAt: String(raw?.expiresAt || '').trim(),
+            externalId: String(raw?.externalId || '').trim(),
+            note: String(raw?.note || '').trim()
+        };
+    }
+
+    function normalizeAdvancedFeatureConfig(raw) {
+        const subscriptions = Array.isArray(raw?.subscriptions)
+            ? raw.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index)).filter((item) => item.passwordSalt && item.passwordHash)
+            : [];
+        const legacySource = (Array.isArray(raw?.passwords)
+            ? raw.passwords
+            : String(raw?.passwords || '').split(/\r?\n|,/))
+            .map((item) => String(item || '').trim())
+            .filter(Boolean);
+        const legacyPasswords = [];
+        legacySource.forEach((item) => {
+            if (!item || legacyPasswords.includes(item)) return;
+            legacyPasswords.push(item);
+        });
+        if (subscriptions.length || legacyPasswords.length) {
+            return {
+                subscriptions,
+                legacyPasswords
+            };
+        }
+        return {
+            subscriptions: DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index)),
+            legacyPasswords: []
         };
     }
 
@@ -593,8 +681,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const ADVANCED_TRIGGER_TIMEOUT_MS = 1800;
     const ADVANCED_POPUP_PATH = 'advanced-tools.html';
 
-    const getAdvancedPasswordList = () => [...remoteAdvancedFeatureConfig.passwords];
-
     const buildAdvancedLaunchUrl = () => {
         const url = new URL(window.location.href);
         url.searchParams.set('advanced', '1');
@@ -611,6 +697,88 @@ document.addEventListener('DOMContentLoaded', () => {
             targetUrl: buildAdvancedLaunchUrl(),
             popupName: 'skct_popup_mode'
         };
+    };
+
+    const getSubscriptionExpiryTime = (value) => {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return Number.POSITIVE_INFINITY;
+        const parsed = Date.parse(`${trimmed}T23:59:59+09:00`);
+        return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    };
+
+    const isActiveAdvancedSubscription = (subscription) => {
+        if (!subscription) return false;
+        if (subscription.status !== 'active') return false;
+        return getSubscriptionExpiryTime(subscription.expiresAt) >= Date.now();
+    };
+
+    const hashAdvancedPassword = async (password, salt) => {
+        const encoder = new TextEncoder();
+        const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${salt}::${password}`));
+        return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    };
+
+    const validateAdvancedPassword = async (password) => {
+        const value = String(password || '').trim();
+        if (!value) return false;
+        if (remoteAdvancedFeatureConfig.legacyPasswords.includes(value)) {
+            return true;
+        }
+        const activeSubscriptions = remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription);
+        for (const subscription of activeSubscriptions) {
+            const digest = await hashAdvancedPassword(value, subscription.passwordSalt);
+            if (digest === subscription.passwordHash) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const updateAdvancedAccessPanel = () => {
+        if (!advancedAccessSummary) return;
+        const activeCount = remoteAdvancedFeatureConfig.legacyPasswords.length
+            + remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription).length;
+        const unlockRemainingMs = getAdvancedUnlockRemainingMs();
+        const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
+        if (!isAdvancedConfigReady) {
+            advancedAccessSummary.textContent = '고급 구독 정보를 불러오는 중입니다.';
+            if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
+            if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = !hasAdvancedUnlock();
+            return;
+        }
+        if (cooldownRemainingMs > 0) {
+            advancedAccessSummary.textContent = `비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`;
+        } else if (unlockRemainingMs > 0) {
+            advancedAccessSummary.textContent = `이 브라우저는 이미 인증되어 있습니다. 약 ${Math.max(1, Math.ceil(unlockRemainingMs / 60000))}분 동안 바로 고급 모드를 열 수 있습니다.`;
+        } else if (activeCount > 0) {
+            advancedAccessSummary.textContent = `현재 사용 가능한 고급 이용권 ${activeCount}건을 확인했습니다. 비밀번호를 입력하면 바로 고급 팝업이 열립니다.`;
+        } else {
+            advancedAccessSummary.textContent = '현재 사용 가능한 고급 이용권이 없습니다. 관리자 페이지의 고급 구독 관리 표를 먼저 확인하세요.';
+        }
+        if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = activeCount === 0 || cooldownRemainingMs > 0;
+        if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = unlockRemainingMs <= 0;
+    };
+
+    const openAdvancedModeWindow = () => {
+        const launch = activateAdvancedSession();
+        updateAdvancedAccessPanel();
+        if (isPopupMode) {
+            window.name = launch.popupName;
+            window.location.assign(launch.targetUrl);
+            return true;
+        }
+        const { width, height, left, top } = buildPopupWindowMetrics(remotePopupLayout.window);
+        const popup = window.open(
+            launch.targetUrl,
+            launch.popupName,
+            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`
+        );
+        if (popup) {
+            popup.focus();
+            return true;
+        }
+        window.location.assign(launch.targetUrl);
+        return false;
     };
 
     const omrState = {
@@ -2005,6 +2173,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.applyRemoteAdvancedFeatureConfig = (advancedFeatureConfig) => {
         remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig(advancedFeatureConfig);
+        isAdvancedConfigReady = true;
+        updateAdvancedAccessPanel();
     };
 
     // 부드러운 알람 비프음 (Web Audio API)
@@ -2286,6 +2456,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advancedGuideToggle && advancedGuideModal) {
         advancedGuideToggle.addEventListener('click', () => {
             if (isAdvancedMode) return;
+            if (advancedAccessStatus) advancedAccessStatus.textContent = '';
+            if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
+            updateAdvancedAccessPanel();
             advancedGuideModal.classList.remove('hidden');
         });
     }
@@ -2339,9 +2512,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.SKCTAdvancedBridge = {
-        validatePassword(password) {
-            const value = String(password || '').trim();
-            return getAdvancedPasswordList().includes(value);
+        isConfigReady() {
+            return isAdvancedConfigReady;
+        },
+        async validatePassword(password) {
+            return validateAdvancedPassword(password);
         },
         activateAdvancedSession() {
             return activateAdvancedSession();
@@ -2376,6 +2551,91 @@ document.addEventListener('DOMContentLoaded', () => {
             return buildDetailedStatsText();
         }
     };
+
+    if (advancedAccessSubmitBtn) {
+        advancedAccessSubmitBtn.addEventListener('click', async () => {
+            if (isAdvancedMode) return;
+            const password = advancedAccessPasswordInput?.value || '';
+            if (!isAdvancedConfigReady) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = '고급 구독 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+                    advancedAccessStatus.style.color = '#b45309';
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
+            const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
+            if (cooldownRemainingMs > 0) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = `${Math.ceil(cooldownRemainingMs / 1000)}초 후에 다시 시도할 수 있습니다.`;
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = '비밀번호를 확인하고 있습니다...';
+                advancedAccessStatus.style.color = '#64748b';
+            }
+            const isValid = await validateAdvancedPassword(password);
+            if (!isValid) {
+                const failState = registerAdvancedPasswordFailure();
+                if (advancedAccessStatus) {
+                    const nextCooldownRemainingMs = Number.isFinite(failState.lockedUntil)
+                        ? Math.max(0, failState.lockedUntil - Date.now())
+                        : 0;
+                    advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
+                        ? `비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
+                        : '비밀번호가 일치하지 않거나 만료된 이용권입니다.';
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+                if (advancedAccessPasswordInput) {
+                    advancedAccessPasswordInput.focus();
+                    advancedAccessPasswordInput.select();
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
+            resetAdvancedFailState();
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = '고급 버전 팝업을 여는 중입니다.';
+                advancedAccessStatus.style.color = '#0f766e';
+            }
+            openAdvancedModeWindow();
+        });
+    }
+
+    if (advancedAccessPasswordInput) {
+        advancedAccessPasswordInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                advancedAccessSubmitBtn?.click();
+            }
+        });
+    }
+    if (advancedAccessReveal && advancedAccessPasswordInput) {
+        advancedAccessReveal.addEventListener('change', () => {
+            advancedAccessPasswordInput.type = advancedAccessReveal.checked ? 'text' : 'password';
+        });
+    }
+    if (advancedAccessReuseBtn) {
+        advancedAccessReuseBtn.addEventListener('click', () => {
+            if (!hasAdvancedUnlock()) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = '이 브라우저의 인증 상태가 없거나 만료되었습니다. 비밀번호를 다시 입력해주세요.';
+                    advancedAccessStatus.style.color = '#b45309';
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = '저장된 인증 상태로 고급 버전을 다시 엽니다.';
+                advancedAccessStatus.style.color = '#0f766e';
+            }
+            openAdvancedModeWindow();
+        });
+    }
+    updateAdvancedAccessPanel();
 
     // Modal & Help Controls
     const helpToggle = document.getElementById('helpToggle');
