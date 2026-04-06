@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-07 10:31:40 KST
+작성일시: 2026-04-07 10:51:35 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -1117,3 +1117,19 @@
     - `logs/staging_advanced_timer_sidebar_compact.png`
 - 반영 상태
   - 운영 미반영
+
+## 2026-04-07 운영 이식: 고급모드 타이머/좌측 패널 디자인 압축
+- 사용자 승인 후 운영 `index.html`, `main.css`, `main.js`에 스테이징 고급모드 레이아웃 이식
+- 운영 반영 내용
+  - 좌측 패널 버튼을 공통 `sidebar-shortcut` 폼팩터로 통일
+  - 상단 타이머를 `advanced-timer-shell` 구조로 재배치
+  - 재생 버튼이 밀리지 않도록 고정 버튼화, 고급 버튼 라벨을 `다음 / 과↺ / 전↺`로 압축
+  - 운영에는 빠져 있던 `다음 과목` 동작도 함께 복원
+  - 일반모드 `고급 기능 안내`와 고급모드 `고급 기능` 설명에 `타이머 초기화` 항목 추가
+  - 운영 CSS/JS 자산 버전을 `v202604071145`로 갱신
+- 운영 검증
+  - `node --check main.js`
+  - `main.js`에 `canSkipToNextSubject`, `updateSubjectSkipButton`, `skipCurrentSubjectToNext` 존재 확인
+  - `index.html` 설명 목록에 `4. 타이머 초기화` 반영 확인
+- 반영 커밋
+  - 운영 코드: `aef45ab`
