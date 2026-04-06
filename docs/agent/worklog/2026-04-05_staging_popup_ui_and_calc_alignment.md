@@ -23,6 +23,8 @@
   - 선택지 행(`.q-options`)의 간격을 더 좁게 유지하도록 구조 정리
 - `staging/site/assets/scripts/app.bundle.js`
   - OMR 렌더링 시 인라인 `gap:4px`를 제거하고 CSS 공통값만 따르도록 수정
+- `staging/site/index.html`
+  - CSS/JS 캐시가 남지 않도록 자산 버전을 `202604061050`으로 갱신
 - 기대 효과
   - `1.`과 `10.` 이후 번호가 서로 밀리지 않음
   - 1~5 선택지 간 간격이 줄어들어 좁은 OMR 폭에서도 공간 활용이 좋아짐
