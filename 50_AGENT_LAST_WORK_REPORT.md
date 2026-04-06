@@ -557,3 +557,5 @@
 - 확인 내용
   - 운영/스테이징 RTDB `supportConfig.contactUrl`은 비어 있어 원격 설정에서 덮어쓰는 메일은 없었음
   - 원격 운영/스테이징 HTML 응답에서 새 메일 노출, 구 메일 미노출 확인
+  - 추가로 운영 RTDB `config/notice`, `config/notice_help`, `config/notice_community`의 공지 문구 안에도 구 메일이 남아 있어 수동 교체함
+  - 교체 후 운영 RTDB 전체 `config` JSON에서 구 메일 미존재, 신 메일 존재 확인

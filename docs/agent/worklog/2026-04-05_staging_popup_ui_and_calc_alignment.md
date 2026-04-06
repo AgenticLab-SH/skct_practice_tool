@@ -848,6 +848,8 @@
   - 실제 웹 노출 경로는 `index.html`, `staging/site/index.html` 2곳
   - 공개 README에도 같은 메일이 있어 함께 교체
   - 운영/스테이징 Firebase `supportConfig.contactUrl`은 빈 값이라 런타임에서 구 메일을 다시 노출시키는 원격 설정은 없었음
+  - 대신 운영 Firebase `config/notice`, `config/notice_help`, `config/notice_community` 메시지에 구 메일이 남아 있었고, 개발자 공지 노출은 이 값을 읽는 구조였음
+  - 해당 3개 경로를 직접 갱신해 공지 문구 메일까지 모두 `zhdlsqpdj@gmail.com`으로 교체
 - 반영 파일
   - `index.html`
   - `staging/site/index.html`
@@ -856,5 +858,6 @@
   - `rg -F "drgon28@naver.com"`로 교체 대상 파일 내 잔여 문자열 없음 확인
   - 원격 운영 HTML에서 `zhdlsqpdj@gmail.com` 존재, 구 메일 미존재 확인
   - 원격 스테이징 HTML에서도 동일하게 확인
+  - 운영 RTDB `config` 전체 JSON에서 구 메일 미존재, 신 메일 존재 확인
 - 반영 커밋
   - 운영 코드: `eb59be3`
