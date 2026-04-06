@@ -1,5 +1,5 @@
 # 2026-04-05 스테이징 팝업 UI 정렬 및 계산기 개선 작업 기록
-작성일시: 2026-04-06 13:45:10 KST
+작성일시: 2026-04-06 14:23:27 KST
 
 ## 사용자 요청
 - 운영 반영 전, `staging/site`에서 먼저 개선 작업 진행
@@ -861,3 +861,39 @@
   - 운영 RTDB `config` 전체 JSON에서 구 메일 미존재, 신 메일 존재 확인
 - 반영 커밋
   - 운영 코드: `eb59be3`
+
+## 스테이징 고급 진입 UX 개편 및 고급 구독 관리 표 도입
+- 사용자 요청
+  - `고급 안내` 버튼 최상단에서 바로 비밀번호를 입력해 고급 버전 팝업을 열 수 있게 변경
+  - 기존 `통합 설정 7연타` 진입은 이스터에그로 유지
+  - 개발자 페이지의 고급 비밀번호 목록을 표 형태의 `고급 구독 관리`로 개편
+  - 앱/링크, 타이머/레이아웃, 후원 문구, 후원 내역, 고급 구독을 각각 저장할 수 있게 버튼 분리
+  - 토스 결제 연동은 별도 프로젝트로 진행할 예정이므로, 지금은 설계 문서만 작성
+- 설계 문서
+  - `docs/2026-04-06_토스_고급구독_분리프로젝트_설계서.md`
+- 반영 파일
+  - `staging/site/index.html`
+  - `staging/site/assets/scripts/app.bundle.js`
+  - `staging/site/advanced-tools.html`
+  - `staging/site/admin.html`
+- 수정 내용
+  - `고급 안내` 모달 상단에 `고급 비밀번호 입력 + 고급 모드 열기` 블록 추가
+  - 비밀번호 일치 시 바로 고급 버전 팝업을 열고, 기존 이스터에그 진입창도 같은 검증 로직을 쓰도록 정리
+  - 스테이징 사용자 앱은 더 이상 평문 비밀번호 목록을 직접 쓰지 않고, `구독 레코드(passwordSalt + passwordHash)`만 읽어 검증
+  - 개발자 페이지에 `고급 구독 관리` 표를 추가해 상태, 구독명, 사용자 식별, 새 비밀번호, 만료일, 외부 ID, 메모를 행 단위로 관리
+  - 저장 시 평문 비밀번호는 해시로 바꿔 저장하고, 이후엔 해시만 남도록 변경
+  - `전체 저장`은 남겨두되, `앱/링크 저장`, `타이머/레이아웃 저장`, `후원 문구 저장`, `후원 내역 저장`, `고급 구독 저장` 버튼을 각각 추가
+  - 스테이징 RTDB `staging_hidden_v1/config/advancedFeatureConfig`도 기본 `0208`을 해시 스키마로 마이그레이션
+- 검증
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 로컬 Playwright 검증
+    - `staging/site/index.html?stage=1`에서 `advancedAccessPasswordInput`, `advancedAccessSubmitBtn`, `window.SKCTAdvancedBridge` 존재 확인
+    - `window.SKCTAdvancedBridge.validatePassword('0208') === true` 확인
+    - `0208` 입력 후 `window.open` 호출 1회, `stg_skct_advanced_unlock` 저장 확인
+    - `staging/site/admin.html`에서 구독 표와 각 저장 버튼 DOM 존재, 페이지 에러 없음 확인
+  - 원격 스테이징 응답에서 `advancedAccessPasswordInput`, `advancedFeatureSaveBtn`, `generalMetaSaveBtn`, `runtimeDefaultsSaveBtn`, `supportSaveBtn`, `sponsorsSaveBtn`, `validateAdvancedPassword`, `passwordHash` 문자열 확인
+- 보안 메모
+  - 정적 웹 전체 코드를 완전히 숨기거나 복제를 원천 차단하는 것은 불가능함
+  - 이번 스테이징 작업에서는 실제 효과가 있는 보안 조치로 `평문 비밀번호 제거`와 `해시 기반 검증`까지만 적용
+- 반영 커밋
+  - 스테이징 코드: `4560507`
