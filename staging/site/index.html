@@ -241,12 +241,24 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
+                    <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
+                        고급 구독 정보를 불러오는 중입니다.
+                    </div>
                     <div style="font-size:13px; line-height:1.65; color:#1e3a8a;">
                         이미 고급 이용권이 있다면 여기서 바로 비밀번호를 입력하고 고급 버전 팝업을 열 수 있습니다.
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
                         <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="고급 비밀번호 입력" style="flex:1; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">고급 모드 열기</button>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; color:#475569;">
+                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+                            <input id="advancedAccessReveal" type="checkbox">
+                            비밀번호 보기
+                        </label>
+                        <button id="advancedAccessReuseBtn" type="button" style="padding:6px 10px; background:#ffffff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;">
+                            인증된 브라우저면 바로 열기
+                        </button>
                     </div>
                     <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
                 </div>
@@ -933,8 +945,8 @@
                     window.applyRemoteToolUiConfig(cfg.toolUiConfig);
                 }
             }
-            if (cfg.advancedFeatureConfig && window.applyRemoteAdvancedFeatureConfig) {
-                window.applyRemoteAdvancedFeatureConfig(cfg.advancedFeatureConfig);
+            if (window.applyRemoteAdvancedFeatureConfig) {
+                window.applyRemoteAdvancedFeatureConfig(cfg.advancedFeatureConfig || null);
             }
 
             if (cfg.sponsors && cfg.sponsors.length > 0) {

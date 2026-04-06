@@ -214,6 +214,9 @@
                     <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.6;">
                         비밀번호는 평문으로 서버에 저장하지 않고 해시로만 저장합니다. 이 표는 수동 등록용이며, 나중에 토스 결제 연동 시 같은 구조로 자동 추가될 수 있게 설계합니다.
                     </div>
+                    <div id="advancedSubscriptionSummary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:10px;">
+                        <div style="padding:10px 12px; border-radius:8px; background:#eff6ff; border:1px solid #dbeafe; font-size:12px; color:#1e3a8a;">구독 현황을 계산하는 중...</div>
+                    </div>
                     <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
                         <table style="width:100%; min-width:980px; border-collapse:collapse; font-size:12px;">
                             <thead>
@@ -230,6 +233,9 @@
                             </thead>
                             <tbody id="advancedSubscriptionTableBody"></tbody>
                         </table>
+                    </div>
+                    <div id="advancedFeatureSaveStatus" style="margin-top:10px; min-height:18px; font-size:11px; color:var(--adm-text-muted); line-height:1.6;">
+                        저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요.
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
@@ -589,6 +595,62 @@
         const encoder = new TextEncoder();
         const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${salt}::${password}`));
         return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    function getSubscriptionExpiryTime(value) {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return Number.POSITIVE_INFINITY;
+        const parsed = Date.parse(`${trimmed}T23:59:59+09:00`);
+        return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    }
+
+    function buildSubscriptionSummaryCards(subscriptions) {
+        const now = Date.now();
+        const summary = {
+            active: 0,
+            paused: 0,
+            expired: 0,
+            expiringSoon: 0
+        };
+        subscriptions.forEach((subscription) => {
+            const expiryTime = getSubscriptionExpiryTime(subscription.expiresAt);
+            const isDateExpired = Number.isFinite(expiryTime) && expiryTime < now;
+            if (subscription.status === 'paused') {
+                summary.paused += 1;
+                return;
+            }
+            if (subscription.status === 'expired' || isDateExpired) {
+                summary.expired += 1;
+                return;
+            }
+            summary.active += 1;
+            if (Number.isFinite(expiryTime) && expiryTime !== Number.POSITIVE_INFINITY && expiryTime - now <= 1000 * 60 * 60 * 24 * 7) {
+                summary.expiringSoon += 1;
+            }
+        });
+        return summary;
+    }
+
+    function renderAdvancedSubscriptionSummary(subscriptions) {
+        const summaryEl = document.getElementById('advancedSubscriptionSummary');
+        if (!summaryEl) return;
+        const summary = buildSubscriptionSummaryCards(subscriptions);
+        const cards = [
+            { label: '활성', value: summary.active, color: '#0f766e', bg: '#ecfdf5', border: '#a7f3d0' },
+            { label: '일시중지', value: summary.paused, color: '#b45309', bg: '#fffbeb', border: '#fde68a' },
+            { label: '만료', value: summary.expired, color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' },
+            { label: '7일 내 만료', value: summary.expiringSoon, color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' }
+        ];
+        summaryEl.innerHTML = cards.map((item) => `
+            <div style="padding:10px 12px; border-radius:8px; background:${item.bg}; border:1px solid ${item.border};">
+                <div style="font-size:11px; color:${item.color}; font-weight:700;">${item.label}</div>
+                <div style="margin-top:4px; font-size:18px; color:#0f172a; font-weight:800;">${item.value}</div>
+            </div>
+        `).join('');
+    }
+
+    function generateSuggestedAdvancedPassword() {
+        return String(Math.floor(100000 + Math.random() * 900000));
     }
 
     function formatPopupLayoutSummary(popupLayout, layoutRatios, toolUiConfig) {
@@ -1145,12 +1207,18 @@
 
     function renderAdvancedFeatureForm() {
         const tableBody = document.getElementById('advancedSubscriptionTableBody');
+        const statusEl = document.getElementById('advancedFeatureSaveStatus');
         if (!tableBody) return;
         const advancedFeatureConfig = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
         if (!advancedFeatureConfig.subscriptions.length) {
             advancedFeatureConfig.subscriptions = [createEmptySubscriptionRow()];
         }
         loadedConfig.advancedFeatureConfig = advancedFeatureConfig;
+        renderAdvancedSubscriptionSummary(advancedFeatureConfig.subscriptions);
+        if (statusEl) {
+            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요.';
+            statusEl.style.color = 'var(--adm-text-muted)';
+        }
         tableBody.innerHTML = '';
         advancedFeatureConfig.subscriptions.forEach((subscription, index) => {
             const row = document.createElement('tr');
@@ -1171,7 +1239,10 @@
                 <td style="padding:8px;"><input class="form-input" data-field="memberLabel" value="${esc(subscription.memberLabel)}" placeholder="예: 홍길동 / 이메일"></td>
                 <td style="padding:8px;">
                     <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPassword || '')}" placeholder="변경 시에만 입력">
-                    <div style="font-size:10px; color:#64748b; margin-top:4px;">${passwordState}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:4px;">
+                        <div style="font-size:10px; color:#64748b;">${passwordState}</div>
+                        <button type="button" class="btn btn-ghost btn-sm" data-action="generate-password" style="padding:2px 8px; font-size:10px;">6자리 생성</button>
+                    </div>
                 </td>
                 <td style="padding:8px;"><input class="form-input" data-field="expiresAt" type="date" value="${esc(subscription.expiresAt)}"></td>
                 <td style="padding:8px;"><input class="form-input" data-field="externalId" value="${esc(subscription.externalId)}" placeholder="예: toss-order-001"></td>
@@ -1180,6 +1251,17 @@
                     <button type="button" class="btn btn-ghost btn-sm" data-action="remove-subscription" style="color:#ef4444; border-color:#fecaca;">삭제</button>
                 </td>
             `;
+            row.querySelector('[data-action="generate-password"]').addEventListener('click', () => {
+                const passwordInput = row.querySelector('[data-field="newPassword"]');
+                passwordInput.value = generateSuggestedAdvancedPassword();
+                passwordInput.focus();
+                passwordInput.select();
+                const statusEl = document.getElementById('advancedFeatureSaveStatus');
+                if (statusEl) {
+                    statusEl.textContent = '선택한 행에 6자리 비밀번호 예시를 채웠습니다. 저장해야 서버에 반영됩니다.';
+                    statusEl.style.color = 'var(--adm-text-muted)';
+                }
+            });
             row.querySelector('[data-action="remove-subscription"]').addEventListener('click', () => {
                 const subs = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.filter((item) => item.id !== subscription.id);
                 loadedConfig.advancedFeatureConfig = { subscriptions: subs.length ? subs : [createEmptySubscriptionRow()] };
@@ -1225,6 +1307,8 @@
         const currentMap = new Map(
             normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.map((item) => [item.id, item])
         );
+        const usedPasswords = new Set();
+        const usedExternalIds = new Set();
         for (const row of rows) {
             const status = row.querySelector('[data-field="status"]').value;
             const planName = row.querySelector('[data-field="planName"]').value.trim() || '신규 고급 이용권';
@@ -1233,6 +1317,19 @@
             const expiresAt = row.querySelector('[data-field="expiresAt"]').value;
             const externalId = row.querySelector('[data-field="externalId"]').value.trim();
             const note = row.querySelector('[data-field="note"]').value.trim();
+            if (newPassword) {
+                if (usedPasswords.has(newPassword)) {
+                    throw new Error('같은 새 비밀번호가 여러 행에 중복되어 있습니다. 각 구독은 다른 비밀번호를 사용하세요.');
+                }
+                usedPasswords.add(newPassword);
+            }
+            if (externalId) {
+                const normalizedExternalId = externalId.toLowerCase();
+                if (usedExternalIds.has(normalizedExternalId)) {
+                    throw new Error('외부 ID가 중복되어 있습니다. 토스 주문번호 등은 각 행마다 고유해야 합니다.');
+                }
+                usedExternalIds.add(normalizedExternalId);
+            }
             const current = currentMap.get(row.dataset.subscriptionId) || createEmptySubscriptionRow();
             const nextRow = {
                 id: current.id || createEmptySubscriptionRow().id,
@@ -1484,10 +1581,25 @@
     }
 
     async function saveAdvancedSubscriptions(silent = false) {
-        const advancedFeatureConfig = await collectAdvancedFeatureConfigFromTable();
-        await set(ref(db, 'staging_hidden_v1/config/advancedFeatureConfig'), advancedFeatureConfig);
-        renderAdvancedFeatureForm();
-        if (!silent) toast('✅ 고급 구독 저장 완료');
+        const statusEl = document.getElementById('advancedFeatureSaveStatus');
+        try {
+            const advancedFeatureConfig = await collectAdvancedFeatureConfigFromTable();
+            await set(ref(db, 'staging_hidden_v1/config/advancedFeatureConfig'), advancedFeatureConfig);
+            renderAdvancedFeatureForm();
+            if (statusEl) {
+                const summary = buildSubscriptionSummaryCards(advancedFeatureConfig.subscriptions);
+                statusEl.textContent = `저장 완료: 활성 ${summary.active}건 / 일시중지 ${summary.paused}건 / 만료 ${summary.expired}건`;
+                statusEl.style.color = '#0f766e';
+            }
+            if (!silent) toast('✅ 고급 구독 저장 완료');
+        } catch (error) {
+            if (statusEl) {
+                statusEl.textContent = error.message || '고급 구독 저장 중 오류가 발생했습니다.';
+                statusEl.style.color = '#b91c1c';
+            }
+            if (!silent) toast(`❌ ${error.message || '고급 구독 저장 실패'}`, true);
+            throw error;
+        }
     }
 
     document.getElementById('generalMetaSaveBtn').addEventListener('click', saveGeneralMetaSettings);
@@ -1498,12 +1610,16 @@
 
     // Save general settings
     document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
-        await saveGeneralMetaSettings(true);
-        await saveRuntimeDefaults(true);
-        await saveSupportSettings(true);
-        await saveSponsors(true);
-        await saveAdvancedSubscriptions(true);
-        toast('✅ 전체 설정 저장 완료');
+        try {
+            await saveGeneralMetaSettings(true);
+            await saveRuntimeDefaults(true);
+            await saveSupportSettings(true);
+            await saveSponsors(true);
+            await saveAdvancedSubscriptions(true);
+            toast('✅ 전체 설정 저장 완료');
+        } catch (error) {
+            toast(`❌ 전체 저장 중단: ${error.message || '고급 구독 저장 실패'}`, true);
+        }
     });
 
 </script>

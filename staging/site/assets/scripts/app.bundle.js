@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
     const isStagingReadOnly = runtimeFlags.stagingReadOnly === true;
     const ADVANCED_UNLOCK_STORAGE_KEY = 'stg_skct_advanced_unlock';
+    const ADVANCED_PASSWORD_FAIL_STORAGE_KEY = 'stg_skct_advanced_password_failures';
     const ADVANCED_UNLOCK_DURATION_MS = 1000 * 60 * 30;
+    const ADVANCED_FAIL_WINDOW_MS = 1000 * 60 * 10;
+    const ADVANCED_MAX_FAIL_COUNT = 5;
+    const ADVANCED_FAIL_COOLDOWN_MS = 1000 * 30;
     const readAdvancedUnlockState = () => {
         try {
             return JSON.parse(localStorage.getItem(ADVANCED_UNLOCK_STORAGE_KEY) || 'null');
@@ -24,6 +28,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasAdvancedUnlock = () => {
         const state = readAdvancedUnlockState();
         return Boolean(state && Number.isFinite(state.expiresAt) && state.expiresAt > Date.now());
+    };
+    const getAdvancedUnlockRemainingMs = () => {
+        const state = readAdvancedUnlockState();
+        if (!state || !Number.isFinite(state.expiresAt)) return 0;
+        return Math.max(0, state.expiresAt - Date.now());
+    };
+    const readAdvancedFailState = () => {
+        try {
+            return JSON.parse(localStorage.getItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY) || 'null');
+        } catch (error) {
+            return null;
+        }
+    };
+    const writeAdvancedFailState = (state) => {
+        localStorage.setItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY, JSON.stringify(state));
+    };
+    const resetAdvancedFailState = () => {
+        localStorage.removeItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY);
+    };
+    const getAdvancedCooldownRemainingMs = () => {
+        const state = readAdvancedFailState();
+        if (!state || !Number.isFinite(state.lockedUntil)) return 0;
+        return Math.max(0, state.lockedUntil - Date.now());
+    };
+    const registerAdvancedPasswordFailure = () => {
+        const now = Date.now();
+        const current = readAdvancedFailState();
+        const attempts = Array.isArray(current?.attempts)
+            ? current.attempts.filter((value) => Number.isFinite(value) && now - value <= ADVANCED_FAIL_WINDOW_MS)
+            : [];
+        attempts.push(now);
+        const nextState = { attempts };
+        if (attempts.length >= ADVANCED_MAX_FAIL_COUNT) {
+            nextState.lockedUntil = now + ADVANCED_FAIL_COOLDOWN_MS;
+        }
+        writeAdvancedFailState(nextState);
+        return nextState;
     };
     const isAdvancedMode = runtimeFlags.advanced === true && hasAdvancedUnlock();
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
@@ -78,8 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
     const advancedGuideToggle = document.getElementById('advancedGuideToggle');
     const advancedGuideModal = document.getElementById('advancedGuideModal');
+    const advancedAccessSummary = document.getElementById('advancedAccessSummary');
     const advancedAccessPasswordInput = document.getElementById('advancedAccessPasswordInput');
     const advancedAccessSubmitBtn = document.getElementById('advancedAccessSubmitBtn');
+    const advancedAccessReveal = document.getElementById('advancedAccessReveal');
+    const advancedAccessReuseBtn = document.getElementById('advancedAccessReuseBtn');
     const advancedAccessStatus = document.getElementById('advancedAccessStatus');
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
@@ -90,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
     let lastPopupWindowOnlySignature = '';
+    let isAdvancedConfigReady = false;
     const showReadOnlyNotice = () => {
         alert('이 테스트 사이트는 운영 데이터를 읽기 전용으로만 표시합니다.\n좋아요, 댓글, 글 작성, 관리자 저장은 모두 차단됩니다.');
     };
@@ -659,8 +704,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     };
 
+    const updateAdvancedAccessPanel = () => {
+        if (!advancedAccessSummary) return;
+        const activeCount = remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription).length;
+        const unlockRemainingMs = getAdvancedUnlockRemainingMs();
+        const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
+        if (!isAdvancedConfigReady) {
+            advancedAccessSummary.textContent = '고급 구독 정보를 불러오는 중입니다.';
+            if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
+            if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = !hasAdvancedUnlock();
+            return;
+        }
+        if (cooldownRemainingMs > 0) {
+            advancedAccessSummary.textContent = `비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`;
+        } else if (unlockRemainingMs > 0) {
+            advancedAccessSummary.textContent = `이 브라우저는 이미 인증되어 있습니다. 약 ${Math.max(1, Math.ceil(unlockRemainingMs / 60000))}분 동안 바로 고급 모드를 열 수 있습니다.`;
+        } else if (activeCount > 0) {
+            advancedAccessSummary.textContent = `현재 사용 가능한 고급 이용권 ${activeCount}건을 확인했습니다. 비밀번호를 입력하면 바로 고급 팝업이 열립니다.`;
+        } else {
+            advancedAccessSummary.textContent = '현재 사용 가능한 고급 이용권이 없습니다. 개발자 페이지의 고급 구독 관리 표를 먼저 확인하세요.';
+        }
+        if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = activeCount === 0 || cooldownRemainingMs > 0;
+        if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = unlockRemainingMs <= 0;
+    };
+
     const openAdvancedModeWindow = () => {
         const launch = activateAdvancedSession();
+        updateAdvancedAccessPanel();
         if (isPopupMode) {
             window.name = launch.popupName;
             window.location.assign(launch.targetUrl);
@@ -2046,6 +2116,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.applyRemoteAdvancedFeatureConfig = (advancedFeatureConfig) => {
         remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig(advancedFeatureConfig);
+        isAdvancedConfigReady = true;
+        updateAdvancedAccessPanel();
     };
 
     // 부드러운 알람 비프음 (Web Audio API)
@@ -2329,6 +2401,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isAdvancedMode) return;
             if (advancedAccessStatus) advancedAccessStatus.textContent = '';
             if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
+            updateAdvancedAccessPanel();
             advancedGuideModal.classList.remove('hidden');
         });
     }
@@ -2382,6 +2455,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.SKCTAdvancedBridge = {
+        isConfigReady() {
+            return isAdvancedConfigReady;
+        },
         async validatePassword(password) {
             return validateAdvancedPassword(password);
         },
@@ -2423,22 +2499,47 @@ document.addEventListener('DOMContentLoaded', () => {
         advancedAccessSubmitBtn.addEventListener('click', async () => {
             if (isAdvancedMode) return;
             const password = advancedAccessPasswordInput?.value || '';
+            if (!isAdvancedConfigReady) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = '고급 구독 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+                    advancedAccessStatus.style.color = '#b45309';
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
+            const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
+            if (cooldownRemainingMs > 0) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = `${Math.ceil(cooldownRemainingMs / 1000)}초 후에 다시 시도할 수 있습니다.`;
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
             if (advancedAccessStatus) {
                 advancedAccessStatus.textContent = '비밀번호를 확인하고 있습니다...';
                 advancedAccessStatus.style.color = '#64748b';
             }
             const isValid = await validateAdvancedPassword(password);
             if (!isValid) {
+                const failState = registerAdvancedPasswordFailure();
                 if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = '비밀번호가 일치하지 않거나 만료된 이용권입니다.';
+                    const nextCooldownRemainingMs = Number.isFinite(failState.lockedUntil)
+                        ? Math.max(0, failState.lockedUntil - Date.now())
+                        : 0;
+                    advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
+                        ? `비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
+                        : '비밀번호가 일치하지 않거나 만료된 이용권입니다.';
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
                 if (advancedAccessPasswordInput) {
                     advancedAccessPasswordInput.focus();
                     advancedAccessPasswordInput.select();
                 }
+                updateAdvancedAccessPanel();
                 return;
             }
+            resetAdvancedFailState();
             if (advancedAccessStatus) {
                 advancedAccessStatus.textContent = '고급 버전 팝업을 여는 중입니다.';
                 advancedAccessStatus.style.color = '#0f766e';
@@ -2455,6 +2556,29 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    if (advancedAccessReveal && advancedAccessPasswordInput) {
+        advancedAccessReveal.addEventListener('change', () => {
+            advancedAccessPasswordInput.type = advancedAccessReveal.checked ? 'text' : 'password';
+        });
+    }
+    if (advancedAccessReuseBtn) {
+        advancedAccessReuseBtn.addEventListener('click', () => {
+            if (!hasAdvancedUnlock()) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = '이 브라우저의 인증 상태가 없거나 만료되었습니다. 비밀번호를 다시 입력해주세요.';
+                    advancedAccessStatus.style.color = '#b45309';
+                }
+                updateAdvancedAccessPanel();
+                return;
+            }
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = '저장된 인증 상태로 고급 버전을 다시 엽니다.';
+                advancedAccessStatus.style.color = '#0f766e';
+            }
+            openAdvancedModeWindow();
+        });
+    }
+    updateAdvancedAccessPanel();
 
     // Modal & Help Controls
     const helpToggle = document.getElementById('helpToggle');
