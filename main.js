@@ -984,6 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mode Toggle (단일 토글 버튼)
     const modeToggleBtn = document.getElementById('modeToggleBtn');
     const omrModeLabel = document.getElementById('omrModeLabel');
+    const omrModeHint = document.getElementById('omrModeHint');
 
     const updateModeUI = () => {
         if (omrState.mode === 'answer') {
@@ -993,11 +994,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrModeLabel.textContent = '📝 답안 작성 중';
                 omrModeLabel.style.color = '';
             }
+            if (omrModeHint) {
+                omrModeHint.classList.add('hidden');
+                omrModeHint.textContent = '';
+            }
         } else {
             modeToggleBtn.textContent = '✏️ 답안 작성 모드로 돌아가기';
             modeToggleBtn.classList.add('active-score');
             if (omrModeLabel) omrModeLabel.textContent = '✅ 정답 입력 중';
             if (omrModeLabel) omrModeLabel.style.color = '#4ade80';
+            if (omrModeHint) {
+                omrModeHint.textContent = '미응답(건너뛴) 문제도 번호를 바로 클릭해 정답을 입력할 수 있습니다.';
+                omrModeHint.classList.remove('hidden');
+            }
         }
     };
 
