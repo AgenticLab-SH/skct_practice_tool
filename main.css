@@ -504,38 +504,42 @@ body.advanced-mode .advanced-calc-slot {
 .skip-btn:hover { background: #dc2626; }
 
 .timer-skip-btn {
-    border: none;
-    border-radius: 7px;
-    background: #7c3aed;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 6px;
+    background: #6d28d9;
     color: #fff;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    height: 34px;
-    min-width: 42px;
-    padding: 0 9px;
+    height: 30px;
+    min-width: 36px;
+    padding: 0 6px;
     cursor: pointer;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     letter-spacing: -0.01em;
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08);
 }
 
 .timer-skip-btn:hover {
-    background: #6d28d9;
+    filter: brightness(1.08);
 }
 
 .advanced-timer-shell {
     margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 7px;
     background: linear-gradient(180deg, #0f172a 0%, #111c2f 100%);
     border: 1px solid #334155;
-    padding: 6px 10px 6px 14px;
-    border-radius: 10px;
-    min-width: min(610px, calc(100vw - 128px));
-    justify-content: flex-end;
+    padding: 5px 8px 5px 10px;
+    border-radius: 9px;
+    min-width: 0;
+    max-width: calc(100% - 86px);
+    width: fit-content;
+    flex: 1 1 auto;
+    justify-content: space-between;
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
 }
 
@@ -546,18 +550,18 @@ body.advanced-mode .advanced-calc-slot {
 
 .timer-total-block {
     align-items: flex-end;
-    min-width: 100px;
+    min-width: 82px;
 }
 
 .timer-phase-block {
     align-items: center;
-    min-width: 126px;
+    min-width: 96px;
 }
 
 .timer-summary-label {
-    font-size: 10px;
+    font-size: 9px;
     color: #94a3b8;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .timer-summary-value {
@@ -568,25 +572,25 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 .timer-summary-value.total {
-    font-size: 16px;
+    font-size: 15px;
 }
 
 .timer-summary-value.phase {
-    font-size: 21px;
+    font-size: 19px;
     color: #4ade80;
 }
 
 .timer-divider {
     width: 1px;
-    height: 28px;
+    height: 24px;
     background: #334155;
 }
 
 .timer-phase-name {
     color: #60a5fa;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .timer-phase-line {
@@ -609,34 +613,38 @@ body.advanced-mode .advanced-calc-slot {
 
 .advanced-timer-controls {
     display: grid;
-    grid-template-columns: 42px repeat(3, minmax(44px, auto));
-    gap: 6px;
+    grid-template-columns: repeat(4, 36px);
+    gap: 4px;
     align-items: center;
-    margin-left: 2px;
+    margin-left: 0;
 }
 
 .timer-play-btn {
-    width: 42px;
-    height: 34px;
+    width: 36px;
+    height: 30px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #3b82f6;
+    background: #2563eb;
     color: #fff;
     border: none;
-    border-radius: 7px;
-    font-size: 17px;
+    border-radius: 6px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
     box-shadow: inset 0 -1px 0 rgba(255,255,255,0.12);
 }
 
 .timer-play-btn:hover {
-    background: #2563eb;
+    background: #1d4ed8;
 }
 
 .timer-next-btn {
-    background: #7c3aed;
+    background: #6d28d9;
+}
+
+.timer-next-btn:hover {
+    background: #5b21b6;
 }
 
 .timer-reset-btn {
@@ -644,57 +652,63 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 .timer-reset-btn:hover {
-    background: #0d9488;
+    background: #0f8b82;
 }
 
 .timer-full-reset-btn {
-    background: #b45309;
-}
-
-.timer-full-reset-btn:hover {
     background: #c2410c;
 }
 
+.timer-full-reset-btn:hover {
+    background: #9a3412;
+}
+
 .timer-skip-btn:disabled {
-    background: #475569;
-    color: rgba(255,255,255,0.75);
+    background: #334155;
+    color: #e2e8f0;
     cursor: not-allowed;
     box-shadow: none;
+    border-color: #475569;
+    opacity: 0.95;
 }
 
 body.advanced-mode .top-bar {
-    padding: 0 8px 0 10px;
+    padding: 0 6px 0 8px;
 }
 
 body.advanced-mode .popup-btn {
-    padding: 6px 10px;
-    font-size: 11px;
-    border-radius: 7px;
+    padding: 5px 8px;
+    font-size: 10px;
+    border-radius: 6px;
 }
 
 @media (max-width: 1180px) {
     .advanced-timer-shell {
-        min-width: auto;
-        gap: 8px;
-        padding-right: 8px;
+        max-width: calc(100% - 72px);
+        gap: 6px;
+        padding-right: 6px;
     }
 
     .advanced-timer-controls {
-        grid-template-columns: 42px repeat(3, 42px);
+        grid-template-columns: repeat(4, 32px);
+        gap: 4px;
     }
 
-    .timer-skip-btn {
-        min-width: 40px;
-        padding: 0 6px;
-        font-size: 9px;
+    .timer-skip-btn,
+    .timer-play-btn {
+        min-width: 32px;
+        width: 32px;
+        height: 28px;
+        padding: 0;
+        font-size: 8px;
     }
 
     .timer-total-block {
-        min-width: 90px;
+        min-width: 74px;
     }
 
     .timer-phase-block {
-        min-width: 112px;
+        min-width: 86px;
     }
 }
 
