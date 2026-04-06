@@ -2417,6 +2417,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getCurrentPhase = () => currentPhaseIdx < phases.length ? phases[currentPhaseIdx] : null;
 
+    const canSkipToNextSubject = () => {
+        if (!isAdvancedMode || isPracticeMode) return false;
+        if (!timerIsRunning) return false;
+        if (currentPhaseIdx >= phases.length) return false;
+        const currentPhase = getCurrentPhase();
+        if (currentPhase?.type !== 'subject') return false;
+        return currentPhaseIdx + 2 < phases.length;
+    };
+
     const canResetCurrentSubjectTimer = () => {
         if (!isAdvancedMode) return false;
         const currentPhase = getCurrentPhase();
@@ -2441,6 +2450,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const updateSubjectSkipButton = () => {
+        const subjectSkipBtn = document.getElementById('subjectSkipBtn');
+        if (!subjectSkipBtn) return;
+        const enabled = canSkipToNextSubject();
+        subjectSkipBtn.disabled = !enabled;
+        if (!isAdvancedMode) {
+            subjectSkipBtn.title = '고급모드에서만 사용할 수 있습니다.';
+        } else if (isPracticeMode) {
+            subjectSkipBtn.title = '응시 모드에서만 사용할 수 있습니다.';
+        } else if (!timerIsRunning) {
+            subjectSkipBtn.title = '타이머 실행 중에만 사용할 수 있습니다.';
+        } else if (currentPhaseIdx >= phases.length) {
+            subjectSkipBtn.title = '이미 모든 과목이 종료되었습니다.';
+        } else if (getCurrentPhase()?.type === 'break') {
+            subjectSkipBtn.title = '쉬는 시간에는 사용할 수 없습니다.';
+        } else if (currentPhaseIdx + 2 >= phases.length) {
+            subjectSkipBtn.title = '다음 과목이 남아 있을 때만 사용할 수 있습니다.';
+        } else {
+            subjectSkipBtn.title = '현재 과목을 종료하고 다음 과목으로 바로 이동';
+        }
+    };
+
     const updateFullResetButton = () => {
         const fullResetBtn = document.getElementById('fullResetBtn');
         if (!fullResetBtn) return;
@@ -2452,6 +2483,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const updateTimerActionButtons = () => {
+        updateSubjectSkipButton();
         updateSubjectResetButton();
         updateFullResetButton();
     };
@@ -2765,6 +2797,17 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTimerUI();
     };
 
+    const skipCurrentSubjectToNext = () => {
+        if (!canSkipToNextSubject()) return;
+        totalSeconds = Math.max(0, totalSeconds - Math.max(0, currentPhaseSeconds));
+        questionSpentSec = 0;
+        advancePhaseBoundary({ skipRemainingPhaseSeconds: true });
+        if (currentPhaseIdx < phases.length && phases[currentPhaseIdx]?.type === 'break') {
+            advancePhaseBoundary({ skipRemainingPhaseSeconds: true });
+        }
+        updateTimerUI();
+    };
+
     // --- 초기 렌더링 갱신 ---
     updateTimerUI();
     applyPhaseToOMR();
@@ -2792,6 +2835,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (breakSkipBtn) {
         breakSkipBtn.addEventListener('click', () => {
             skipCurrentBreak();
+        });
+    }
+
+    const subjectSkipBtn = document.getElementById('subjectSkipBtn');
+    if (subjectSkipBtn) {
+        subjectSkipBtn.addEventListener('click', () => {
+            skipCurrentSubjectToNext();
         });
     }
 

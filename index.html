@@ -30,7 +30,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604071015">
+    <link rel="stylesheet" href="main.css?v=202604071145">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -44,46 +44,44 @@
 
         <!-- OMR Sidebar (Left) -->
         <aside class="omr-sidebar collapsed" id="omrSidebar">
-            <div class="sidebar-controls" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; gap: 8px;">
-                <div class="help-toggle" id="helpToggle" title="사용 가이드">
+            <div class="sidebar-controls compact-sidebar-controls">
+                <div class="help-toggle sidebar-shortcut" id="helpToggle" title="사용 가이드">
                     <span>G</span><span>U</span><span>I</span><span>D</span><span>E</span>
                 </div>
-                <div class="omr-toggle" id="omrToggleBtn" title="연습용 OMR 탭 열기/닫기">
-                    <span style="font-size:9px; letter-spacing:0; line-height:1.2;">연습용</span><span style="font-size:9px; letter-spacing:0; line-height:1.2;">OMR</span>
+                <div class="omr-toggle sidebar-shortcut" id="omrToggleBtn" title="연습용 OMR 탭 열기/닫기">
+                    <span class="sidebar-shortcut-label">연습용</span><span class="sidebar-shortcut-label">OMR</span>
                 </div>
-                <div class="settings-toggle" id="settingsToggle" title="타이머 & 레이아웃 설정">
-                    <span style="font-size:14px;">⚙</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.3;">설정</span>
+                <div class="settings-toggle sidebar-shortcut" id="settingsToggle" title="타이머 & 레이아웃 설정">
+                    <span class="sidebar-shortcut-icon">⚙</span>
+                    <span class="sidebar-shortcut-label compact">설정</span>
                 </div>
-                <div class="advanced-guide-toggle normal-only" id="advancedGuideToggle" title="고급 기능 안내">
-                    <span style="font-size:14px;">🔒</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">고급<br>안내</span>
+                <div class="advanced-guide-toggle normal-only sidebar-shortcut" id="advancedGuideToggle" title="고급 기능 안내">
+                    <span class="sidebar-shortcut-icon">🔒</span>
+                    <span class="sidebar-shortcut-label compact">고급<br>안내</span>
                 </div>
-                <div class="advanced-only" style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
-                <div class="advanced-toggle advanced-only" id="advancedToggle" title="고급 이용자 전용 기능">
-                    <span style="font-size:14px;">🔒</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">고급<br>기능</span>
+                <div class="advanced-only sidebar-divider"></div>
+                <div class="advanced-toggle advanced-only sidebar-shortcut" id="advancedToggle" title="고급 이용자 전용 기능">
+                    <span class="sidebar-shortcut-icon">🔒</span>
+                    <span class="sidebar-shortcut-label compact">고급<br>기능</span>
                 </div>
-                <div class="advanced-only" style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
-                <div class="popup-toggle" id="popupToggle" title="화면을 더 좁게 쓰기 위한 팝업 모드 열기">
-                    <span style="font-size:14px;">↗</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">화면 더<br>줄이기</span>
+                <div class="advanced-only sidebar-divider"></div>
+                <div class="popup-toggle sidebar-shortcut" id="popupToggle" title="화면을 더 좁게 쓰기 위한 팝업 모드 열기">
+                    <span class="sidebar-shortcut-icon">↗</span>
+                    <span class="sidebar-shortcut-label compact">화면 더<br>줄이기</span>
                 </div>
-                <!-- 구분선 -->
-                <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
-                <div class="stats-toggle" id="statsToggle" title="실시간 현황 & 최근 7일 그래프">
-                    <span style="font-size:14px;">🔥</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">접속자 수</span>
+                <div class="sidebar-divider"></div>
+                <div class="stats-toggle sidebar-shortcut" id="statsToggle" title="실시간 현황 & 최근 7일 그래프">
+                    <span class="sidebar-shortcut-icon">🔥</span>
+                    <span class="sidebar-shortcut-label compact">접속자 수</span>
                 </div>
-                <div class="comment-toggle" id="commentToggle" title="커뮤니티 게시판 (공지 / Q&A / 후기)">
-                    <span style="font-size:14px;">💬</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">게시판</span>
+                <div class="comment-toggle sidebar-shortcut" id="commentToggle" title="커뮤니티 게시판 (공지 / Q&A / 후기)">
+                    <span class="sidebar-shortcut-icon">💬</span>
+                    <span class="sidebar-shortcut-label compact">게시판</span>
                 </div>
-                <!-- 구분선 -->
-                <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
-                <div class="donate-toggle" id="donateToggle" title="게시자에게 커피 사주기 (투네이션)">
-                    <span style="font-size:15px;">☕</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.3; text-align:center; white-space:nowrap;">커피<br>후원</span>
+                <div class="sidebar-divider"></div>
+                <div class="donate-toggle sidebar-shortcut" id="donateToggle" title="게시자에게 커피 사주기 (투네이션)">
+                    <span class="sidebar-shortcut-icon">☕</span>
+                    <span class="sidebar-shortcut-label compact">커피<br>후원</span>
                 </div>
             </div>
             <div class="omr-content hidden" id="omrContent">
@@ -127,25 +125,26 @@
             <!-- Top / Timer Bar -->
             <header class="top-bar">
                 <button id="popupBtn" class="popup-btn" title="가로폭을 더 얇게 줄일 수 있는 팝업 모드로 열기">화면 더 줄이기</button>
-                <div class="timer-wrapper" style="margin-left:auto; display: flex; align-items: center; gap: 12px; background: #0f172a; border: 1px solid #334155; padding: 6px 14px; border-radius: 8px;">
-                    <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                        <span style="font-size: 10px; color: #94a3b8; margin-bottom: 2px;">전체 남은 시간</span>
-                        <span id="displayTotalTime" style="color: #f8fafc; font-weight: bold; font-family: 'Consolas', monospace; font-size: 16px; line-height: 1;">75:00</span>
+                <div class="timer-wrapper advanced-timer-shell">
+                    <div class="timer-summary-block timer-total-block">
+                        <span class="timer-summary-label">전체 남은 시간</span>
+                        <span id="displayTotalTime" class="timer-summary-value total">75:00</span>
                     </div>
-                    <div style="width: 1px; height: 24px; background: #334155;"></div>
-                    <div style="display:flex; flex-direction:column; align-items:center;">
-                        <span id="displayPhaseName" style="color: #60a5fa; font-size: 11px; font-weight: bold; margin-bottom: 2px;">1과목 언어이해</span>
-                        <div style="display:flex; align-items:baseline; gap:8px;">
-                            <span id="displayPhaseTime" style="color: #4ade80; font-family: 'Consolas', monospace; font-size: 20px; font-weight: bold; line-height: 1;">15:00</span>
+                    <div class="timer-divider" aria-hidden="true"></div>
+                    <div class="timer-summary-block timer-phase-block">
+                        <span id="displayPhaseName" class="timer-phase-name">1과목 언어이해</span>
+                        <div class="timer-phase-line">
+                            <span id="displayPhaseTime" class="timer-summary-value phase">15:00</span>
                         </div>
-                        <div id="guideTimerWrapper" style="font-size:10px; color:#94a3b8; font-weight:bold; margin-top:4px; display:none;">
-                            가이드: <span id="displayGuideTime" style="color:#38bdf8; font-family:'Consolas', monospace;">00:00</span>
+                        <div id="guideTimerWrapper" class="timer-guide-row" style="display:none;">
+                            가이드: <span id="displayGuideTime" class="timer-guide-value">00:00</span>
                         </div>
                     </div>
-                    <div class="timer-controls" style="margin-left: 8px;">
-                        <button id="timerPlayBtn" style="width: 46px; padding: 6px 0; justify-content: center; background: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; align-items: center;" aria-label="타이머 시작" title="타이머 시작">▶</button>
-                        <button id="subjectResetBtn" class="advanced-action-only timer-skip-btn timer-reset-btn" type="button" title="현재 과목 타이머를 처음부터 다시 시작">과목 초기화</button>
-                        <button id="fullResetBtn" class="advanced-action-only timer-skip-btn timer-full-reset-btn" type="button" title="전체 타이머를 처음 상태로 다시 세팅">전체 초기화</button>
+                    <div class="timer-controls advanced-timer-controls">
+                        <button id="timerPlayBtn" class="timer-play-btn" aria-label="타이머 시작" title="타이머 시작">▶</button>
+                        <button id="subjectSkipBtn" class="advanced-action-only timer-skip-btn timer-next-btn" type="button" title="현재 과목을 종료하고 다음 과목으로 바로 이동">다음</button>
+                        <button id="subjectResetBtn" class="advanced-action-only timer-skip-btn timer-reset-btn" type="button" title="현재 과목 타이머를 처음부터 다시 시작">과↺</button>
+                        <button id="fullResetBtn" class="advanced-action-only timer-skip-btn timer-full-reset-btn" type="button" title="전체 타이머를 처음 상태로 다시 세팅">전↺</button>
                     </div>
                 </div>
             </header>
@@ -480,11 +479,12 @@
                     <div><strong>1. 계산기 고급 동작</strong><br>실전형 계산 흐름을 더 가깝게 따라가도록 보강되어, 풀이 리듬이 덜 끊기게 연습할 수 있습니다.</div>
                     <div><strong>2. 우측 버튼 열</strong><br>실제 skct 환경과 유사하게 여백과 버튼들이 제공됩니다.</div>
                     <div><strong>3. 정오표 일괄입력</strong><br>정오표 표를 그대로 붙여넣어 정답을 빠르게 반영할 수 있고, 문항 번호가 없더라도 정답 열 중심으로 정리된 형식은 유연하게 불러올 수 있습니다.</div>
-                    <div><strong>4. 문항별 상세 통계 TXT 다운로드</strong><br>정오답, 미응답, 문항별 시간 같은 복기 자료를 남겨 약점 점검에 활용할 수 있습니다.</div>
-                    <div><strong>5. 문항별 시간 가이드</strong><br>문항당 페이스를 보며 시간 운영 감각을 더 세밀하게 연습할 수 있습니다.</div>
-                    <div><strong>6. 도구 설정</strong><br>메모와 필기 도구 감도를 손에 맞게 조정해 더 편한 풀이 환경을 만들 수 있습니다.</div>
-                    <div><strong>7. 실전 보정 기능</strong><br>실전 연습 흐름을 더 자연스럽게 이어갈 수 있는 보정 기능이 함께 제공됩니다.</div>
-                    <div><strong>8. 무적모드(테스트)</strong><br>일반 버전에는 없는 별도 테스트 대응 기능도 포함됩니다.</div>
+                    <div><strong>4. 타이머 초기화</strong><br>현재 과목만 다시 시작하거나 전체 타이머 흐름을 처음부터 돌려, 실전 페이스를 여러 번 반복 연습할 수 있습니다.</div>
+                    <div><strong>5. 문항별 상세 통계 TXT 다운로드</strong><br>정오답, 미응답, 문항별 시간 같은 복기 자료를 남겨 약점 점검에 활용할 수 있습니다.</div>
+                    <div><strong>6. 문항별 시간 가이드</strong><br>문항당 페이스를 보며 시간 운영 감각을 더 세밀하게 연습할 수 있습니다.</div>
+                    <div><strong>7. 도구 설정</strong><br>메모와 필기 도구 감도를 손에 맞게 조정해 더 편한 풀이 환경을 만들 수 있습니다.</div>
+                    <div><strong>8. 실전 보정 기능</strong><br>실전 연습 흐름을 더 자연스럽게 이어갈 수 있는 보정 기능이 함께 제공됩니다.</div>
+                    <div><strong>9. 무적모드(테스트)</strong><br>일반 버전에는 없는 별도 테스트 대응 기능도 포함됩니다.</div>
                 </div>
                 <div style="padding:12px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; font-size:13px; line-height:1.7; color:#1e3a8a;">
                     고급 기능 사용 문의: <strong>zhdlsqpdj@gmail.com</strong>
@@ -507,12 +507,13 @@
                     <div><strong>1. 계산기 고급 동작</strong><br>실제에 가까운 계산 흐름과 기록 방식이 반영돼, 계산 때문에 풀이 리듬이 끊기는 구간을 줄여줍니다.</div>
                     <div><strong>2. 우측 버튼 열</strong><br>실제 skct 환경과 유사하게 여백과 버튼들이 제공됩니다.</div>
                     <div><strong>3. 정오표 일괄입력</strong><br>정오표 표를 그대로 붙여넣어 정답을 빠르게 반영할 수 있고, 문항 번호가 없더라도 정답 열 중심으로 정리된 형식은 유연하게 불러올 수 있습니다.</div>
-                    <div><strong>4. 문항별 상세 통계 TXT 다운로드</strong><br>정오답, 미응답, 문항별 소요 시간을 파일로 남겨 복기 기록을 계속 쌓아갈 수 있습니다.</div>
-                    <div><strong>5. 문항별 시간 가이드</strong><br>문항당 페이스까지 보며 시간 운영 훈련을 더 세밀하게 가져갈 수 있습니다.</div>
-                    <div><strong>6. 도구 설정</strong><br>메모와 필기 도구 감도를 직접 맞춰, 손에 맞는 풀이 환경을 만들 수 있습니다.</div>
-                    <div><strong>7. 쉬는 시간 건너뛰기 / 이전 문항 재선택</strong><br>실전 재현과 복기를 더 유연하게 할 수 있는 보정 기능이 포함됩니다.</div>
-                    <div><strong>8. 무적모드(테스트)</strong><br>일반 모드에는 없는 별도 테스트 대응 기능까지 함께 사용할 수 있습니다.</div>
-                    <div><strong>9. 전체 시간 75분 고정</strong><br>시험 시간 흐름도 실전에 맞게 보정되어, 중간에 일찍 끝나는 문제까지 함께 잡아줍니다.</div>
+                    <div><strong>4. 타이머 초기화</strong><br>현재 과목만 다시 시작하거나 전체 타이머 흐름을 처음부터 돌려, 실전 페이스를 여러 번 반복 연습할 수 있습니다.</div>
+                    <div><strong>5. 문항별 상세 통계 TXT 다운로드</strong><br>정오답, 미응답, 문항별 소요 시간을 파일로 남겨 복기 기록을 계속 쌓아갈 수 있습니다.</div>
+                    <div><strong>6. 문항별 시간 가이드</strong><br>문항당 페이스까지 보며 시간 운영 훈련을 더 세밀하게 가져갈 수 있습니다.</div>
+                    <div><strong>7. 도구 설정</strong><br>메모와 필기 도구 감도를 직접 맞춰, 손에 맞는 풀이 환경을 만들 수 있습니다.</div>
+                    <div><strong>8. 쉬는 시간 건너뛰기 / 이전 문항 재선택</strong><br>실전 재현과 복기를 더 유연하게 할 수 있는 보정 기능이 포함됩니다.</div>
+                    <div><strong>9. 무적모드(테스트)</strong><br>일반 모드에는 없는 별도 테스트 대응 기능까지 함께 사용할 수 있습니다.</div>
+                    <div><strong>10. 전체 시간 75분 고정</strong><br>시험 시간 흐름도 실전에 맞게 보정되어, 중간에 일찍 끝나는 문제까지 함께 잡아줍니다.</div>
                 </div>
                 <div style="display:flex; gap:10px; align-items:center;">
                     <button id="advancedStatsDownloadBtn" type="button" style="padding:10px 14px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">문항별 상세 통계 TXT 다운로드</button>
@@ -700,7 +701,7 @@
             };
         })();
     </script>
-    <script src="main.js?v=202604071015"></script>
+    <script src="main.js?v=202604071145"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
