@@ -674,3 +674,34 @@
     - 우측 버튼 열/`√` 버튼 복원 확인
     - 고급 설정에서 `문항별 시간 가이드`, `도구 설정` 섹션 노출 확인
     - `고급 기능` 모달에 새 안내 항목 반영 확인
+
+## 일반 모드 고급 안내 버튼 추가 및 운영 반영
+- 사용자 요청
+  - 일반 모드에서도 고급 기능이 무엇인지 알려주는 버튼 추가
+  - 사용 희망자는 `drgon28@naver.com`으로 문의하도록 안내
+  - 스테이징 승인된 일반/고급 분리를 운영 서버에도 이식
+- 반영 파일
+  - `index.html`
+  - `main.js`
+  - `main.css`
+  - `staging/site/index.html`
+  - `staging/site/assets/scripts/app.bundle.js`
+  - `staging/site/assets/styles/main.css`
+- 수정 내용
+  - 일반 모드 사이드바에 `고급 안내` 버튼 추가
+  - `advancedGuideModal`을 추가해 고급 기능 목록과 문의 메일 안내 표시
+  - 운영 본문에도 스테이징에서 승인된 일반 모드 제거 규칙 이식
+    - `무적모드` 버튼 제거
+    - 우측 버튼 열/채팅/물음표/`√`/상세 통계 직접 버튼/문항별 시간 가이드/도구 설정을 고급 전용으로 분리
+  - Firebase `appName` 로드 시에도 고급 모드 제목이 `고급버전`으로 유지되게 보정
+- 로컬 검증
+  - `node --check main.js`
+  - `node --check staging/site/assets/scripts/app.bundle.js`
+  - 로컬 브라우저 `http://127.0.0.1:8000/index.html?dev=1`
+    - 일반 모드에서 `고급 안내` 버튼 노출 확인
+    - `고급 안내` 모달에 `drgon28@naver.com` 문구 확인
+    - 일반 모드에서 `√`와 우측 버튼 열 비노출 확인
+  - 로컬 브라우저 `http://127.0.0.1:8000/index.html?dev=1&advanced=1`
+    - 제목 `고급버전` 확인
+    - 고급 모드에서 `고급 안내` 버튼 숨김, `고급 기능` 버튼 노출 확인
+    - 우측 버튼 열/`√` 버튼 복원 확인
