@@ -1040,103 +1040,159 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.getElementById('scoreBtn').addEventListener('click', () => {
-        // 정답이 하나도 입력 안 됐으면 안내
-        const hasCorrectAnswers = Object.values(omrState.correctAnswers).some(v => v != null);
-        if (!hasCorrectAnswers) {
-            // 정답 입력 모드로 자동 전환
-            enterScoreMode();
-            return;
+    const detailScoreBtn = document.getElementById('detailScoreBtn');
+    const formatRateText = (value) => `${(Math.round((Number(value) || 0) * 10) / 10).toFixed(1).replace(/\.0$/, '')}%`;
+
+    const buildQuestionStatItem = (subj, num) => {
+        const key = `${subj.id}_${num}`;
+        const myAnswer = omrState.myAnswers[key] ?? null;
+        const correctAnswer = omrState.correctAnswers[key] ?? null;
+        const timing = questionTimings[key] || null;
+        const spent = timing?.spent ?? 0;
+        const timingState = timing?.state || null;
+        const answered = myAnswer != null;
+        const skipped = !answered && timingState === 'skipped';
+        const unanswered = !answered && !skipped;
+        const correctKnown = correctAnswer != null;
+        const correct = correctKnown && answered && myAnswer === correctAnswer;
+        const wrongByAnswer = correctKnown && answered && myAnswer !== correctAnswer;
+        const skippedAsWrong = skipped && correctKnown && configTreatSkippedAsWrong;
+
+        let resultKey = 'unanswered';
+        let resultLabel = '못 풂';
+        if (correct) {
+            resultKey = 'correct';
+            resultLabel = '정답';
+        } else if (wrongByAnswer) {
+            resultKey = 'wrong';
+            resultLabel = '오답';
+        } else if (skippedAsWrong) {
+            resultKey = 'skipped_wrong';
+            resultLabel = '건너뜀(오답)';
+        } else if (skipped) {
+            resultKey = 'skipped';
+            resultLabel = '건너뜀';
+        } else if (answered && !correctKnown) {
+            resultKey = 'pending';
+            resultLabel = '정답 미입력';
         }
 
-        let totalScore = 0;
-        let attemptedCount = 0;
+        return {
+            key,
+            subjId: subj.id,
+            subjName: subj.name,
+            num,
+            myAnswer,
+            correctAnswer,
+            spent,
+            timingState,
+            answered,
+            skipped,
+            unanswered,
+            correct,
+            wrongByAnswer,
+            skippedAsWrong,
+            resultKey,
+            resultLabel
+        };
+    };
 
-        subjects.forEach(subj => {
-            for (let i=1; i<=subj.count; i++) {
-                const qKey = `${subj.id}_${i}`;
-                if (omrState.myAnswers[qKey]) {
-                    attemptedCount++;
-                }
-                if (omrState.correctAnswers[qKey] && omrState.myAnswers[qKey] === omrState.correctAnswers[qKey]) {
-                    totalScore++;
-                }
-            }
-        });
-        
-        const maxQ = subjects.reduce((sum, s) => sum + s.count, 0);
-        document.getElementById('statAttempted').innerText = `${attemptedCount} / ${maxQ}`;
-        document.getElementById('statCorrect').innerText = `${totalScore} 개`;
-        
-        const rate = attemptedCount > 0 ? ((totalScore / attemptedCount) * 100).toFixed(1) : 0;
-        document.getElementById('statRate').innerText = `${rate}%`;
-        
-        const resEl = document.getElementById('scoreResult');
-        resEl.classList.remove('hidden');
-        const detailScoreBtn = document.getElementById('detailScoreBtn');
-        if(detailScoreBtn && isAdvancedMode) detailScoreBtn.classList.remove('hidden');
-        renderOMR();
-    });
+    const summarizeQuestionItems = (items) => {
+        const total = items.length;
+        const attempted = items.filter((item) => item.answered).length;
+        const correct = items.filter((item) => item.correct).length;
+        const skipped = items.filter((item) => item.skipped).length;
+        const unanswered = items.filter((item) => item.unanswered).length;
+        const wrong = items.filter((item) => item.wrongByAnswer || item.skippedAsWrong).length;
+        const attemptedRate = attempted > 0 ? (correct / attempted) * 100 : 0;
+        const overallRate = total > 0 ? (correct / total) * 100 : 0;
+        return {
+            total,
+            attempted,
+            correct,
+            skipped,
+            unanswered,
+            wrong,
+            attemptedRate,
+            overallRate
+        };
+    };
 
-    const detailScoreBtn = document.getElementById('detailScoreBtn');
     const collectDetailedStatsModel = () => {
-        const allTimes = [];
-        subjects.forEach((subj) => {
+        const questionItems = subjects.flatMap((subj) => {
+            const items = [];
             for (let i = 1; i <= subj.count; i++) {
-                const qKey = `${subj.id}_${i}`;
-                if (questionTimings[qKey]) {
-                    allTimes.push({
-                        key: qKey,
-                        subjId: subj.id,
-                        subjName: subj.name,
-                        num: i,
-                        spent: questionTimings[qKey].spent,
-                        state: questionTimings[qKey].state
-                    });
-                }
+                items.push(buildQuestionStatItem(subj, i));
             }
+            return items;
         });
+
+        const resultOrder = {
+            wrong: 0,
+            skipped_wrong: 1,
+            skipped: 2,
+            unanswered: 3,
+            correct: 4,
+            pending: 5
+        };
 
         const subjectRows = subjects.map((subj) => {
-            let attempted = 0;
-            let correct = 0;
-            const wrongItems = [];
-            for (let i = 1; i <= subj.count; i++) {
-                const qKey = `${subj.id}_${i}`;
-                const myAns = omrState.myAnswers[qKey];
-                const corAns = omrState.correctAnswers[qKey];
-                if (myAns) attempted++;
-                if (corAns && myAns === corAns) {
-                    correct++;
-                } else if (corAns) {
-                    wrongItems.push({
-                        num: i,
-                        myAnswer: myAns || '-',
-                        correctAnswer: corAns,
-                        missed: !myAns
-                    });
-                }
-            }
-            const rate = attempted > 0 ? ((correct / attempted) * 100).toFixed(1) : '0.0';
-            const subjectTimes = allTimes.filter((item) => item.subjId === subj.id);
+            const items = questionItems
+                .filter((item) => item.subjId === subj.id)
+                .sort((a, b) => (resultOrder[a.resultKey] - resultOrder[b.resultKey]) || (a.num - b.num));
             return {
                 id: subj.id,
                 name: subj.name,
                 count: subj.count,
-                attempted,
-                correct,
-                rate,
-                wrongItems,
-                subjectTimes
+                summary: summarizeQuestionItems(items),
+                items
             };
         });
 
-        const topTimes = [...allTimes]
+        const topTimes = [...questionItems]
+            .filter((item) => item.spent > 0)
             .sort((a, b) => b.spent - a.spent)
             .slice(0, 3);
 
-        return { allTimes, subjectRows, topTimes };
+        return {
+            overall: summarizeQuestionItems(questionItems),
+            questionItems,
+            subjectRows,
+            topTimes,
+            treatSkippedAsWrong: configTreatSkippedAsWrong
+        };
     };
+
+    const updateScoreSummaryPanel = () => {
+        const model = collectDetailedStatsModel();
+        const summaryEl = document.getElementById('statSummary');
+        const attemptedRateEl = document.getElementById('statRateAttempted');
+        const overallRateEl = document.getElementById('statRateOverall');
+        const skippedEl = document.getElementById('statSkipped');
+        const unansweredEl = document.getElementById('statUnanswered');
+
+        if (summaryEl) summaryEl.innerText = `${model.overall.correct} / ${model.overall.attempted} / ${model.overall.total}`;
+        if (attemptedRateEl) attemptedRateEl.innerText = formatRateText(model.overall.attemptedRate);
+        if (overallRateEl) overallRateEl.innerText = formatRateText(model.overall.overallRate);
+        if (skippedEl) skippedEl.innerText = `${model.overall.skipped}`;
+        if (unansweredEl) unansweredEl.innerText = `${model.overall.unanswered}`;
+
+        const resEl = document.getElementById('scoreResult');
+        if (resEl) resEl.classList.remove('hidden');
+        if (detailScoreBtn && isAdvancedMode) detailScoreBtn.classList.remove('hidden');
+        return model;
+    };
+
+    document.getElementById('scoreBtn').addEventListener('click', () => {
+        const hasCorrectAnswers = Object.values(omrState.correctAnswers).some((v) => v != null);
+        if (!hasCorrectAnswers) {
+            enterScoreMode();
+            return;
+        }
+
+        updateScoreSummaryPanel();
+        renderOMR();
+    });
 
     const buildDetailedStatsText = () => {
         const model = collectDetailedStatsModel();
@@ -1146,39 +1202,36 @@ document.addEventListener('DOMContentLoaded', () => {
             `모드: ${isPracticeMode ? '연습 모드' : '실전 모드'}`,
             `설정 시간(입력값): 전체 ${configTotalMins}분 / 과목 ${configSubjectMins}분 / 쉬는시간 ${configBreakMins}분`,
             `전체 제한 시간(쉬는 시간 제외): ${Math.round(getEffectiveConfiguredTotalSeconds() / 60)}분`,
+            `건너뜀 오답 처리: ${model.treatSkippedAsWrong ? 'ON' : 'OFF'}`,
+            '',
+            `[전체 요약]`,
+            `맞은 / 푼 / 전체: ${model.overall.correct} / ${model.overall.attempted} / ${model.overall.total}`,
+            `정답률(푼 문제 대비): ${formatRateText(model.overall.attemptedRate)}`,
+            `정답률(전체 문제 대비): ${formatRateText(model.overall.overallRate)}`,
+            `건너뜀: ${model.overall.skipped}`,
+            `못 풂: ${model.overall.unanswered}`,
             ''
         ];
 
         if (model.topTimes.length) {
             lines.push('[가장 오래 걸린 문항 Top 3]');
             model.topTimes.forEach((item, index) => {
-                lines.push(`${index + 1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.state === 'skipped' ? '건너뜀' : '마킹함'})`);
+                lines.push(`${index + 1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.resultLabel})`);
             });
             lines.push('');
         }
 
         model.subjectRows.forEach((row) => {
             lines.push(`[${row.name}]`);
-            lines.push(`문항 수: ${row.count}`);
-            lines.push(`푼 문제: ${row.attempted}`);
-            lines.push(`맞은 개수: ${row.correct}`);
-            lines.push(`정답률: ${row.rate}%`);
-            if (row.wrongItems.length) {
-                lines.push('오답/미응답:');
-                row.wrongItems.forEach((item) => {
-                    lines.push(`- ${item.num}번 | 답 ${item.myAnswer} | 정답 ${item.correctAnswer}`);
-                });
-            } else {
-                lines.push('오답/미응답: 없음');
-            }
-            if (row.subjectTimes.length) {
-                lines.push('소요 시간:');
-                row.subjectTimes.forEach((item) => {
-                    lines.push(`- ${item.num}번 | ${item.spent}초${item.state === 'skipped' ? ' | 건너뜀' : ''}`);
-                });
-            } else {
-                lines.push('소요 시간: 기록 없음');
-            }
+            lines.push(`맞은 / 푼 / 전체: ${row.summary.correct} / ${row.summary.attempted} / ${row.summary.total}`);
+            lines.push(`정답률(푼 문제 대비): ${formatRateText(row.summary.attemptedRate)}`);
+            lines.push(`정답률(전체 문제 대비): ${formatRateText(row.summary.overallRate)}`);
+            lines.push(`건너뜀: ${row.summary.skipped}`);
+            lines.push(`못 풂: ${row.summary.unanswered}`);
+            lines.push('문항별 상세:');
+            row.items.forEach((item) => {
+                lines.push(`- ${item.num}번 | 입력 ${item.myAnswer ?? '-'} | 정답 ${item.correctAnswer ?? '-'} | 결과 ${item.resultLabel} | ${item.spent > 0 ? `${item.spent}초` : '시간 기록 없음'}`);
+            });
             lines.push('');
         });
 
@@ -1211,10 +1264,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const trHtml = model.subjectRows.map((row) => `
             <tr style="border-bottom: 1px solid #e2e8f0; height: 30px;">
                 <td style="font-weight: bold; color: #1e293b;">${row.name}</td>
-                <td style="color: #64748b;">${row.count}</td>
-                <td style="color: #3b82f6;">${row.attempted}</td>
-                <td style="color: #22c55e;">${row.correct}</td>
-                <td style="color: #f59e0b; font-weight: bold;">${row.rate}%</td>
+                <td style="color: #0f172a; font-weight: 700;">${row.summary.correct} / ${row.summary.attempted} / ${row.summary.total}</td>
+                <td style="color: #64748b;">${row.summary.skipped}</td>
+                <td style="color: #94a3b8;">${row.summary.unanswered}</td>
+                <td style="color: #f59e0b; font-weight: bold;">${formatRateText(row.summary.attemptedRate)} / ${formatRateText(row.summary.overallRate)}</td>
             </tr>
         `).join('');
         tbody.innerHTML = trHtml;
@@ -1225,43 +1278,77 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span style="font-size:11px; color:#c2410c; font-weight:bold;">🚨 가장 오래 걸린 문항 Top 3</span>
                     ${model.topTimes.map((item, idx) => `
                         <div style="color: ${idx === 0 ? '#ef4444' : '#f97316'}; font-weight:bold; font-size:12px; margin-top:2px;">
-                            ${idx + 1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.state === 'skipped' ? '건너뜀' : '마킹함'})
+                            ${idx + 1}위: [${item.subjName}] ${item.num}번 - ${item.spent}초 (${item.resultLabel})
                         </div>
                     `).join('')}
                 </div>`
             : '';
 
+        const overallHtml = `
+            <div style="padding: 10px; background: #f8fafc; border: 1px solid #dbeafe; border-radius: 8px; margin-bottom: 10px;">
+                <div style="font-size: 11px; color: #334155; font-weight: 700; margin-bottom: 6px;">전체 요약</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    <span style="background:#eff6ff; color:#1d4ed8; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">맞은/푼/전체 ${model.overall.correct}/${model.overall.attempted}/${model.overall.total}</span>
+                    <span style="background:#f8fafc; color:#475569; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">건너뜀 ${model.overall.skipped}</span>
+                    <span style="background:#f8fafc; color:#64748b; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">못 풂 ${model.overall.unanswered}</span>
+                    <span style="background:#ecfeff; color:#0f766e; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">푼 문제 대비 ${formatRateText(model.overall.attemptedRate)}</span>
+                    <span style="background:#fffbeb; color:#b45309; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">전체 대비 ${formatRateText(model.overall.overallRate)}</span>
+                    <span style="background:${model.treatSkippedAsWrong ? '#fee2e2' : '#f1f5f9'}; color:${model.treatSkippedAsWrong ? '#b91c1c' : '#475569'}; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">건너뜀 오답 처리 ${model.treatSkippedAsWrong ? 'ON' : 'OFF'}</span>
+                </div>
+            </div>
+        `;
+
         const detailHtml = model.subjectRows.map((row) => {
-            const wrongHtml = row.wrongItems.length
-                ? `<div style="margin-bottom: 10px;">
-                        <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">오답/미응답</div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${row.wrongItems.map((item) => `
-                            <span style="background: ${item.missed ? '#f1f5f9' : '#fee2e2'}; color: ${item.missed ? '#64748b' : '#ef4444'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${item.missed ? '#cbd5e1' : '#fca5a5'}; white-space: nowrap; font-size: 11px;">
-                                <strong>${item.num}번</strong>: 답(${item.myAnswer}) 정답(${item.correctAnswer})
-                            </span>
-                        `).join('')}</div>
-                   </div>`
-                : `<div style="margin-bottom: 10px; color:#10b981; font-weight:600;">오답/미응답이 없습니다.</div>`;
-            const timeHtml = row.subjectTimes.length
-                ? `<div>
-                        <div style="font-size: 11px; color: #475569; font-weight: bold; margin-bottom: 4px;">소요 시간</div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${row.subjectTimes.map((item) => `
-                            <span style="background: ${item.state === 'skipped' ? '#f1f5f9' : '#e0f2fe'}; color: ${item.state === 'skipped' ? '#64748b' : '#0369a1'}; padding: 2px 6px; border-radius: 4px; border: 1px solid ${item.state === 'skipped' ? '#cbd5e1' : '#bae6fd'}; white-space: nowrap; font-size: 11px;">
-                                <strong>${item.num}번</strong>: ${item.spent}초 소요${item.state === 'skipped' ? ' (건너뜀)' : ''}
-                            </span>
-                        `).join('')}</div>
-                   </div>`
-                : `<div style="color:#64748b;">기록된 소요 시간이 없습니다.</div>`;
+            const itemRows = row.items.map((item) => {
+                const tone = item.resultKey === 'correct'
+                    ? { bg: '#ecfdf5', border: '#bbf7d0', color: '#166534' }
+                    : item.resultKey === 'wrong' || item.resultKey === 'skipped_wrong'
+                        ? { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c' }
+                        : item.resultKey === 'skipped'
+                            ? { bg: '#f8fafc', border: '#cbd5e1', color: '#475569' }
+                            : item.resultKey === 'pending'
+                                ? { bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' }
+                                : { bg: '#f8fafc', border: '#e2e8f0', color: '#64748b' };
+                return `
+                    <tr style="background:${tone.bg};">
+                        <td style="padding:6px 8px; border:1px solid ${tone.border}; font-weight:700; color:#1e293b;">${item.num}번</td>
+                        <td style="padding:6px 8px; border:1px solid ${tone.border}; color:#334155;">${item.myAnswer ?? '-'}</td>
+                        <td style="padding:6px 8px; border:1px solid ${tone.border}; color:#334155;">${item.correctAnswer ?? '-'}</td>
+                        <td style="padding:6px 8px; border:1px solid ${tone.border}; color:${tone.color}; font-weight:700;">${escapeHtml(item.resultLabel)}</td>
+                        <td style="padding:6px 8px; border:1px solid ${tone.border}; color:#475569;">${item.spent > 0 ? `${item.spent}초` : '-'}</td>
+                    </tr>
+                `;
+            }).join('');
             return `
                 <details style="border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; padding:0 12px;" data-stat-subject="${row.id}">
                     <summary style="cursor:pointer; list-style:none; padding:12px 0; display:flex; align-items:center; justify-content:space-between; gap:12px; font-weight:700; color:#1d4ed8;">
                         <span>${row.name}</span>
-                        <span style="font-size:11px; color:#475569; font-weight:600;">${row.correct}/${row.attempted || 0} 정답 · ${row.rate}% · ${row.subjectTimes.length}개 시간기록</span>
+                        <span style="font-size:11px; color:#475569; font-weight:600;">${row.summary.correct}/${row.summary.attempted}/${row.summary.total} · 건너뜀 ${row.summary.skipped} · 못 풂 ${row.summary.unanswered}</span>
                     </summary>
                     <div style="padding:0 0 12px; border-top:1px dashed #bfdbfe;">
                         <div style="padding-top:10px;">
-                            ${wrongHtml}
-                            ${timeHtml}
+                            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
+                                <span style="background:#ecfdf5; color:#166534; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">정답 ${row.summary.correct}</span>
+                                <span style="background:#fef2f2; color:#b91c1c; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">오답 ${row.summary.wrong}</span>
+                                <span style="background:#f8fafc; color:#475569; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">건너뜀 ${row.summary.skipped}</span>
+                                <span style="background:#f8fafc; color:#64748b; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">못 풂 ${row.summary.unanswered}</span>
+                                <span style="background:#ecfeff; color:#0f766e; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">푼 문제 대비 ${formatRateText(row.summary.attemptedRate)}</span>
+                                <span style="background:#fffbeb; color:#b45309; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:700;">전체 대비 ${formatRateText(row.summary.overallRate)}</span>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table style="width:100%; min-width:420px; border-collapse:collapse; font-size:11px; text-align:center;">
+                                    <thead>
+                                        <tr style="background:#e0ecff;">
+                                            <th style="padding:6px 8px; border:1px solid #bfdbfe;">문항</th>
+                                            <th style="padding:6px 8px; border:1px solid #bfdbfe;">입력답</th>
+                                            <th style="padding:6px 8px; border:1px solid #bfdbfe;">정답</th>
+                                            <th style="padding:6px 8px; border:1px solid #bfdbfe;">결과</th>
+                                            <th style="padding:6px 8px; border:1px solid #bfdbfe;">소요시간</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>${itemRows}</tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </details>
@@ -1269,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
 
         if (detailWrapper) {
-            detailWrapper.innerHTML = topTimeHtml + (detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">표시할 과목별 상세 통계가 없습니다.</div>' : detailHtml);
+            detailWrapper.innerHTML = overallHtml + topTimeHtml + (detailHtml === '' ? '<div style="text-align:center; color:#10b981; font-weight:bold; margin-top:10px;">표시할 과목별 상세 통계가 없습니다.</div>' : detailHtml);
         }
         document.getElementById('statModal').classList.remove('hidden');
     };
@@ -1787,17 +1874,24 @@ document.addEventListener('DOMContentLoaded', () => {
         configGuideEnabled = savedGuideCfg.enabled;
         configGuideSec = savedGuideCfg.sec;
     }
+    let configTreatSkippedAsWrong = false;
+    const savedScoreCfg = isAdminPreviewMode ? null : JSON.parse(localStorage.getItem('skct_score_cfg'));
+    if (savedScoreCfg && typeof savedScoreCfg.treatSkippedAsWrong === 'boolean') {
+        configTreatSkippedAsWrong = savedScoreCfg.treatSkippedAsWrong;
+    }
     const totalTimeInput = document.getElementById('cfgTotal');
     const subjectTimeInput = document.getElementById('cfgSubj');
     const breakTimeInput = document.getElementById('cfgBreak');
     const guideEnabledInput = document.getElementById('cfgGuideEnabled');
     const guideSecInput = document.getElementById('cfgGuideSec');
+    const skippedAsWrongInput = document.getElementById('cfgSkippedAsWrong');
 
     if(totalTimeInput) totalTimeInput.value = configTotalMins;
     if(subjectTimeInput) subjectTimeInput.value = configSubjectMins;
     if(breakTimeInput) breakTimeInput.value = configBreakMins;
     if(guideEnabledInput) guideEnabledInput.checked = configGuideEnabled;
     if(guideSecInput) guideSecInput.value = configGuideSec;
+    if(skippedAsWrongInput) skippedAsWrongInput.checked = configTreatSkippedAsWrong;
     
     totalSeconds = getEffectiveConfiguredTotalSeconds();
     buildPhases();
@@ -2156,6 +2250,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isAdminPreviewMode) {
                 localStorage.setItem('skct_guide_cfg', JSON.stringify({enabled: configGuideEnabled, sec: configGuideSec}));
             }
+            configTreatSkippedAsWrong = document.getElementById('cfgSkippedAsWrong').checked;
+            if (!isAdminPreviewMode) {
+                localStorage.setItem('skct_score_cfg', JSON.stringify({ treatSkippedAsWrong: configTreatSkippedAsWrong }));
+            }
 
             // 모드 설정 적용
             const practiceModeInput = document.getElementById('cfgPracticeMode');
@@ -2173,6 +2271,14 @@ document.addEventListener('DOMContentLoaded', () => {
             updateTimerUI();
             applyRatios();
             renderOMR();
+            const scoreResultEl = document.getElementById('scoreResult');
+            const statModalEl = document.getElementById('statModal');
+            if (scoreResultEl && !scoreResultEl.classList.contains('hidden')) {
+                updateScoreSummaryPanel();
+            }
+            if (statModalEl && !statModalEl.classList.contains('hidden')) {
+                openDetailedStatsModal();
+            }
             settingsModal.classList.add('hidden');
         });
     }
