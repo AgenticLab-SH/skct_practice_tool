@@ -65,10 +65,6 @@
                     <span style="font-size:14px;">↗</span>
                     <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">화면 더<br>줄이기</span>
                 </div>
-                <div class="extension-toggle" id="extensionToggle" title="초간단 링커리어 무적모드(테스트 기능) 확장프로그램 설치">
-                    <span style="font-size:15px; filter: drop-shadow(0 0 2px rgba(16,185,129,0.8));">🛡️</span>
-                    <span style="font-size:8px; letter-spacing:0; line-height:1.2; text-align:center; white-space:nowrap;">무적모드<br>(테스트)</span>
-                </div>
                 <!-- 구분선 -->
                 <div style="width:22px; border-top:1px solid rgba(255,255,255,0.15); margin:2px 0;"></div>
                 <div class="stats-toggle" id="statsToggle" title="실시간 현황 & 최근 7일 그래프">
@@ -108,7 +104,7 @@
                         <div class="stat-line"><span>맞은 개수</span> <strong id="statCorrect">0</strong></div>
                         <div class="stat-line"><span>정답률(푼 문제 대비)</span> <strong id="statRate">0%</strong></div>
                     </div>
-                    <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden">📋 과목별 상세 통계</button>
+                    <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
                     <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 RESET</button>
                 </div>
             </div>
@@ -196,7 +192,7 @@
                         <button class="calc-btn fn-btn" data-val="C">C</button>
                         <button class="calc-btn fn-btn" data-val="BACK">←</button>
                         <button class="calc-btn op-btn" data-val="/">÷</button>
-                        <button class="calc-btn fn-btn sqrt-btn" data-val="SQRT">√</button>
+                        <button class="calc-btn fn-btn sqrt-btn advanced-calc-slot" data-val="SQRT">√</button>
 
                         <button class="calc-btn num-btn" data-val="7">7</button>
                         <button class="calc-btn num-btn" data-val="8">8</button>
@@ -220,10 +216,10 @@
                     </div>
                 </section>
 
-                <button id="mockChatBtn" class="skct-floating-btn chat-btn" type="button" aria-label="채팅 버튼 자리">
+                <button id="mockChatBtn" class="skct-floating-btn chat-btn advanced-layout-only" type="button" aria-label="채팅 버튼 자리">
                     <span class="chat-bubble-icon" aria-hidden="true"></span>
                 </button>
-                <button id="mockQuestionBtn" class="skct-floating-btn question-btn" type="button" aria-label="물음표 버튼 자리">?</button>
+                <button id="mockQuestionBtn" class="skct-floating-btn question-btn advanced-layout-only" type="button" aria-label="물음표 버튼 자리">?</button>
 
             </div>
         </main>
@@ -339,7 +335,7 @@
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
                     <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-05 12:02:00 +09:00</div>
-                    <div><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1202</div>
+                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: v2026.04.05.1202</div>
                 </div>
                 <!-- 모드 설정 -->
                 <div>
@@ -372,7 +368,7 @@
                     </div>
                 </div>
                 <!-- 문항 가이드 설정 -->
-                <div>
+                <div class="advanced-panel-only">
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
                         ⏱️ 문항별 시간 가이드
                         <label style="font-size:11px; font-weight:normal; display:flex; align-items:center; gap:4px; margin:0;">
@@ -400,7 +396,7 @@
                         <input type="number" id="ratioCalc" value="2" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
                     </div>
                 </div>
-                <div>
+                <div class="advanced-panel-only">
                     <div style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🛠 도구 설정</div>
                     <label class="settings-slider-row" for="noteFontSizeRange">
                         <span class="settings-slider-label">메모장 글씨 크기</span>
@@ -430,15 +426,17 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
                 <div style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
-                    현재 창은 숨김 인증을 통과한 고급 이용자 전용 버전입니다. 아래 기능과 보정이 일반 버전과 다르게 적용됩니다.
+                    현재 창은 숨김 인증을 통과한 고급 이용자 전용 버전입니다. 주소와 버전 표기에도 고급버전이 반영되며, 아래 항목이 일반 모드와 다르게 적용됩니다.
                 </div>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155; line-height:1.7;">
-                    <div><strong>1. 문항별 상세 통계 TXT 다운로드</strong><br>현재 시험 기록을 텍스트 파일로 저장합니다.</div>
-                    <div><strong>2. 쉬는 시간 건너뛰기</strong><br>쉬는 시간 화면에서 바로 다음 과목으로 넘어갈 수 있습니다.</div>
-                    <div><strong>3. 이전 문항 재선택 허용</strong><br>이전 문항 답을 다시 바꿀 수 있지만, 문항 소요 시간은 처음 넘어갈 때 값으로 고정됩니다.</div>
-                    <div><strong>4. 문항 건너뛰기 시간 처리 보정</strong><br>문항을 건너뛰면 현재 문항 소요 시간이 즉시 확정되고 다음 문항 시간은 새로 시작됩니다.</div>
-                    <div><strong>5. 계산기 고급 동작</strong><br>`Ans` 누적, `=` 입력 시 계산, 일반 계산기 우선순위, 이전 결과 이어 계산이 유지됩니다.</div>
-                    <div><strong>6. 전체 시간 75분 고정</strong><br>쉬는 시간은 전체 시험 시간에서 별도로 처리되어 4분 일찍 끝나지 않게 맞춰져 있습니다.</div>
+                    <div><strong>1. 우측 버튼 열</strong><br>채팅/물음표 자리와 우측 여백이 실제 팝업 레이아웃처럼 함께 유지됩니다.</div>
+                    <div><strong>2. 무적모드(테스트)</strong><br>일반 모드에서는 숨겨지고, 필요 시 고급 이용자 기준으로만 안내됩니다.</div>
+                    <div><strong>3. 문항별 상세 통계 TXT 다운로드</strong><br>현재 시험 기록을 텍스트 파일로 저장합니다.</div>
+                    <div><strong>4. 도구 설정</strong><br>메모장 글씨 크기와 그림판 선 굵기 설정을 고급 모드에서만 다룹니다.</div>
+                    <div><strong>5. 문항별 시간 가이드</strong><br>상단 가이드 타이머와 관련 설정을 고급 모드에서만 노출합니다.</div>
+                    <div><strong>6. 계산기 고급 동작</strong><br>`Ans` 누적, `=` 입력 시 계산, 일반 계산기 우선순위, 이전 결과 이어 계산, 루트 버튼이 유지됩니다.</div>
+                    <div><strong>7. 쉬는 시간 건너뛰기 / 이전 문항 재선택</strong><br>쉬는 시간을 바로 넘길 수 있고, 이전 문항 답을 바꿔도 문항 소요 시간은 처음 넘어간 값으로 고정됩니다.</div>
+                    <div><strong>8. 전체 시간 75분 고정</strong><br>쉬는 시간은 전체 시험 시간에서 별도로 처리되어 4분 일찍 끝나지 않게 맞춰져 있습니다.</div>
                 </div>
                 <div style="display:flex; gap:10px; align-items:center;">
                     <button id="advancedStatsDownloadBtn" type="button" style="padding:10px 14px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">문항별 상세 통계 TXT 다운로드</button>

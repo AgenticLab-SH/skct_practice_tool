@@ -244,6 +244,31 @@ body.advanced-mode .advanced-only {
     display: flex !important;
 }
 
+.advanced-panel-only,
+.advanced-action-only,
+.advanced-layout-only {
+    display: none !important;
+}
+
+body.advanced-mode .advanced-panel-only {
+    display: block !important;
+}
+
+body.advanced-mode .advanced-action-only,
+body.advanced-mode .advanced-layout-only {
+    display: flex !important;
+}
+
+.advanced-calc-slot {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+body.advanced-mode .advanced-calc-slot {
+    visibility: visible;
+    pointer-events: auto;
+}
+
 .advanced-toggle {
     width: 30px;
     align-items: center;
