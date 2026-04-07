@@ -1,7 +1,15 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-07 02:42:30 KST
+작성일시: 2026-04-07 02:46:10 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
+
+## 2026-04-07 운영 반영: 고급모드 타이머 좌측 정렬/빈공간 축소
+- 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)에 고급모드 타이머 블록을 좌측 기준으로 다시 정렬했습니다.
+- 타이머 셸의 `margin-left: auto`, `justify-content: space-between`, `flex: 1 1 auto`를 제거해 `전체 남은 시간` 옆에 길게 남던 검은 빈공간을 줄였습니다.
+- 전체 시간 블록과 과목 시간 블록도 좌측 정렬로 맞춰 흰색 여백처럼 보이던 정렬 어긋남을 줄였습니다.
+- 운영/스테이징 `index.html`의 CSS 버전도 `202604071255`로 올려 새 스타일이 즉시 내려오도록 맞췄습니다.
+- 로컬에서 `node --check main.js`, `http://127.0.0.1:8125/index.html?advanced=1` 로딩, Playwright 고급모드 화면 확인까지 마쳤습니다.
+- 운영 코드 기준 최신 커밋은 `51dfad8`입니다.
 
 ## 2026-04-07 운영 반영: 고급모드 타이머 폭/버튼 대비 보정
 - 운영 사용자 화면 [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)와 스테이징 [main.css](/C:/dev/01_career/_assets/tools/skct_tool/staging/site/assets/styles/main.css)의 고급모드 타이머 셸 폭을 다시 줄였습니다.
