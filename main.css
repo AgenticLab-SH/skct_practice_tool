@@ -527,7 +527,7 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 .advanced-timer-shell {
-    margin-left: auto;
+    margin-left: 0;
     display: flex;
     align-items: center;
     gap: 7px;
@@ -537,9 +537,9 @@ body.advanced-mode .advanced-calc-slot {
     border-radius: 9px;
     min-width: 0;
     max-width: calc(100% - 86px);
-    width: fit-content;
-    flex: 1 1 auto;
-    justify-content: space-between;
+    width: auto;
+    flex: 0 1 auto;
+    justify-content: flex-start;
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.28);
 }
 
@@ -549,12 +549,12 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 .timer-total-block {
-    align-items: flex-end;
+    align-items: flex-start;
     min-width: 82px;
 }
 
 .timer-phase-block {
-    align-items: center;
+    align-items: flex-start;
     min-width: 96px;
 }
 
@@ -673,6 +673,8 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 body.advanced-mode .top-bar {
+    justify-content: flex-start;
+    gap: 6px;
     padding: 0 6px 0 8px;
 }
 
