@@ -447,6 +447,47 @@
                         <button class="btn btn-primary btn-sm" id="supportSaveBtn" type="button">💾 후원 문구 저장</button>
                     </div>
                 </div>
+                <div class="form-group" style="padding-bottom: 15px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+                        <label style="margin:0;">📝 사이트 텍스트 편집기</label>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost btn-sm" id="siteTextResetSelectedBtn" type="button">선택 항목 기본값</button>
+                            <button class="btn btn-primary btn-sm" id="siteTextSaveBtn" type="button">💾 텍스트 저장</button>
+                        </div>
+                    </div>
+                    <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.7;">
+                        기존에 하드코딩되어 있던 안내 문구를 한곳에서 관리합니다. 오른쪽 미리보기에서 보이는 요소를 클릭해 선택하거나, 왼쪽 목록에서 문구를 고른 뒤 즉시 반영해 보세요.
+                    </div>
+                    <div class="site-text-editor">
+                        <div class="site-text-sidebar">
+                            <input id="siteTextSearchInput" type="text" class="form-input" placeholder="문구 검색">
+                            <div id="siteTextEditorCount" class="site-text-count">0개</div>
+                            <div id="siteTextEditorList" class="site-text-list"></div>
+                        </div>
+                        <div class="site-text-workspace">
+                            <div class="site-text-toolbar">
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <button class="btn btn-ghost btn-sm" id="siteTextReloadPreviewBtn" type="button">미리보기 새로고침</button>
+                                    <button class="btn btn-ghost btn-sm" id="siteTextOpenPreviewBtn" type="button">새 창으로 열기</button>
+                                </div>
+                                <label class="site-text-selection-toggle">
+                                    <input id="siteTextSelectionModeToggle" type="checkbox">
+                                    <span>미리보기 클릭 선택</span>
+                                </label>
+                            </div>
+                            <div class="site-text-detail-card">
+                                <div id="siteTextSelectedLabel" class="site-text-selected-label">왼쪽에서 문구를 선택하세요.</div>
+                                <div id="siteTextSelectedMeta" class="site-text-selected-meta">실제 운영 페이지에서 보이는 텍스트와 상태 메시지를 함께 관리합니다.</div>
+                                <textarea id="siteTextEditorTextarea" class="form-textarea site-text-textarea" rows="8" placeholder="선택한 문구를 여기서 수정합니다."></textarea>
+                                <div class="site-text-detail-actions">
+                                    <button class="btn btn-primary btn-sm" id="siteTextApplySelectedBtn" type="button">미리보기에 즉시 반영</button>
+                                    <div id="siteTextSaveStatus" class="site-text-status">아직 저장되지 않은 변경도 미리보기에는 바로 반영할 수 있습니다.</div>
+                                </div>
+                            </div>
+                            <iframe id="siteTextPreviewFrame" class="site-text-preview-frame" src="index.html?dev=1&preview=1&textEditor=1" title="운영 사이트 텍스트 미리보기"></iframe>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
                         <label style="margin:0;">💖 투네이션 후원 내역 (CSV 업데이트)</label>
@@ -561,6 +602,7 @@
 <div id="toast" class="toast"></div>
 
 <!-- Firebase SDK -->
+<script src="site-text-config.js?v=202604081900"></script>
 <script src="subscription-crypto.js?v=202604081336"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
@@ -1045,6 +1087,10 @@
 
     function buildSitePreviewUrl() {
         return 'index.html?dev=1&preview=1';
+    }
+
+    function buildSiteTextEditorPreviewUrl() {
+        return 'index.html?dev=1&preview=1&textEditor=1';
     }
 
     function buildStagingPreviewUrl() {
@@ -1537,6 +1583,7 @@
         appName: "SKCT 연습 도구",
         useful_links: [],
         sponsors: [],
+        siteTextConfig: window.SKCTSiteTextConfig.normalizeSiteTextConfig(),
         supportConfig: {},
         manualSubscriptionConfig: normalizeManualSubscriptionConfig(),
         advancedFeatureConfig: normalizeAdvancedFeatureConfig(),
@@ -1633,6 +1680,107 @@
         document.getElementById('supportButtonUrl').value = support.buttonUrl || '';
         document.getElementById('supportTickerSeconds').value = support.sponsorTickerSeconds || DEFAULT_SUPPORT_CONFIG.sponsorTickerSeconds;
     }
+
+    const siteTextCatalog = window.SKCTSiteTextConfig.SITE_TEXT_CATALOG;
+    let selectedSiteTextKey = siteTextCatalog[0]?.key || '';
+
+    function getSiteTextPreviewFrame() {
+        return document.getElementById('siteTextPreviewFrame');
+    }
+
+    function postSiteTextPreviewMessage(type, payload = {}) {
+        const frame = getSiteTextPreviewFrame();
+        if (!frame?.contentWindow) return;
+        frame.contentWindow.postMessage({ type, ...payload }, '*');
+    }
+
+    function renderSiteTextEditorStatus(message, isError = false) {
+        const statusEl = document.getElementById('siteTextSaveStatus');
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        statusEl.style.color = isError ? '#fca5a5' : 'var(--adm-text-muted)';
+    }
+
+    function syncSiteTextPreview() {
+        postSiteTextPreviewMessage(window.SKCTSiteTextConfig.PREVIEW_APPLY_EVENT, {
+            config: loadedConfig.siteTextConfig
+        });
+        if (selectedSiteTextKey) {
+            postSiteTextPreviewMessage(window.SKCTSiteTextConfig.PREVIEW_HIGHLIGHT_EVENT, { key: selectedSiteTextKey });
+        }
+        postSiteTextPreviewMessage(window.SKCTSiteTextConfig.PREVIEW_SELECTION_MODE_EVENT, {
+            enabled: document.getElementById('siteTextSelectionModeToggle')?.checked === true
+        });
+    }
+
+    function renderSiteTextList() {
+        const listEl = document.getElementById('siteTextEditorList');
+        const countEl = document.getElementById('siteTextEditorCount');
+        const keyword = (document.getElementById('siteTextSearchInput')?.value || '').trim().toLowerCase();
+        const visibleEntries = siteTextCatalog.filter((entry) => {
+            const haystack = `${entry.label} ${entry.category} ${entry.key}`.toLowerCase();
+            return !keyword || haystack.includes(keyword);
+        });
+        if (countEl) {
+            countEl.textContent = `${visibleEntries.length}개`;
+        }
+        listEl.innerHTML = visibleEntries.map((entry) => `
+            <button type="button" class="site-text-list-item ${entry.key === selectedSiteTextKey ? 'active' : ''}" data-site-text-key="${esc(entry.key)}">
+                ${esc(entry.label)}
+                <small>${esc(entry.category)} · ${esc(entry.key)}</small>
+            </button>
+        `).join('');
+        listEl.querySelectorAll('[data-site-text-key]').forEach((button) => {
+            button.addEventListener('click', () => {
+                selectSiteTextEntry(button.dataset.siteTextKey);
+            });
+        });
+    }
+
+    function selectSiteTextEntry(key) {
+        selectedSiteTextKey = key;
+        const entry = siteTextCatalog.find((item) => item.key === key);
+        const value = window.SKCTSiteTextConfig.getValueByPath(loadedConfig.siteTextConfig, key) ?? '';
+        document.getElementById('siteTextSelectedLabel').textContent = entry ? entry.label : '문구';
+        document.getElementById('siteTextSelectedMeta').textContent = entry
+            ? `${entry.category} · ${entry.key}${entry.visual === false ? ' · 미리보기 클릭 선택 제외' : ''}`
+            : '';
+        document.getElementById('siteTextEditorTextarea').value = value;
+        renderSiteTextList();
+        syncSiteTextPreview();
+    }
+
+    function renderSiteTextEditor() {
+        loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(loadedConfig.siteTextConfig);
+        renderSiteTextList();
+        if (!siteTextCatalog.some((entry) => entry.key === selectedSiteTextKey)) {
+            selectedSiteTextKey = siteTextCatalog[0]?.key || '';
+        }
+        if (selectedSiteTextKey) {
+            selectSiteTextEntry(selectedSiteTextKey);
+        }
+    }
+
+    function applySelectedSiteTextDraft() {
+        if (!selectedSiteTextKey) return;
+        const value = document.getElementById('siteTextEditorTextarea').value;
+        window.SKCTSiteTextConfig.setValueByPath(loadedConfig.siteTextConfig, selectedSiteTextKey, value);
+        renderSiteTextEditorStatus('현재 입력값을 미리보기에 반영했습니다. 저장 전 상태입니다.');
+        renderSiteTextList();
+        syncSiteTextPreview();
+    }
+
+    function resetSelectedSiteTextEntry() {
+        if (!selectedSiteTextKey) return;
+        const defaultValue = window.SKCTSiteTextConfig.getValueByPath(window.SKCTSiteTextConfig.DEFAULT_SITE_TEXT_CONFIG, selectedSiteTextKey) ?? '';
+        window.SKCTSiteTextConfig.setValueByPath(loadedConfig.siteTextConfig, selectedSiteTextKey, defaultValue);
+        document.getElementById('siteTextEditorTextarea').value = defaultValue;
+        renderSiteTextEditorStatus('선택한 문구를 기본값으로 되돌렸습니다. 저장하면 실제 반영됩니다.');
+        renderSiteTextList();
+        syncSiteTextPreview();
+    }
+
+    renderSiteTextEditor();
 
     function renderManualSubscriptionAdminForm(message = '', isError = false) {
         const config = normalizeManualSubscriptionConfig(loadedConfig.manualSubscriptionConfig);
@@ -2335,6 +2483,7 @@
 
             if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
             if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
+            if (cfg.siteTextConfig) loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(cfg.siteTextConfig);
             if (cfg.supportConfig) loadedConfig.supportConfig = cfg.supportConfig;
             if (cfg.manualSubscriptionConfig) loadedConfig.manualSubscriptionConfig = normalizeManualSubscriptionConfig(cfg.manualSubscriptionConfig);
             if (cfg.advancedFeatureConfig) loadedConfig.advancedFeatureConfig = normalizeAdvancedFeatureConfig(cfg.advancedFeatureConfig);
@@ -2369,6 +2518,7 @@
             renderNoticeForm();
             renderLinksForm();
             renderSupportForm();
+            renderSiteTextEditor();
             renderManualSubscriptionAdminForm();
             renderAdvancedFeatureForm();
             renderSponsorsPreview();
@@ -2481,6 +2631,13 @@
         if (!silent) toast('✅ 후원/운영 문구 저장 완료');
     }
 
+    async function saveSiteTextSettings(silent = false) {
+        loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(loadedConfig.siteTextConfig);
+        await set(ref(db, 'config/siteTextConfig'), loadedConfig.siteTextConfig);
+        renderSiteTextEditorStatus('사이트 텍스트 설정이 저장되었습니다.');
+        if (!silent) toast('✅ 사이트 텍스트 저장 완료');
+    }
+
     async function saveSponsors(silent = false) {
         await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
         if (!silent) toast('✅ 후원 내역 저장 완료');
@@ -2511,6 +2668,7 @@
     document.getElementById('generalMetaSaveBtn').addEventListener('click', saveGeneralMetaSettings);
     document.getElementById('runtimeDefaultsSaveBtn').addEventListener('click', saveRuntimeDefaults);
     document.getElementById('supportSaveBtn').addEventListener('click', saveSupportSettings);
+    document.getElementById('siteTextSaveBtn').addEventListener('click', () => saveSiteTextSettings(false));
     document.getElementById('sponsorsSaveBtn').addEventListener('click', saveSponsors);
     document.getElementById('manualSubscriptionSaveBtn').addEventListener('click', saveManualSubscriptionSettings);
     document.getElementById('advancedFeatureSaveBtn').addEventListener('click', saveAdvancedSubscriptions);
@@ -2541,6 +2699,31 @@
             renderManualSubscriptionAdminForm(error.message || '신청 암호화 키 생성 중 오류가 발생했습니다.', true);
         }
     });
+    document.getElementById('siteTextSearchInput').addEventListener('input', renderSiteTextList);
+    document.getElementById('siteTextEditorTextarea').addEventListener('input', applySelectedSiteTextDraft);
+    document.getElementById('siteTextApplySelectedBtn').addEventListener('click', applySelectedSiteTextDraft);
+    document.getElementById('siteTextResetSelectedBtn').addEventListener('click', resetSelectedSiteTextEntry);
+    document.getElementById('siteTextOpenPreviewBtn').addEventListener('click', () => {
+        window.open(buildSiteTextEditorPreviewUrl(), '_blank');
+    });
+    document.getElementById('siteTextReloadPreviewBtn').addEventListener('click', () => {
+        const frame = getSiteTextPreviewFrame();
+        if (!frame) return;
+        frame.src = buildSiteTextEditorPreviewUrl();
+        renderSiteTextEditorStatus('미리보기를 새로고침했습니다.');
+    });
+    document.getElementById('siteTextSelectionModeToggle').addEventListener('change', (event) => {
+        postSiteTextPreviewMessage(window.SKCTSiteTextConfig.PREVIEW_SELECTION_MODE_EVENT, {
+            enabled: event.target.checked
+        });
+    });
+    getSiteTextPreviewFrame().addEventListener('load', syncSiteTextPreview);
+    window.addEventListener('message', (event) => {
+        const data = event.data || {};
+        if (data.type === window.SKCTSiteTextConfig.PREVIEW_SELECTED_EVENT && data.key) {
+            selectSiteTextEntry(data.key);
+        }
+    });
 
     // Save general settings
     document.getElementById('settingsSaveBtn').addEventListener('click', async () => {
@@ -2548,6 +2731,7 @@
             await saveGeneralMetaSettings(true);
             await saveRuntimeDefaults(true);
             await saveSupportSettings(true);
+            await saveSiteTextSettings(true);
             await saveSponsors(true);
             await saveManualSubscriptionSettings(true);
             await saveAdvancedSubscriptions(true);

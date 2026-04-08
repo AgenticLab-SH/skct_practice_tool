@@ -770,6 +770,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const formatMultilineHtml = (value) => escapeHtml(value || '').replace(/\n/g, '<br>');
+    const readSiteText = (path, fallback, tokens) => {
+        if (window.SKCTSiteTextConfig?.getTextValue) {
+            return window.SKCTSiteTextConfig.getTextValue(path, fallback, tokens);
+        }
+        return String(fallback ?? '');
+    };
 
     const DEFAULT_SUPPORT_CONFIG = {
         modalTitle: "☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!",
@@ -991,19 +997,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const unlockRemainingMs = getAdvancedUnlockRemainingMs();
         const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
         if (!isAdvancedConfigReady) {
-            advancedAccessSummary.textContent = '고급 구독 정보를 불러오는 중입니다.';
+            advancedAccessSummary.textContent = readSiteText('messages.advancedLoading', '고급 구독 정보를 불러오는 중입니다.');
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
             if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = !hasAdvancedUnlock();
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = `ID 또는 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`;
+            advancedAccessSummary.textContent = readSiteText('messages.advancedCooldown', 'ID 또는 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.', {
+                seconds: Math.ceil(cooldownRemainingMs / 1000)
+            });
         } else if (unlockRemainingMs > 0) {
-            advancedAccessSummary.textContent = `이 브라우저는 이미 인증되어 있습니다. 약 ${Math.max(1, Math.ceil(unlockRemainingMs / 60000))}분 동안 바로 고급 모드를 열 수 있습니다.`;
+            advancedAccessSummary.textContent = readSiteText('messages.advancedUnlocked', '이 브라우저는 이미 인증되어 있습니다. 약 {minutes}분 동안 바로 고급 모드를 열 수 있습니다.', {
+                minutes: Math.max(1, Math.ceil(unlockRemainingMs / 60000))
+            });
         } else if (activeCount > 0) {
-            advancedAccessSummary.textContent = `현재 사용 가능한 고급 이용권 ${activeCount}건을 확인했습니다. 관리자에게 받은 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.`;
+            advancedAccessSummary.textContent = readSiteText('messages.advancedAvailable', '현재 사용 가능한 고급 이용권 {count}건을 확인했습니다. 관리자에게 받은 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.', {
+                count: activeCount
+            });
         } else {
-            advancedAccessSummary.textContent = '현재 사용 가능한 고급 이용권이 없습니다. 관리자 페이지의 고급 구독 관리 표를 먼저 확인하세요.';
+            advancedAccessSummary.textContent = readSiteText('messages.advancedNone', '현재 사용 가능한 고급 이용권이 없습니다. 관리자 페이지의 고급 구독 관리 표를 먼저 확인하세요.');
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = activeCount === 0 || cooldownRemainingMs > 0;
         if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = unlockRemainingMs <= 0;
@@ -1013,11 +1025,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!manualSubscriptionSubmitStatus) return;
         manualSubscriptionSubmitStatus.style.color = '#64748b';
         if (!remoteManualSubscriptionConfig.enabled) {
-            manualSubscriptionSubmitStatus.textContent = '현재 수동 이용권 신청이 닫혀 있습니다.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualClosed', '현재 수동 이용권 신청이 닫혀 있습니다.');
             return;
         }
         if (!remoteManualSubscriptionConfig.adminPublicKeyPem) {
-            manualSubscriptionSubmitStatus.textContent = '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualConfigNotReady', '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
         const plan = getManualSubscriptionPlanByCode(manualSubscriptionPlanSelect?.value);
@@ -1031,23 +1043,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestPasswordConfirm = manualSubscriptionPasswordConfirmInput?.value || '';
 
         if (!plan?.code) {
-            manualSubscriptionSubmitStatus.textContent = '신청 가능한 이용권이 아직 열리지 않았습니다.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualNoPlan', '신청 가능한 이용권이 아직 열리지 않았습니다.');
             return;
         }
         if (!donationName || !siteNickname || !email || !desiredLoginId || !requestedStartDate || !requestPassword || !requestPasswordConfirm) {
-            manualSubscriptionSubmitStatus.textContent = '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 조회 비밀번호를 모두 입력해주세요.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualRequiredFields', '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 조회 비밀번호를 모두 입력해주세요.');
             return;
         }
         if (!email.includes('@')) {
-            manualSubscriptionSubmitStatus.textContent = '이메일 형식이 올바르지 않습니다.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualInvalidEmail', '이메일 형식이 올바르지 않습니다.');
             return;
         }
         if (requestPassword.length < 6) {
-            manualSubscriptionSubmitStatus.textContent = '조회 비밀번호는 6자 이상으로 설정해주세요.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualPasswordShort', '조회 비밀번호는 6자 이상으로 설정해주세요.');
             return;
         }
         if (requestPassword !== requestPasswordConfirm) {
-            manualSubscriptionSubmitStatus.textContent = '조회 비밀번호 확인이 일치하지 않습니다.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualPasswordMismatch', '조회 비밀번호 확인이 일치하지 않습니다.');
             return;
         }
         try {
@@ -1088,11 +1100,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = requestId;
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
-            manualSubscriptionSubmitStatus.innerHTML = `비밀글 신청이 저장되었습니다. <strong>신청번호 ${escapeHtml(requestId)}</strong> 와 조회 비밀번호를 꼭 보관해주세요. 아래 조회 영역에서 같은 값으로 상태를 다시 확인할 수 있습니다.`;
+            manualSubscriptionSubmitStatus.innerHTML = readSiteText('messages.manualSubmitSuccess', '신청서가 저장되었습니다. <strong>신청번호 {requestId}</strong> 와 조회 비밀번호를 꼭 보관해주세요. 아래 신청 조회에서 같은 값으로 상태를 다시 확인할 수 있습니다.', {
+                requestId: escapeHtml(requestId)
+            });
             if (manualSubscriptionMemoInput) manualSubscriptionMemoInput.value = '';
         } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
-            manualSubscriptionSubmitStatus.textContent = error.message || '신청 저장 중 오류가 발생했습니다.';
+            manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');
         }
     };
 
@@ -1101,24 +1115,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestId = manualSubscriptionLookupIdInput?.value.trim() || '';
         const requestPassword = manualSubscriptionLookupPasswordInput?.value || '';
         if (!requestId || !requestPassword) {
-            manualSubscriptionLookupResult.textContent = '신청번호와 조회 비밀번호를 모두 입력해주세요.';
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '신청번호와 조회 비밀번호를 모두 입력해주세요.');
             return;
         }
         const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`);
         if (!response.ok) {
-            manualSubscriptionLookupResult.textContent = '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
         const record = await response.json();
         if (!record) {
-            manualSubscriptionLookupResult.textContent = '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.';
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.');
             return;
         }
         try {
             const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
             renderManualRequestLookup(record, payload);
         } catch (error) {
-            manualSubscriptionLookupResult.textContent = '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.';
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupDecryptError', '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.');
         }
     };
 
@@ -3445,7 +3459,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = advancedAccessPasswordInput?.value || '';
             if (!isAdvancedConfigReady) {
                 if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = '고급 구독 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedConfig', '고급 구독 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
                     advancedAccessStatus.style.color = '#b45309';
                 }
                 updateAdvancedAccessPanel();
@@ -3454,14 +3468,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
             if (cooldownRemainingMs > 0) {
                 if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = `${Math.ceil(cooldownRemainingMs / 1000)}초 후에 다시 시도할 수 있습니다.`;
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedRetryAfter', '{seconds}초 후에 다시 시도할 수 있습니다.', {
+                        seconds: Math.ceil(cooldownRemainingMs / 1000)
+                    });
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
                 updateAdvancedAccessPanel();
                 return;
             }
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = 'ID와 비밀번호를 확인하고 있습니다...';
+                advancedAccessStatus.textContent = readSiteText('messages.advancedChecking', 'ID와 비밀번호를 확인하고 있습니다...');
                 advancedAccessStatus.style.color = '#64748b';
             }
             const validationResult = await validateAdvancedCredentialsDetailed(loginId, password);
@@ -3494,7 +3510,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             resetAdvancedFailState();
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = '고급 버전 팝업을 여는 중입니다.';
+                advancedAccessStatus.textContent = readSiteText('messages.advancedOpening', '고급 버전 팝업을 여는 중입니다.');
                 advancedAccessStatus.style.color = '#0f766e';
             }
             openAdvancedModeWindow();
@@ -3526,14 +3542,14 @@ document.addEventListener('DOMContentLoaded', () => {
         advancedAccessReuseBtn.addEventListener('click', () => {
             if (!hasAdvancedUnlock()) {
                 if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = '이 브라우저의 인증 상태가 없거나 만료되었습니다. ID와 비밀번호를 다시 입력해주세요.';
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 인증 상태가 없거나 만료되었습니다. ID와 비밀번호를 다시 입력해주세요.');
                     advancedAccessStatus.style.color = '#b45309';
                 }
                 updateAdvancedAccessPanel();
                 return;
             }
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = '저장된 인증 상태로 고급 버전을 다시 엽니다.';
+                advancedAccessStatus.textContent = readSiteText('messages.advancedReuse', '저장된 인증 상태로 고급 버전을 다시 엽니다.');
                 advancedAccessStatus.style.color = '#0f766e';
             }
             openAdvancedModeWindow();

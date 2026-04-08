@@ -247,6 +247,110 @@ body {
     padding: 20px;
 }
 
+.site-text-editor {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: 14px;
+}
+
+.site-text-sidebar,
+.site-text-detail-card {
+    background: rgba(15, 23, 42, 0.28);
+    border: 1px solid var(--adm-border);
+    border-radius: var(--adm-radius);
+    padding: 12px;
+}
+
+.site-text-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 620px;
+}
+
+.site-text-count,
+.site-text-selected-meta,
+.site-text-status {
+    font-size: 11px;
+    color: var(--adm-text-muted);
+    line-height: 1.6;
+}
+
+.site-text-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.site-text-list-item {
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    background: #0f172a;
+    border: 1px solid var(--adm-border);
+    border-radius: 8px;
+    color: var(--adm-text);
+    cursor: pointer;
+}
+
+.site-text-list-item.active {
+    border-color: var(--adm-info);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.45);
+}
+
+.site-text-list-item small {
+    display: block;
+    color: var(--adm-text-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+.site-text-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.site-text-toolbar,
+.site-text-detail-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.site-text-selection-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--adm-text-muted);
+}
+
+.site-text-selected-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--adm-text);
+    margin-bottom: 6px;
+}
+
+.site-text-textarea {
+    min-height: 180px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.site-text-preview-frame {
+    width: 100%;
+    min-height: 780px;
+    background: white;
+    border: 1px solid var(--adm-border);
+    border-radius: 10px;
+}
+
 /* Form Elements */
 .form-group {
     margin-bottom: 16px;
@@ -543,6 +647,14 @@ body {
 @media (max-width: 768px) {
     .stats-row {
         grid-template-columns: repeat(2, 1fr);
+    }
+
+    .site-text-editor {
+        grid-template-columns: 1fr;
+    }
+
+    .site-text-sidebar {
+        min-height: 280px;
     }
     
     .form-row {

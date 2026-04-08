@@ -623,7 +623,7 @@
                         <span style="font-size: 16px; color: #475569; font-weight: bold;">실시간 접속자 수</span>
                     </div>
                     <div id="activeVisitorCount" style="font-size: 36px; font-weight: 900; color: #10b981; letter-spacing: -1px;">로딩 중...</div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(10초 주기 업데이트)</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(실시간 반영)</div>
                 </div>
 
                 <!-- 2. 최근 7일 접속자 그래프 -->
@@ -686,6 +686,7 @@
             const previewParam = url.searchParams.get('preview');
             const popupEditorParam = url.searchParams.get('popupEditor');
             const advancedParam = url.searchParams.get('advanced');
+            const textEditorParam = url.searchParams.get('textEditor');
             const gateUntil = parseInt(localStorage.getItem('stg_skct_admin_gate_until') || '0', 10);
             const hasAdminGate = gateUntil > Date.now();
 
@@ -694,6 +695,7 @@
                 adminPreview: previewParam === '1',
                 popupEditor: popupEditorParam === '1',
                 advanced: advancedParam === '1',
+                textEditor: textEditorParam === '1',
                 stagingReadOnly: true,
                 stagingAccess: stageParam === '1' && hasAdminGate
             };
@@ -705,12 +707,13 @@
             }
         })();
     </script>
+    <script src="../../site-text-config.js?v=202604081900"></script>
     <script type="module" src="assets/scripts/app.bundle.js?v=202604071015"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getDatabase, ref, onValue, onDisconnect, set, push, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        import { getDatabase, ref, onValue, onDisconnect, set, push, remove, runTransaction, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
@@ -727,6 +730,33 @@
         const db = getDatabase(app);
         const isDevMaintenanceBypass = () => window.SKCT_FLAGS?.maintenanceBypass === true;
         const isReadOnlyStaging = window.SKCT_FLAGS?.stagingReadOnly === true;
+        const activeVisitorsRef = ref(db, "active_visitors");
+        const PRESENCE_STALE_MS = 150000;
+
+        function countFreshVisitors(raw) {
+            const now = Date.now();
+            return Object.values(raw || {}).reduce((count, value) => {
+                return (typeof value === 'number' && (now - value) < PRESENCE_STALE_MS) ? count + 1 : count;
+            }, 0);
+        }
+
+        function renderActiveVisitors(count) {
+            const displayEl = document.getElementById('activeVisitorCount');
+            if (displayEl) displayEl.textContent = count + " 명";
+        }
+
+        async function updateConcurrentPeakSnapshot() {
+            try {
+                const snap = await get(activeVisitorsRef);
+                const currentCount = countFreshVisitors(snap.val());
+                const d = new Date();
+                const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const peakRef = ref(db, 'stats/live_peak_daily/' + today);
+                await runTransaction(peakRef, (current) => Math.max(current || 0, currentCount));
+            } catch (e) {
+                console.error("Peak snapshot update error:", e);
+            }
+        }
 
         // Firebase Presence System (현재 접속자)
         if (!isReadOnlyStaging) {
@@ -739,49 +769,35 @@
             onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
                     onDisconnect(myConnectionsRef).remove().catch(e => {});
-                    set(myConnectionsRef, Date.now());
+                    set(myConnectionsRef, serverTimestamp());
                     if (heartbeatInterval) clearInterval(heartbeatInterval);
                     heartbeatInterval = setInterval(() => {
-                        set(myConnectionsRef, Date.now());
-                    }, 30000);
+                        set(myConnectionsRef, serverTimestamp());
+                    }, 60000);
+                    setTimeout(() => {
+                        updateConcurrentPeakSnapshot();
+                    }, 1200);
                 } else {
                     if (heartbeatInterval) clearInterval(heartbeatInterval);
                 }
             });
         }
 
-        let presencePollTimer = null;
-        async function fetchActiveVisitors() {
-            try {
-                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json');
-                const data = await res.json();
-                let count = 0;
-                const now = Date.now();
-                if(data) {
-                    for(let key in data) {
-                        const lastActive = data[key];
-                        if(typeof lastActive === 'number' && (now - lastActive) < 90000) {
-                            count++;
-                        }
-                    }
-                }
-                const displayEl = document.getElementById('activeVisitorCount');
-                if(displayEl) displayEl.textContent = count + " 명";
-            } catch (e) {
-                console.error("Presence fetch error:", e);
-            }
-        }
+        let presenceUnsubscribe = null;
 
         window.startPresencePolling = () => {
-            fetchActiveVisitors();
-            if (presencePollTimer) clearInterval(presencePollTimer);
-            presencePollTimer = setInterval(fetchActiveVisitors, 10000); // 10초 주기
+            if (presenceUnsubscribe) return;
+            presenceUnsubscribe = onValue(activeVisitorsRef, (snap) => {
+                renderActiveVisitors(countFreshVisitors(snap.val()));
+            }, (e) => {
+                console.error("Presence listen error:", e);
+            });
         };
 
         window.stopPresencePolling = () => {
-            if (presencePollTimer) {
-                clearInterval(presencePollTimer);
-                presencePollTimer = null;
+            if (presenceUnsubscribe) {
+                presenceUnsubscribe();
+                presenceUnsubscribe = null;
             }
         };
 
@@ -812,8 +828,6 @@
         // ============================================
         // 📈 일일 접속자 통계 & Chart.js 렌더링
         // ============================================
-        const { get } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js");
-
         async function fetchVisitorStats() {
             try {
                 const [totalRes, dailyRes] = await Promise.all([
@@ -946,6 +960,9 @@
             }
             if (typeof window.applySupportConfig === 'function') {
                 window.applySupportConfig(cfg.supportConfig);
+            }
+            if (typeof window.applyRemoteSiteTextConfig === 'function') {
+                window.applyRemoteSiteTextConfig(cfg.siteTextConfig);
             }
             
             // Timer Defaults Sync
