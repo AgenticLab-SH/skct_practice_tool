@@ -72,7 +72,7 @@
       },
       "advancedFeatureConfig": {
         ".read": false,
-        ".write": false
+        ".write": "auth != null"
       },
       "$key": {
         ".write": "auth != null"
