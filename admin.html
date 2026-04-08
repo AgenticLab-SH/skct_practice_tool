@@ -366,14 +366,17 @@
                     <div style="padding:12px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa; margin-bottom:12px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
                             <div style="font-size:12px; font-weight:700; color:#9a3412;">운영자 복호화 키</div>
-                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionGenerateKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">새 키 생성</button>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="btn btn-ghost btn-sm" id="manualSubscriptionDownloadPrivateKeyBtn" type="button" style="padding:4px 10px; font-size:11px;">개인키 다운로드</button>
+                                <button class="btn btn-ghost btn-sm" id="manualSubscriptionGenerateKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">새 키 생성</button>
+                            </div>
                         </div>
                         <div id="manualSubscriptionPublicKeyStatus" style="font-size:11px; color:#9a3412; line-height:1.7; margin-bottom:8px;">
                             아직 신청 암호화 공개키가 없습니다.
                         </div>
                         <textarea id="manualSubscriptionPrivateKeyArea" class="form-textarea" rows="5" placeholder="관리자 개인키가 여기에 표시됩니다. 이 값은 Firebase에 저장되지 않고, 현재 브라우저에만 보관됩니다."></textarea>
                         <div style="font-size:11px; color:#9a3412; line-height:1.7; margin-top:6px;">
-                            새 키를 생성하면 공개키는 사이트에 저장되고, 개인키는 현재 브라우저에만 남습니다. <strong>개인키를 잃어버리면 기존 신청 본문을 열 수 없습니다.</strong>
+                            신청 설정 저장 시 공개키가 없으면 자동으로 새 키를 생성합니다. <strong>개인키를 잃어버리면 기존 신청 본문을 열 수 없습니다.</strong> 생성 직후 다운로드까지 해두세요.
                         </div>
                     </div>
                     <div style="padding:12px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; margin-bottom:12px;">
@@ -1802,8 +1805,11 @@
         }
         const statusEl = document.getElementById('manualSubscriptionConfigStatus');
         if (statusEl) {
-            statusEl.textContent = message || '신청 설정을 바꾸면 저장 버튼을 눌러 반영하세요.';
-            statusEl.style.color = isError ? '#b91c1c' : 'var(--adm-text-muted)';
+            const fallbackMessage = config.adminPublicKeyPem
+                ? '신청 설정을 바꾸면 저장 버튼을 눌러 반영하세요.'
+                : '아직 신청 암호화 키가 없어 현재 운영 신청 저장이 막혀 있습니다. 저장 버튼을 누르면 새 키를 자동 생성합니다.';
+            statusEl.textContent = message || fallbackMessage;
+            statusEl.style.color = isError ? '#b91c1c' : (config.adminPublicKeyPem ? 'var(--adm-text-muted)' : '#9a3412');
         }
         renderBackupImportPreview();
     }
@@ -1829,11 +1835,67 @@
         };
     }
 
+    async function ensureManualSubscriptionEncryptionKeys(options = {}) {
+        const { forceRegenerate = false } = options;
+        const current = normalizeManualSubscriptionConfig(loadedConfig.manualSubscriptionConfig);
+        const privateKeyArea = document.getElementById('manualSubscriptionPrivateKeyArea');
+        const hasPublicKey = Boolean(String(current.adminPublicKeyPem || '').trim());
+        const currentPrivateKey = (privateKeyArea?.value || '').trim() || readStoredManualSubscriptionPrivateKey();
+
+        if (!forceRegenerate && hasPublicKey && currentPrivateKey) {
+            return {
+                generated: false,
+                config: current,
+                privateKeyPem: currentPrivateKey
+            };
+        }
+
+        const pair = await window.SKCTSubscriptionCrypto.generateAdminKeyPairPem();
+        const nextConfig = {
+            ...current,
+            adminPublicKeyPem: pair.publicKeyPem
+        };
+        loadedConfig.manualSubscriptionConfig = nextConfig;
+        if (privateKeyArea) privateKeyArea.value = pair.privateKeyPem;
+        writeStoredManualSubscriptionPrivateKey(pair.privateKeyPem);
+        return {
+            generated: true,
+            config: nextConfig,
+            privateKeyPem: pair.privateKeyPem
+        };
+    }
+
+    function downloadManualSubscriptionPrivateKey() {
+        const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim() || readStoredManualSubscriptionPrivateKey();
+        if (!privateKeyPem) {
+            renderManualSubscriptionAdminForm('먼저 키를 생성한 뒤 개인키를 다운로드하세요.', true);
+            return;
+        }
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const blob = new Blob([privateKeyPem], { type: 'text/plain;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `skct-manual-subscription-private-key-${stamp}.pem`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+        renderManualSubscriptionAdminForm('개인키 PEM 파일을 다운로드했습니다. 안전한 곳에 별도 보관하세요.');
+        toast('✅ 개인키 다운로드 완료');
+    }
+
     async function saveManualSubscriptionSettings(silent = false) {
-        const config = collectManualSubscriptionConfig();
+        let generatedMessage = '';
+        let config = collectManualSubscriptionConfig();
+        if (!String(config.adminPublicKeyPem || '').trim()) {
+            const generated = await ensureManualSubscriptionEncryptionKeys();
+            config = normalizeManualSubscriptionConfig(generated.config);
+            generatedMessage = ' 공개키가 없어 새 신청 암호화 키를 자동 생성했습니다.';
+        }
         loadedConfig.manualSubscriptionConfig = config;
         await set(ref(db, 'config/manualSubscriptionConfig'), config);
-        renderManualSubscriptionAdminForm('수동 구독 신청 설정이 저장되었습니다.');
+        renderManualSubscriptionAdminForm(`수동 구독 신청 설정이 저장되었습니다.${generatedMessage}`.trim());
         if (!silent) toast('✅ 수동 구독 신청 설정 저장 완료');
     }
 
@@ -2683,15 +2745,10 @@
         writeStoredManualSubscriptionPrivateKey(event.target.value || '');
         renderManualSubscriptionAdminForm('개인키를 현재 브라우저에 저장했습니다.');
     });
+    document.getElementById('manualSubscriptionDownloadPrivateKeyBtn').addEventListener('click', downloadManualSubscriptionPrivateKey);
     document.getElementById('manualSubscriptionGenerateKeysBtn').addEventListener('click', async () => {
         try {
-            const pair = await window.SKCTSubscriptionCrypto.generateAdminKeyPairPem();
-            loadedConfig.manualSubscriptionConfig = {
-                ...normalizeManualSubscriptionConfig(loadedConfig.manualSubscriptionConfig),
-                adminPublicKeyPem: pair.publicKeyPem
-            };
-            document.getElementById('manualSubscriptionPrivateKeyArea').value = pair.privateKeyPem;
-            writeStoredManualSubscriptionPrivateKey(pair.privateKeyPem);
+            await ensureManualSubscriptionEncryptionKeys({ forceRegenerate: true });
             await saveManualSubscriptionSettings(true);
             renderManualSubscriptionAdminForm('새 신청 암호화 키를 생성하고 저장했습니다. 개인키는 반드시 안전한 곳에 별도 보관하세요.');
             toast('✅ 신청 암호화 키 생성 완료');

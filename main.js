@@ -1016,7 +1016,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (!remoteManualSubscriptionConfig.adminPublicKeyPem) {
-            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualConfigNotReady', '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualConfigNotReady', '운영 신청 설정이 아직 마무리되지 않았습니다. 개발자 페이지에서 신청 암호화 키를 먼저 저장해야 합니다.');
             return;
         }
         const plan = getManualSubscriptionPlanByCode(manualSubscriptionPlanSelect?.value);
@@ -1105,13 +1105,22 @@ document.addEventListener('DOMContentLoaded', () => {
             manualSubscriptionLookupResult.textContent = '신청한 ID와 비밀번호를 모두 입력해주세요.';
             return;
         }
+        let data = null;
         const query = `orderBy=${encodeURIComponent('"desiredLoginIdKey"')}&equalTo=${encodeURIComponent(`"${loginIdKey}"`)}`;
         const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests.json?${query}`);
-        if (!response.ok) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-            return;
+        if (response.ok) {
+            data = await response.json();
+        } else {
+            const fallbackResponse = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests.json`);
+            if (!fallbackResponse.ok) {
+                manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+            const allData = await fallbackResponse.json();
+            data = Object.fromEntries(
+                Object.entries(allData || {}).filter(([, value]) => getAdvancedLoginIdKey(value?.desiredLoginIdKey || value?.desiredLoginId) === loginIdKey)
+            );
         }
-        const data = await response.json();
         const records = Object.entries(data || {})
             .map(([key, value]) => ({ ...value, requestId: key }))
             .sort((a, b) => ((b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0)));
