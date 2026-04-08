@@ -790,19 +790,35 @@
             const popupEditorParam = url.searchParams.get('popupEditor');
             const advancedParam = url.searchParams.get('advanced');
             const textEditorParam = url.searchParams.get('textEditor');
+            let hasAdvancedUnlock = false;
+
+            try {
+                const rawState = localStorage.getItem('skct_advanced_unlock');
+                const state = rawState ? JSON.parse(rawState) : null;
+                hasAdvancedUnlock = Boolean(state && Number.isFinite(state.expiresAt) && state.expiresAt > Date.now());
+            } catch (error) {
+                hasAdvancedUnlock = false;
+            }
+
+            const advancedEnabled = advancedParam === '1' && hasAdvancedUnlock;
+
+            if (advancedParam === '1' && !advancedEnabled) {
+                url.searchParams.delete('advanced');
+                window.history.replaceState({}, '', url.toString());
+            }
 
             window.SKCT_FLAGS = {
                 maintenanceBypass: devParam === '1',
                 adminPreview: previewParam === '1',
                 popupEditor: popupEditorParam === '1',
-                advanced: advancedParam === '1',
+                advanced: advancedEnabled,
                 textEditor: textEditorParam === '1'
             };
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081445"></script>
     <script src="site-text-config.js?v=202604081900"></script>
-    <script src="main.js?v=202604081506"></script>
+    <script src="main.js?v=202604081525"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">

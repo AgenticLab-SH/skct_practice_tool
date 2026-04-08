@@ -57,6 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
         writeAdvancedFailState(nextState);
         return nextState;
     };
+    const removeAdvancedQueryParam = () => {
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has('advanced')) return;
+        url.searchParams.delete('advanced');
+        window.history.replaceState({}, '', url.toString());
+    };
+    if (runtimeFlags.advanced === true && !hasAdvancedUnlock()) {
+        runtimeFlags.advanced = false;
+        removeAdvancedQueryParam();
+    }
     const isAdvancedMode = runtimeFlags.advanced === true && hasAdvancedUnlock();
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
