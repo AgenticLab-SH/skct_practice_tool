@@ -73,8 +73,8 @@
         },
         advancedGuide: {
             title: '🔒 고급 이용 안내',
-            loginTitle: '1. 이미 이용권이 있다면 바로 로그인',
-            loginBody: '발급받은 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 바로 고급 모드로 들어갈 수 있습니다.',
+            loginTitle: '1. 승인된 신청으로 고급 모드 열기',
+            loginBody: '승인된 신청의 <strong>신청번호</strong>와 <strong>조회 비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 바로 고급 모드로 들어갈 수 있습니다.',
             featureTitle: '2. 고급 모드에서 달라지는 점',
             featureCard1Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">실전형 도구</strong>\n계산기 동작, 우측 버튼 열, 도구 설정을 더 실제 환경에 가깝게 쓸 수 있습니다.',
             featureCard2Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">빠른 복기</strong>\n정오표 일괄입력과 문항별 상세 통계 저장으로 복기 시간이 줄어듭니다.',
@@ -83,13 +83,13 @@
             planTitle: '3. 이용권 선택',
             planIntro: '현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 필요한 기간을 선택해 신청하면 됩니다.',
             donateButton: '후원 페이지 열기',
-            flowHtml: '<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 저장 후 표시되는 <strong>신청번호 + 조회 비밀번호</strong>를 보관합니다.<br>\n4. 신청 조회에서 승인 상태와 발급된 계정 정보를 확인합니다.',
+            flowHtml: '<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 저장 후 표시되는 <strong>신청번호 + 조회 비밀번호</strong>를 보관합니다.<br>\n4. 신청 조회에서 승인 상태를 확인하고, 승인되면 서명된 라이선스를 이 브라우저에 적용합니다.',
             formTitle: '4. 이용권 신청서',
-            formDescription: '후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 로그인용 계정 정보를 확인할 수 있습니다.',
-            passwordHint: '여기서 입력하는 비밀번호는 <strong>신청 조회용</strong>입니다. 고급 로그인 비밀번호와는 다르니, 신청번호와 함께 꼭 보관해 주세요.',
+            formDescription: '후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 라이선스를 확인하고 적용할 수 있습니다.',
+            passwordHint: '여기서 입력하는 비밀번호는 <strong>신청 조회 및 라이선스 확인용</strong>입니다. 신청번호와 함께 꼭 보관해 주세요.',
             submitButton: '신청서 저장',
             lookupTitle: '5. 신청 조회',
-            lookupDescription: '저장 후 받은 <strong>신청번호</strong>와 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태와 발급 결과를 확인할 수 있습니다.',
+            lookupDescription: '저장 후 받은 <strong>신청번호</strong>와 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태를 확인하고, 승인된 경우 라이선스를 바로 적용할 수 있습니다.',
             lookupButton: '조회',
             contactHtml: '문의가 있으면 <strong>zhdlsqpdj@gmail.com</strong>로 보내주세요.'
         },
@@ -106,17 +106,17 @@
             feature4Html: '<strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.'
         },
         messages: {
-            advancedLoading: '고급 구독 정보를 불러오는 중입니다.',
-            advancedCooldown: 'ID 또는 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.',
-            advancedUnlocked: '이 브라우저는 이미 인증되어 있습니다. 약 {minutes}분 동안 바로 고급 모드를 열 수 있습니다.',
-            advancedAvailable: '현재 사용 가능한 고급 이용권 {count}건을 확인했습니다. 관리자에게 받은 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.',
-            advancedNone: '현재 사용 가능한 고급 이용권이 없습니다. 관리자 페이지의 고급 구독 관리 표를 먼저 확인하세요.',
-            advancedNeedConfig: '고급 구독 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.',
+            advancedLoading: '고급 라이선스 정보를 불러오는 중입니다.',
+            advancedCooldown: '신청번호 또는 조회 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.',
+            advancedUnlocked: '이 브라우저에 유효한 라이선스가 저장되어 있어 바로 고급 모드를 열 수 있습니다.',
+            advancedAvailable: '승인된 신청번호와 조회 비밀번호를 입력하면 바로 고급 팝업이 열립니다.',
+            advancedNone: '아직 사용 가능한 라이선스가 없습니다. 먼저 이용권 신청 후 승인을 받아주세요.',
+            advancedNeedConfig: '고급 라이선스 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.',
             advancedRetryAfter: '{seconds}초 후에 다시 시도할 수 있습니다.',
-            advancedChecking: 'ID와 비밀번호를 확인하고 있습니다...',
+            advancedChecking: '신청번호와 조회 비밀번호를 확인하고 있습니다...',
             advancedOpening: '고급 버전 팝업을 여는 중입니다.',
-            advancedNeedRelogin: '이 브라우저의 인증 상태가 없거나 만료되었습니다. ID와 비밀번호를 다시 입력해주세요.',
-            advancedReuse: '저장된 인증 상태로 고급 버전을 다시 엽니다.',
+            advancedNeedRelogin: '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청번호와 조회 비밀번호로 다시 확인해주세요.',
+            advancedReuse: '저장된 라이선스로 고급 버전을 다시 엽니다.',
             manualClosed: '현재 수동 이용권 신청이 닫혀 있습니다.',
             manualConfigNotReady: '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.',
             manualNoPlan: '신청 가능한 이용권이 아직 열리지 않았습니다.',
@@ -307,9 +307,41 @@
         return deepMerge(DEFAULT_SITE_TEXT_CONFIG, rawConfig || {});
     }
 
+    function sanitizeHtml(value, options = {}) {
+        const { multiline = false } = options;
+        const source = String(value ?? '');
+        const normalized = multiline ? source.replace(/\n/g, '<br>') : source;
+        const template = document.createElement('template');
+        template.innerHTML = normalized;
+        const allowedTags = new Set(['A', 'B', 'BR', 'DIV', 'EM', 'I', 'P', 'SMALL', 'SPAN', 'STRONG', 'U']);
+        const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_ELEMENT);
+        const elements = [];
+        while (walker.nextNode()) {
+            elements.push(walker.currentNode);
+        }
+        elements.forEach((element) => {
+            if (!allowedTags.has(element.tagName)) {
+                element.replaceWith(document.createTextNode(element.textContent || ''));
+                return;
+            }
+            Array.from(element.attributes).forEach((attribute) => {
+                const name = attribute.name.toLowerCase();
+                const attrValue = String(attribute.value || '').trim();
+                const allowHref = element.tagName === 'A' && name === 'href' && /^(https?:|mailto:)/i.test(attrValue);
+                if (!allowHref) {
+                    element.removeAttribute(attribute.name);
+                }
+            });
+            if (element.tagName === 'A') {
+                element.setAttribute('target', '_blank');
+                element.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
+        return template.innerHTML;
+    }
+
     function formatHtmlValue(value, multiline) {
-        const safe = String(value ?? '');
-        return multiline ? safe.replace(/\n/g, '<br>') : safe;
+        return sanitizeHtml(value, { multiline });
     }
 
     function applyProperty(element, entry, value) {
@@ -428,6 +460,7 @@
         getValueByPath,
         setValueByPath,
         getTextValue,
+        sanitizeHtml,
         highlightKey,
         setSelectionMode
     };

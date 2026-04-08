@@ -14,7 +14,6 @@ let allPosts = {};
 let replyCache = {}; // 댓글 캐시
 let expandedPost = null;
 let isAdmin = false;
-let adminHash = null;
 let postsListener = null;
 
 // Session ID for likes (anonymous, per-browser)
@@ -41,19 +40,29 @@ function getSavedNick() { return localStorage.getItem('skct_cm_nick') || ''; }
 function saveNick(n) { localStorage.setItem('skct_cm_nick', n); }
 
 // ── Firebase Config (One-shot fetch) ──
+const COMMUNITY_PUBLIC_CONFIG_KEYS = ['notice', 'notice_community', 'popularConfig'];
+
 async function listenConfig() {
     try {
-        const snap = await get(ref(db, 'config'));
-        if (!snap.exists()) return;
-        const cfg = snap.val();
+        const entries = await Promise.all(COMMUNITY_PUBLIC_CONFIG_KEYS.map(async (key) => {
+            const snap = await get(ref(db, `config/${key}`));
+            return [key, snap.exists() ? snap.val() : undefined];
+        }));
+        const cfg = Object.fromEntries(entries.filter(([, value]) => value !== undefined));
         const noticeData = cfg.notice_community || cfg.notice;
         if (noticeData) renderNotice(noticeData);
         else { const el = document.getElementById('cmNotice'); if (el) el.innerHTML = ''; }
         if (cfg.popularConfig) popularConfig = cfg.popularConfig;
-        if (cfg.adminHash) adminHash = cfg.adminHash;
         // re-render if popular tab is active
         if (currentTab === 'popular') renderTab();
     } catch(e) { console.error("Config load error:", e); }
+}
+
+function sanitizeNoticeHtml(value) {
+    if (window.SKCTSiteTextConfig?.sanitizeHtml) {
+        return window.SKCTSiteTextConfig.sanitizeHtml(value, { multiline: true });
+    }
+    return esc(String(value || '')).replace(/\n/g, '<br>');
 }
 
 function renderNotice(data) {
@@ -64,12 +73,12 @@ function renderNotice(data) {
     const s = colors[data.type] || colors.info;
     el.innerHTML = `<div id="cmNoticeWrapper" class="cm-notice" style="cursor:pointer; background:${s.bg};border:1px solid ${s.br};border-left:4px solid ${s.br};">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-weight:bold;color:#1e293b;">${s.ic} ${data.title||'공지'}</div>
+            <div style="font-weight:bold;color:#1e293b;">${s.ic} ${esc(data.title || '공지')}</div>
             <div id="cmNoticeToggleIcon" style="font-size:10px; color:#64748b; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px;">▼ 펼치기</div>
         </div>
         <div id="cmNoticeBody" style="display:none; margin-top:8px; border-top:1px dashed ${s.br}; padding-top:8px;">
-            <div style="color:#475569;line-height:1.5;font-size:13px;">${(data.message||'').replace(/\n/g,'<br>')}</div>
-            ${data.updated?`<div style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:right;">📅 ${data.updated}</div>`:''}
+            <div style="color:#475569;line-height:1.5;font-size:13px;">${sanitizeNoticeHtml(data.message || '')}</div>
+            ${data.updated?`<div style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:right;">📅 ${esc(data.updated)}</div>`:''}
         </div>
     </div>`;
 
@@ -161,12 +170,6 @@ async function softDeleteReply(pid, rid, password) {
     delete replyCache[pid];
 }
 
-// ── Admin ──
-async function adminLogin(code) {
-    if (!adminHash) { alert('Firebase Console에서 config/adminHash를 설정하세요.'); return; }
-    if ((await sha256(code)) !== adminHash) { alert('관리자 코드가 틀립니다.'); return; }
-    isAdmin = true; alert('✅ 관리자 모드!'); renderTab();
-}
 async function adminMoveToFaq(pid) { if (!isAdmin) return; await update(ref(db, `posts/${pid}`), { category: 'faq' }); }
 async function adminPinPost(pid) { if (!isAdmin) return; const s = await get(ref(db, `posts/${pid}/pinned`)); await update(ref(db, `posts/${pid}`), { pinned: !(s.val()||false) }); }
 async function adminReply(pid, content) {
@@ -400,10 +403,6 @@ function init() {
     });
     document.querySelectorAll('.cm-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
     document.getElementById('cmSubmitBtn')?.addEventListener('click', submitPost);
-    // Admin: double-click title
-    document.getElementById('cmTitle')?.addEventListener('dblclick', () => {
-        const c = prompt('관리자 코드:'); if (c) adminLogin(c);
-    });
 }
 
 init();

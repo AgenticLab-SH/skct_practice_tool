@@ -1,0 +1,177 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "active_visitors": {
+      ".read": true,
+      "$sessionId": {
+        ".write": true
+      }
+    },
+    "total_visits": {
+      ".read": true,
+      ".write": true
+    },
+    "daily_visits": {
+      ".read": true,
+      ".write": true
+    },
+    "config": {
+      ".read": "auth != null",
+      "appName": {
+        ".read": true
+      },
+      "guideDefaults": {
+        ".read": true
+      },
+      "layoutRatios": {
+        ".read": true
+      },
+      "maintenance": {
+        ".read": true
+      },
+      "manualSubscriptionConfig": {
+        ".read": true
+      },
+      "notice": {
+        ".read": true
+      },
+      "notice_help": {
+        ".read": true
+      },
+      "notice_community": {
+        ".read": true
+      },
+      "popularConfig": {
+        ".read": true
+      },
+      "popupLayout": {
+        ".read": true
+      },
+      "siteTextConfig": {
+        ".read": true
+      },
+      "sponsors": {
+        ".read": true
+      },
+      "supportConfig": {
+        ".read": true
+      },
+      "timerDefaults": {
+        ".read": true
+      },
+      "toolUiConfig": {
+        ".read": true
+      },
+      "useful_links": {
+        ".read": true
+      },
+      "adminHash": {
+        ".read": false,
+        ".write": false
+      },
+      "advancedFeatureConfig": {
+        ".read": false,
+        ".write": false
+      },
+      "$key": {
+        ".write": "auth != null"
+      }
+    },
+    "subscriptionRequests": {
+      "$requestId": {
+        ".read": true,
+        ".write": "auth != null || (!data.exists() && newData.child('requestId').val() === $requestId && newData.child('status').val() === 'pending')"
+      }
+    },
+    "posts": {
+      ".read": true,
+      ".write": true
+    },
+    "replies": {
+      ".read": true,
+      ".write": true
+    },
+    "userLikes": {
+      ".read": true,
+      ".write": true
+    },
+    "staging_hidden_v1": {
+      ".read": false,
+      ".write": false,
+      "active_visitors": {
+        ".read": true,
+        "$sessionId": {
+          ".write": true
+        }
+      },
+      "total_visits": {
+        ".read": true,
+        ".write": true
+      },
+      "daily_visits": {
+        ".read": true,
+        ".write": true
+      },
+      "config": {
+        ".read": "auth != null",
+        "appName": {
+          ".read": true
+        },
+        "guideDefaults": {
+          ".read": true
+        },
+        "layoutRatios": {
+          ".read": true
+        },
+        "maintenance": {
+          ".read": true
+        },
+        "notice": {
+          ".read": true
+        },
+        "notice_help": {
+          ".read": true
+        },
+        "notice_community": {
+          ".read": true
+        },
+        "popularConfig": {
+          ".read": true
+        },
+        "popupLayout": {
+          ".read": true
+        },
+        "siteTextConfig": {
+          ".read": true
+        },
+        "sponsors": {
+          ".read": true
+        },
+        "supportConfig": {
+          ".read": true
+        },
+        "timerDefaults": {
+          ".read": true
+        },
+        "toolUiConfig": {
+          ".read": true
+        },
+        "useful_links": {
+          ".read": true
+        },
+        "adminHash": {
+          ".read": false,
+          ".write": false
+        },
+        "advancedFeatureConfig": {
+          ".read": false,
+          ".write": "auth != null"
+        },
+        "$key": {
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}

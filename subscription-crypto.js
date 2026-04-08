@@ -138,6 +138,32 @@
         );
     }
 
+    async function importLicensePublicKeyPem(publicKeyPem) {
+        return crypto.subtle.importKey(
+            'spki',
+            pemToArrayBuffer(publicKeyPem),
+            {
+                name: 'ECDSA',
+                namedCurve: 'P-256'
+            },
+            false,
+            ['verify']
+        );
+    }
+
+    async function importLicensePrivateKeyPem(privateKeyPem) {
+        return crypto.subtle.importKey(
+            'pkcs8',
+            pemToArrayBuffer(privateKeyPem),
+            {
+                name: 'ECDSA',
+                namedCurve: 'P-256'
+            },
+            false,
+            ['sign']
+        );
+    }
+
     async function generateAdminKeyPairPem() {
         const keyPair = await crypto.subtle.generateKey(
             {
@@ -152,6 +178,68 @@
         const publicKeyPem = arrayBufferToPem(await crypto.subtle.exportKey('spki', keyPair.publicKey), 'PUBLIC KEY');
         const privateKeyPem = arrayBufferToPem(await crypto.subtle.exportKey('pkcs8', keyPair.privateKey), 'PRIVATE KEY');
         return { publicKeyPem, privateKeyPem };
+    }
+
+    async function generateLicenseKeyPairPem() {
+        const keyPair = await crypto.subtle.generateKey(
+            {
+                name: 'ECDSA',
+                namedCurve: 'P-256'
+            },
+            true,
+            ['sign', 'verify']
+        );
+        const publicKeyPem = arrayBufferToPem(await crypto.subtle.exportKey('spki', keyPair.publicKey), 'PUBLIC KEY');
+        const privateKeyPem = arrayBufferToPem(await crypto.subtle.exportKey('pkcs8', keyPair.privateKey), 'PRIVATE KEY');
+        return { publicKeyPem, privateKeyPem };
+    }
+
+    function stableSerialize(value) {
+        if (Array.isArray(value)) {
+            return `[${value.map((entry) => stableSerialize(entry)).join(',')}]`;
+        }
+        if (value && typeof value === 'object') {
+            const pairs = Object.keys(value)
+                .sort()
+                .map((key) => `${JSON.stringify(key)}:${stableSerialize(value[key])}`);
+            return `{${pairs.join(',')}}`;
+        }
+        return JSON.stringify(value ?? null);
+    }
+
+    async function signLicensePayload(payload, privateKeyPem) {
+        const privateKey = await importLicensePrivateKeyPem(privateKeyPem);
+        const serialized = stableSerialize(payload || {});
+        const signature = await crypto.subtle.sign(
+            {
+                name: 'ECDSA',
+                hash: 'SHA-256'
+            },
+            privateKey,
+            textEncoder.encode(serialized)
+        );
+        return {
+            version: 1,
+            payload: payload || {},
+            signature: bytesToBase64(new Uint8Array(signature))
+        };
+    }
+
+    async function verifyLicenseBundle(bundle, publicKeyPem) {
+        if (!bundle || typeof bundle !== 'object' || !bundle.payload || !bundle.signature || !publicKeyPem) {
+            return false;
+        }
+        const publicKey = await importLicensePublicKeyPem(publicKeyPem);
+        const serialized = stableSerialize(bundle.payload);
+        return crypto.subtle.verify(
+            {
+                name: 'ECDSA',
+                hash: 'SHA-256'
+            },
+            publicKey,
+            base64ToBytes(bundle.signature),
+            textEncoder.encode(serialized)
+        );
     }
 
     async function readContentKeyForUser(record, requestPassword) {
@@ -224,9 +312,12 @@
         bytesToBase64,
         base64ToBytes,
         generateAdminKeyPairPem,
+        generateLicenseKeyPairPem,
         encryptRequestPayload,
         decryptRequestPayloadForUser,
         decryptRequestPayloadForAdmin,
-        reencryptRequestPayloadForAdmin
+        reencryptRequestPayloadForAdmin,
+        signLicensePayload,
+        verifyLicenseBundle
     };
 })();

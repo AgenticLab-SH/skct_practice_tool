@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SKCT Tool - Admin Dashboard</title>
     <meta name="robots" content="noindex, nofollow">
+    <script>
+        (function restrictStagingAdminToLocalhost() {
+            const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
+            if (isLocalHost) return;
+            window.location.replace('update.html?time=' + encodeURIComponent('로컬 전용 테스트 사이트'));
+        })();
+    </script>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="assets/styles/admin.css">
     <link rel="icon" href="assets/images/sk_ci.png">
@@ -15,10 +22,11 @@
 <div id="loginScreen" class="login-screen">
     <div class="login-card">
         <h1>🔐 SKCT Tool Admin</h1>
-        <p class="subtitle">개발자 전용 관리 대시보드</p>
-        <input type="password" id="loginPw" placeholder="관리자 비밀번호 입력" autocomplete="off">
+        <p class="subtitle">Firebase Auth 관리자 계정으로 로그인</p>
+        <input type="email" id="loginEmail" placeholder="관리자 이메일 입력" autocomplete="username">
+        <input type="password" id="loginPw" placeholder="관리자 비밀번호 입력" autocomplete="current-password">
         <button id="loginBtn">로그인</button>
-        <div id="loginError" class="login-error">비밀번호가 올바르지 않습니다.</div>
+        <div id="loginError" class="login-error">이메일 또는 비밀번호가 올바르지 않습니다.</div>
     </div>
 </div>
 
@@ -407,6 +415,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
     const firebaseConfig = {
         apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
@@ -421,6 +430,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const auth = getAuth(app);
 
     // ── Utility ──
     async function sha256(str) {
@@ -693,8 +703,8 @@
     }
 
     // ── State ──
-    let adminHash = null;
     let isLoggedIn = false;
+    let dashboardStarted = false;
     let allPosts = {};
     let currentFilter = 'all';
     let currentReplyPid = null;
@@ -703,32 +713,23 @@
 
     // ── Login ──
     document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
     document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
     async function doLogin() {
+        const email = document.getElementById('loginEmail').value.trim();
         const pw = document.getElementById('loginPw').value.trim();
-        if (!pw) return;
-
-        // Get admin hash from Firebase
-        const snap = await get(ref(db, 'staging_hidden_v1/config/adminHash'));
-        if (!snap.exists()) {
-            // No admin hash set — first time setup
-            const confirmSetup = confirm('관리자 비밀번호가 아직 설정되지 않았습니다.\n지금 입력한 비밀번호를 관리자 비밀번호로 설정할까요?');
-            if (confirmSetup) {
-                const hash = await sha256(pw);
-                await set(ref(db, 'staging_hidden_v1/config/adminHash'), hash);
-                adminHash = hash;
-                enterDashboard();
-                toast('✅ 관리자 비밀번호가 설정되었습니다!');
-            }
+        if (!email || !pw) {
+            document.getElementById('loginError').textContent = '이메일과 비밀번호를 모두 입력해주세요.';
+            document.getElementById('loginError').style.display = 'block';
             return;
         }
-
-        adminHash = snap.val();
-        const inputHash = await sha256(pw);
-        if (inputHash === adminHash) {
-            enterDashboard();
-        } else {
+        try {
+            await setPersistence(auth, browserSessionPersistence);
+            await signInWithEmailAndPassword(auth, email, pw);
+        } catch (error) {
+            console.error('Staging admin auth failed:', error);
+            document.getElementById('loginError').textContent = '이메일 또는 비밀번호가 올바르지 않거나 Firebase Auth 설정이 준비되지 않았습니다.';
             document.getElementById('loginError').style.display = 'block';
             setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
         }
@@ -738,14 +739,33 @@
         isLoggedIn = true;
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('dashboard').classList.add('active');
-        startDashboard();
+        if (!dashboardStarted) {
+            dashboardStarted = true;
+            startDashboard();
+        }
     }
 
-    document.getElementById('logoutBtn').addEventListener('click', () => {
+    function leaveDashboard() {
         isLoggedIn = false;
         document.getElementById('dashboard').classList.remove('active');
         document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('loginEmail').value = '';
         document.getElementById('loginPw').value = '';
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await signOut(auth);
+        leaveDashboard();
+    });
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('loginEmail').value = user.email || '';
+            enterDashboard();
+            return;
+        }
+        leaveDashboard();
     });
 
     const sitePreviewLink = document.getElementById('sitePreviewLink');

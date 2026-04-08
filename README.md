@@ -43,18 +43,22 @@
 
 ```
 skct_tool/
-├── index.html          # 메인 페이지 (SPA)
-├── admin.html          # 관리자 대시보드
-├── style.css           # 전체 스타일
-├── admin.css           # 관리자 페이지 스타일
-├── script.js           # 앱 로직 (OMR, 타이머, 계산기 등)
-├── community.js        # 커뮤니티 게시판 로직
-├── images/             # 이미지 에셋 폴더
-├── docs/               # 문서 폴더 (운영가이드 등)
-├── notice.json         # (더 이상 사용되지 않는 구 공지 파일)
-├── sitemap.xml         # SEO 사이트맵
-├── robots.txt          # 검색 봇 가이드
-└── README.md           # 이 문서
+├── index.html              # 메인 페이지 (SPA)
+├── main.js                 # 메인 앱 로직
+├── main.css                # 메인 스타일
+├── admin.html              # 관리자 대시보드 (Firebase Auth 기반)
+├── admin.css               # 관리자 페이지 스타일
+├── community.js            # 커뮤니티 게시판 로직
+├── site-text-config.js     # 운영 문구/미리보기 적용 로직
+├── subscription-crypto.js  # 신청 암호화 / 라이선스 서명 검증 유틸
+├── database.rules.json     # Firebase RTDB 규칙
+├── firebase.json           # Firebase 배포 설정
+├── staging/                # 로컬 전용 스테이징 사본
+├── images/                 # 이미지 에셋 폴더
+├── docs/                   # 문서 폴더 (운영가이드 등)
+├── sitemap.xml             # SEO 사이트맵
+├── robots.txt              # 검색 봇 가이드
+└── README.md               # 이 문서
 ```
 
 ---
@@ -64,6 +68,7 @@ skct_tool/
 - **프론트엔드**: Pure HTML / CSS / JavaScript (프레임워크 없음)
 - **호스팅**: GitHub Pages
 - **백엔드/DB**: Firebase Realtime Database (공지사항, 커뮤니티, 접속 통계 단일화 및 최적화)
+- **인증**: Firebase Authentication (관리자)
 - **분석**: Google Analytics (GA4)
 - **폰트**: [Pretendard](https://github.com/orioncactus/pretendard)
 
@@ -81,6 +86,11 @@ skct_tool/
    - 불필요한 Firebase 다운로드를 방지하기 위해 실시간 자동 구독 대신 **1회 조회 최적화 방식**으로 게시판이 동작합니다.
    - 관리자 페이지도 게시글 수동 새로고침 방식을 사용합니다.
    - 방문자 카운터와 활성 접속자는 Firebase를 통한 자체 구축 방식으로 운영되고 있습니다.
+
+3. **고급 이용권 보호**
+   - 공개 페이지는 더 이상 공개 DB의 계정 해시를 읽어 로그인하지 않습니다.
+   - 신청 본문은 관리자 공개키로 암호화되고, 승인 후에는 관리자 서명 라이선스만 사용자에게 전달됩니다.
+   - 관리자 페이지를 사용하려면 Firebase Auth 로그인과 RTDB rules 배포가 필요합니다.
 
 ---
 

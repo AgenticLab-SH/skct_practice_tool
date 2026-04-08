@@ -452,14 +452,14 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
-                    <div id="advancedGuideLoginTitle" style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 고급 모드 로그인</div>
+                    <div id="advancedGuideLoginTitle" style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 고급 모드 열기</div>
                     <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
-                        발급받은 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 바로 고급 모드로 들어갈 수 있습니다.
+                        승인된 신청의 <strong>신청번호</strong>와 <strong>조회 비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
-                        <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="고급 ID 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
-                        <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="고급 비밀번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
-                        <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">고급 모드 열기</button>
+                        <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="조회 비밀번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">라이선스 확인</button>
                     </div>
                     <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
                 </div>
@@ -510,8 +510,8 @@
                         <strong>진행 순서</strong><br>
                         1. 이용권 금액을 확인합니다.<br>
                         2. 투네이션 후원을 진행합니다.<br>
-                        3. 아래 신청 칸에 ID와 비밀번호까지 입력합니다.<br>
-                        4. 같은 ID와 비밀번호로 승인 상태를 확인하고, 승인되면 그대로 고급 모드 로그인에 사용합니다.
+                        3. 아래 신청 칸에 희망 ID와 조회 비밀번호를 입력합니다.<br>
+                        4. 승인 후 받은 신청번호와 조회 비밀번호로 상태를 확인하고, 라이선스를 적용합니다.
                     </div>
                 </div>
                 <div style="padding:14px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; display:flex; flex-direction:column; gap:10px;">
@@ -520,7 +520,7 @@
                         <div style="font-size:11px; color:#64748b;">아래 칸만 순서대로 입력하면 됩니다.</div>
                     </div>
                     <div id="advancedGuideFormDescription" style="font-size:12px; color:#475569; line-height:1.7;">
-                        여기서 정한 ID와 비밀번호를 신청, 조회, 고급 모드 로그인까지 같은 흐름으로 사용합니다.
+                        희망 ID는 신청 정보로만 쓰이고, 실제 승인 확인과 고급 모드 진입은 신청번호와 조회 비밀번호로 이어집니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
@@ -570,10 +570,10 @@
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
                     <div id="advancedGuideLookupTitle" style="font-size:14px; font-weight:800; color:#1d4ed8;">5. 신청 조회</div>
                     <div id="advancedGuideLookupDescription" style="font-size:12px; color:#1e40af; line-height:1.7;">
-                        신청할 때 직접 정한 <strong>ID</strong>와 <strong>비밀번호</strong>로 현재 상태를 확인하고, 승인되면 같은 값으로 고급 모드에 로그인합니다.
+                        저장 직후 받은 <strong>신청번호</strong>와 <strong>조회 비밀번호</strong>로 현재 상태를 확인합니다. 승인된 경우 아래에서 이 브라우저에 라이선스를 바로 적용할 수 있습니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
-                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청한 ID" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <input id="manualSubscriptionLookupPasswordInput" type="password" autocomplete="off" placeholder="신청한 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="manualSubscriptionLookupBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">조회</button>
                     </div>
@@ -786,28 +786,13 @@
             const popupEditorParam = url.searchParams.get('popupEditor');
             const advancedParam = url.searchParams.get('advanced');
             const textEditorParam = url.searchParams.get('textEditor');
-            let hasAdvancedUnlock = false;
-
-            try {
-                const rawState = localStorage.getItem('skct_advanced_unlock');
-                const state = rawState ? JSON.parse(rawState) : null;
-                hasAdvancedUnlock = Boolean(state && Number.isFinite(state.expiresAt) && state.expiresAt > Date.now());
-            } catch (error) {
-                hasAdvancedUnlock = false;
-            }
-
-            const advancedEnabled = advancedParam === '1' && hasAdvancedUnlock;
-
-            if (advancedParam === '1' && !advancedEnabled) {
-                url.searchParams.delete('advanced');
-                window.history.replaceState({}, '', url.toString());
-            }
 
             window.SKCT_FLAGS = {
                 maintenanceBypass: devParam === '1',
                 adminPreview: previewParam === '1',
                 popupEditor: popupEditorParam === '1',
-                advanced: advancedEnabled,
+                advancedRequested: advancedParam === '1',
+                advanced: false,
                 textEditor: textEditorParam === '1'
             };
         })();
@@ -1018,17 +1003,43 @@
         // ============================================
         // 📢 Help 모달 리소스 - Firebase 1회 조회 (캐싱)
         // ============================================
+        const PUBLIC_CONFIG_KEYS = [
+            'maintenance',
+            'appName',
+            'notice',
+            'notice_help',
+            'useful_links',
+            'supportConfig',
+            'siteTextConfig',
+            'manualSubscriptionConfig',
+            'timerDefaults',
+            'guideDefaults',
+            'layoutRatios',
+            'popupLayout',
+            'toolUiConfig',
+            'sponsors'
+        ];
+
         async function fetchConfig() {
             try {
-                const snap = await get(ref(db, 'config'));
-                if (snap.exists()) {
-                    const data = snap.val();
-                    handleConfigData(data);
-                }
+                const entries = await Promise.all(PUBLIC_CONFIG_KEYS.map(async (key) => {
+                    const snap = await get(ref(db, `config/${key}`));
+                    return [key, snap.exists() ? snap.val() : undefined];
+                }));
+                handleConfigData(Object.fromEntries(entries.filter(([, value]) => value !== undefined)));
             } catch(e) { console.error('fetchConfig error:', e); }
         }
 
         function handleConfigData(cfg) {
+            const esc = (value) => {
+                const div = document.createElement('div');
+                div.textContent = String(value ?? '');
+                return div.innerHTML;
+            };
+            const sanitizeUrl = (value) => {
+                const text = String(value || '').trim();
+                return /^(https?:)?\/\//i.test(text) ? text : '#';
+            };
             if (cfg.maintenance && cfg.maintenance.enabled && !isDevMaintenanceBypass()) {
                 window.location.href = `update.html?time=${encodeURIComponent(cfg.maintenance.time)}`;
                 return;
@@ -1046,8 +1057,8 @@
                 let html = `<div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-top: 15px; margin-bottom: 8px;">🔗 유용한 링크</div>`;
                 html += `<div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 15px;">`;
                 cfg.useful_links.forEach(link => {
-                    html += `<a href="${link.url}" target="_blank" style="display:block; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6; text-decoration:none; font-weight:600; font-size:13px; transition:all 0.2s;">
-                        ${link.title} <span style="float:right;">↗</span>
+                    html += `<a href="${sanitizeUrl(link.url)}" target="_blank" rel="noopener noreferrer" style="display:block; padding:10px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; color:#3b82f6; text-decoration:none; font-weight:600; font-size:13px; transition:all 0.2s;">
+                        ${esc(link.title)} <span style="float:right;">↗</span>
                     </a>`;
                 });
                 html += `</div>`;
@@ -1105,10 +1116,6 @@
                     window.applyRemoteToolUiConfig(cfg.toolUiConfig);
                 }
             }
-            if (window.applyRemoteAdvancedFeatureConfig) {
-                window.applyRemoteAdvancedFeatureConfig(cfg.advancedFeatureConfig || null);
-            }
-
             if (cfg.sponsors && cfg.sponsors.length > 0) {
                 const tickerEl = document.getElementById('sponsorTicker');
                 if (tickerEl) {
@@ -1119,13 +1126,16 @@
                         <div style="flex:1; overflow:hidden; position:relative; height:80px;">`;
 
                     cfg.sponsors.forEach((s, i) => {
+                        const safeMessage = window.SKCTSiteTextConfig?.sanitizeHtml
+                            ? window.SKCTSiteTextConfig.sanitizeHtml(s.message || '', { multiline: true })
+                            : esc(s.message || '').replace(/\n/g, '<br>');
                         html += `<div class="sponsor-item" style="position:absolute; width:100%; height:100%; top:0; left:0; display:flex; flex-direction:column; justify-content:center; opacity:${i===0?1:0}; transition: opacity 0.5s, transform 0.5s; transform: translateY(${i===0?'0':'15px'}); font-size:13px; color:#475569;">
                             <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:4px;">
-                                <div><span style="font-weight:bold; color:#be185d;">${s.name}님</span> (${s.amount})</div>
-                                <div style="font-size:10px; color:#94a3b8; flex-shrink:0;">${s.date}</div>
+                                <div><span style="font-weight:bold; color:#be185d;">${esc(s.name)}님</span> (${esc(s.amount)})</div>
+                                <div style="font-size:10px; color:#94a3b8; flex-shrink:0;">${esc(s.date)}</div>
                             </div>
                             <div style="flex:1; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; white-space:normal; line-height:1.5; font-size:12px;">
-                                ${s.message}
+                                ${safeMessage}
                             </div>
                         </div>`;
                     });

@@ -3,27 +3,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminPreviewMode = runtimeFlags.adminPreview === true;
     const isPopupMode = window.name === 'skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
-    const ADVANCED_UNLOCK_STORAGE_KEY = 'skct_advanced_unlock';
+    const ADVANCED_LICENSE_STORAGE_KEY = 'skct_advanced_license_bundle';
     const ADVANCED_PASSWORD_FAIL_STORAGE_KEY = 'skct_advanced_password_failures';
-    const ADVANCED_UNLOCK_DURATION_MS = 1000 * 60 * 30;
     const ADVANCED_FAIL_WINDOW_MS = 1000 * 60 * 10;
     const ADVANCED_MAX_FAIL_COUNT = 5;
     const ADVANCED_FAIL_COOLDOWN_MS = 1000 * 30;
-    const readAdvancedUnlockState = () => {
+    const advancedModeRequested = runtimeFlags.advancedRequested === true;
+    let verifiedAdvancedLicenseBundle = null;
+    const readStoredAdvancedLicenseBundle = () => {
         try {
-            return JSON.parse(localStorage.getItem(ADVANCED_UNLOCK_STORAGE_KEY) || 'null');
+            return JSON.parse(localStorage.getItem(ADVANCED_LICENSE_STORAGE_KEY) || 'null');
         } catch (error) {
             return null;
         }
     };
-    const hasAdvancedUnlock = () => {
-        const state = readAdvancedUnlockState();
-        return Boolean(state && Number.isFinite(state.expiresAt) && state.expiresAt > Date.now());
+    const writeStoredAdvancedLicenseBundle = (bundle) => {
+        if (!bundle) {
+            localStorage.removeItem(ADVANCED_LICENSE_STORAGE_KEY);
+            return;
+        }
+        localStorage.setItem(ADVANCED_LICENSE_STORAGE_KEY, JSON.stringify(bundle));
     };
-    const getAdvancedUnlockRemainingMs = () => {
-        const state = readAdvancedUnlockState();
-        if (!state || !Number.isFinite(state.expiresAt)) return 0;
-        return Math.max(0, state.expiresAt - Date.now());
+    const clearStoredAdvancedLicenseBundle = () => {
+        verifiedAdvancedLicenseBundle = null;
+        localStorage.removeItem(ADVANCED_LICENSE_STORAGE_KEY);
     };
     const readAdvancedFailState = () => {
         try {
@@ -63,11 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         url.searchParams.delete('advanced');
         window.history.replaceState({}, '', url.toString());
     };
-    if (runtimeFlags.advanced === true && !hasAdvancedUnlock()) {
-        runtimeFlags.advanced = false;
-        removeAdvancedQueryParam();
-    }
-    const isAdvancedMode = runtimeFlags.advanced === true && hasAdvancedUnlock();
+    let isAdvancedMode = false;
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
         window: { widthRatio: 0.269, heightRatio: 0.98, leftRatio: 0.731, topRatio: 0 },
@@ -79,25 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const PERMANENT_ADVANCED_PLAN_TYPE = '영구이용권';
     const MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY = 'skct_manual_subscription_recent_request';
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
-        subscriptions: [
-            {
-                id: 'seed-0208',
-                planType: PERMANENT_ADVANCED_PLAN_TYPE,
-                userIdentity: '운영자 기본값',
-                loginId: 'seed-0208',
-                status: 'active',
-                passwordSalt: 'seed-20260406',
-                passwordHash: 'a1c558a1b233a95e200e0d78af383b407fc9326d5b46ee8107cf5a4dccba5ac9',
-                expiresAt: '',
-                note: '기본 운영 계정'
-            }
-        ]
+        subscriptions: []
     };
     const DEFAULT_MANUAL_SUBSCRIPTION_CONFIG = {
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
         supportEmail: 'zhdlsqpdj@gmail.com',
         adminPublicKeyPem: '',
+        licensePublicKeyPem: '',
         plans: [
             { code: 'manual-7d', label: '7일 이용권', days: 7, price: 4900, enabled: true, highlight: '시험 직전 단기 몰입용' },
             { code: 'manual-14d', label: '14일 이용권', days: 14, price: 7900, enabled: true, highlight: '가장 추천하는 주력 이용권' }
@@ -172,12 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let remoteManualSubscriptionConfig = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG;
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
-    document.body.classList.toggle('advanced-mode', isAdvancedMode);
-    if (isAdvancedMode) {
-        document.title = `${document.title} | 고급버전`;
-        if (settingsVersionRow) {
-            settingsVersionRow.innerHTML = '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525 (고급버전)';
-        }
+    if (settingsVersionRow) {
+        settingsVersionRow.innerHTML = '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525';
     }
 
     function clampNumber(value, min, max) {
@@ -279,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             id: String(raw?.id || `subscription-${index + 1}`),
             planType: persistence.planType,
             userIdentity: String(raw?.userIdentity || raw?.memberLabel || '').trim(),
-            loginId: normalizeAdvancedLoginId(raw?.loginId || raw?.externalId || (raw?.id === 'seed-0208' ? 'seed-0208' : '')),
+            loginId: normalizeAdvancedLoginId(raw?.loginId || raw?.externalId || ''),
             status,
             passwordSalt: String(raw?.passwordSalt || '').trim(),
             passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
@@ -338,6 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             donationUrl: String(raw?.donationUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl).trim(),
             supportEmail: String(raw?.supportEmail || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.supportEmail).trim(),
             adminPublicKeyPem: String(raw?.adminPublicKeyPem || '').trim(),
+            licensePublicKeyPem: String(raw?.licensePublicKeyPem || '').trim(),
             plans: plans.length ? plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.map((plan) => ({ ...plan }))
         };
     }
@@ -404,7 +389,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let remotePopupLayout = normalizePopupLayout();
     let currentPopupLayout = normalizePopupLayout();
     let remoteToolUiConfig = normalizeToolUiConfig();
-    let remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig();
     let currentToolUiConfig = normalizeToolUiConfig(
         isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('skct_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
     );
@@ -777,7 +761,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return div.innerHTML;
     };
 
-    const formatMultilineHtml = (value) => escapeHtml(value || '').replace(/\n/g, '<br>');
+    const sanitizeConfiguredHtml = (value, options = {}) => {
+        if (window.SKCTSiteTextConfig?.sanitizeHtml) {
+            return window.SKCTSiteTextConfig.sanitizeHtml(value || '', options);
+        }
+        const safe = escapeHtml(value || '');
+        return options.multiline ? safe.replace(/\n/g, '<br>') : safe;
+    };
+    const formatMultilineHtml = (value) => sanitizeConfiguredHtml(value, { multiline: true });
+    const formatInlineHtml = (value) => sanitizeConfiguredHtml(value, { multiline: false });
     const readSiteText = (path, fallback, tokens) => {
         if (window.SKCTSiteTextConfig?.getTextValue) {
             return window.SKCTSiteTextConfig.getTextValue(path, fallback, tokens);
@@ -810,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const buttonEl = document.getElementById('donateConfirmBtn');
         const breakHintEl = document.getElementById('breakSupportHint');
 
-        if (titleEl) titleEl.innerHTML = support.modalTitle || DEFAULT_SUPPORT_CONFIG.modalTitle;
+        if (titleEl) titleEl.innerHTML = formatInlineHtml(support.modalTitle || DEFAULT_SUPPORT_CONFIG.modalTitle);
         if (leadEl) leadEl.innerHTML = formatMultilineHtml(support.modalLead);
         if (bodyEl) bodyEl.innerHTML = formatMultilineHtml(support.modalBody);
         if (promiseEl) promiseEl.innerHTML = formatMultilineHtml(support.modalPromise);
@@ -875,11 +867,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyManualSubscriptionConfig(config) {
         remoteManualSubscriptionConfig = normalizeManualSubscriptionConfig(config);
+        isAdvancedConfigReady = true;
         renderManualSubscriptionPlans();
         ensureManualSubscriptionStartDate();
+        void syncStoredAdvancedLicenseState();
     }
     window.applyManualSubscriptionConfig = applyManualSubscriptionConfig;
     applyManualSubscriptionConfig();
+
+    function getAdvancedLicenseExpiryTime(bundle) {
+        const raw = bundle?.payload?.expiresAt;
+        if (!raw) return Number.POSITIVE_INFINITY;
+        if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+        const parsed = Date.parse(String(raw));
+        return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
+    }
+
+    function formatAdvancedLicenseExpiry(bundle) {
+        const expiryTime = getAdvancedLicenseExpiryTime(bundle);
+        if (!Number.isFinite(expiryTime)) return '영구';
+        return formatKstDateTime(expiryTime);
+    }
+
+    async function verifyAdvancedLicenseBundle(bundle) {
+        if (!bundle || !remoteManualSubscriptionConfig.licensePublicKeyPem) return null;
+        try {
+            const verified = await window.SKCTSubscriptionCrypto.verifyLicenseBundle(bundle, remoteManualSubscriptionConfig.licensePublicKeyPem);
+            if (!verified) return null;
+            const expiryTime = getAdvancedLicenseExpiryTime(bundle);
+            if (expiryTime < Date.now()) return null;
+            return bundle;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function setAdvancedModeState(nextValue) {
+        isAdvancedMode = nextValue === true;
+        runtimeFlags.advanced = isAdvancedMode;
+        document.body.classList.toggle('advanced-mode', isAdvancedMode);
+        document.title = isAdvancedMode
+            ? `${document.title.replace(' | 고급버전', '')} | 고급버전`
+            : document.title.replace(' | 고급버전', '');
+        if (settingsVersionRow) {
+            settingsVersionRow.innerHTML = isAdvancedMode
+                ? '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525 (고급버전)'
+                : '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525';
+        }
+        if (typeof updateModeUI === 'function') updateModeUI();
+        if (typeof renderOMR === 'function') renderOMR();
+    }
+
+    async function syncStoredAdvancedLicenseState(options = {}) {
+        const { silent = false } = options;
+        const storedBundle = readStoredAdvancedLicenseBundle();
+        const verifiedBundle = await verifyAdvancedLicenseBundle(storedBundle);
+        verifiedAdvancedLicenseBundle = verifiedBundle;
+        if (!verifiedBundle && storedBundle) {
+            clearStoredAdvancedLicenseBundle();
+        }
+        if (!verifiedBundle) {
+            if (advancedModeRequested) {
+                setAdvancedModeState(false);
+                removeAdvancedQueryParam();
+                if (!silent && advancedAccessStatus) {
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청번호와 조회 비밀번호로 다시 확인해주세요.');
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+            }
+            updateAdvancedAccessPanel();
+            return null;
+        }
+        if (advancedModeRequested) {
+            setAdvancedModeState(true);
+        }
+        updateAdvancedAccessPanel();
+        return verifiedBundle;
+    }
 
     function renderManualRequestLookup(record, payload) {
         if (!manualSubscriptionLookupResult) return;
@@ -894,6 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #bfdbfe;">
                 <div style="font-weight:800; color:#1d4ed8; margin-bottom:8px;">${escapeHtml(statusMap[record.status] || record.status || '대기')}</div>
                 <div style="font-size:12px; color:#334155; line-height:1.75;">
+                    <div><strong>신청번호</strong>: ${escapeHtml(record.requestId || '-')}</div>
                     <div><strong>신청 플랜</strong>: ${escapeHtml(record.planLabel || '-')}</div>
                     <div><strong>신청 시각</strong>: ${escapeHtml(formatKstDateTime(record.createdAt))}</div>
                     <div><strong>후원 닉네임</strong>: ${escapeHtml(payload?.donationName || '-')}</div>
@@ -903,10 +968,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div><strong>희망 ID</strong>: ${escapeHtml(payload?.desiredLoginId || '-')}</div>
                     ${payload?.memo ? `<div><strong>신청 메모</strong>: ${escapeHtml(payload.memo)}</div>` : ''}
                     ${response.statusMessage ? `<div><strong>처리 메모</strong>: ${escapeHtml(response.statusMessage)}</div>` : ''}
-                    ${response.issuedLoginId ? `<div style="margin-top:8px; padding:10px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe;"><strong>발급 ID</strong>: ${escapeHtml(response.issuedLoginId)}<br><strong>발급 비밀번호</strong>: ${escapeHtml(response.issuedPassword || '-')}<br><strong>사용 종료일</strong>: ${escapeHtml(response.expiresAt || '-')}</div>` : ''}
+                    ${response.licenseBundle ? `<div style="margin-top:8px; padding:10px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe;"><strong>고급 라이선스</strong>: 발급 완료<br><strong>사용 종료일</strong>: ${escapeHtml(response.expiresAt || '영구')}<br><button id="manualLicenseApplyBtn" type="button" style="margin-top:8px; padding:8px 10px; background:#2563eb; color:#fff; border:none; border-radius:6px; font-weight:700; cursor:pointer;">이 브라우저에 적용하고 고급 모드 열기</button></div>` : ''}
                 </div>
             </div>
         `;
+        const applyBtn = document.getElementById('manualLicenseApplyBtn');
+        if (applyBtn && response.licenseBundle) {
+            applyBtn.addEventListener('click', async () => {
+                const verifiedBundle = await verifyAdvancedLicenseBundle(response.licenseBundle);
+                if (!verifiedBundle) {
+                    manualSubscriptionLookupResult.innerHTML += '<div style="margin-top:8px; font-size:12px; color:#b91c1c;">라이선스가 유효하지 않거나 이미 만료되었습니다. 관리자에게 다시 문의해주세요.</div>';
+                    return;
+                }
+                writeStoredAdvancedLicenseBundle(verifiedBundle);
+                verifiedAdvancedLicenseBundle = verifiedBundle;
+                openAdvancedModeWindow();
+            });
+        }
     }
 
     const isLegacyDefaultTimerConfig = (cfg) => {
@@ -928,95 +1006,63 @@ document.addEventListener('DOMContentLoaded', () => {
         return url.toString();
     };
 
-    const activateAdvancedSession = () => {
-        localStorage.setItem(ADVANCED_UNLOCK_STORAGE_KEY, JSON.stringify({
-            issuedAt: Date.now(),
-            expiresAt: Date.now() + ADVANCED_UNLOCK_DURATION_MS
-        }));
-        return {
-            targetUrl: buildAdvancedLaunchUrl(),
-            popupName: 'skct_popup_mode'
-        };
-    };
-
-    const getSubscriptionExpiryTime = (value) => {
-        const trimmed = String(value || '').trim();
-        if (!trimmed) return Number.POSITIVE_INFINITY;
-        const parsed = Date.parse(`${trimmed}T12:00:00+09:00`);
-        return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
-    };
-
-    const isActiveAdvancedSubscription = (subscription) => {
-        if (!subscription) return false;
-        if (subscription.status !== 'active') return false;
-        return getSubscriptionExpiryTime(subscription.expiresAt) >= Date.now();
-    };
-
-    const hashAdvancedPassword = async (password, salt) => {
-        const encoder = new TextEncoder();
-        const digest = await crypto.subtle.digest('SHA-256', encoder.encode(`${salt}::${password}`));
-        return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
-    };
-
-    const validateAdvancedCredentialsDetailed = async (loginId, password) => {
-        const normalizedLoginId = getAdvancedLoginIdKey(loginId);
-        const value = String(password || '').trim();
-        if (!normalizedLoginId && !value) return { ok: false, reason: 'empty' };
-        if (!value) return { ok: false, reason: normalizedLoginId ? 'empty_password' : 'empty' };
-        if (!normalizedLoginId && remoteAdvancedFeatureConfig.legacyPasswords.includes(value)) {
-            return { ok: true, reason: 'active' };
-        }
-        const candidateSubscriptions = normalizedLoginId
-            ? remoteAdvancedFeatureConfig.subscriptions.filter((subscription) => getAdvancedLoginIdKey(subscription.loginId) === normalizedLoginId)
-            : remoteAdvancedFeatureConfig.subscriptions.filter((subscription) => !getAdvancedLoginIdKey(subscription.loginId));
-        let matchedInactiveSubscription = false;
-        for (const subscription of candidateSubscriptions) {
-            const digest = await hashAdvancedPassword(value, subscription.passwordSalt);
-            if (digest !== subscription.passwordHash) continue;
-            if (isActiveAdvancedSubscription(subscription)) {
-                return { ok: true, reason: 'active' };
-            }
-            matchedInactiveSubscription = true;
-        }
-        if (normalizedLoginId && !candidateSubscriptions.length) {
-            return { ok: false, reason: 'invalid_id' };
-        }
-        return { ok: false, reason: matchedInactiveSubscription ? 'expired' : 'invalid' };
-    };
-
-    const validateAdvancedCredentials = async (loginId, password) => {
-        const result = await validateAdvancedCredentialsDetailed(loginId, password);
-        return result.ok;
-    };
-
-    const validateAdvancedPasswordDetailed = async (password) => {
-        return validateAdvancedCredentialsDetailed('', password);
-    };
-
-    const validateAdvancedPassword = async (password) => {
-        const result = await validateAdvancedPasswordDetailed(password);
-        return result.ok;
-    };
-
     const updateAdvancedAccessPanel = () => {
         if (!advancedAccessSummary) return;
-        const activeCount = remoteAdvancedFeatureConfig.legacyPasswords.length
-            + remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription).length;
         const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
         if (!isAdvancedConfigReady) {
-            advancedAccessSummary.textContent = '고급 이용권 정보를 불러오는 중입니다.';
+            advancedAccessSummary.textContent = '고급 라이선스 정보를 불러오는 중입니다.';
+            if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
+            return;
+        }
+        if (!remoteManualSubscriptionConfig.licensePublicKeyPem) {
+            advancedAccessSummary.textContent = '아직 라이선스 검증 공개키가 설정되지 않았습니다. 관리자 설정 저장 후 다시 시도해주세요.';
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = `ID 또는 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
-        } else if (activeCount > 0) {
-            advancedAccessSummary.textContent = '발급받은 ID와 비밀번호를 입력하면 바로 고급 모드 팝업이 열립니다.';
+            advancedAccessSummary.textContent = `신청번호 또는 조회 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
+        } else if (verifiedAdvancedLicenseBundle) {
+            advancedAccessSummary.textContent = `이 브라우저에 유효한 고급 라이선스가 저장되어 있습니다. 만료: ${formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)}`;
         } else {
-            advancedAccessSummary.textContent = '현재 이용 가능한 고급 이용권이 없습니다. 아래 이용권을 선택해 신청할 수 있습니다.';
+            advancedAccessSummary.textContent = '신청 승인 후 받은 신청번호와 조회 비밀번호를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.';
         }
-        if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = activeCount === 0 || cooldownRemainingMs > 0;
+        if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = cooldownRemainingMs > 0;
     };
+
+    async function fetchSubscriptionRequestRecord(requestId) {
+        const trimmedRequestId = String(requestId || '').trim();
+        if (!trimmedRequestId) return null;
+        const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(trimmedRequestId)}.json`);
+        if (!response.ok) {
+            throw new Error(readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'));
+        }
+        const payload = await response.json();
+        return payload ? { ...payload, requestId: trimmedRequestId } : null;
+    }
+
+    async function hydrateAdvancedLicenseFromRequest(requestId, requestPassword) {
+        const record = await fetchSubscriptionRequestRecord(requestId);
+        if (!record) {
+            return { ok: false, reason: 'not_found' };
+        }
+        let payload = null;
+        try {
+            payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
+        } catch (error) {
+            return { ok: false, reason: 'invalid_password' };
+        }
+        const response = payload?.adminResponse || {};
+        if (!response.licenseBundle) {
+            return { ok: false, reason: record.status === 'rejected' ? 'rejected' : 'pending', record, payload };
+        }
+        const verifiedBundle = await verifyAdvancedLicenseBundle(response.licenseBundle);
+        if (!verifiedBundle) {
+            return { ok: false, reason: 'invalid_license', record, payload };
+        }
+        writeStoredAdvancedLicenseBundle(verifiedBundle);
+        verifiedAdvancedLicenseBundle = verifiedBundle;
+        return { ok: true, record, payload, bundle: verifiedBundle };
+    }
 
     const submitManualSubscriptionRequest = async () => {
         if (!manualSubscriptionSubmitStatus) return;
@@ -1095,11 +1141,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!writeResponse.ok) {
                 throw new Error('신청서 저장 중 오류가 발생했습니다.');
             }
-            saveRecentRequestInfo({ loginId: desiredLoginId, createdAt: Date.now() });
-            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = desiredLoginId;
+            saveRecentRequestInfo({ requestId, createdAt: Date.now() });
+            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = requestId;
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
-            manualSubscriptionSubmitStatus.innerHTML = '신청이 저장되었습니다. 아래 신청 조회에서 같은 <strong>ID + 비밀번호</strong>로 상태를 바로 확인할 수 있습니다.';
+            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. <strong>신청번호 ${escapeHtml(requestId)}</strong>와 조회 비밀번호를 꼭 보관하세요. 아래 신청 조회와 고급 모드 로그인에서 같은 값으로 바로 확인할 수 있습니다.`;
             } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
             manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');
@@ -1108,51 +1154,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lookupManualSubscriptionRequest = async () => {
         if (!manualSubscriptionLookupResult) return;
-        const loginId = manualSubscriptionLookupIdInput?.value.trim() || '';
-        const loginIdKey = getAdvancedLoginIdKey(loginId);
+        const requestId = manualSubscriptionLookupIdInput?.value.trim() || '';
         const requestPassword = manualSubscriptionLookupPasswordInput?.value || '';
-        if (!loginIdKey || !requestPassword) {
-            manualSubscriptionLookupResult.textContent = '신청한 ID와 비밀번호를 모두 입력해주세요.';
+        if (!requestId || !requestPassword) {
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '신청번호와 조회 비밀번호를 모두 입력해주세요.');
             return;
         }
-        let data = null;
-        const query = `orderBy=${encodeURIComponent('"desiredLoginIdKey"')}&equalTo=${encodeURIComponent(`"${loginIdKey}"`)}`;
-        const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests.json?${query}`);
-        if (response.ok) {
-            data = await response.json();
-        } else {
-            const fallbackResponse = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests.json`);
-            if (!fallbackResponse.ok) {
-                manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-                return;
-            }
-            const allData = await fallbackResponse.json();
-            data = Object.fromEntries(
-                Object.entries(allData || {}).filter(([, value]) => getAdvancedLoginIdKey(value?.desiredLoginIdKey || value?.desiredLoginId) === loginIdKey)
-            );
-        }
-        const records = Object.entries(data || {})
-            .map(([key, value]) => ({ ...value, requestId: key }))
-            .sort((a, b) => ((b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0)));
-        if (!records.length) {
-            manualSubscriptionLookupResult.textContent = '해당 ID로 신청된 내역을 찾지 못했습니다.';
+        const record = await fetchSubscriptionRequestRecord(requestId);
+        if (!record) {
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.');
             return;
         }
-        for (const record of records) {
-            try {
-                const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
-                if (getAdvancedLoginIdKey(payload?.desiredLoginId) !== loginIdKey) continue;
-                renderManualRequestLookup(record, payload);
-                return;
-            } catch (error) {
-                // Try the next record with the same desired login ID.
-            }
+        try {
+            const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
+            renderManualRequestLookup(record, payload);
+        } catch (error) {
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupDecryptError', '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.');
         }
-        manualSubscriptionLookupResult.textContent = 'ID 또는 비밀번호가 일치하지 않습니다.';
     };
 
-    const openAdvancedModeWindow = () => {
-        const launch = activateAdvancedSession();
+    const openAdvancedModeWindow = async () => {
+        const validBundle = await syncStoredAdvancedLicenseState({ silent: true });
+        if (!validBundle) {
+            if (advancedAccessStatus) {
+                advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청번호와 조회 비밀번호로 다시 확인해주세요.');
+                advancedAccessStatus.style.color = '#b91c1c';
+            }
+            return false;
+        }
+        const launch = {
+            targetUrl: buildAdvancedLaunchUrl(),
+            popupName: 'skct_popup_mode'
+        };
         updateAdvancedAccessPanel();
         if (isPopupMode) {
             window.name = launch.popupName;
@@ -2983,12 +3016,6 @@ document.addEventListener('DOMContentLoaded', () => {
         schedulePopupEditorSync();
     };
 
-    window.applyRemoteAdvancedFeatureConfig = (advancedFeatureConfig) => {
-        remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig(advancedFeatureConfig);
-        isAdvancedConfigReady = true;
-        updateAdvancedAccessPanel();
-    };
-
     // 부드러운 알람 비프음 (Web Audio API)
     let audioCtx = null;
     const initAudio = () => {
@@ -3369,8 +3396,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
             ensureManualSubscriptionStartDate();
             const recentRequest = readRecentRequestInfo();
-            if (recentRequest?.loginId && manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
-                manualSubscriptionLookupIdInput.value = recentRequest.loginId;
+            if (recentRequest?.requestId) {
+                if (manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
+                    manualSubscriptionLookupIdInput.value = recentRequest.requestId;
+                }
+                if (advancedAccessIdInput && !advancedAccessIdInput.value) {
+                    advancedAccessIdInput.value = recentRequest.requestId;
+                }
             }
             updateAdvancedAccessPanel();
             advancedGuideModal.classList.remove('hidden');
@@ -3447,23 +3479,22 @@ document.addEventListener('DOMContentLoaded', () => {
         isConfigReady() {
             return isAdvancedConfigReady;
         },
-        async validateCredentials(loginId, password) {
-            return validateAdvancedCredentials(loginId, password);
+        async applyLicenseFromRequest(requestId, requestPassword) {
+            return hydrateAdvancedLicenseFromRequest(requestId, requestPassword);
         },
-        async validateCredentialsDetailed(loginId, password) {
-            return validateAdvancedCredentialsDetailed(loginId, password);
+        async syncStoredLicense() {
+            return syncStoredAdvancedLicenseState({ silent: true });
         },
-        async validatePassword(password) {
-            return validateAdvancedPassword(password);
-        },
-        async validatePasswordDetailed(password) {
-            return validateAdvancedPasswordDetailed(password);
-        },
-        activateAdvancedSession() {
-            return activateAdvancedSession();
+        clearStoredLicense() {
+            clearStoredAdvancedLicenseBundle();
+            setAdvancedModeState(false);
+            removeAdvancedQueryParam();
+            updateAdvancedAccessPanel();
+            return true;
         },
         getAdvancedSnapshot() {
             return {
+                license: verifiedAdvancedLicenseBundle?.payload || null,
                 timer: {
                     configuredTotalMinutes: configTotalMins,
                     subjectMinutes: configSubjectMins,
@@ -3495,15 +3526,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (advancedAccessSubmitBtn) {
         advancedAccessSubmitBtn.addEventListener('click', async () => {
-            if (isAdvancedMode) return;
-            const loginId = advancedAccessIdInput?.value || '';
+            const requestId = advancedAccessIdInput?.value.trim() || '';
             const password = advancedAccessPasswordInput?.value || '';
             if (!isAdvancedConfigReady) {
                 if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedConfig', '고급 구독 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedConfig', '고급 라이선스 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
                     advancedAccessStatus.style.color = '#b45309';
                 }
                 updateAdvancedAccessPanel();
+                return;
+            }
+            if ((!requestId || !password) && verifiedAdvancedLicenseBundle) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedOpening', '고급 버전 팝업을 여는 중입니다.');
+                    advancedAccessStatus.style.color = '#0f766e';
+                }
+                await openAdvancedModeWindow();
                 return;
             }
             const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
@@ -3518,28 +3556,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = readSiteText('messages.advancedChecking', 'ID와 비밀번호를 확인하고 있습니다...');
+                advancedAccessStatus.textContent = readSiteText('messages.advancedChecking', '신청번호와 조회 비밀번호를 확인하고 있습니다...');
                 advancedAccessStatus.style.color = '#64748b';
             }
-            const validationResult = await validateAdvancedCredentialsDetailed(loginId, password);
-            if (!validationResult.ok) {
+            const licenseResult = await hydrateAdvancedLicenseFromRequest(requestId, password);
+            if (!licenseResult.ok) {
                 const failState = registerAdvancedPasswordFailure();
                 if (advancedAccessStatus) {
                     const nextCooldownRemainingMs = Number.isFinite(failState.lockedUntil)
                         ? Math.max(0, failState.lockedUntil - Date.now())
                         : 0;
                     advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
-                        ? `ID 또는 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
-                        : validationResult.reason === 'expired'
-                            ? 'ID와 비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
-                            : validationResult.reason === 'empty_password'
-                                ? '비밀번호를 입력해주세요.'
-                                : validationResult.reason === 'empty'
-                                    ? 'ID와 비밀번호를 모두 입력해주세요.'
-                                    : 'ID 또는 비밀번호가 일치하지 않습니다.';
+                        ? `신청번호 또는 조회 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
+                        : licenseResult.reason === 'pending'
+                            ? '아직 승인 전입니다. 신청 조회에서 상태를 먼저 확인해주세요.'
+                            : licenseResult.reason === 'rejected'
+                                ? '이 신청은 반려 상태입니다. 처리 메모를 확인해주세요.'
+                                : licenseResult.reason === 'invalid_license'
+                                    ? '승인된 라이선스를 검증하지 못했습니다. 관리자에게 다시 문의해주세요.'
+                                    : licenseResult.reason === 'not_found'
+                                        ? '해당 신청번호를 찾지 못했습니다.'
+                                        : !password
+                                            ? '조회 비밀번호를 입력해주세요.'
+                                            : !requestId
+                                                ? '신청번호를 입력해주세요.'
+                                                : '신청번호 또는 조회 비밀번호가 일치하지 않습니다.';
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
-                if (!String(loginId || '').trim() && advancedAccessIdInput) {
+                if (!String(requestId || '').trim() && advancedAccessIdInput) {
                     advancedAccessIdInput.focus();
                     advancedAccessIdInput.select();
                 } else if (advancedAccessPasswordInput) {
@@ -3554,7 +3598,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 advancedAccessStatus.textContent = readSiteText('messages.advancedOpening', '고급 버전 팝업을 여는 중입니다.');
                 advancedAccessStatus.style.color = '#0f766e';
             }
-            openAdvancedModeWindow();
+            await openAdvancedModeWindow();
         });
     }
 
@@ -3642,14 +3686,15 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const style = typeColors[data.type] || typeColors.info;
 
-        // message에서 줄바꿈을 <br>로 변환
-        const formattedMessage = (data.message || '').replace(/\n/g, '<br>');
+        const formattedTitle = formatInlineHtml(data.title || '공지');
+        const formattedMessage = formatMultilineHtml(data.message || '');
+        const formattedUpdated = escapeHtml(data.updated || '');
 
         noticeContainer.innerHTML = `
             <div style="background: ${style.bg}; border: 1px solid ${style.border}; border-left: 4px solid ${style.border}; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px;">
-                <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px;">${style.icon} ${data.title || '공지'}</div>
+                <div style="font-weight: bold; color: #1e293b; margin-bottom: 4px;">${style.icon} ${formattedTitle}</div>
                 <div style="color: #475569; line-height: 1.5;">${formattedMessage}</div>
-                ${data.updated ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: right;">📅 ${data.updated}</div>` : ''}
+                ${data.updated ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 6px; text-align: right;">📅 ${formattedUpdated}</div>` : ''}
             </div>
         `;
     }

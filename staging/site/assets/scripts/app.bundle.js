@@ -584,7 +584,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return div.innerHTML;
     };
 
-    const formatMultilineHtml = (value) => escapeHtml(value || '').replace(/\n/g, '<br>');
+    const sanitizeConfiguredHtml = (value, multiline = false) => {
+        if (window.SKCTSiteTextConfig?.sanitizeHtml) {
+            return window.SKCTSiteTextConfig.sanitizeHtml(value, { multiline });
+        }
+        const escaped = escapeHtml(value || '');
+        return multiline ? escaped.replace(/\n/g, '<br>') : escaped;
+    };
+
+    const formatMultilineHtml = (value) => sanitizeConfiguredHtml(value, true);
+    const formatInlineHtml = (value) => sanitizeConfiguredHtml(value, false);
+    const sanitizeUrl = (value) => {
+        const text = String(value || '').trim();
+        return /^(https?:)?\/\//i.test(text) ? text : '#';
+    };
 
     const DEFAULT_SUPPORT_CONFIG = {
         modalTitle: "☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!",
@@ -611,7 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const buttonEl = document.getElementById('donateConfirmBtn');
         const breakHintEl = document.getElementById('breakSupportHint');
 
-        if (titleEl) titleEl.innerHTML = support.modalTitle || DEFAULT_SUPPORT_CONFIG.modalTitle;
+        if (titleEl) titleEl.innerHTML = formatInlineHtml(support.modalTitle || DEFAULT_SUPPORT_CONFIG.modalTitle);
         if (leadEl) leadEl.innerHTML = formatMultilineHtml(support.modalLead);
         if (bodyEl) bodyEl.innerHTML = formatMultilineHtml(support.modalBody);
         if (promiseEl) promiseEl.innerHTML = formatMultilineHtml(support.modalPromise);
@@ -629,7 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (contactText && contactUrl) {
                 const resolvedUrl = contactUrl.includes('@') && !/^https?:/i.test(contactUrl) && !/^mailto:/i.test(contactUrl)
                     ? `mailto:${contactUrl}`
-                    : contactUrl;
+                    : sanitizeUrl(contactUrl);
                 contactEl.innerHTML = `<a href="${escapeHtml(resolvedUrl)}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:none; font-weight:600;">${escapeHtml(contactText)}</a>`;
                 contactEl.style.display = 'block';
             } else if (contactText) {
@@ -3279,7 +3292,6 @@ let allPosts = {};
 let replyCache = {}; // 댓글 캐시
 let expandedPost = null;
 let isAdmin = false;
-let adminHash = null;
 let postsListener = null;
 
 // Session ID for likes (anonymous, per-browser)
@@ -3306,11 +3318,15 @@ function getSavedNick() { return localStorage.getItem('stg_skct_cm_nick') || '';
 function saveNick(n) { localStorage.setItem('stg_skct_cm_nick', n); }
 
 // ── Firebase Config (One-shot fetch) ──
+const COMMUNITY_PUBLIC_CONFIG_KEYS = ['notice', 'notice_community', 'popularConfig'];
+
 async function listenConfig() {
     try {
-        const snap = await get(ref(getDb(), 'config'));
-        if (!snap.exists()) return;
-        const cfg = snap.val();
+        const entries = await Promise.all(COMMUNITY_PUBLIC_CONFIG_KEYS.map(async (key) => {
+            const snap = await get(ref(getDb(), `config/${key}`));
+            return [key, snap.exists() ? snap.val() : undefined];
+        }));
+        const cfg = Object.fromEntries(entries.filter(([, value]) => value !== undefined));
         const noticeData = cfg.notice_community || cfg.notice;
         if (noticeData) renderNotice(noticeData);
         else { const el = document.getElementById('cmNotice'); if (el) el.innerHTML = ''; }
@@ -3324,16 +3340,19 @@ function renderNotice(data) {
     const el = document.getElementById('cmNotice');
     if (!el) return;
     if (!data || !data.show) { el.innerHTML = ''; return; }
+    const sanitizeNoticeHtml = (value) => window.SKCTSiteTextConfig?.sanitizeHtml
+        ? window.SKCTSiteTextConfig.sanitizeHtml(value, { multiline: true })
+        : esc(String(value || '')).replace(/\n/g, '<br>');
     const colors = { info:{bg:'#eff6ff',br:'#3b82f6',ic:'💡'}, warning:{bg:'#fffbeb',br:'#f59e0b',ic:'⚠️'}, update:{bg:'#f0fdf4',br:'#22c55e',ic:'🆕'}, event:{bg:'#fdf4ff',br:'#a855f7',ic:'🎉'} };
     const s = colors[data.type] || colors.info;
     el.innerHTML = `<div id="cmNoticeWrapper" class="cm-notice" style="cursor:pointer; background:${s.bg};border:1px solid ${s.br};border-left:4px solid ${s.br};">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-weight:bold;color:#1e293b;">${s.ic} ${data.title||'공지'}</div>
+            <div style="font-weight:bold;color:#1e293b;">${s.ic} ${esc(data.title || '공지')}</div>
             <div id="cmNoticeToggleIcon" style="font-size:10px; color:#64748b; background:rgba(0,0,0,0.05); padding:2px 6px; border-radius:4px;">▼ 펼치기</div>
         </div>
         <div id="cmNoticeBody" style="display:none; margin-top:8px; border-top:1px dashed ${s.br}; padding-top:8px;">
-            <div style="color:#475569;line-height:1.5;font-size:13px;">${(data.message||'').replace(/\n/g,'<br>')}</div>
-            ${data.updated?`<div style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:right;">📅 ${data.updated}</div>`:''}
+            <div style="color:#475569;line-height:1.5;font-size:13px;">${sanitizeNoticeHtml(data.message || '')}</div>
+            ${data.updated?`<div style="font-size:11px;color:#94a3b8;margin-top:6px;text-align:right;">📅 ${esc(data.updated)}</div>`:''}
         </div>
     </div>`;
 
@@ -3434,10 +3453,7 @@ async function softDeleteReply(pid, rid, password) {
 
 // ── Admin ──
 async function adminLogin(code) {
-    if (isStagingReadOnly) return showReadOnlyNotice();
-    if (!adminHash) { alert('Firebase Console에서 staging_hidden_v1/config/adminHash를 설정하세요.'); return; }
-    if ((await sha256(code)) !== adminHash) { alert('관리자 코드가 틀립니다.'); return; }
-    isAdmin = true; alert('✅ 관리자 모드!'); renderTab();
+    alert('스테이징 커뮤니티 관리자 프롬프트는 더 이상 사용하지 않습니다. 관리자 작업은 로컬 전용 admin.html에서 Firebase Auth로 로그인해 진행하세요.');
 }
 async function adminMoveToFaq(pid) { if (isStagingReadOnly) return showReadOnlyNotice(); if (!isAdmin) return; await update(ref(getDb(), `staging_hidden_v1/posts/${pid}`), { category: 'faq' }); }
 async function adminPinPost(pid) { if (isStagingReadOnly) return showReadOnlyNotice(); if (!isAdmin) return; const s = await get(ref(getDb(), `staging_hidden_v1/posts/${pid}/pinned`)); await update(ref(getDb(), `staging_hidden_v1/posts/${pid}`), { pinned: !(s.val()||false) }); }
@@ -3696,9 +3712,8 @@ function init() {
     });
     document.querySelectorAll('.cm-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
     document.getElementById('cmSubmitBtn')?.addEventListener('click', submitPost);
-    // Admin: double-click title
     document.getElementById('cmTitle')?.addEventListener('dblclick', () => {
-        const c = prompt('관리자 코드:'); if (c) adminLogin(c);
+        adminLogin('');
     });
 }
 
