@@ -64,13 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
-    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권'];
+    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
+    const PERMANENT_ADVANCED_PLAN_TYPE = '영구이용권';
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
         subscriptions: [
             {
                 id: 'seed-0208',
-                planType: '1년 이용권',
+                planType: PERMANENT_ADVANCED_PLAN_TYPE,
                 userIdentity: '운영자 기본값',
                 loginId: 'seed-0208',
                 status: 'active',
@@ -208,18 +209,40 @@ document.addEventListener('DOMContentLoaded', () => {
         return normalizeAdvancedLoginId(value).toLowerCase();
     }
 
+    function normalizeAdvancedExpiresAt(value) {
+        return String(value || '').trim();
+    }
+
+    function isPermanentAdvancedSubscription(planType, expiresAt) {
+        return normalizeAdvancedPlanType(planType) === PERMANENT_ADVANCED_PLAN_TYPE || !normalizeAdvancedExpiresAt(expiresAt);
+    }
+
+    function normalizeAdvancedPersistenceFields(planType, expiresAt) {
+        if (isPermanentAdvancedSubscription(planType, expiresAt)) {
+            return {
+                planType: PERMANENT_ADVANCED_PLAN_TYPE,
+                expiresAt: ''
+            };
+        }
+        return {
+            planType: normalizeAdvancedPlanType(planType),
+            expiresAt: normalizeAdvancedExpiresAt(expiresAt)
+        };
+    }
+
     function normalizeAdvancedSubscription(raw, index = 0) {
         const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
         const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
+        const persistence = normalizeAdvancedPersistenceFields(raw?.planType || raw?.planName || fallback.planType, raw?.expiresAt);
         return {
             id: String(raw?.id || `subscription-${index + 1}`),
-            planType: normalizeAdvancedPlanType(raw?.planType || raw?.planName || fallback.planType),
+            planType: persistence.planType,
             userIdentity: String(raw?.userIdentity || raw?.memberLabel || '').trim(),
             loginId: normalizeAdvancedLoginId(raw?.loginId || raw?.externalId || (raw?.id === 'seed-0208' ? 'seed-0208' : '')),
             status,
             passwordSalt: String(raw?.passwordSalt || '').trim(),
             passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
-            expiresAt: String(raw?.expiresAt || '').trim(),
+            expiresAt: persistence.expiresAt,
             note: String(raw?.note || '').trim()
         };
     }

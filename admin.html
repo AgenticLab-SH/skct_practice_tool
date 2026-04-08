@@ -281,7 +281,7 @@
                         </div>
                     </div>
                     <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.6;">
-                        이제부터는 <strong>ID + 비밀번호</strong> 기준으로 관리합니다. <strong>사용자 식별</strong>은 이름/이메일 같은 관리자 확인용 표시이고, <strong>ID</strong>는 사용자가 로그인할 때 직접 입력하는 계정 이름입니다.
+                        이제부터는 <strong>ID + 비밀번호</strong> 기준으로 관리합니다. <strong>사용자 식별</strong>은 이름/이메일 같은 관리자 확인용 표시이고, <strong>ID</strong>는 사용자가 로그인할 때 직접 입력하는 계정 이름입니다. <strong>만료일을 비우거나 구독 종류를 영구이용권</strong>으로 두면 영구 계정으로 저장됩니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; margin-bottom:10px;">
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
@@ -294,11 +294,11 @@
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
                             <strong style="display:block; color:#0f172a;">비밀번호</strong>
-                            저장하면 원문 대신 해시만 남습니다. 비워두면 기존 비밀번호를 유지합니다.
+                            저장하면 로그인 검증용 해시와 관리자 확인용 암호문을 함께 갱신합니다. 비워두면 기존 비밀번호를 유지합니다.
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
                             <strong style="display:block; color:#0f172a;">만료일</strong>
-                            선택한 날짜의 정오 12:00(KST)까지 사용할 수 있습니다.
+                            선택한 날짜의 정오 12:00(KST)까지 사용할 수 있습니다. 비워두면 영구이용권으로 저장됩니다.
                         </div>
                     </div>
                     <div id="advancedSubscriptionSummary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:10px;">
@@ -594,24 +594,28 @@
         };
     }
 
-    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권'];
+    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const ADVANCED_SUBSCRIPTION_STATUS_OPTIONS = [
         { value: 'active', label: '사용중' },
         { value: 'paused', label: '일시중지' },
         { value: 'expired', label: '만료' }
     ];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
+    const PERMANENT_ADVANCED_PLAN_TYPE = '영구이용권';
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
         subscriptions: [
             {
                 id: 'seed-0208',
-                planType: '1년 이용권',
+                planType: PERMANENT_ADVANCED_PLAN_TYPE,
                 userIdentity: '운영자 기본값',
                 loginId: 'seed-0208',
                 status: 'active',
                 passwordSalt: 'seed-20260406',
                 passwordHash: 'a1c558a1b233a95e200e0d78af383b407fc9326d5b46ee8107cf5a4dccba5ac9',
                 expiresAt: '',
+                passwordCipher: '',
+                passwordCipherIv: '',
+                passwordCipherSalt: '',
                 note: '기본 운영 계정'
             }
         ]
@@ -630,6 +634,97 @@
         return normalizeAdvancedLoginId(value).toLowerCase();
     }
 
+    function normalizeAdvancedExpiresAt(value) {
+        return String(value || '').trim();
+    }
+
+    function isPermanentAdvancedSubscription(planType, expiresAt) {
+        return normalizeAdvancedPlanType(planType) === PERMANENT_ADVANCED_PLAN_TYPE || !normalizeAdvancedExpiresAt(expiresAt);
+    }
+
+    function normalizeAdvancedPersistenceFields(planType, expiresAt) {
+        if (isPermanentAdvancedSubscription(planType, expiresAt)) {
+            return {
+                planType: PERMANENT_ADVANCED_PLAN_TYPE,
+                expiresAt: ''
+            };
+        }
+        return {
+            planType: normalizeAdvancedPlanType(planType),
+            expiresAt: normalizeAdvancedExpiresAt(expiresAt)
+        };
+    }
+
+    function bytesToBase64(bytes) {
+        let binary = '';
+        bytes.forEach((byte) => {
+            binary += String.fromCharCode(byte);
+        });
+        return btoa(binary);
+    }
+
+    function base64ToBytes(base64) {
+        const binary = atob(base64);
+        return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+    }
+
+    async function deriveAdminPasswordKey(adminPassword, saltBytes) {
+        const baseKey = await crypto.subtle.importKey(
+            'raw',
+            new TextEncoder().encode(adminPassword),
+            'PBKDF2',
+            false,
+            ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+            {
+                name: 'PBKDF2',
+                salt: saltBytes,
+                iterations: 120000,
+                hash: 'SHA-256'
+            },
+            baseKey,
+            {
+                name: 'AES-GCM',
+                length: 256
+            },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    async function encryptAdminRecoverablePassword(password, adminPassword) {
+        if (!adminPassword) {
+            throw new Error('관리자 비밀번호가 메모리에 없어 비밀번호 확인용 암호화를 진행할 수 없습니다. 다시 로그인해주세요.');
+        }
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveAdminPasswordKey(adminPassword, salt);
+        const encoded = new TextEncoder().encode(String(password || ''));
+        const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+        return {
+            passwordCipher: bytesToBase64(new Uint8Array(encrypted)),
+            passwordCipherIv: bytesToBase64(iv),
+            passwordCipherSalt: bytesToBase64(salt)
+        };
+    }
+
+    async function decryptAdminRecoverablePassword(subscription, adminPassword) {
+        if (!adminPassword) {
+            throw new Error('관리자 비밀번호가 메모리에 없어 비밀번호를 확인할 수 없습니다. 다시 로그인해주세요.');
+        }
+        if (!subscription?.passwordCipher || !subscription?.passwordCipherIv || !subscription?.passwordCipherSalt) {
+            throw new Error('이 계정은 예전 해시 전용 방식으로 저장되어 비밀번호를 바로 확인할 수 없습니다. 새 비밀번호로 초기화한 뒤부터 확인 가능합니다.');
+        }
+        const key = await deriveAdminPasswordKey(adminPassword, base64ToBytes(subscription.passwordCipherSalt));
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: base64ToBytes(subscription.passwordCipherIv) },
+            key,
+            base64ToBytes(subscription.passwordCipher)
+        );
+        return new TextDecoder().decode(decrypted);
+    }
+
     function buildLegacySubscription(password, index = 0) {
         return {
             id: `legacy-${index + 1}`,
@@ -640,6 +735,9 @@
             passwordSalt: '',
             passwordHash: '',
             expiresAt: '',
+            passwordCipher: '',
+            passwordCipherIv: '',
+            passwordCipherSalt: '',
             note: '기존 평문 비밀번호 마이그레이션 필요',
             _plainPassword: String(password || '').trim()
         };
@@ -648,15 +746,19 @@
     function normalizeAdvancedSubscription(raw, index = 0) {
         const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
         const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
+        const persistence = normalizeAdvancedPersistenceFields(raw?.planType || raw?.planName || fallback.planType, raw?.expiresAt);
         return {
             id: String(raw?.id || `subscription-${index + 1}`),
-            planType: normalizeAdvancedPlanType(raw?.planType || raw?.planName || fallback.planType),
+            planType: persistence.planType,
             userIdentity: String(raw?.userIdentity || raw?.memberLabel || '').trim(),
             loginId: normalizeAdvancedLoginId(raw?.loginId || raw?.externalId || (raw?.id === 'seed-0208' ? 'seed-0208' : '')),
             status,
             passwordSalt: String(raw?.passwordSalt || '').trim(),
             passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
-            expiresAt: String(raw?.expiresAt || '').trim(),
+            expiresAt: persistence.expiresAt,
+            passwordCipher: String(raw?.passwordCipher || '').trim(),
+            passwordCipherIv: String(raw?.passwordCipherIv || '').trim(),
+            passwordCipherSalt: String(raw?.passwordCipherSalt || '').trim(),
             note: String(raw?.note || '').trim(),
             _plainPassword: String(raw?._plainPassword || '').trim()
         };
@@ -692,6 +794,9 @@
             passwordSalt: '',
             passwordHash: '',
             expiresAt: '',
+            passwordCipher: '',
+            passwordCipherIv: '',
+            passwordCipherSalt: '',
             note: '',
             _plainPassword: ''
         };
@@ -754,6 +859,25 @@
         return String(Math.floor(100000 + Math.random() * 900000));
     }
 
+    function syncAdvancedExpiryInput(row) {
+        const planSelect = row.querySelector('[data-field="planType"]');
+        const expiresInput = row.querySelector('[data-field="expiresAt"]');
+        const hintEl = row.querySelector('[data-role="expiresHint"]');
+        if (!planSelect || !expiresInput || !hintEl) return;
+        const isPermanent = normalizeAdvancedPlanType(planSelect.value) === PERMANENT_ADVANCED_PLAN_TYPE || !expiresInput.value;
+        if (isPermanent) {
+            planSelect.value = PERMANENT_ADVANCED_PLAN_TYPE;
+            expiresInput.value = '';
+            expiresInput.disabled = true;
+            expiresInput.placeholder = '영구이용권';
+            hintEl.textContent = '만료일 비움 = 영구이용권';
+        } else {
+            expiresInput.disabled = false;
+            expiresInput.placeholder = '';
+            hintEl.textContent = '선택한 날짜 정오 12:00까지 사용';
+        }
+    }
+
     function formatPopupLayoutSummary(popupLayout, layoutRatios, toolUiConfig) {
         const popup = normalizePopupLayout(popupLayout);
         const ratios = normalizeLayoutRatios(layoutRatios);
@@ -799,6 +923,7 @@
 
     // ── State ──
     let adminHash = null;
+    let currentAdminPassword = '';
     let isLoggedIn = false;
     let allPosts = {};
     let currentFilter = 'all';
@@ -823,6 +948,7 @@
                 const hash = await sha256(pw);
                 await set(ref(db, 'config/adminHash'), hash);
                 adminHash = hash;
+                currentAdminPassword = pw;
                 enterDashboard();
                 toast('✅ 관리자 비밀번호가 설정되었습니다!');
             }
@@ -832,6 +958,7 @@
         adminHash = snap.val();
         const inputHash = await sha256(pw);
         if (inputHash === adminHash) {
+            currentAdminPassword = pw;
             enterDashboard();
         } else {
             document.getElementById('loginError').style.display = 'block';
@@ -848,6 +975,7 @@
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
         isLoggedIn = false;
+        currentAdminPassword = '';
         document.getElementById('dashboard').classList.remove('active');
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('loginPw').value = '';
@@ -1377,7 +1505,7 @@
             ? advancedFeatureConfig.subscriptions
             : [createEmptySubscriptionRow()];
         if (statusEl) {
-            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요. 만료일은 선택한 날짜의 정오 12:00(KST)까지 유효합니다.';
+            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요. 만료일을 비우면 영구이용권으로 저장되며, 현재 비밀번호 확인은 새 암호문이 있는 계정만 가능합니다.';
             statusEl.style.color = 'var(--adm-text-muted)';
         }
         tableBody.innerHTML = '';
@@ -1386,7 +1514,9 @@
             row.dataset.subscriptionId = subscription.id;
             row.style.borderBottom = '1px solid #e2e8f0';
             const passwordState = subscription.passwordHash
-                ? '<span style="color:#0f766e; font-weight:700;">현재 비밀번호는 숨김 저장됨</span>'
+                ? (subscription.passwordCipher
+                    ? '<span style="color:#0f766e; font-weight:700;">관리자 비밀번호로 확인 가능</span>'
+                    : '<span style="color:#b45309; font-weight:700;">예전 해시 전용 계정, 확인 불가</span>')
                 : '<span style="color:#b45309; font-weight:700;">새 계정은 비밀번호가 필요합니다</span>';
             row.innerHTML = `
                 <td style="padding:8px;">
@@ -1403,14 +1533,18 @@
                 <td style="padding:8px;"><input class="form-input" data-field="loginId" value="${esc(subscription.loginId)}" placeholder="예: sb_user01"></td>
                 <td style="padding:8px;">
                     <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPassword || '')}" placeholder="새 계정은 필수 / 비워두면 기존 유지">
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:4px;">
+                    <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-top:4px;">
                         <div style="font-size:10px; color:#64748b;">${passwordState}</div>
-                        <button type="button" class="btn btn-ghost btn-sm" data-action="generate-password" style="padding:2px 8px; font-size:10px;">예시 생성</button>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                            <button type="button" class="btn btn-ghost btn-sm" data-action="reveal-password" style="padding:2px 8px; font-size:10px;">확인</button>
+                            <button type="button" class="btn btn-ghost btn-sm" data-action="reset-password" style="padding:2px 8px; font-size:10px;">초기화</button>
+                            <button type="button" class="btn btn-ghost btn-sm" data-action="generate-password" style="padding:2px 8px; font-size:10px;">예시 생성</button>
+                        </div>
                     </div>
                 </td>
                 <td style="padding:8px;">
                     <input class="form-input" data-field="expiresAt" type="date" value="${esc(subscription.expiresAt)}">
-                    <div style="margin-top:4px; font-size:10px; color:#64748b;">선택한 날짜 정오 12:00까지 사용</div>
+                    <div data-role="expiresHint" style="margin-top:4px; font-size:10px; color:#64748b;">선택한 날짜 정오 12:00까지 사용</div>
                 </td>
                 <td style="padding:8px;"><input class="form-input" data-field="note" value="${esc(subscription.note)}" placeholder="예: 입금 확인 완료, 1회 연장 약속"></td>
                 <td style="padding:8px; text-align:center;">
@@ -1427,11 +1561,56 @@
                     statusEl.style.color = 'var(--adm-text-muted)';
                 }
             });
+            row.querySelector('[data-action="reset-password"]').addEventListener('click', () => {
+                const passwordInput = row.querySelector('[data-field="newPassword"]');
+                passwordInput.type = 'text';
+                passwordInput.value = generateSuggestedAdvancedPassword();
+                passwordInput.focus();
+                passwordInput.select();
+                if (statusEl) {
+                    statusEl.textContent = '선택한 행 비밀번호를 새 값으로 초기화했습니다. 저장 버튼을 눌러야 실제 계정이 바뀝니다.';
+                    statusEl.style.color = '#b45309';
+                }
+            });
+            row.querySelector('[data-action="reveal-password"]').addEventListener('click', async () => {
+                const passwordInput = row.querySelector('[data-field="newPassword"]');
+                try {
+                    const visiblePassword = await decryptAdminRecoverablePassword(subscription, currentAdminPassword);
+                    passwordInput.type = 'text';
+                    passwordInput.value = visiblePassword;
+                    passwordInput.focus();
+                    passwordInput.select();
+                    if (statusEl) {
+                        statusEl.textContent = `계정(${subscription.loginId || '미지정'})의 현재 비밀번호를 표시했습니다.`;
+                        statusEl.style.color = '#0f766e';
+                    }
+                } catch (error) {
+                    if (statusEl) {
+                        statusEl.textContent = error.message || '비밀번호 확인 중 오류가 발생했습니다.';
+                        statusEl.style.color = '#b91c1c';
+                    }
+                }
+            });
             row.querySelector('[data-action="remove-subscription"]').addEventListener('click', () => {
                 const subs = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.filter((item) => item.id !== subscription.id);
                 loadedConfig.advancedFeatureConfig = { subscriptions: subs };
                 renderAdvancedFeatureForm();
             });
+            const planSelect = row.querySelector('[data-field="planType"]');
+            const expiresInput = row.querySelector('[data-field="expiresAt"]');
+            planSelect.addEventListener('change', () => {
+                if (normalizeAdvancedPlanType(planSelect.value) === PERMANENT_ADVANCED_PLAN_TYPE) {
+                    expiresInput.value = '';
+                }
+                syncAdvancedExpiryInput(row);
+            });
+            expiresInput.addEventListener('change', () => {
+                if (expiresInput.value && normalizeAdvancedPlanType(planSelect.value) === PERMANENT_ADVANCED_PLAN_TYPE) {
+                    planSelect.value = DEFAULT_ADVANCED_PLAN_TYPE;
+                }
+                syncAdvancedExpiryInput(row);
+            });
+            syncAdvancedExpiryInput(row);
             tableBody.appendChild(row);
         });
     }
@@ -1475,15 +1654,15 @@
         const usedLoginIds = new Set();
         for (const row of rows) {
             const status = row.querySelector('[data-field="status"]').value;
-            const planType = normalizeAdvancedPlanType(row.querySelector('[data-field="planType"]').value);
+            const rawPlanType = normalizeAdvancedPlanType(row.querySelector('[data-field="planType"]').value);
             const userIdentity = row.querySelector('[data-field="userIdentity"]').value.trim();
             const loginId = normalizeAdvancedLoginId(row.querySelector('[data-field="loginId"]').value);
             const newPassword = row.querySelector('[data-field="newPassword"]').value.trim();
-            const expiresAt = row.querySelector('[data-field="expiresAt"]').value;
+            const rawExpiresAt = row.querySelector('[data-field="expiresAt"]').value;
             const note = row.querySelector('[data-field="note"]').value.trim();
             const current = currentMap.get(row.dataset.subscriptionId) || createEmptySubscriptionRow();
             const hasExistingPassword = Boolean(current.passwordSalt && current.passwordHash);
-            const hasMeaningfulInput = Boolean(userIdentity || loginId || newPassword || expiresAt || note || hasExistingPassword);
+            const hasMeaningfulInput = Boolean(userIdentity || loginId || newPassword || rawExpiresAt || note || hasExistingPassword);
             if (!hasMeaningfulInput) continue;
             if (!userIdentity) {
                 throw new Error('사용자 식별은 비워둘 수 없습니다. 이름이나 이메일을 입력하세요.');
@@ -1499,21 +1678,29 @@
             if (!hasExistingPassword && !newPassword) {
                 throw new Error(`새 계정(${loginId})은 비밀번호가 필요합니다.`);
             }
+            const persistence = normalizeAdvancedPersistenceFields(rawPlanType, rawExpiresAt);
             const nextRow = {
                 id: current.id || createEmptySubscriptionRow().id,
-                planType,
+                planType: persistence.planType,
                 userIdentity,
                 loginId,
                 status,
                 passwordSalt: current.passwordSalt || '',
                 passwordHash: current.passwordHash || '',
-                expiresAt,
+                expiresAt: persistence.expiresAt,
+                passwordCipher: current.passwordCipher || '',
+                passwordCipherIv: current.passwordCipherIv || '',
+                passwordCipherSalt: current.passwordCipherSalt || '',
                 note
             };
             const sourcePassword = newPassword || current._plainPassword || '';
             if (sourcePassword) {
                 nextRow.passwordSalt = current.passwordSalt || (crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`);
                 nextRow.passwordHash = await hashAdvancedPassword(sourcePassword, nextRow.passwordSalt);
+                const encrypted = await encryptAdminRecoverablePassword(sourcePassword, currentAdminPassword);
+                nextRow.passwordCipher = encrypted.passwordCipher;
+                nextRow.passwordCipherIv = encrypted.passwordCipherIv;
+                nextRow.passwordCipherSalt = encrypted.passwordCipherSalt;
             }
             if (!nextRow.passwordSalt || !nextRow.passwordHash) {
                 throw new Error(`계정(${loginId})의 비밀번호가 비어 있습니다. 새 비밀번호를 입력하세요.`);
