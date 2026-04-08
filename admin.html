@@ -1202,11 +1202,21 @@
 
     async function persistAdvancedSubscriptionState(config, options = {}) {
         const normalizedConfig = normalizeAdvancedFeatureConfig(config);
+        const existingLicenseMap = await loadCurrentAdvancedAccountLicenseMap();
         const privateConfig = buildStoredAdvancedFeatureConfig(normalizedConfig);
         const publicAuthResult = await buildAdvancedAccountLicenseMap(normalizedConfig, options);
         loadedConfig.advancedFeatureConfig = normalizedConfig;
         await set(ref(db, 'config/advancedFeatureConfig'), privateConfig);
-        await set(ref(db, ADVANCED_ACCOUNT_LICENSES_PATH), Object.keys(publicAuthResult.records).length ? publicAuthResult.records : null);
+        const nextKeys = new Set(Object.keys(publicAuthResult.records));
+        const existingKeys = Object.keys(existingLicenseMap || {});
+        for (const loginIdKey of existingKeys) {
+            if (!nextKeys.has(loginIdKey)) {
+                await remove(ref(db, `${ADVANCED_ACCOUNT_LICENSES_PATH}/${loginIdKey}`));
+            }
+        }
+        for (const [loginIdKey, record] of Object.entries(publicAuthResult.records)) {
+            await set(ref(db, `${ADVANCED_ACCOUNT_LICENSES_PATH}/${loginIdKey}`), record);
+        }
         renderAdvancedFeatureForm();
         return {
             config: normalizedConfig,
