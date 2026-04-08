@@ -1,5 +1,5 @@
 # 2026-04-08 고급 모드 가이드 정리 및 OMR 통계 버튼 이동 기록
-작성일시: 2026-04-08 16:52:30 KST
+작성일시: 2026-04-08 16:55:44 KST
 
 ## 사용자 요청
 - 고급 모드 페이지에 불필요한 설명이 많아 더 간단하게 정리하고 싶음
@@ -40,5 +40,9 @@
   - 버튼 클릭 시 상태 문구 `문항별 상세 통계 TXT 다운로드를 시작했습니다.` 노출과 실제 TXT 다운로드 발생 확인
 
 ## 운영 반영 메모
-- 코드 검증과 로컬 브라우저 확인 후 `main` 브랜치에 반영 예정
-- 반영 후 원격 `main` HEAD와 운영 GitHub Pages 응답을 추가로 확인할 예정
+- 반영 커밋: `9f59070` (`feat: simplify advanced guide and move stats download`)
+- 원격 `main` HEAD 확인: `9f59070d3e9f9c83b83c9aa490a1298b8baae0c3`
+- 운영 GitHub Pages 확인
+  - `https://agenticlab-sh.github.io/skct_tool/index.html` 응답 코드 `200`
+  - 응답 본문에서 `고급 모드 활용 가이드` 문구 확인
+  - 응답 본문에서 `main.js?v=202604081710` 확인
