@@ -346,8 +346,8 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
-                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-06 15:25:00 +09:00</div>
-                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1600</div>
+                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-08 13:36:00 +09:00</div>
+                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: v2026.04.08.1336</div>
                 </div>
                 <!-- 모드 설정 -->
                 <div>
@@ -451,6 +451,7 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
+                    <div style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 로그인</div>
                     <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
                         고급 구독 정보를 불러오는 중입니다.
                     </div>
@@ -474,6 +475,7 @@
                     <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
                 </div>
                 <div style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
+                    <div style="font-size:15px; font-weight:800; color:#0f172a; margin-bottom:8px;">2. 고급 기능</div>
                     고급 이용자 버전에서는 아래 기능이 추가로 제공됩니다.
                 </div>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155; line-height:1.7;">
@@ -487,8 +489,109 @@
                     <div><strong>8. 실전 보정 기능</strong><br>실전 연습 흐름을 더 자연스럽게 이어갈 수 있는 보정 기능이 함께 제공됩니다.</div>
                     <div><strong>9. 무적모드(테스트)</strong><br>일반 버전에는 없는 별도 테스트 대응 기능도 포함됩니다.</div>
                 </div>
+                <div style="padding:14px; border-radius:10px; background:#fff7ed; border:1px solid #fed7aa; display:flex; flex-direction:column; gap:12px;">
+                    <div style="font-size:15px; font-weight:800; color:#9a3412;">3. 구독 등록 방법</div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+                        <div>
+                            <div style="font-size:12px; color:#9a3412; line-height:1.6; margin-top:4px;">
+                                지금은 <strong>7일권 / 14일권</strong>만 운영합니다. 정기구독과 토스 자동결제는 준비 중이며, 현재는 <strong>투네이션 후원 확인 후 운영자가 직접 승인</strong>하는 방식입니다.
+                            </div>
+                        </div>
+                        <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" style="padding:9px 12px; background:#ea580c; color:#fff; border-radius:999px; text-decoration:none; font-size:12px; font-weight:800; white-space:nowrap;">1. 투네이션 열기</a>
+                    </div>
+                    <div id="manualSubscriptionPlanCards" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
+                        <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #fdba74;">
+                            <div style="font-size:12px; color:#9a3412; font-weight:700;">7일 이용권</div>
+                            <div style="font-size:20px; font-weight:800; color:#7c2d12; margin-top:4px;">4,900원</div>
+                            <div style="font-size:11px; color:#9a3412; line-height:1.6; margin-top:6px;">시험 직전 단기 몰입용</div>
+                        </div>
+                        <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #fdba74;">
+                            <div style="font-size:12px; color:#9a3412; font-weight:700;">14일 이용권</div>
+                            <div style="font-size:20px; font-weight:800; color:#7c2d12; margin-top:4px;">7,900원</div>
+                            <div style="font-size:11px; color:#9a3412; line-height:1.6; margin-top:6px;">가장 추천하는 주력 이용권</div>
+                        </div>
+                    </div>
+                    <div style="padding:12px; border-radius:8px; background:#fff; border:1px dashed #fdba74; font-size:12px; color:#7c2d12; line-height:1.7;">
+                        <strong>등록 순서</strong><br>
+                        1. 기간과 금액을 확인합니다.<br>
+                        2. 위 버튼으로 투네이션 후원을 진행합니다.<br>
+                        3. 아래 <strong>비밀 구독 게시판 양식</strong>을 칸에 맞게 작성합니다.<br>
+                        4. 발급된 <strong>신청번호 + 조회 비밀번호</strong>를 꼭 저장합니다.<br>
+                        5. 운영자가 후원 내역 확인 후 승인/반려 처리합니다.<br>
+                        6. 승인되면 같은 창에서 <strong>발급된 ID와 비밀번호</strong>를 조회합니다.
+                    </div>
+                </div>
+                <div style="padding:14px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; display:flex; flex-direction:column; gap:10px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                        <div style="font-size:14px; font-weight:800; color:#0f172a;">3-1. 비밀 구독 게시판 작성</div>
+                        <div style="font-size:11px; color:#64748b;">신청자 본인과 관리자만 내용을 확인할 수 있습니다.</div>
+                    </div>
+                    <div style="font-size:12px; color:#475569; line-height:1.7;">
+                        아래 칸을 순서대로 채우면 비밀글처럼 저장됩니다. 운영자는 전체 신청을 볼 수 있고, 신청자는 <strong>신청번호 + 조회 비밀번호</strong>로 자신의 신청만 다시 열어볼 수 있습니다.
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>구독권 선택</span>
+                            <select id="manualSubscriptionPlanSelect" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                                <option value="manual-7d">7일 이용권</option>
+                                <option value="manual-14d">14일 이용권</option>
+                            </select>
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>투네이션 이름</span>
+                            <input id="manualSubscriptionDonationNameInput" type="text" autocomplete="off" placeholder="투네이션 닉네임" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>이용 시작일</span>
+                            <input id="manualSubscriptionStartDateInput" type="date" autocomplete="off" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>ID</span>
+                            <input id="manualSubscriptionDesiredIdInput" type="text" autocomplete="off" placeholder="희망 ID (예: sb_user01)" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>닉네임</span>
+                            <input id="manualSubscriptionNicknameInput" type="text" autocomplete="off" placeholder="사이트 표시 닉네임" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>이메일(신청자)</span>
+                            <input id="manualSubscriptionEmailInput" type="email" autocomplete="off" placeholder="이메일" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>조회 비밀번호</span>
+                            <input id="manualSubscriptionPasswordInput" type="password" autocomplete="new-password" placeholder="조회 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                        <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                            <span>조회 비밀번호 확인</span>
+                            <input id="manualSubscriptionPasswordConfirmInput" type="password" autocomplete="new-password" placeholder="조회 비밀번호 확인" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                        </label>
+                    </div>
+                    <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
+                        <span>메모 (선택)</span>
+                        <textarea id="manualSubscriptionMemoInput" rows="3" placeholder="남길 메모가 있으면 적어주세요. 예: 토요일부터 사용 예정" style="padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; line-height:1.6; resize:vertical;"></textarea>
+                    </label>
+                    <div style="font-size:11px; color:#64748b; line-height:1.7;">
+                        실제 고급 로그인 비밀번호는 <strong>승인 후 운영자가 발급</strong>합니다. 여기의 비밀번호는 <strong>신청 내역 조회용</strong>이며, 신청번호와 함께 꼭 보관해야 합니다.
+                    </div>
+                    <button id="manualSubscriptionSubmitBtn" type="button" style="padding:11px 14px; background:#0f766e; color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer;">비밀글 신청 저장</button>
+                    <div id="manualSubscriptionSubmitStatus" style="min-height:20px; font-size:12px; color:#64748b; line-height:1.6;"></div>
+                </div>
+                <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
+                    <div style="font-size:14px; font-weight:800; color:#1d4ed8;">3-2. 내 비밀글 조회</div>
+                    <div style="font-size:12px; color:#1e40af; line-height:1.7;">
+                        신청 후 받은 <strong>신청번호</strong>와 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태와 발급 결과를 볼 수 있습니다.
+                    </div>
+                    <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
+                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="manualSubscriptionLookupPasswordInput" type="password" autocomplete="off" placeholder="조회 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <button id="manualSubscriptionLookupBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">조회</button>
+                    </div>
+                    <div id="manualSubscriptionLookupResult" style="min-height:24px; font-size:12px; color:#334155; line-height:1.7;"></div>
+                </div>
                 <div style="padding:12px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; font-size:13px; line-height:1.7; color:#1e3a8a;">
-                    고급 기능 사용 문의: <strong>zhdlsqpdj@gmail.com</strong>
+                    구독 문의 및 승인 확인: <strong>zhdlsqpdj@gmail.com</strong>
                 </div>
             </div>
         </div>
@@ -501,8 +604,21 @@
                 <button class="close-modal btn-close">×</button>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
+                <div style="padding:12px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; font-size:13px; line-height:1.7; color:#1e3a8a;">
+                    <div style="font-weight:800; margin-bottom:6px;">이용 순서</div>
+                    1. 로그인: 현재 창은 이미 고급 ID와 비밀번호 인증을 통과한 상태입니다.<br>
+                    2. 기능: 아래 고급 기능으로 실전 연습과 복기를 더 깊게 할 수 있습니다.<br>
+                    3. 구독 등록 방법: 연장이나 추가 이용권은 투네이션 후원 뒤 신청/조회 안내에서 같은 방식으로 등록할 수 있습니다.
+                </div>
                 <div style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
                     현재 창은 숨김 인증을 통과한 고급 이용자 전용 버전입니다. 주소와 버전 표기에도 고급버전이 반영되며, 아래 항목이 일반 모드와 다르게 적용됩니다.
+                </div>
+                <div style="padding:12px 14px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa; font-size:13px; line-height:1.7; color:#9a3412;">
+                    현재 고급 이용권은 <strong>7일권 / 14일권</strong>만 수동 승인 방식으로 운영 중입니다. 기간별 금액 확인 -> 투네이션 후원 -> 비밀 구독 게시판 신청 -> 승인 후 발급/조회 순서로 진행하며, 연장과 재발급도 같은 흐름을 사용합니다.
+                    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+                        <button id="advancedFeatureManualFlowBtn" type="button" style="padding:8px 12px; background:#ea580c; color:#fff; border:none; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer;">신청/조회 안내 열기</button>
+                        <a id="advancedFeatureDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" style="padding:8px 12px; background:#fff; color:#c2410c; border:1px solid #fdba74; border-radius:999px; font-size:12px; font-weight:800; text-decoration:none;">투네이션 바로가기</a>
+                    </div>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155; line-height:1.7;">
                     <div><strong>1. 계산기 고급 동작</strong><br>실제에 가까운 계산 흐름과 기록 방식이 반영돼, 계산 때문에 풀이 리듬이 끊기는 구간을 줄여줍니다.</div>
@@ -630,7 +746,7 @@
                         <span style="font-size: 16px; color: #475569; font-weight: bold;">실시간 접속자 수</span>
                     </div>
                     <div id="activeVisitorCount" style="font-size: 36px; font-weight: 900; color: #10b981; letter-spacing: -1px;">로딩 중...</div>
-                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(10초 주기 업데이트)</div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">(실시간 반영)</div>
                 </div>
 
                 <!-- 2. 최근 7일 접속자 그래프 -->
@@ -702,12 +818,13 @@
             };
         })();
     </script>
-    <script src="main.js?v=202604071145"></script>
+    <script src="subscription-crypto.js?v=202604081336"></script>
+    <script src="main.js?v=202604081336"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-        import { getDatabase, ref, onValue, onDisconnect, set, push, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+        import { getDatabase, ref, onValue, onDisconnect, set, push, remove, runTransaction, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
@@ -728,54 +845,67 @@
         const connectedRef = ref(db, ".info/connected");
         const sessionId = sessionStorage.getItem('skct_session_id') || ('sess_' + Math.random().toString(36).substr(2, 9));
         sessionStorage.setItem('skct_session_id', sessionId);
+        const activeVisitorsRef = ref(db, "active_visitors");
         const myConnectionsRef = ref(db, "active_visitors/" + sessionId);
+        const PRESENCE_STALE_MS = 150000;
 
         let heartbeatInterval = null;
+        let presenceUnsubscribe = null;
+
+        function countFreshVisitors(raw) {
+            const now = Date.now();
+            return Object.values(raw || {}).reduce((count, value) => {
+                return (typeof value === 'number' && (now - value) < PRESENCE_STALE_MS) ? count + 1 : count;
+            }, 0);
+        }
+
+        function renderActiveVisitors(count) {
+            const displayEl = document.getElementById('activeVisitorCount');
+            if (displayEl) displayEl.textContent = count + " 명";
+        }
+
+        async function updateConcurrentPeakSnapshot() {
+            try {
+                const snap = await get(activeVisitorsRef);
+                const currentCount = countFreshVisitors(snap.val());
+                const d = new Date();
+                const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const peakRef = ref(db, 'stats/live_peak_daily/' + today);
+                await runTransaction(peakRef, (current) => Math.max(current || 0, currentCount));
+            } catch (e) {
+                console.error("Peak snapshot update error:", e);
+            }
+        }
+
         onValue(connectedRef, (snap) => {
             if (snap.val() === true) {
                 onDisconnect(myConnectionsRef).remove().catch(e => {});
-                set(myConnectionsRef, Date.now());
+                set(myConnectionsRef, serverTimestamp());
                 if (heartbeatInterval) clearInterval(heartbeatInterval);
                 heartbeatInterval = setInterval(() => {
-                    set(myConnectionsRef, Date.now());
-                }, 30000); // 30초마다 하트비트 전송
+                    set(myConnectionsRef, serverTimestamp());
+                }, 60000); // 60초마다 하트비트 전송
+                setTimeout(() => {
+                    updateConcurrentPeakSnapshot();
+                }, 1200);
             } else {
                 if (heartbeatInterval) clearInterval(heartbeatInterval);
             }
         });
 
-        let presencePollTimer = null;
-        async function fetchActiveVisitors() {
-            try {
-                const res = await fetch('https://skct-tool-default-rtdb.firebaseio.com/active_visitors.json');
-                const data = await res.json();
-                let count = 0;
-                const now = Date.now();
-                if(data) {
-                    for(let key in data) {
-                        const lastActive = data[key];
-                        if(typeof lastActive === 'number' && (now - lastActive) < 90000) {
-                            count++;
-                        }
-                    }
-                }
-                const displayEl = document.getElementById('activeVisitorCount');
-                if(displayEl) displayEl.textContent = count + " 명";
-            } catch (e) {
-                console.error("Presence fetch error:", e);
-            }
-        }
-
         window.startPresencePolling = () => {
-            fetchActiveVisitors();
-            if (presencePollTimer) clearInterval(presencePollTimer);
-            presencePollTimer = setInterval(fetchActiveVisitors, 10000); // 10초 주기
+            if (presenceUnsubscribe) return;
+            presenceUnsubscribe = onValue(activeVisitorsRef, (snap) => {
+                renderActiveVisitors(countFreshVisitors(snap.val()));
+            }, (e) => {
+                console.error("Presence listen error:", e);
+            });
         };
 
         window.stopPresencePolling = () => {
-            if (presencePollTimer) {
-                clearInterval(presencePollTimer);
-                presencePollTimer = null;
+            if (presenceUnsubscribe) {
+                presenceUnsubscribe();
+                presenceUnsubscribe = null;
             }
         };
 
@@ -805,8 +935,6 @@
         // ============================================
         // 📈 일일 접속자 통계 & Chart.js 렌더링
         // ============================================
-        const { get } = await import("https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js");
-
         async function fetchVisitorStats() {
             try {
                 const [totalRes, dailyRes] = await Promise.all([
@@ -937,6 +1065,9 @@
             }
             if (typeof window.applySupportConfig === 'function') {
                 window.applySupportConfig(cfg.supportConfig);
+            }
+            if (typeof window.applyManualSubscriptionConfig === 'function') {
+                window.applyManualSubscriptionConfig(cfg.manualSubscriptionConfig);
             }
             
             // Timer Defaults Sync

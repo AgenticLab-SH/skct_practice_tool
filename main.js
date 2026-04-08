@@ -64,9 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
-    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
+    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
     const PERMANENT_ADVANCED_PLAN_TYPE = '영구이용권';
+    const MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY = 'skct_manual_subscription_recent_request';
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
         subscriptions: [
             {
@@ -82,6 +83,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         ]
     };
+    const DEFAULT_MANUAL_SUBSCRIPTION_CONFIG = {
+        enabled: true,
+        donationUrl: 'https://toon.at/donate/foreveryonehappy',
+        supportEmail: 'zhdlsqpdj@gmail.com',
+        adminPublicKeyPem: '',
+        plans: [
+            { code: 'manual-7d', label: '7일 이용권', days: 7, price: 4900, enabled: true, highlight: '시험 직전 단기 몰입용' },
+            { code: 'manual-14d', label: '14일 이용권', days: 14, price: 7900, enabled: true, highlight: '가장 추천하는 주력 이용권' }
+        ]
+    };
+    const FIREBASE_RTDB_BASE_URL = 'https://skct-tool-default-rtdb.firebaseio.com';
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'skct-popup-layout-preview',
         saveRequest: 'skct-popup-layout-save-request',
@@ -120,16 +132,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedAccessReveal = document.getElementById('advancedAccessReveal');
     const advancedAccessReuseBtn = document.getElementById('advancedAccessReuseBtn');
     const advancedAccessStatus = document.getElementById('advancedAccessStatus');
+    const manualSubscriptionDonateLink = document.getElementById('manualSubscriptionDonateLink');
+    const manualSubscriptionPlanCards = document.getElementById('manualSubscriptionPlanCards');
+    const manualSubscriptionPlanSelect = document.getElementById('manualSubscriptionPlanSelect');
+    const manualSubscriptionDonationNameInput = document.getElementById('manualSubscriptionDonationNameInput');
+    const manualSubscriptionNicknameInput = document.getElementById('manualSubscriptionNicknameInput');
+    const manualSubscriptionEmailInput = document.getElementById('manualSubscriptionEmailInput');
+    const manualSubscriptionDesiredIdInput = document.getElementById('manualSubscriptionDesiredIdInput');
+    const manualSubscriptionStartDateInput = document.getElementById('manualSubscriptionStartDateInput');
+    const manualSubscriptionMemoInput = document.getElementById('manualSubscriptionMemoInput');
+    const manualSubscriptionPasswordInput = document.getElementById('manualSubscriptionPasswordInput');
+    const manualSubscriptionPasswordConfirmInput = document.getElementById('manualSubscriptionPasswordConfirmInput');
+    const manualSubscriptionSubmitBtn = document.getElementById('manualSubscriptionSubmitBtn');
+    const manualSubscriptionSubmitStatus = document.getElementById('manualSubscriptionSubmitStatus');
+    const manualSubscriptionLookupIdInput = document.getElementById('manualSubscriptionLookupIdInput');
+    const manualSubscriptionLookupPasswordInput = document.getElementById('manualSubscriptionLookupPasswordInput');
+    const manualSubscriptionLookupBtn = document.getElementById('manualSubscriptionLookupBtn');
+    const manualSubscriptionLookupResult = document.getElementById('manualSubscriptionLookupResult');
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
     const advancedToolsStatus = document.getElementById('advancedToolsStatus');
+    const advancedFeatureManualFlowBtn = document.getElementById('advancedFeatureManualFlowBtn');
+    const advancedFeatureDonateLink = document.getElementById('advancedFeatureDonateLink');
     const settingsVersionRow = document.getElementById('settingsVersionRow');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
     let lastPopupWindowOnlySignature = '';
     let isAdvancedConfigReady = false;
+    let remoteManualSubscriptionConfig = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG;
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
     document.body.classList.toggle('advanced-mode', isAdvancedMode);
@@ -198,6 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function normalizeAdvancedPlanType(value) {
         const trimmed = String(value || '').trim();
+        if (trimmed === '2주 이용권') return '14일 이용권';
         return ADVANCED_SUBSCRIPTION_PLAN_OPTIONS.includes(trimmed) ? trimmed : DEFAULT_ADVANCED_PLAN_TYPE;
     }
 
@@ -271,6 +304,93 @@ document.addEventListener('DOMContentLoaded', () => {
             subscriptions: DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index)),
             legacyPasswords: []
         };
+    }
+
+    function normalizeManualSubscriptionConfig(raw) {
+        const sourcePlans = Array.isArray(raw?.plans) ? raw.plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans;
+        const plans = sourcePlans
+            .map((plan, index) => {
+                const fallback = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[index] || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[0];
+                const code = String(plan?.code || fallback.code || '').trim();
+                const label = String(plan?.label || fallback.label || '').trim();
+                const days = Math.max(1, parseInt(plan?.days, 10) || fallback.days || 7);
+                const price = Math.max(1000, parseInt(plan?.price, 10) || fallback.price || 4900);
+                return {
+                    code,
+                    label,
+                    days,
+                    price,
+                    enabled: plan?.enabled !== false,
+                    highlight: String(plan?.highlight || fallback.highlight || '').trim()
+                };
+            })
+            .filter((plan) => plan.code && plan.label);
+        return {
+            enabled: raw?.enabled !== false,
+            donationUrl: String(raw?.donationUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl).trim(),
+            supportEmail: String(raw?.supportEmail || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.supportEmail).trim(),
+            adminPublicKeyPem: String(raw?.adminPublicKeyPem || '').trim(),
+            plans: plans.length ? plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.map((plan) => ({ ...plan }))
+        };
+    }
+
+    function formatCurrency(value) {
+        return `${Number(value || 0).toLocaleString('ko-KR')}원`;
+    }
+
+    function formatKstDateTime(timestamp) {
+        if (!Number.isFinite(timestamp)) return '-';
+        return new Date(timestamp).toLocaleString('ko-KR', {
+            timeZone: 'Asia/Seoul',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function getTodayKstDateInputValue() {
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const kst = new Date(utc + (9 * 60 * 60000));
+        return `${kst.getFullYear()}-${String(kst.getMonth() + 1).padStart(2, '0')}-${String(kst.getDate()).padStart(2, '0')}`;
+    }
+
+    function ensureManualSubscriptionStartDate() {
+        if (manualSubscriptionStartDateInput && !manualSubscriptionStartDateInput.value) {
+            manualSubscriptionStartDateInput.value = getTodayKstDateInputValue();
+        }
+    }
+
+    function maskEmail(value) {
+        const trimmed = String(value || '').trim();
+        if (!trimmed.includes('@')) return trimmed ? `${trimmed.slice(0, 2)}***` : '-';
+        const [local, domain] = trimmed.split('@');
+        return `${local.slice(0, 2)}***@${domain}`;
+    }
+
+    function maskText(value) {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) return '-';
+        if (trimmed.length <= 2) return `${trimmed[0]}*`;
+        return `${trimmed.slice(0, 2)}***`;
+    }
+
+    function getManualSubscriptionPlanByCode(code) {
+        return remoteManualSubscriptionConfig.plans.find((plan) => plan.code === code) || remoteManualSubscriptionConfig.plans[0] || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[0];
+    }
+
+    function saveRecentRequestInfo(info) {
+        localStorage.setItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY, JSON.stringify(info));
+    }
+
+    function readRecentRequestInfo() {
+        try {
+            return JSON.parse(localStorage.getItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY) || 'null');
+        } catch (error) {
+            return null;
+        }
     }
 
     let remotePopupLayout = normalizePopupLayout();
@@ -708,6 +828,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.applySupportConfig = applySupportConfig;
 
+    function renderManualSubscriptionPlans() {
+        if (manualSubscriptionPlanCards) {
+            manualSubscriptionPlanCards.innerHTML = remoteManualSubscriptionConfig.plans
+                .filter((plan) => plan.enabled)
+                .map((plan) => `
+                    <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #fdba74;">
+                        <div style="font-size:12px; color:#9a3412; font-weight:700;">${escapeHtml(plan.label)}</div>
+                        <div style="font-size:20px; font-weight:800; color:#7c2d12; margin-top:4px;">${formatCurrency(plan.price)}</div>
+                        <div style="font-size:11px; color:#9a3412; line-height:1.6; margin-top:6px;">${escapeHtml(plan.highlight || `${plan.days}일 사용`)}</div>
+                    </div>
+                `)
+                .join('');
+        }
+        if (manualSubscriptionPlanSelect) {
+            const currentValue = manualSubscriptionPlanSelect.value;
+            manualSubscriptionPlanSelect.innerHTML = remoteManualSubscriptionConfig.plans
+                .filter((plan) => plan.enabled)
+                .map((plan) => `<option value="${escapeHtml(plan.code)}">${escapeHtml(plan.label)} · ${formatCurrency(plan.price)}</option>`)
+                .join('');
+            if (currentValue && Array.from(manualSubscriptionPlanSelect.options).some((option) => option.value === currentValue)) {
+                manualSubscriptionPlanSelect.value = currentValue;
+            }
+        }
+        if (manualSubscriptionDonateLink) {
+            manualSubscriptionDonateLink.href = remoteManualSubscriptionConfig.donationUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl;
+        }
+        if (advancedFeatureDonateLink) {
+            advancedFeatureDonateLink.href = remoteManualSubscriptionConfig.donationUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl;
+        }
+    }
+
+    function applyManualSubscriptionConfig(config) {
+        remoteManualSubscriptionConfig = normalizeManualSubscriptionConfig(config);
+        renderManualSubscriptionPlans();
+        ensureManualSubscriptionStartDate();
+    }
+    window.applyManualSubscriptionConfig = applyManualSubscriptionConfig;
+    applyManualSubscriptionConfig();
+
+    function renderManualRequestLookup(record, payload) {
+        if (!manualSubscriptionLookupResult) return;
+        const statusMap = {
+            pending: '승인 대기',
+            approved: '승인 완료',
+            rejected: '반려',
+            fulfilled: '발급 완료'
+        };
+        const response = payload?.adminResponse || {};
+        manualSubscriptionLookupResult.innerHTML = `
+            <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #bfdbfe;">
+                <div style="font-weight:800; color:#1d4ed8; margin-bottom:8px;">${escapeHtml(statusMap[record.status] || record.status || '대기')}</div>
+                <div style="font-size:12px; color:#334155; line-height:1.75;">
+                    <div><strong>신청 플랜</strong>: ${escapeHtml(record.planLabel || '-')}</div>
+                    <div><strong>신청 시각</strong>: ${escapeHtml(formatKstDateTime(record.createdAt))}</div>
+                    <div><strong>후원 닉네임</strong>: ${escapeHtml(payload?.donationName || '-')}</div>
+                    <div><strong>이용 시작일</strong>: ${escapeHtml(payload?.requestedStartDate || '-')}</div>
+                    <div><strong>표시 닉네임</strong>: ${escapeHtml(payload?.siteNickname || '-')}</div>
+                    <div><strong>이메일</strong>: ${escapeHtml(payload?.email || '-')}</div>
+                    <div><strong>희망 ID</strong>: ${escapeHtml(payload?.desiredLoginId || '-')}</div>
+                    ${payload?.memo ? `<div><strong>신청 메모</strong>: ${escapeHtml(payload.memo)}</div>` : ''}
+                    ${response.statusMessage ? `<div><strong>처리 메모</strong>: ${escapeHtml(response.statusMessage)}</div>` : ''}
+                    ${response.issuedLoginId ? `<div style="margin-top:8px; padding:10px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe;"><strong>발급 ID</strong>: ${escapeHtml(response.issuedLoginId)}<br><strong>발급 비밀번호</strong>: ${escapeHtml(response.issuedPassword || '-')}<br><strong>사용 종료일</strong>: ${escapeHtml(response.expiresAt || '-')}</div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+
     const isLegacyDefaultTimerConfig = (cfg) => {
         if (!cfg || typeof cfg !== 'object') return false;
         const total = sanitizeMinutes(cfg.total, -1);
@@ -820,6 +1007,119 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = activeCount === 0 || cooldownRemainingMs > 0;
         if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = unlockRemainingMs <= 0;
+    };
+
+    const submitManualSubscriptionRequest = async () => {
+        if (!manualSubscriptionSubmitStatus) return;
+        manualSubscriptionSubmitStatus.style.color = '#64748b';
+        if (!remoteManualSubscriptionConfig.enabled) {
+            manualSubscriptionSubmitStatus.textContent = '현재 수동 이용권 신청이 닫혀 있습니다.';
+            return;
+        }
+        if (!remoteManualSubscriptionConfig.adminPublicKeyPem) {
+            manualSubscriptionSubmitStatus.textContent = '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.';
+            return;
+        }
+        const plan = getManualSubscriptionPlanByCode(manualSubscriptionPlanSelect?.value);
+        const donationName = manualSubscriptionDonationNameInput?.value.trim() || '';
+        const siteNickname = manualSubscriptionNicknameInput?.value.trim() || '';
+        const email = manualSubscriptionEmailInput?.value.trim() || '';
+        const desiredLoginId = manualSubscriptionDesiredIdInput?.value.trim() || '';
+        const requestedStartDate = manualSubscriptionStartDateInput?.value || '';
+        const memo = manualSubscriptionMemoInput?.value.trim() || '';
+        const requestPassword = manualSubscriptionPasswordInput?.value || '';
+        const requestPasswordConfirm = manualSubscriptionPasswordConfirmInput?.value || '';
+
+        if (!plan?.code) {
+            manualSubscriptionSubmitStatus.textContent = '신청 가능한 이용권이 아직 열리지 않았습니다.';
+            return;
+        }
+        if (!donationName || !siteNickname || !email || !desiredLoginId || !requestedStartDate || !requestPassword || !requestPasswordConfirm) {
+            manualSubscriptionSubmitStatus.textContent = '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 조회 비밀번호를 모두 입력해주세요.';
+            return;
+        }
+        if (!email.includes('@')) {
+            manualSubscriptionSubmitStatus.textContent = '이메일 형식이 올바르지 않습니다.';
+            return;
+        }
+        if (requestPassword.length < 6) {
+            manualSubscriptionSubmitStatus.textContent = '조회 비밀번호는 6자 이상으로 설정해주세요.';
+            return;
+        }
+        if (requestPassword !== requestPasswordConfirm) {
+            manualSubscriptionSubmitStatus.textContent = '조회 비밀번호 확인이 일치하지 않습니다.';
+            return;
+        }
+        try {
+            const requestId = `REQ-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            const encrypted = await window.SKCTSubscriptionCrypto.encryptRequestPayload({
+                donationName,
+                requestedStartDate,
+                siteNickname,
+                email,
+                desiredLoginId,
+                memo,
+                createdAt: Date.now(),
+                adminResponse: null
+            }, requestPassword, remoteManualSubscriptionConfig.adminPublicKeyPem);
+            const record = {
+                requestId,
+                status: 'pending',
+                planCode: plan.code,
+                planLabel: plan.label,
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                requesterMask: maskText(siteNickname),
+                emailMask: maskEmail(email),
+                donationMask: maskText(donationName),
+                ...encrypted
+            };
+            const writeResponse = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(record)
+            });
+            if (!writeResponse.ok) {
+                throw new Error('신청서 저장 중 오류가 발생했습니다.');
+            }
+            saveRecentRequestInfo({ requestId, createdAt: Date.now() });
+            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = requestId;
+            if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
+            manualSubscriptionSubmitStatus.style.color = '#0f766e';
+            manualSubscriptionSubmitStatus.innerHTML = `비밀글 신청이 저장되었습니다. <strong>신청번호 ${escapeHtml(requestId)}</strong> 와 조회 비밀번호를 꼭 보관해주세요. 아래 조회 영역에서 같은 값으로 상태를 다시 확인할 수 있습니다.`;
+            if (manualSubscriptionMemoInput) manualSubscriptionMemoInput.value = '';
+        } catch (error) {
+            manualSubscriptionSubmitStatus.style.color = '#b91c1c';
+            manualSubscriptionSubmitStatus.textContent = error.message || '신청 저장 중 오류가 발생했습니다.';
+        }
+    };
+
+    const lookupManualSubscriptionRequest = async () => {
+        if (!manualSubscriptionLookupResult) return;
+        const requestId = manualSubscriptionLookupIdInput?.value.trim() || '';
+        const requestPassword = manualSubscriptionLookupPasswordInput?.value || '';
+        if (!requestId || !requestPassword) {
+            manualSubscriptionLookupResult.textContent = '신청번호와 조회 비밀번호를 모두 입력해주세요.';
+            return;
+        }
+        const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`);
+        if (!response.ok) {
+            manualSubscriptionLookupResult.textContent = '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+            return;
+        }
+        const record = await response.json();
+        if (!record) {
+            manualSubscriptionLookupResult.textContent = '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.';
+            return;
+        }
+        try {
+            const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
+            renderManualRequestLookup(record, payload);
+        } catch (error) {
+            manualSubscriptionLookupResult.textContent = '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.';
+        }
     };
 
     const openAdvancedModeWindow = () => {
@@ -3018,6 +3318,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isAdvancedMode) return;
             if (advancedAccessStatus) advancedAccessStatus.textContent = '';
             if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
+            ensureManualSubscriptionStartDate();
+            const recentRequest = readRecentRequestInfo();
+            if (recentRequest?.requestId && manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
+                manualSubscriptionLookupIdInput.value = recentRequest.requestId;
+            }
             updateAdvancedAccessPanel();
             advancedGuideModal.classList.remove('hidden');
         });
@@ -3029,11 +3334,23 @@ document.addEventListener('DOMContentLoaded', () => {
             advancedFeatureModal.classList.remove('hidden');
         });
     }
+    if (advancedFeatureManualFlowBtn && advancedGuideModal && advancedFeatureModal) {
+        advancedFeatureManualFlowBtn.addEventListener('click', () => {
+            advancedFeatureModal.classList.add('hidden');
+            advancedGuideModal.classList.remove('hidden');
+        });
+    }
     if (advancedStatsDownloadBtn) {
         advancedStatsDownloadBtn.addEventListener('click', () => {
             downloadDetailedStatsText();
             if (advancedToolsStatus) advancedToolsStatus.textContent = '문항별 상세 통계 TXT 다운로드를 시작했습니다.';
         });
+    }
+    if (manualSubscriptionSubmitBtn) {
+        manualSubscriptionSubmitBtn.addEventListener('click', submitManualSubscriptionRequest);
+    }
+    if (manualSubscriptionLookupBtn) {
+        manualSubscriptionLookupBtn.addEventListener('click', lookupManualSubscriptionRequest);
     }
 
     const openAdvancedToolsPopup = () => {
