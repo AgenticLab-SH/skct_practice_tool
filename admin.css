@@ -219,6 +219,70 @@ body {
     padding: 0 24px 24px;
 }
 
+.admin-tabs-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.admin-tabs {
+    position: sticky;
+    top: 68px;
+    z-index: 90;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid var(--adm-border);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.admin-tab-btn {
+    padding: 9px 14px;
+    background: #0f172a;
+    color: var(--adm-text-muted);
+    border: 1px solid var(--adm-border);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-tab-btn:hover {
+    color: var(--adm-text);
+    border-color: var(--adm-primary);
+}
+
+.admin-tab-btn.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(59, 130, 246, 0.2));
+    color: #ffffff;
+    border-color: rgba(129, 140, 248, 0.9);
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.18);
+}
+
+.admin-tab-panel {
+    display: none;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-tab-panel.active {
+    display: flex;
+}
+
+.admin-tab-hint {
+    padding: 12px 14px;
+    background: rgba(15, 23, 42, 0.42);
+    border: 1px solid var(--adm-border);
+    border-radius: 10px;
+    color: var(--adm-text-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
 .section-card {
     background: var(--adm-surface);
     border: 1px solid var(--adm-border);
@@ -653,6 +717,10 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
+    .admin-tabs {
+        top: 58px;
+    }
+
     .stats-row {
         grid-template-columns: repeat(2, 1fr);
     }
