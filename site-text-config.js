@@ -95,15 +95,15 @@
         },
         advancedFeature: {
             title: '🔒 고급 기능',
-            introHtml: '<div style="font-weight:800; margin-bottom:6px;">현재 고급 이용 중입니다</div>\n필요한 기능을 바로 쓰고, 연장이나 추가 신청이 필요하면 아래 버튼으로 신청 안내를 다시 열 수 있습니다.',
-            summaryHtml: '일반 모드보다 더 빠른 복기와 반복 연습이 가능하도록 실전형 기능이 추가된 버전입니다.',
-            planHtml: '현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 연장이나 추가 신청이 필요하면 신청 안내에서 같은 방식으로 진행하면 됩니다.',
+            introHtml: '<div style="font-weight:800; margin-bottom:6px;">고급 모드 활용 가이드</div>\n대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 어디에서 무엇을 누르면 되는지만 빠르게 확인하는 용도로 보시면 됩니다.',
+            summaryHtml: '<strong>기본 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.',
+            planHtml: '<strong>복기 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>은 모두 OMR 탭 아래 버튼 구역에 모여 있습니다.',
             flowButton: '신청 안내 다시 보기',
             statsButton: '문항별 상세 통계 TXT 다운로드',
-            feature1Html: '<strong>1. 실전형 도구 환경</strong><br>계산기 동작, 우측 버튼 열, 세부 도구 설정이 보강되어 실제 풀이 리듬에 더 가깝게 연습할 수 있습니다.',
-            feature2Html: '<strong>2. 빠른 정답 반영과 복기</strong><br>정오표 일괄입력과 문항별 상세 통계 저장으로 수정과 복기 시간을 줄일 수 있습니다.',
-            feature3Html: '<strong>3. 반복 연습에 유리한 타이머</strong><br>현재 과목 또는 전체 흐름을 다시 시작하며 여러 번 실전처럼 반복할 수 있습니다.',
-            feature4Html: '<strong>4. 시간 운영 훈련</strong><br>문항별 시간 가이드와 고급 보정 기능으로 실제 시험 페이스를 더 세밀하게 익힐 수 있습니다.'
+            feature1Html: '<strong>1. 채점 결과 먼저 보기</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 누르면 맞은 수, 정답률, 건너뜀, 못 푼 문제를 바로 확인할 수 있습니다.',
+            feature2Html: '<strong>2. 과목별 상세 통계 열기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.',
+            feature3Html: '<strong>3. TXT로 복기 기록 남기기</strong><br><strong>문항별 상세 통계 TXT 다운로드</strong> 버튼으로 정오답, 미응답, 문항별 시간 기록을 파일로 저장합니다.',
+            feature4Html: '<strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.'
         },
         messages: {
             advancedLoading: '고급 구독 정보를 불러오는 중입니다.',

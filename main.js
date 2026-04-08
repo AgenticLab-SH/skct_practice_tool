@@ -1548,6 +1548,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const bulkCorrectImportBtn = document.getElementById('bulkCorrectImportBtn');
 
     const updateModeUI = () => {
+        const scoreResultEl = document.getElementById('scoreResult');
+        const showAdvancedScoringActions = Boolean(
+            isAdvancedMode
+            && omrState.mode === 'score'
+            && scoreResultEl
+            && !scoreResultEl.classList.contains('hidden')
+        );
         if (omrState.mode === 'answer') {
             modeToggleBtn.textContent = '📝 정답 입력 모드로 전환';
             modeToggleBtn.classList.remove('active-score');
@@ -1569,8 +1576,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrModeHint.classList.remove('hidden');
             }
         }
+        if (detailScoreBtn) {
+            detailScoreBtn.classList.toggle('hidden', !showAdvancedScoringActions);
+        }
+        if (advancedStatsDownloadBtn) {
+            advancedStatsDownloadBtn.classList.toggle('hidden', !showAdvancedScoringActions);
+        }
         if (bulkCorrectImportBtn) {
             bulkCorrectImportBtn.classList.toggle('hidden', !(isAdvancedMode && omrState.mode === 'score'));
+        }
+        if (advancedToolsStatus) {
+            advancedToolsStatus.classList.toggle('hidden', !showAdvancedScoringActions && !advancedToolsStatus.textContent.trim());
+            if (!showAdvancedScoringActions && omrState.mode !== 'score') {
+                advancedToolsStatus.textContent = '';
+                advancedToolsStatus.classList.add('hidden');
+            }
         }
         if (omrState.mode !== 'score' && bulkCorrectImportModal) {
             bulkCorrectImportModal.classList.add('hidden');
@@ -2049,7 +2069,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const resEl = document.getElementById('scoreResult');
         if (resEl) resEl.classList.remove('hidden');
-        if (detailScoreBtn && isAdvancedMode) detailScoreBtn.classList.remove('hidden');
+        updateModeUI();
         return model;
     };
 
@@ -3359,7 +3379,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advancedToggle && advancedFeatureModal) {
         advancedToggle.addEventListener('click', () => {
             if (!isAdvancedMode) return;
-            if (advancedToolsStatus) advancedToolsStatus.textContent = '';
+            if (advancedToolsStatus) {
+                advancedToolsStatus.textContent = '';
+                advancedToolsStatus.classList.add('hidden');
+            }
             advancedFeatureModal.classList.remove('hidden');
         });
     }
@@ -3372,7 +3395,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advancedStatsDownloadBtn) {
         advancedStatsDownloadBtn.addEventListener('click', () => {
             downloadDetailedStatsText();
-            if (advancedToolsStatus) advancedToolsStatus.textContent = '문항별 상세 통계 TXT 다운로드를 시작했습니다.';
+            if (advancedToolsStatus) {
+                advancedToolsStatus.textContent = '문항별 상세 통계 TXT 다운로드를 시작했습니다.';
+                advancedToolsStatus.classList.remove('hidden');
+            }
         });
     }
     if (manualSubscriptionSubmitBtn) {

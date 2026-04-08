@@ -110,6 +110,8 @@
                         <div class="stat-line"><span>못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
                     </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
+                    <button id="advancedStatsDownloadBtn" class="omr-action-btn detail-btn hidden advanced-action-only" type="button">문항별 상세 통계 TXT 다운로드</button>
+                    <div id="advancedToolsStatus" class="hidden advanced-action-only" style="font-size:11px; color:#94a3b8; line-height:1.5; padding:0 2px 4px;"></div>
                     <button id="bulkCorrectImportBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📥 정오표 일괄입력</button>
                     <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 RESET</button>
                 </div>
@@ -495,23 +497,24 @@
                 <button class="close-modal btn-close">×</button>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
-                <div style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
-                    현재 창은 숨김 인증을 통과한 고급 이용자 전용 버전입니다. 주소와 버전 표기에도 고급버전이 반영되며, 아래 항목이 일반 모드와 다르게 적용됩니다.
+                <div id="advancedFeatureIntro" style="padding:12px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; font-size:13px; line-height:1.7; color:#1e3a8a;">
+                    <div style="font-weight:800; margin-bottom:6px;">고급 모드 활용 가이드</div>
+                    대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 어디에서 무엇을 누르면 되는지만 빠르게 확인하는 용도로 보시면 됩니다.
+                </div>
+                <div id="advancedFeatureSummary" style="padding:12px 14px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:13px; line-height:1.7; color:#334155;">
+                    <strong>기본 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.
+                </div>
+                <div id="advancedFeaturePlanInfo" style="padding:12px 14px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa; font-size:13px; line-height:1.7; color:#9a3412;">
+                    <strong>복기 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>은 모두 OMR 탭 아래 버튼 구역에 모여 있습니다.
                 </div>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155; line-height:1.7;">
-                    <div><strong>1. 계산기 고급 동작</strong><br>실제에 가까운 계산 흐름과 기록 방식이 반영돼, 계산 때문에 풀이 리듬이 끊기는 구간을 줄여줍니다.</div>
-                    <div><strong>2. 우측 버튼 열</strong><br>우측 여백과 버튼 배치를 실제 화면 감각에 더 가깝게 맞춰, 좁은 팝업에서도 적응 연습이 가능합니다.</div>
-                    <div><strong>3. 문항별 상세 통계 TXT 다운로드</strong><br>정오답, 미응답, 문항별 소요 시간을 파일로 남겨 복기 기록을 계속 쌓아갈 수 있습니다.</div>
-                    <div><strong>4. 타이머 초기화</strong><br>현재 과목만 다시 시작하거나 전체 타이머 흐름을 처음부터 돌려, 실전 페이스를 여러 번 반복 연습할 수 있습니다.</div>
-                    <div><strong>5. 문항별 시간 가이드</strong><br>문항당 페이스까지 보며 시간 운영 훈련을 더 세밀하게 가져갈 수 있습니다.</div>
-                    <div><strong>6. 도구 설정</strong><br>메모와 필기 도구 감도를 직접 맞춰, 손에 맞는 풀이 환경을 만들 수 있습니다.</div>
-                    <div><strong>7. 쉬는 시간 건너뛰기 / 이전 문항 재선택</strong><br>실전 재현과 복기를 더 유연하게 할 수 있는 보정 기능이 포함됩니다.</div>
-                    <div><strong>8. 무적모드(테스트)</strong><br>일반 모드에는 없는 별도 테스트 대응 기능까지 함께 사용할 수 있습니다.</div>
-                    <div><strong>9. 전체 시간 75분 고정</strong><br>시험 시간 흐름도 실전에 맞게 보정되어, 중간에 일찍 끝나는 문제까지 함께 잡아줍니다.</div>
+                    <div id="advancedFeatureItem1"><strong>1. 채점 결과 먼저 보기</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 누르면 맞은 수, 정답률, 건너뜀, 못 푼 문제를 바로 확인할 수 있습니다.</div>
+                    <div id="advancedFeatureItem2"><strong>2. 과목별 상세 통계 열기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.</div>
+                    <div id="advancedFeatureItem3"><strong>3. TXT로 복기 기록 남기기</strong><br><strong>문항별 상세 통계 TXT 다운로드</strong> 버튼으로 정오답, 미응답, 문항별 시간 기록을 파일로 저장합니다.</div>
+                    <div id="advancedFeatureItem4"><strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.</div>
                 </div>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <button id="advancedStatsDownloadBtn" type="button" style="padding:10px 14px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">문항별 상세 통계 TXT 다운로드</button>
-                    <div id="advancedToolsStatus" style="font-size:12px; color:#64748b; min-height:16px; line-height:1.5;"></div>
+                <div style="display:flex; justify-content:flex-start;">
+                    <button id="advancedFeatureManualFlowBtn" type="button" style="padding:8px 12px; background:#fff; color:#c2410c; border:1px solid #fdba74; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer;">신청 안내 다시 보기</button>
                 </div>
             </div>
         </div>
@@ -708,7 +711,7 @@
         })();
     </script>
     <script src="../../site-text-config.js?v=202604081900"></script>
-    <script type="module" src="assets/scripts/app.bundle.js?v=202604071015"></script>
+    <script type="module" src="assets/scripts/app.bundle.js?v=202604081710"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
