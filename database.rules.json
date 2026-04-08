@@ -79,6 +79,7 @@
       }
     },
     "subscriptionRequests": {
+      ".read": "auth != null",
       "$requestId": {
         ".read": true,
         ".write": "auth != null || (!data.exists() && newData.child('requestId').val() === $requestId && newData.child('status').val() === 'pending')"

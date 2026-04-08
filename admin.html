@@ -2111,14 +2111,22 @@
         if (container) {
             container.innerHTML = '<div style="font-size:12px; color:#64748b; text-align:center; padding:16px;">신청 목록을 불러오는 중...</div>';
         }
-        const snap = await get(ref(db, 'subscriptionRequests'));
-        subscriptionRequestCache = {};
-        if (snap.exists()) {
-            snap.forEach((child) => {
-                subscriptionRequestCache[child.key] = { ...child.val(), requestId: child.key };
-            });
+        try {
+            const snap = await get(ref(db, 'subscriptionRequests'));
+            subscriptionRequestCache = {};
+            if (snap.exists()) {
+                snap.forEach((child) => {
+                    subscriptionRequestCache[child.key] = { ...child.val(), requestId: child.key };
+                });
+            }
+            renderSubscriptionRequests();
+        } catch (error) {
+            console.error('Subscription requests load failed:', error);
+            subscriptionRequestCache = {};
+            if (container) {
+                container.innerHTML = '<div style="font-size:12px; color:#b91c1c; text-align:center; padding:16px;">신청 목록을 불러오지 못했습니다. 권한 또는 네트워크 상태를 확인한 뒤 새로고침해주세요.</div>';
+            }
         }
-        renderSubscriptionRequests();
     }
 
     function renderSubscriptionRequests() {
