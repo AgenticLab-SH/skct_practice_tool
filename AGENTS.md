@@ -1,5 +1,5 @@
 # AGENTS.md
-작성일시: 2026-04-08 13:36:00 KST
+작성일시: 2026-04-08 17:02:00 KST
 
 이 문서는 `C:\dev\01_career\_assets\tools\skct_tool` 프로젝트의 작업/검증/배포 프로세스를 고정하기 위한 로컬 운영 규칙입니다.
 
@@ -13,6 +13,7 @@
 ## 2. 현재 운영 기준 저장
 - 현재 최신 운영 기준 커밋: `d6fbb2e`
 - 현재 운영 기본 타이머 기준값: `75 / 15 / 1`
+- 현재 운영 텍스트 기준 저장 위치: Firebase RTDB `config/siteTextConfig`
 - 현재 운영 팝업 기본값:
   - 창 `26.9% x 98.0%`
   - 위치 `왼쪽 73.1% / 위 0.0%`
@@ -47,6 +48,7 @@
 ## 5. Firebase 및 설정값 안전 규칙
 - 이 프로젝트는 정적 파일만 바뀌는 것이 아니라 Firebase RTDB 기본 설정도 함께 바뀔 수 있습니다.
 - 스테이징 관리자 페이지는 기본적으로 운영 Firebase를 직접 쓰면 안 됩니다.
+- 운영 문구/기본값의 최상위 기준은 관리자 페이지가 저장하는 Firebase 값입니다. 특히 `config/siteTextConfig`는 운영 텍스트의 단일 기준값으로 보고, `site-text-config.js`의 하드코딩 값은 **초기 seed/fallback**으로만 취급합니다.
 - 스테이징에서 설정 저장 테스트가 필요하면 아래 중 하나를 먼저 만족해야 합니다.
   - 별도 Firebase 프로젝트/DB 사용
   - 운영 DB를 건드리지 않는 읽기 전용 검증 방식 사용
@@ -66,7 +68,7 @@
 - 관리자 페이지의 normalize/sanitize/save/load 경로에 강제 보정이 없는지 확인
 
 4. 원격 Firebase 실제값
-- `config/timerDefaults`, `guideDefaults`, `layoutRatios`, `maintenance` 등 실제 저장값 조회
+- `config/timerDefaults`, `guideDefaults`, `layoutRatios`, `maintenance`, `siteTextConfig` 등 실제 저장값 조회
 
 5. 브라우저 캐시/저장소
 - `localStorage`, `sessionStorage`, 오래된 기본값 migration, JS/CSS 캐시 버스팅 필요 여부 확인
@@ -74,6 +76,7 @@
 ## 7. 기본값/설정 관련 회귀 방지 규칙
 - 사용자가 직접 저장한 값과, 예전 기본값 찌꺼기를 구분할 수 있어야 합니다.
 - 로컬 저장값이 기본값을 덮는 구조라면 “사용자 저장인지, 과거 기본값 잔재인지”를 분리하는 표식을 둡니다.
+- 사이트 문구를 바꿀 때는 코드 수정만으로 끝내지 말고, 같은 턴 안에서 `config/siteTextConfig`도 함께 동기화해 관리자 저장값이 계속 최상위가 되도록 유지합니다.
 - 기본값이 바뀌면, 아래 회귀 케이스를 반드시 재현 테스트합니다.
   - 새 브라우저
   - 예전 `localStorage`가 남아 있는 브라우저

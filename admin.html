@@ -454,12 +454,13 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
                         <label style="margin:0;">📝 사이트 텍스트 편집기</label>
                         <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost btn-sm" id="siteTextPromoteDefaultsBtn" type="button">코드 기본값 → 관리자 기준값</button>
                             <button class="btn btn-ghost btn-sm" id="siteTextResetSelectedBtn" type="button">선택 항목 기본값</button>
                             <button class="btn btn-primary btn-sm" id="siteTextSaveBtn" type="button">💾 텍스트 저장</button>
                         </div>
                     </div>
                     <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.7;">
-                        기존에 하드코딩되어 있던 안내 문구를 한곳에서 관리합니다. 오른쪽 미리보기에서 보이는 요소를 클릭해 선택하거나, 왼쪽 목록에서 문구를 고른 뒤 즉시 반영해 보세요.
+                        기존에 하드코딩되어 있던 안내 문구를 한곳에서 관리합니다. 운영 기준은 Firebase `config/siteTextConfig`이며, 코드 기본값은 초기 seed/fallback 용도로만 사용합니다. 오른쪽 미리보기에서 보이는 요소를 클릭해 선택하거나, 왼쪽 목록에서 문구를 고른 뒤 즉시 반영해 보세요.
                     </div>
                     <div class="site-text-editor">
                         <div class="site-text-sidebar">
@@ -1686,6 +1687,8 @@
 
     const siteTextCatalog = window.SKCTSiteTextConfig.SITE_TEXT_CATALOG;
     let selectedSiteTextKey = siteTextCatalog[0]?.key || '';
+    let hasRemoteSiteTextConfig = false;
+    let siteTextConfigLoadCompleted = false;
 
     function getSiteTextPreviewFrame() {
         return document.getElementById('siteTextPreviewFrame');
@@ -1762,6 +1765,9 @@
         if (selectedSiteTextKey) {
             selectSiteTextEntry(selectedSiteTextKey);
         }
+        if (siteTextConfigLoadCompleted && !hasRemoteSiteTextConfig) {
+            renderSiteTextEditorStatus('현재 운영 siteTextConfig가 비어 있어 코드 fallback으로 보이는 상태입니다. "코드 기본값 → 관리자 기준값" 버튼으로 기준값을 먼저 올리는 것이 안전합니다.');
+        }
     }
 
     function applySelectedSiteTextDraft() {
@@ -1782,6 +1788,20 @@
         renderSiteTextList();
         syncSiteTextPreview();
     }
+
+    async function promoteCodeDefaultsToAdminBaseline() {
+        const confirmed = window.confirm('현재 코드 기본 문구 전체를 관리자 기준값(Firebase config/siteTextConfig)으로 저장합니다. 기존 운영 텍스트 기준값이 있으면 이 값으로 덮어씁니다. 계속할까요?');
+        if (!confirmed) return;
+        loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(window.SKCTSiteTextConfig.DEFAULT_SITE_TEXT_CONFIG);
+        hasRemoteSiteTextConfig = true;
+        renderSiteTextEditor();
+        syncSiteTextPreview();
+        await saveSiteTextSettings(true);
+        renderSiteTextEditorStatus('코드 기본 문구 전체를 관리자 기준값으로 저장했습니다. 이제 운영 우선순위는 Firebase config/siteTextConfig입니다.');
+        toast('✅ 코드 기본값을 관리자 기준값으로 저장 완료');
+    }
+
+    window.__skctPromoteSiteTextDefaults = promoteCodeDefaultsToAdminBaseline;
 
     renderSiteTextEditor();
 
@@ -2545,6 +2565,7 @@
 
             if (cfg.useful_links) loadedConfig.useful_links = cfg.useful_links;
             if (cfg.sponsors) loadedConfig.sponsors = cfg.sponsors;
+            hasRemoteSiteTextConfig = Boolean(cfg.siteTextConfig);
             if (cfg.siteTextConfig) loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(cfg.siteTextConfig);
             if (cfg.supportConfig) loadedConfig.supportConfig = cfg.supportConfig;
             if (cfg.manualSubscriptionConfig) loadedConfig.manualSubscriptionConfig = normalizeManualSubscriptionConfig(cfg.manualSubscriptionConfig);
@@ -2586,6 +2607,7 @@
             renderSponsorsPreview();
             renderPopupLayoutSummary();
             document.getElementById('settingAppName').value = loadedConfig.appName;
+            siteTextConfigLoadCompleted = true;
 
             // Popular config
             if (cfg.popularConfig) {
@@ -2695,6 +2717,7 @@
 
     async function saveSiteTextSettings(silent = false) {
         loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(loadedConfig.siteTextConfig);
+        hasRemoteSiteTextConfig = true;
         await set(ref(db, 'config/siteTextConfig'), loadedConfig.siteTextConfig);
         renderSiteTextEditorStatus('사이트 텍스트 설정이 저장되었습니다.');
         if (!silent) toast('✅ 사이트 텍스트 저장 완료');
@@ -2731,6 +2754,7 @@
     document.getElementById('runtimeDefaultsSaveBtn').addEventListener('click', saveRuntimeDefaults);
     document.getElementById('supportSaveBtn').addEventListener('click', saveSupportSettings);
     document.getElementById('siteTextSaveBtn').addEventListener('click', () => saveSiteTextSettings(false));
+    document.getElementById('siteTextPromoteDefaultsBtn').addEventListener('click', () => promoteCodeDefaultsToAdminBaseline());
     document.getElementById('sponsorsSaveBtn').addEventListener('click', saveSponsors);
     document.getElementById('manualSubscriptionSaveBtn').addEventListener('click', saveManualSubscriptionSettings);
     document.getElementById('advancedFeatureSaveBtn').addEventListener('click', saveAdvancedSubscriptions);
