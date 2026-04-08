@@ -1,7 +1,16 @@
 # SKCT Tool 최근 진단 및 로컬 수정 리포트
-작성일시: 2026-04-07 02:46:10 KST
+작성일시: 2026-04-08 13:36:00 KST
 
 이 문서는 2026-04-05 기준 로컬 작업에서 확인한 회귀 원인과 임시 수정 사항을 빠르게 이어보기 위한 기록입니다.
+
+## 2026-04-08 운영 반영: 고급 안내 기반 수동 구독 신청/조회 플로우
+- 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.js](/C:/dev/01_career/_assets/tools/skct_tool/main.js)에 고급 안내 모달 기반의 수동 구독 신청/조회 흐름을 이식했습니다.
+- 일반 사용자는 `1. 로그인 -> 2. 고급 기능 -> 3. 구독 등록 방법` 순서로 이해할 수 있게 안내가 재구성됐고, 기간별 가격 확인 -> 투네이션 후원 -> 비밀글형 신청 -> 신청번호/조회 비밀번호 저장 -> 승인 후 발급 조회 순서가 한 화면에 정리됐습니다.
+- 신청 양식은 `구독권 선택 / 투네이션 이름 / 이용 시작일 / ID / 닉네임 / 이메일 / 조회 비밀번호` 기준의 칸 채우기 방식으로 바뀌었고, 본문은 [subscription-crypto.js](/C:/dev/01_career/_assets/tools/skct_tool/subscription-crypto.js)에서 사용자 비밀번호와 관리자 공개키를 사용해 브라우저에서 먼저 암호화합니다.
+- 운영 관리자 화면 [admin.html](/C:/dev/01_career/_assets/tools/skct_tool/admin.html)은 수동 구독 신청 관리 섹션을 포함하고, 개인키로 신청 본문을 열람한 뒤 승인/반려와 계정 발급을 처리합니다. 신청 본문에는 이용 시작일도 함께 보이고, 승인 note에도 시작일이 남습니다.
+- 동시에 접속자 수 집계 구조도 1차 경량화했습니다. 사용자/관리자 화면이 더 이상 `active_visitors.json` 전체를 10초마다 REST polling 하지 않고, RTDB `onValue()` 구독과 `serverTimestamp()` heartbeat를 사용합니다. 일별 동시접속 peak 스냅샷도 `stats/live_peak_daily/{date}`에 남깁니다.
+- 로컬 검증은 `node --check main.js`, `node --check subscription-crypto.js`, 로컬 정적 서버에서 `index.html`, `admin.html` 응답 `200`, 핵심 DOM 문자열 존재 확인까지 마쳤습니다. 실제 신청 저장/승인 end-to-end는 운영 Firebase 쓰기를 발생시키므로 배포 전 로컬 검증에서 의도적으로 생략했습니다.
+- 운영 기준 최신 코드 커밋은 `d6fbb2e`입니다.
 
 ## 2026-04-07 운영 반영: 고급모드 타이머 좌측 정렬/빈공간 축소
 - 운영 사용자 화면 [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html), [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)에 고급모드 타이머 블록을 좌측 기준으로 다시 정렬했습니다.
