@@ -1,5 +1,5 @@
 # 2026-04-08 사이트 텍스트 편집기 및 실시간 미리보기 구축 기록
-작성일시: 2026-04-08 15:14:33 KST
+작성일시: 2026-04-08 15:30:35 KST
 
 ## 사용자 요청
 - 현재 웹 사이트에서 보이는 세부 문구를 개발자 페이지에서 쉽게 수정하고 싶음
@@ -63,6 +63,12 @@
 - 좌측 목록 선택과 textarea 입력은 먼저 브라우저 메모리의 `loadedConfig.siteTextConfig`와 iframe 미리보기에만 반영됨
 - 실제 운영 설정값 반영은 `저장` 버튼 또는 전체 저장 흐름에서 `saveSiteTextSettings()`가 호출될 때 `set(ref(db, 'config/siteTextConfig'), loadedConfig.siteTextConfig)`로 이루어짐
 - 즉, 현재 구조는 “미리보기는 즉시 반영, Firebase 저장은 명시적 저장 버튼 시점”이며 자동 실시간 저장 방식은 아님
+
+## 운영 반영 메모
+- 사용자가 운영 반영을 승인한 뒤 `main` 기준 현재 HEAD를 원격에 동기화함
+- 이번 좌측 독립 스크롤 수정 커밋은 `2d5dfb3`이고, 원격 `main` 최신 HEAD는 이를 포함한 `f0c98ef` 상태임
+- `https://agenticlab-sh.github.io/skct_tool/admin.css` 응답에서 `position: sticky`, `max-height: calc(100vh - 32px)`, `overscroll-behavior: contain`가 포함된 것을 확인함
+- `https://agenticlab-sh.github.io/skct_tool/admin.html` 응답에서 `siteTextPreviewFrame`가 계속 노출되는 것도 함께 확인함
 
 ## 한계 및 다음 후보
 - 이번 카탈로그는 운영에 자주 쓰는 주요 안내 문구와 핵심 상태 메시지를 우선 포함함
