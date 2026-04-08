@@ -117,13 +117,17 @@
     <div class="panel stack">
         <div>
             <h1>고급 기능 인증</h1>
-            <p>비밀번호 확인 후 실제 팝업 웹의 고급 기능 버전으로 전환됩니다.</p>
+            <p>ID와 비밀번호 확인 후 실제 팝업 웹의 고급 기능 버전으로 전환됩니다.</p>
         </div>
 
         <section id="authSection" class="stack">
             <div class="field">
+                <label for="advancedIdInput">ID</label>
+                <input id="advancedIdInput" type="text" autocomplete="off">
+            </div>
+            <div class="field">
                 <label for="advancedPasswordInput">비밀번호</label>
-                <input id="advancedPasswordInput" type="password" autocomplete="off" inputmode="numeric">
+                <input id="advancedPasswordInput" type="password" autocomplete="off">
             </div>
             <div class="actions">
                 <button id="advancedLoginBtn" class="primary" type="button">확인</button>
@@ -135,6 +139,7 @@
     <script>
         const bridge = window.opener && window.opener.SKCTAdvancedBridge;
         const authStatus = document.getElementById('authStatus');
+        const idInput = document.getElementById('advancedIdInput');
         const passwordInput = document.getElementById('advancedPasswordInput');
         const loginButton = document.getElementById('advancedLoginBtn');
         const syncReadyState = () => {
@@ -162,16 +167,27 @@
         loginButton.addEventListener('click', async () => {
             if (!bridge) return;
             if (!syncReadyState()) return;
+            const loginId = idInput.value.trim();
             const password = passwordInput.value.trim();
-            authStatus.textContent = '비밀번호를 확인하고 있습니다.';
-            const result = bridge.validatePasswordDetailed
-                ? await bridge.validatePasswordDetailed(password)
-                : { ok: await bridge.validatePassword(password), reason: 'invalid' };
+            authStatus.textContent = 'ID와 비밀번호를 확인하고 있습니다.';
+            const result = bridge.validateCredentialsDetailed
+                ? await bridge.validateCredentialsDetailed(loginId, password)
+                : bridge.validatePasswordDetailed
+                    ? await bridge.validatePasswordDetailed(password)
+                    : { ok: await bridge.validatePassword(password), reason: 'invalid' };
             if (!result.ok) {
                 authStatus.textContent = result.reason === 'expired'
-                    ? '비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
-                    : '비밀번호가 일치하지 않습니다.';
-                passwordInput.select();
+                    ? 'ID와 비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
+                    : result.reason === 'empty_password'
+                        ? '비밀번호를 입력해주세요.'
+                        : result.reason === 'empty'
+                            ? 'ID와 비밀번호를 모두 입력해주세요.'
+                            : 'ID 또는 비밀번호가 일치하지 않습니다.';
+                if (!loginId) {
+                    idInput.select();
+                } else {
+                    passwordInput.select();
+                }
                 return;
             }
             const launch = bridge.activateAdvancedSession();
@@ -180,6 +196,12 @@
             window.location.replace(launch.targetUrl);
         });
 
+        idInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                loginButton.click();
+            }
+        });
         passwordInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();

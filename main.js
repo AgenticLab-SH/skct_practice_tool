@@ -64,18 +64,20 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
+    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권'];
+    const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
         subscriptions: [
             {
                 id: 'seed-0208',
-                planName: '기본 운영 이용권',
-                memberLabel: '운영자 기본값',
+                planType: '1년 이용권',
+                userIdentity: '운영자 기본값',
+                loginId: 'seed-0208',
                 status: 'active',
                 passwordSalt: 'seed-20260406',
                 passwordHash: 'a1c558a1b233a95e200e0d78af383b407fc9326d5b46ee8107cf5a4dccba5ac9',
                 expiresAt: '',
-                externalId: '',
-                note: '기본 이스터에그 비밀번호'
+                note: '기본 운영 계정'
             }
         ]
     };
@@ -111,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedGuideToggle = document.getElementById('advancedGuideToggle');
     const advancedGuideModal = document.getElementById('advancedGuideModal');
     const advancedAccessSummary = document.getElementById('advancedAccessSummary');
+    const advancedAccessIdInput = document.getElementById('advancedAccessIdInput');
     const advancedAccessPasswordInput = document.getElementById('advancedAccessPasswordInput');
     const advancedAccessSubmitBtn = document.getElementById('advancedAccessSubmitBtn');
     const advancedAccessReveal = document.getElementById('advancedAccessReveal');
@@ -192,18 +195,31 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function normalizeAdvancedPlanType(value) {
+        const trimmed = String(value || '').trim();
+        return ADVANCED_SUBSCRIPTION_PLAN_OPTIONS.includes(trimmed) ? trimmed : DEFAULT_ADVANCED_PLAN_TYPE;
+    }
+
+    function normalizeAdvancedLoginId(value) {
+        return String(value || '').trim();
+    }
+
+    function getAdvancedLoginIdKey(value) {
+        return normalizeAdvancedLoginId(value).toLowerCase();
+    }
+
     function normalizeAdvancedSubscription(raw, index = 0) {
         const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
         const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
         return {
             id: String(raw?.id || `subscription-${index + 1}`),
-            planName: String(raw?.planName || fallback.planName).trim() || fallback.planName,
-            memberLabel: String(raw?.memberLabel || '').trim(),
+            planType: normalizeAdvancedPlanType(raw?.planType || raw?.planName || fallback.planType),
+            userIdentity: String(raw?.userIdentity || raw?.memberLabel || '').trim(),
+            loginId: normalizeAdvancedLoginId(raw?.loginId || raw?.externalId || (raw?.id === 'seed-0208' ? 'seed-0208' : '')),
             status,
             passwordSalt: String(raw?.passwordSalt || '').trim(),
             passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
             expiresAt: String(raw?.expiresAt || '').trim(),
-            externalId: String(raw?.externalId || '').trim(),
             note: String(raw?.note || '').trim()
         };
     }
@@ -222,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!item || legacyPasswords.includes(item)) return;
             legacyPasswords.push(item);
         });
-        if (subscriptions.length || legacyPasswords.length) {
+        if (Array.isArray(raw?.subscriptions) || subscriptions.length || legacyPasswords.length) {
             return {
                 subscriptions,
                 legacyPasswords
@@ -702,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const getSubscriptionExpiryTime = (value) => {
         const trimmed = String(value || '').trim();
         if (!trimmed) return Number.POSITIVE_INFINITY;
-        const parsed = Date.parse(`${trimmed}T23:59:59+09:00`);
+        const parsed = Date.parse(`${trimmed}T12:00:00+09:00`);
         return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
     };
 
@@ -718,14 +734,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
     };
 
-    const validateAdvancedPasswordDetailed = async (password) => {
+    const validateAdvancedCredentialsDetailed = async (loginId, password) => {
+        const normalizedLoginId = getAdvancedLoginIdKey(loginId);
         const value = String(password || '').trim();
-        if (!value) return { ok: false, reason: 'empty' };
-        if (remoteAdvancedFeatureConfig.legacyPasswords.includes(value)) {
+        if (!normalizedLoginId && !value) return { ok: false, reason: 'empty' };
+        if (!value) return { ok: false, reason: normalizedLoginId ? 'empty_password' : 'empty' };
+        if (!normalizedLoginId && remoteAdvancedFeatureConfig.legacyPasswords.includes(value)) {
             return { ok: true, reason: 'active' };
         }
+        const candidateSubscriptions = normalizedLoginId
+            ? remoteAdvancedFeatureConfig.subscriptions.filter((subscription) => getAdvancedLoginIdKey(subscription.loginId) === normalizedLoginId)
+            : remoteAdvancedFeatureConfig.subscriptions.filter((subscription) => !getAdvancedLoginIdKey(subscription.loginId));
         let matchedInactiveSubscription = false;
-        for (const subscription of remoteAdvancedFeatureConfig.subscriptions) {
+        for (const subscription of candidateSubscriptions) {
             const digest = await hashAdvancedPassword(value, subscription.passwordSalt);
             if (digest !== subscription.passwordHash) continue;
             if (isActiveAdvancedSubscription(subscription)) {
@@ -733,7 +754,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             matchedInactiveSubscription = true;
         }
+        if (normalizedLoginId && !candidateSubscriptions.length) {
+            return { ok: false, reason: 'invalid_id' };
+        }
         return { ok: false, reason: matchedInactiveSubscription ? 'expired' : 'invalid' };
+    };
+
+    const validateAdvancedCredentials = async (loginId, password) => {
+        const result = await validateAdvancedCredentialsDetailed(loginId, password);
+        return result.ok;
+    };
+
+    const validateAdvancedPasswordDetailed = async (password) => {
+        return validateAdvancedCredentialsDetailed('', password);
     };
 
     const validateAdvancedPassword = async (password) => {
@@ -754,11 +787,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = `비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`;
+            advancedAccessSummary.textContent = `ID 또는 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`;
         } else if (unlockRemainingMs > 0) {
             advancedAccessSummary.textContent = `이 브라우저는 이미 인증되어 있습니다. 약 ${Math.max(1, Math.ceil(unlockRemainingMs / 60000))}분 동안 바로 고급 모드를 열 수 있습니다.`;
         } else if (activeCount > 0) {
-            advancedAccessSummary.textContent = `현재 사용 가능한 고급 이용권 ${activeCount}건을 확인했습니다. 비밀번호를 입력하면 바로 고급 팝업이 열립니다.`;
+            advancedAccessSummary.textContent = `현재 사용 가능한 고급 이용권 ${activeCount}건을 확인했습니다. 관리자에게 받은 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.`;
         } else {
             advancedAccessSummary.textContent = '현재 사용 가능한 고급 이용권이 없습니다. 관리자 페이지의 고급 구독 관리 표를 먼저 확인하세요.';
         }
@@ -3019,6 +3052,12 @@ document.addEventListener('DOMContentLoaded', () => {
         isConfigReady() {
             return isAdvancedConfigReady;
         },
+        async validateCredentials(loginId, password) {
+            return validateAdvancedCredentials(loginId, password);
+        },
+        async validateCredentialsDetailed(loginId, password) {
+            return validateAdvancedCredentialsDetailed(loginId, password);
+        },
         async validatePassword(password) {
             return validateAdvancedPassword(password);
         },
@@ -3062,6 +3101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advancedAccessSubmitBtn) {
         advancedAccessSubmitBtn.addEventListener('click', async () => {
             if (isAdvancedMode) return;
+            const loginId = advancedAccessIdInput?.value || '';
             const password = advancedAccessPasswordInput?.value || '';
             if (!isAdvancedConfigReady) {
                 if (advancedAccessStatus) {
@@ -3081,10 +3121,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = '비밀번호를 확인하고 있습니다...';
+                advancedAccessStatus.textContent = 'ID와 비밀번호를 확인하고 있습니다...';
                 advancedAccessStatus.style.color = '#64748b';
             }
-            const validationResult = await validateAdvancedPasswordDetailed(password);
+            const validationResult = await validateAdvancedCredentialsDetailed(loginId, password);
             if (!validationResult.ok) {
                 const failState = registerAdvancedPasswordFailure();
                 if (advancedAccessStatus) {
@@ -3092,13 +3132,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? Math.max(0, failState.lockedUntil - Date.now())
                         : 0;
                     advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
-                        ? `비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
+                        ? `ID 또는 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
                         : validationResult.reason === 'expired'
-                            ? '비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
-                            : '비밀번호가 일치하지 않습니다.';
+                            ? 'ID와 비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
+                            : validationResult.reason === 'empty_password'
+                                ? '비밀번호를 입력해주세요.'
+                                : validationResult.reason === 'empty'
+                                    ? 'ID와 비밀번호를 모두 입력해주세요.'
+                                    : 'ID 또는 비밀번호가 일치하지 않습니다.';
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
-                if (advancedAccessPasswordInput) {
+                if (!String(loginId || '').trim() && advancedAccessIdInput) {
+                    advancedAccessIdInput.focus();
+                    advancedAccessIdInput.select();
+                } else if (advancedAccessPasswordInput) {
                     advancedAccessPasswordInput.focus();
                     advancedAccessPasswordInput.select();
                 }
@@ -3114,6 +3161,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (advancedAccessIdInput) {
+        advancedAccessIdInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                advancedAccessSubmitBtn?.click();
+            }
+        });
+    }
     if (advancedAccessPasswordInput) {
         advancedAccessPasswordInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
@@ -3131,7 +3186,7 @@ document.addEventListener('DOMContentLoaded', () => {
         advancedAccessReuseBtn.addEventListener('click', () => {
             if (!hasAdvancedUnlock()) {
                 if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = '이 브라우저의 인증 상태가 없거나 만료되었습니다. 비밀번호를 다시 입력해주세요.';
+                    advancedAccessStatus.textContent = '이 브라우저의 인증 상태가 없거나 만료되었습니다. ID와 비밀번호를 다시 입력해주세요.';
                     advancedAccessStatus.style.color = '#b45309';
                 }
                 updateAdvancedAccessPanel();

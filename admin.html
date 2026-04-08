@@ -281,30 +281,48 @@
                         </div>
                     </div>
                     <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.6;">
-                        비밀번호는 평문으로 서버에 저장하지 않고 해시로만 저장합니다. 이 표는 수동 등록용이며, 나중에 토스 결제 연동 시 같은 구조로 자동 추가될 수 있게 설계합니다.
+                        이제부터는 <strong>ID + 비밀번호</strong> 기준으로 관리합니다. <strong>사용자 식별</strong>은 이름/이메일 같은 관리자 확인용 표시이고, <strong>ID</strong>는 사용자가 로그인할 때 직접 입력하는 계정 이름입니다.
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; margin-bottom:10px;">
+                        <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
+                            <strong style="display:block; color:#0f172a;">사용자 식별</strong>
+                            이름, 이메일처럼 누구 계정인지 알아보기 위한 관리자용 표시입니다.
+                        </div>
+                        <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
+                            <strong style="display:block; color:#0f172a;">ID</strong>
+                            로그인할 때 사용자가 직접 입력하는 계정 ID입니다. 각 계정마다 중복 없이 하나씩 써야 합니다.
+                        </div>
+                        <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
+                            <strong style="display:block; color:#0f172a;">비밀번호</strong>
+                            저장하면 원문 대신 해시만 남습니다. 비워두면 기존 비밀번호를 유지합니다.
+                        </div>
+                        <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
+                            <strong style="display:block; color:#0f172a;">만료일</strong>
+                            선택한 날짜의 정오 12:00(KST)까지 사용할 수 있습니다.
+                        </div>
                     </div>
                     <div id="advancedSubscriptionSummary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:10px;">
                         <div style="padding:10px 12px; border-radius:8px; background:#eff6ff; border:1px solid #dbeafe; font-size:12px; color:#1e3a8a;">구독 현황을 계산하는 중...</div>
                     </div>
                     <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
-                        <table style="width:100%; min-width:980px; border-collapse:collapse; font-size:12px;">
+                        <table style="width:100%; min-width:1180px; border-collapse:collapse; font-size:12px;">
                             <thead>
                                 <tr style="background:#eff6ff; color:#1e3a8a;">
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">상태</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">구독명</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">구독 종류</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">사용자 식별</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">새 비밀번호</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">ID</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">비밀번호</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">만료일</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">외부 ID</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">메모</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">관리</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">삭제</th>
                                 </tr>
                             </thead>
                             <tbody id="advancedSubscriptionTableBody"></tbody>
                         </table>
                     </div>
                     <div id="advancedFeatureSaveStatus" style="margin-top:10px; min-height:18px; font-size:11px; color:var(--adm-text-muted); line-height:1.6;">
-                        저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요.
+                        저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요. 만료일은 선택한 날짜의 정오 12:00(KST)까지 유효합니다.
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
@@ -576,32 +594,52 @@
         };
     }
 
+    const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '2주 이용권', '1달 이용권', '1년 이용권'];
+    const ADVANCED_SUBSCRIPTION_STATUS_OPTIONS = [
+        { value: 'active', label: '사용중' },
+        { value: 'paused', label: '일시중지' },
+        { value: 'expired', label: '만료' }
+    ];
+    const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
         subscriptions: [
             {
                 id: 'seed-0208',
-                planName: '기본 운영 이용권',
-                memberLabel: '운영자 기본값',
+                planType: '1년 이용권',
+                userIdentity: '운영자 기본값',
+                loginId: 'seed-0208',
                 status: 'active',
                 passwordSalt: 'seed-20260406',
                 passwordHash: 'a1c558a1b233a95e200e0d78af383b407fc9326d5b46ee8107cf5a4dccba5ac9',
                 expiresAt: '',
-                externalId: '',
-                note: '기본 이스터에그 비밀번호'
+                note: '기본 운영 계정'
             }
         ]
     };
 
+    function normalizeAdvancedPlanType(value) {
+        const trimmed = String(value || '').trim();
+        return ADVANCED_SUBSCRIPTION_PLAN_OPTIONS.includes(trimmed) ? trimmed : DEFAULT_ADVANCED_PLAN_TYPE;
+    }
+
+    function normalizeAdvancedLoginId(value) {
+        return String(value || '').trim();
+    }
+
+    function getAdvancedLoginIdKey(value) {
+        return normalizeAdvancedLoginId(value).toLowerCase();
+    }
+
     function buildLegacySubscription(password, index = 0) {
         return {
             id: `legacy-${index + 1}`,
-            planName: '기존 수동 등록',
-            memberLabel: '',
+            planType: DEFAULT_ADVANCED_PLAN_TYPE,
+            userIdentity: '',
+            loginId: '',
             status: 'active',
             passwordSalt: '',
             passwordHash: '',
             expiresAt: '',
-            externalId: '',
             note: '기존 평문 비밀번호 마이그레이션 필요',
             _plainPassword: String(password || '').trim()
         };
@@ -612,22 +650,22 @@
         const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
         return {
             id: String(raw?.id || `subscription-${index + 1}`),
-            planName: String(raw?.planName || fallback.planName).trim() || fallback.planName,
-            memberLabel: String(raw?.memberLabel || '').trim(),
+            planType: normalizeAdvancedPlanType(raw?.planType || raw?.planName || fallback.planType),
+            userIdentity: String(raw?.userIdentity || raw?.memberLabel || '').trim(),
+            loginId: normalizeAdvancedLoginId(raw?.loginId || raw?.externalId || (raw?.id === 'seed-0208' ? 'seed-0208' : '')),
             status,
             passwordSalt: String(raw?.passwordSalt || '').trim(),
             passwordHash: String(raw?.passwordHash || '').trim().toLowerCase(),
             expiresAt: String(raw?.expiresAt || '').trim(),
-            externalId: String(raw?.externalId || '').trim(),
             note: String(raw?.note || '').trim(),
             _plainPassword: String(raw?._plainPassword || '').trim()
         };
     }
 
     function normalizeAdvancedFeatureConfig(raw) {
-        if (Array.isArray(raw?.subscriptions) && raw.subscriptions.length) {
+        if (Array.isArray(raw?.subscriptions)) {
             const subscriptions = raw.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index));
-            return { subscriptions: subscriptions.length ? subscriptions : DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index)) };
+            return { subscriptions };
         }
         const legacySource = (Array.isArray(raw?.passwords)
             ? raw.passwords
@@ -647,13 +685,13 @@
     function createEmptySubscriptionRow() {
         return {
             id: (crypto.randomUUID ? crypto.randomUUID() : `subscription-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`),
-            planName: '신규 고급 이용권',
-            memberLabel: '',
+            planType: DEFAULT_ADVANCED_PLAN_TYPE,
+            userIdentity: '',
+            loginId: '',
             status: 'active',
             passwordSalt: '',
             passwordHash: '',
             expiresAt: '',
-            externalId: '',
             note: '',
             _plainPassword: ''
         };
@@ -668,7 +706,7 @@
     function getSubscriptionExpiryTime(value) {
         const trimmed = String(value || '').trim();
         if (!trimmed) return Number.POSITIVE_INFINITY;
-        const parsed = Date.parse(`${trimmed}T23:59:59+09:00`);
+        const parsed = Date.parse(`${trimmed}T12:00:00+09:00`);
         return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
     }
 
@@ -1333,43 +1371,48 @@
         const statusEl = document.getElementById('advancedFeatureSaveStatus');
         if (!tableBody) return;
         const advancedFeatureConfig = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
-        if (!advancedFeatureConfig.subscriptions.length) {
-            advancedFeatureConfig.subscriptions = [createEmptySubscriptionRow()];
-        }
         loadedConfig.advancedFeatureConfig = advancedFeatureConfig;
         renderAdvancedSubscriptionSummary(advancedFeatureConfig.subscriptions);
+        const rowsToRender = advancedFeatureConfig.subscriptions.length
+            ? advancedFeatureConfig.subscriptions
+            : [createEmptySubscriptionRow()];
         if (statusEl) {
-            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요.';
+            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요. 만료일은 선택한 날짜의 정오 12:00(KST)까지 유효합니다.';
             statusEl.style.color = 'var(--adm-text-muted)';
         }
         tableBody.innerHTML = '';
-        advancedFeatureConfig.subscriptions.forEach((subscription) => {
+        rowsToRender.forEach((subscription) => {
             const row = document.createElement('tr');
             row.dataset.subscriptionId = subscription.id;
             row.style.borderBottom = '1px solid #e2e8f0';
             const passwordState = subscription.passwordHash
-                ? '<span style="color:#0f766e; font-weight:700;">해시 저장됨</span>'
-                : '<span style="color:#b45309; font-weight:700;">새 비밀번호 필요</span>';
+                ? '<span style="color:#0f766e; font-weight:700;">현재 비밀번호는 숨김 저장됨</span>'
+                : '<span style="color:#b45309; font-weight:700;">새 계정은 비밀번호가 필요합니다</span>';
             row.innerHTML = `
                 <td style="padding:8px;">
                     <select class="form-select" data-field="status" style="min-width:90px;">
-                        <option value="active" ${subscription.status === 'active' ? 'selected' : ''}>active</option>
-                        <option value="paused" ${subscription.status === 'paused' ? 'selected' : ''}>paused</option>
-                        <option value="expired" ${subscription.status === 'expired' ? 'selected' : ''}>expired</option>
+                        ${ADVANCED_SUBSCRIPTION_STATUS_OPTIONS.map((option) => `<option value="${option.value}" ${subscription.status === option.value ? 'selected' : ''}>${option.label}</option>`).join('')}
                     </select>
                 </td>
-                <td style="padding:8px;"><input class="form-input" data-field="planName" value="${esc(subscription.planName)}" placeholder="예: 월 구독"></td>
-                <td style="padding:8px;"><input class="form-input" data-field="memberLabel" value="${esc(subscription.memberLabel)}" placeholder="예: 홍길동 / 이메일"></td>
                 <td style="padding:8px;">
-                    <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPassword || '')}" placeholder="변경 시에만 입력">
+                    <select class="form-select" data-field="planType" style="min-width:120px;">
+                        ${ADVANCED_SUBSCRIPTION_PLAN_OPTIONS.map((plan) => `<option value="${plan}" ${subscription.planType === plan ? 'selected' : ''}>${plan}</option>`).join('')}
+                    </select>
+                </td>
+                <td style="padding:8px;"><input class="form-input" data-field="userIdentity" value="${esc(subscription.userIdentity)}" placeholder="예: 홍길동 / user@example.com"></td>
+                <td style="padding:8px;"><input class="form-input" data-field="loginId" value="${esc(subscription.loginId)}" placeholder="예: sb_user01"></td>
+                <td style="padding:8px;">
+                    <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPassword || '')}" placeholder="새 계정은 필수 / 비워두면 기존 유지">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:4px;">
                         <div style="font-size:10px; color:#64748b;">${passwordState}</div>
-                        <button type="button" class="btn btn-ghost btn-sm" data-action="generate-password" style="padding:2px 8px; font-size:10px;">6자리 생성</button>
+                        <button type="button" class="btn btn-ghost btn-sm" data-action="generate-password" style="padding:2px 8px; font-size:10px;">예시 생성</button>
                     </div>
                 </td>
-                <td style="padding:8px;"><input class="form-input" data-field="expiresAt" type="date" value="${esc(subscription.expiresAt)}"></td>
-                <td style="padding:8px;"><input class="form-input" data-field="externalId" value="${esc(subscription.externalId)}" placeholder="예: toss-order-001"></td>
-                <td style="padding:8px;"><input class="form-input" data-field="note" value="${esc(subscription.note)}" placeholder="메모"></td>
+                <td style="padding:8px;">
+                    <input class="form-input" data-field="expiresAt" type="date" value="${esc(subscription.expiresAt)}">
+                    <div style="margin-top:4px; font-size:10px; color:#64748b;">선택한 날짜 정오 12:00까지 사용</div>
+                </td>
+                <td style="padding:8px;"><input class="form-input" data-field="note" value="${esc(subscription.note)}" placeholder="예: 입금 확인 완료, 1회 연장 약속"></td>
                 <td style="padding:8px; text-align:center;">
                     <button type="button" class="btn btn-ghost btn-sm" data-action="remove-subscription" style="color:#ef4444; border-color:#fecaca;">삭제</button>
                 </td>
@@ -1386,7 +1429,7 @@
             });
             row.querySelector('[data-action="remove-subscription"]').addEventListener('click', () => {
                 const subs = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.filter((item) => item.id !== subscription.id);
-                loadedConfig.advancedFeatureConfig = { subscriptions: subs.length ? subs : [createEmptySubscriptionRow()] };
+                loadedConfig.advancedFeatureConfig = { subscriptions: subs };
                 renderAdvancedFeatureForm();
             });
             tableBody.appendChild(row);
@@ -1429,39 +1472,42 @@
         const currentMap = new Map(
             normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.map((item) => [item.id, item])
         );
-        const usedPasswords = new Set();
-        const usedExternalIds = new Set();
+        const usedLoginIds = new Set();
         for (const row of rows) {
             const status = row.querySelector('[data-field="status"]').value;
-            const planName = row.querySelector('[data-field="planName"]').value.trim() || '신규 고급 이용권';
-            const memberLabel = row.querySelector('[data-field="memberLabel"]').value.trim();
+            const planType = normalizeAdvancedPlanType(row.querySelector('[data-field="planType"]').value);
+            const userIdentity = row.querySelector('[data-field="userIdentity"]').value.trim();
+            const loginId = normalizeAdvancedLoginId(row.querySelector('[data-field="loginId"]').value);
             const newPassword = row.querySelector('[data-field="newPassword"]').value.trim();
             const expiresAt = row.querySelector('[data-field="expiresAt"]').value;
-            const externalId = row.querySelector('[data-field="externalId"]').value.trim();
             const note = row.querySelector('[data-field="note"]').value.trim();
-            if (newPassword) {
-                if (usedPasswords.has(newPassword)) {
-                    throw new Error('같은 새 비밀번호가 여러 행에 중복되어 있습니다. 각 구독은 다른 비밀번호를 사용하세요.');
-                }
-                usedPasswords.add(newPassword);
-            }
-            if (externalId) {
-                const normalizedExternalId = externalId.toLowerCase();
-                if (usedExternalIds.has(normalizedExternalId)) {
-                    throw new Error('외부 ID가 중복되어 있습니다. 토스 주문번호 등은 각 행마다 고유해야 합니다.');
-                }
-                usedExternalIds.add(normalizedExternalId);
-            }
             const current = currentMap.get(row.dataset.subscriptionId) || createEmptySubscriptionRow();
+            const hasExistingPassword = Boolean(current.passwordSalt && current.passwordHash);
+            const hasMeaningfulInput = Boolean(userIdentity || loginId || newPassword || expiresAt || note || hasExistingPassword);
+            if (!hasMeaningfulInput) continue;
+            if (!userIdentity) {
+                throw new Error('사용자 식별은 비워둘 수 없습니다. 이름이나 이메일을 입력하세요.');
+            }
+            if (!loginId) {
+                throw new Error('ID는 비워둘 수 없습니다. 사용자가 로그인할 계정 ID를 입력하세요.');
+            }
+            const normalizedLoginId = getAdvancedLoginIdKey(loginId);
+            if (usedLoginIds.has(normalizedLoginId)) {
+                throw new Error(`ID가 중복되어 있습니다: ${loginId}`);
+            }
+            usedLoginIds.add(normalizedLoginId);
+            if (!hasExistingPassword && !newPassword) {
+                throw new Error(`새 계정(${loginId})은 비밀번호가 필요합니다.`);
+            }
             const nextRow = {
                 id: current.id || createEmptySubscriptionRow().id,
-                planName,
-                memberLabel,
+                planType,
+                userIdentity,
+                loginId,
                 status,
                 passwordSalt: current.passwordSalt || '',
                 passwordHash: current.passwordHash || '',
                 expiresAt,
-                externalId,
                 note
             };
             const sourcePassword = newPassword || current._plainPassword || '';
@@ -1469,13 +1515,13 @@
                 nextRow.passwordSalt = current.passwordSalt || (crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`);
                 nextRow.passwordHash = await hashAdvancedPassword(sourcePassword, nextRow.passwordSalt);
             }
-            if (!nextRow.passwordSalt || !nextRow.passwordHash) continue;
+            if (!nextRow.passwordSalt || !nextRow.passwordHash) {
+                throw new Error(`계정(${loginId})의 비밀번호가 비어 있습니다. 새 비밀번호를 입력하세요.`);
+            }
             subscriptions.push(nextRow);
         }
         loadedConfig.advancedFeatureConfig = {
-            subscriptions: subscriptions.length
-                ? subscriptions
-                : DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions.map((item, index) => normalizeAdvancedSubscription(item, index))
+            subscriptions
         };
         return loadedConfig.advancedFeatureConfig;
     }
