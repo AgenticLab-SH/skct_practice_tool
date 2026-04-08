@@ -1,5 +1,5 @@
 # 2026-04-08 수동 구독 중복 신청 점검 및 승인 처리
-작성일시: 2026-04-08 23:39:50 KST
+작성일시: 2026-04-09 00:07:00 KST
 
 사용자 요청: 현재 운영 `subscriptionRequests` 목록을 점검해 2명에게 여러 번 들어온 신청의 로직 이슈를 확인하고, 실제 승인 후 `고급 구독 내역` 반영까지 검증한다.
 
@@ -92,3 +92,34 @@
   - 저장은 `passwordSalt + passwordHash` 기준으로 계속 가능
   - 이 경우 관리자 재확인용 `passwordCipher*`는 비워 둔다
   - 저장 직후 상태 문구에 `로그인 가능 / 관리자 재확인 불가`와 재로그인 필요 안내를 함께 표시한다
+
+## 9. 수동 계정 로그인 경로 분리 문제와 운영 보정
+- 사용자 점검 중 새로 드러난 문제는 `고급 구독 내역`에 수동 계정을 저장해도, 공개 페이지의 실제 로그인 경로가 그 데이터를 읽지 않는다는 점이었다.
+- 즉 `config/advancedFeatureConfig`는 관리자 장부 역할만 하고 있었고, 공개 페이지는 `신청번호 + 조회 비밀번호 -> 서명된 라이선스` 흐름만 지원했다.
+- 그래서 `esun`처럼 수동 추가한 계정은 Firebase 저장이 즉시 끝나도 실제 로그인은 실패했다. 이 문제는 지연이나 캐시가 아니라 구조 단절이었다.
+
+### 9.1 코드 보강
+- `admin.html`
+  - `고급 구독 저장` 시 관리자 비공개 장부와 별도로 `advancedAccountLicenses/<loginId>` 공개 로그인 레코드를 함께 갱신하도록 변경
+  - 라이선스 서명 키로 수동 계정용 라이선스 번들을 만들고, 계정 비밀번호로 다시 AES 암호화해 공개 저장
+  - 세션 안에서 방금 입력하거나 확인한 비밀번호는 `_plainPasswordLocal`로만 메모리에 유지하고, Firebase 저장본에서는 제거
+- `main.js`
+  - 공개 페이지가 `advancedAccountLicenses/<loginId>`를 읽어 ID/비밀번호 기반 수동 계정 로그인도 처리하도록 추가
+  - 기존 신청번호 경로와 수동 계정 경로를 함께 지원
+  - `advanced-tools.html`이 기대하던 `validateCredentialsDetailed`, `activateAdvancedSession` 브리지를 실제 런타임에 복구
+- `database.rules.json`
+  - `advancedAccountLicenses/$loginIdKey`만 공개 읽기, 루트 목록 읽기는 금지
+
+### 9.2 운영 데이터 보정
+- 운영 RTDB의 `advancedAccountLicenses`는 기존에 비어 있었다.
+- 신청 원본에서 비밀번호를 복구할 수 있는 계정 2건은 운영에서 즉시 공개 로그인 레코드를 재생성했다.
+  - `ods1106`
+  - `mingyu7275`
+- `esun`, `sh`는 수동 입력 후 해시만 남은 상태라 평문 비밀번호를 역산할 수 없어, 운영자가 비밀번호를 한 번 다시 입력해 저장해야 공개 로그인 레코드를 만들 수 있다.
+
+### 9.3 검증
+- 로컬 `index.html`에서 `window.SKCTAdvancedBridge.validateCredentialsDetailed('ods1106', <복구된 비밀번호>)` 성공
+- `activateAdvancedSession()` 호출 후 `localStorage` 라이선스 저장 및 `syncStoredLicense()` 검증 성공
+- 기존 신청번호 경로 `applyLicenseFromRequest('REQ-MNPYGTBA-B5Y4', <비밀번호>)`도 계속 성공
+- 운영 RTDB rules 재배포 완료
+- 운영 `advancedAccountLicenses` 경로 데이터 반영 완료

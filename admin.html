@@ -662,7 +662,7 @@
 
 <!-- Firebase SDK -->
 <script src="site-text-config.js?v=202604081900"></script>
-<script src="subscription-crypto.js?v=202604081336"></script>
+<script src="subscription-crypto.js?v=202604081955"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction
@@ -796,6 +796,7 @@
     const LOCAL_ADMIN_KEY_HANDLE_ID = 'manual-admin-key-dir';
     const LOCAL_ADMIN_REQUEST_KEY_FILENAME = 'manual_subscription_request_private.pem';
     const LOCAL_ADMIN_LICENSE_KEY_FILENAME = 'manual_subscription_license_private.pem';
+    const ADVANCED_ACCOUNT_LICENSES_PATH = 'advancedAccountLicenses';
     const DEFAULT_MANUAL_SUBSCRIPTION_CONFIG = {
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
@@ -948,7 +949,8 @@
             passwordCipherIv: String(raw?.passwordCipherIv || '').trim(),
             passwordCipherSalt: String(raw?.passwordCipherSalt || '').trim(),
             note: String(raw?.note || '').trim(),
-            _plainPassword: String(raw?._plainPassword || '').trim()
+            _plainPassword: String(raw?._plainPassword || '').trim(),
+            _plainPasswordLocal: String(raw?._plainPasswordLocal || '').trim()
         };
     }
 
@@ -1062,6 +1064,10 @@
     }
 
     async function revealSubscriptionPassword(subscription) {
+        const localPassword = String(subscription?._plainPasswordLocal || subscription?._plainPassword || '').trim();
+        if (localPassword) {
+            return { password: localPassword, source: 'session' };
+        }
         if (subscription?.passwordCipher && subscription?.passwordCipherIv && subscription?.passwordCipherSalt) {
             const password = await decryptAdminRecoverablePassword(subscription, currentAdminPassword);
             return { password, source: 'adminCipher' };
@@ -1093,6 +1099,119 @@
             throw new Error(`신청번호 ${requestId} 원본 안에 조회 비밀번호가 없습니다.`);
         }
         return { password, source: 'requestPayload', requestId };
+    }
+
+    async function loadCurrentAdvancedAccountLicenseMap() {
+        const snap = await get(ref(db, ADVANCED_ACCOUNT_LICENSES_PATH));
+        if (!snap.exists() || typeof snap.val() !== 'object') {
+            return {};
+        }
+        return snap.val();
+    }
+
+    function buildAdvancedLicensePayloadForSubscription(subscription) {
+        const payload = {
+            licenseId: crypto.randomUUID ? crypto.randomUUID() : `license-${Date.now()}`,
+            source: 'advanced-account',
+            loginId: subscription.loginId || '',
+            userIdentity: subscription.userIdentity || '',
+            planType: subscription.planType || DEFAULT_ADVANCED_PLAN_TYPE,
+            status: subscription.status || 'active',
+            issuedAt: Date.now()
+        };
+        if (subscription.expiresAt) {
+            payload.expiresAt = `${subscription.expiresAt}T12:00:00+09:00`;
+        }
+        return payload;
+    }
+
+    async function buildEncryptedAdvancedAccountLicenseRecord(subscription, plainPassword, signingPrivateKeyPem) {
+        const licenseBundle = await window.SKCTSubscriptionCrypto.signLicensePayload(
+            buildAdvancedLicensePayloadForSubscription(subscription),
+            signingPrivateKeyPem
+        );
+        const encryptedBundle = await window.SKCTSubscriptionCrypto.encryptJsonWithPassword(licenseBundle, plainPassword);
+        return {
+            version: 1,
+            loginId: subscription.loginId,
+            status: subscription.status,
+            expiresAt: subscription.expiresAt,
+            planType: subscription.planType,
+            bundleCipher: encryptedBundle.cipher,
+            bundleIv: encryptedBundle.iv,
+            bundleSalt: encryptedBundle.salt,
+            updatedAt: Date.now()
+        };
+    }
+
+    async function buildAdvancedAccountLicenseMap(config, options = {}) {
+        const { passwordOverrides = {} } = options;
+        const subscriptions = Array.isArray(config?.subscriptions) ? config.subscriptions : [];
+        const existingMap = await loadCurrentAdvancedAccountLicenseMap();
+        const signingPrivateKeyPem = (document.getElementById('manualSubscriptionLicensePrivateKeyArea').value || '').trim();
+        const nextRecords = {};
+        const warnings = [];
+
+        for (const subscription of subscriptions) {
+            const loginIdKey = getAdvancedLoginIdKey(subscription.loginId);
+            if (!loginIdKey) continue;
+            const overridePassword = passwordOverrides[loginIdKey];
+            const plainPassword = String(overridePassword || subscription._plainPasswordLocal || '').trim();
+            if (!plainPassword) {
+                if (existingMap[loginIdKey]) {
+                    nextRecords[loginIdKey] = existingMap[loginIdKey];
+                    continue;
+                }
+                warnings.push(`계정(${subscription.loginId})은 현재 비밀번호를 알 수 없어 실제 로그인용 라이선스를 만들지 못했습니다. 비밀번호를 다시 입력한 뒤 저장하세요.`);
+                continue;
+            }
+            if (!signingPrivateKeyPem) {
+                if (existingMap[loginIdKey]) {
+                    nextRecords[loginIdKey] = existingMap[loginIdKey];
+                    warnings.push(`계정(${subscription.loginId})은 라이선스 서명 키가 없어 기존 로그인용 레코드를 유지했습니다. 새 비밀번호나 만료일을 바꿨다면 서명 키를 불러온 뒤 다시 저장해야 실제 로그인에도 반영됩니다.`);
+                    continue;
+                }
+                warnings.push(`계정(${subscription.loginId})은 라이선스 서명 키가 없어 실제 로그인용 라이선스를 만들지 못했습니다.`);
+                continue;
+            }
+            nextRecords[loginIdKey] = await buildEncryptedAdvancedAccountLicenseRecord(subscription, plainPassword, signingPrivateKeyPem);
+        }
+
+        return { records: nextRecords, warnings };
+    }
+
+    function buildStoredAdvancedFeatureConfig(config) {
+        const normalized = normalizeAdvancedFeatureConfig(config);
+        return {
+            subscriptions: normalized.subscriptions.map((subscription) => ({
+                id: subscription.id,
+                planType: subscription.planType,
+                userIdentity: subscription.userIdentity,
+                loginId: subscription.loginId,
+                status: subscription.status,
+                passwordSalt: subscription.passwordSalt,
+                passwordHash: subscription.passwordHash,
+                expiresAt: subscription.expiresAt,
+                passwordCipher: subscription.passwordCipher,
+                passwordCipherIv: subscription.passwordCipherIv,
+                passwordCipherSalt: subscription.passwordCipherSalt,
+                note: subscription.note
+            }))
+        };
+    }
+
+    async function persistAdvancedSubscriptionState(config, options = {}) {
+        const normalizedConfig = normalizeAdvancedFeatureConfig(config);
+        const privateConfig = buildStoredAdvancedFeatureConfig(normalizedConfig);
+        const publicAuthResult = await buildAdvancedAccountLicenseMap(normalizedConfig, options);
+        loadedConfig.advancedFeatureConfig = normalizedConfig;
+        await set(ref(db, 'config/advancedFeatureConfig'), privateConfig);
+        await set(ref(db, ADVANCED_ACCOUNT_LICENSES_PATH), Object.keys(publicAuthResult.records).length ? publicAuthResult.records : null);
+        renderAdvancedFeatureForm();
+        return {
+            config: normalizedConfig,
+            warnings: publicAuthResult.warnings
+        };
     }
 
     async function upsertApprovedSubscriptionFromRequest(record, payload, expiresAt) {
@@ -1139,9 +1258,10 @@
             config.subscriptions.push(nextSubscription);
         }
         loadedConfig.advancedFeatureConfig = config;
-        await set(ref(db, 'config/advancedFeatureConfig'), config);
-        renderAdvancedFeatureForm();
-        return nextSubscription;
+        return {
+            config,
+            subscription: nextSubscription
+        };
     }
 
     function createEmptySubscriptionRow() {
@@ -1158,7 +1278,8 @@
             passwordCipherIv: '',
             passwordCipherSalt: '',
             note: '',
-            _plainPassword: ''
+            _plainPassword: '',
+            _plainPasswordLocal: ''
         };
     }
 
@@ -2834,7 +2955,13 @@
             }
         };
         const encryptedPayload = await window.SKCTSubscriptionCrypto.reencryptRequestPayloadForAdmin(record, nextPayload, privateKeyPem);
-        await upsertApprovedSubscriptionFromRequest(record, nextPayload, expiresAt);
+        const upsertResult = await upsertApprovedSubscriptionFromRequest(record, nextPayload, expiresAt);
+        const loginIdKey = getAdvancedLoginIdKey(nextPayload.desiredLoginId || '');
+        const persistResult = await persistAdvancedSubscriptionState(upsertResult.config, {
+            passwordOverrides: loginIdKey
+                ? { [loginIdKey]: String(nextPayload.requestPassword || '').trim() }
+                : {}
+        });
         await update(ref(db, `subscriptionRequests/${requestId}`), {
             status: 'fulfilled',
             updatedAt: Date.now(),
@@ -2849,7 +2976,11 @@
             _payload: nextPayload
         };
         renderSubscriptionRequests();
-        renderManualSubscriptionAdminForm(`${requestId} 신청에 서명된 고급 라이선스를 발급하고 고급 구독 내역에 반영했습니다.`);
+        renderManualSubscriptionAdminForm(
+            persistResult.warnings.length
+                ? `${requestId} 신청을 승인했고 고급 구독 내역에도 반영했습니다. 다만 ${persistResult.warnings[0]}`
+                : `${requestId} 신청에 서명된 고급 라이선스를 발급하고 고급 구독 내역에 반영했습니다.`
+        );
         toast('✅ 신청 승인 및 라이선스 발급 완료');
     }
 
@@ -2958,7 +3089,7 @@
             ? advancedFeatureConfig.subscriptions
             : [createEmptySubscriptionRow()];
         if (statusEl) {
-            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요. 이 목록은 Firebase config/advancedFeatureConfig에 저장됩니다.';
+            statusEl.textContent = '저장 전 변경 내용을 검토한 뒤 고급 구독 저장 버튼을 누르세요. 이 목록은 관리자 비공개 장부와 실제 로그인용 레코드에 함께 반영됩니다.';
             statusEl.style.color = 'var(--adm-text-muted)';
         }
         tableBody.innerHTML = '';
@@ -2988,7 +3119,7 @@
                 <td style="padding:8px;"><input class="form-input" data-field="userIdentity" value="${esc(subscription.userIdentity)}" placeholder="예: 홍길동 / user@example.com"></td>
                 <td style="padding:8px;"><input class="form-input" data-field="loginId" value="${esc(subscription.loginId)}" placeholder="예: sb_user01"></td>
                 <td style="padding:8px;">
-                    <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPassword || '')}" placeholder="새 계정은 필수 / 비워두면 기존 유지">
+                    <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPasswordLocal || subscription._plainPassword || '')}" placeholder="새 계정은 필수 / 비워두면 기존 유지">
                     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-top:4px;">
                         <div style="font-size:10px; color:#64748b;">${passwordState}</div>
                         <div style="display:flex; flex-wrap:wrap; gap:4px;">
@@ -3036,6 +3167,7 @@
                     passwordInput.type = 'text';
                     passwordInput.value = visiblePassword;
                     subscription._plainPassword = visiblePassword;
+                    subscription._plainPasswordLocal = visiblePassword;
                     passwordInput.focus();
                     passwordInput.select();
                     if (statusEl) {
@@ -3152,12 +3284,14 @@
                 passwordCipher: current.passwordCipher || '',
                 passwordCipherIv: current.passwordCipherIv || '',
                 passwordCipherSalt: current.passwordCipherSalt || '',
-                note
+                note,
+                _plainPasswordLocal: String(current._plainPasswordLocal || '').trim()
             };
-            const sourcePassword = newPassword || current._plainPassword || '';
+            const sourcePassword = newPassword || current._plainPasswordLocal || current._plainPassword || '';
             if (sourcePassword) {
                 nextRow.passwordSalt = current.passwordSalt || (crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`);
                 nextRow.passwordHash = await hashAdvancedPassword(sourcePassword, nextRow.passwordSalt);
+                nextRow._plainPasswordLocal = sourcePassword;
                 if (currentAdminPassword) {
                     const encrypted = await encryptAdminRecoverablePassword(sourcePassword, currentAdminPassword);
                     nextRow.passwordCipher = encrypted.passwordCipher;
@@ -3442,17 +3576,26 @@
         const statusEl = document.getElementById('advancedFeatureSaveStatus');
         try {
             const config = normalizeAdvancedFeatureConfig(await collectAdvancedFeatureConfigFromTable());
-            loadedConfig.advancedFeatureConfig = config;
-            await set(ref(db, 'config/advancedFeatureConfig'), config);
-            renderAdvancedFeatureForm();
+            const persistResult = await persistAdvancedSubscriptionState(config);
             if (statusEl) {
-                statusEl.textContent = advancedSubscriptionsSavedWithoutRecoverableCipher
-                    ? `고급 구독 내역 ${config.subscriptions.length}건을 Firebase에 저장했습니다. 다만 현재 세션에는 관리자 비밀번호가 없어 일부 비밀번호는 로그인 검증용 해시만 저장되었습니다. 다시 로그인 후 비밀번호를 한 번 더 저장하면 관리자 확인용 암호문도 같이 보강됩니다.`
-                    : `고급 구독 내역 ${config.subscriptions.length}건을 Firebase에 저장했습니다.`;
-                statusEl.style.color = advancedSubscriptionsSavedWithoutRecoverableCipher ? '#b45309' : '#0f766e';
+                if (persistResult.warnings.length) {
+                    statusEl.textContent = `고급 구독 내역 ${persistResult.config.subscriptions.length}건을 Firebase에 저장했습니다. 다만 ${persistResult.warnings[0]}`;
+                    statusEl.style.color = '#b45309';
+                } else {
+                    statusEl.textContent = advancedSubscriptionsSavedWithoutRecoverableCipher
+                        ? `고급 구독 내역 ${persistResult.config.subscriptions.length}건을 Firebase에 저장했습니다. 다만 현재 세션에는 관리자 비밀번호가 없어 일부 비밀번호는 로그인 검증용 해시만 저장되었습니다. 다시 로그인 후 비밀번호를 한 번 더 저장하면 관리자 확인용 암호문도 같이 보강됩니다.`
+                        : `고급 구독 내역 ${persistResult.config.subscriptions.length}건과 실제 로그인용 공개 레코드를 함께 저장했습니다.`;
+                    statusEl.style.color = advancedSubscriptionsSavedWithoutRecoverableCipher ? '#b45309' : '#0f766e';
+                }
             }
             if (!silent) {
-                toast(advancedSubscriptionsSavedWithoutRecoverableCipher ? '⚠️ 고급 구독 저장 완료 (관리자 확인용 암호문 없음)' : '✅ 고급 구독 저장 완료');
+                toast(
+                    persistResult.warnings.length
+                        ? '⚠️ 고급 구독 저장 완료 (실제 로그인 반영 확인 필요)'
+                        : advancedSubscriptionsSavedWithoutRecoverableCipher
+                            ? '⚠️ 고급 구독 저장 완료 (관리자 확인용 암호문 없음)'
+                            : '✅ 고급 구독 저장 완료'
+                );
             }
         } catch (error) {
             if (statusEl) {

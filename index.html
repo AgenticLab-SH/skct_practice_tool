@@ -454,11 +454,11 @@
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
                     <div id="advancedGuideLoginTitle" style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 고급 모드 열기</div>
                     <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
-                        승인된 신청의 <strong>신청번호</strong>와 <strong>조회 비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.
+                        승인된 신청의 <strong>신청번호</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
-                        <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
-                        <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="조회 비밀번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청번호 또는 승인 ID 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="조회 비밀번호 또는 계정 비밀번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">라이선스 확인</button>
                     </div>
                     <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
@@ -797,9 +797,9 @@
             };
         })();
     </script>
-    <script src="subscription-crypto.js?v=202604081445"></script>
+    <script src="subscription-crypto.js?v=202604081955"></script>
     <script src="site-text-config.js?v=202604081900"></script>
-    <script src="main.js?v=202604081710"></script>
+    <script src="main.js?v=202604081955"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">

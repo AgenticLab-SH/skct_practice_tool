@@ -91,6 +91,13 @@
         ".write": "auth != null || (!data.exists() && newData.child('requestId').val() === $requestId && newData.child('status').val() === 'pending')"
       }
     },
+    "advancedAccountLicenses": {
+      ".read": false,
+      "$loginIdKey": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
     "posts": {
       ".read": true,
       ".write": true

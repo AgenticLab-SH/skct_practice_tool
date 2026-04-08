@@ -93,6 +93,16 @@
         return new Uint8Array(decrypted);
     }
 
+    async function encryptJsonWithPassword(payload, password) {
+        const encoded = textEncoder.encode(JSON.stringify(payload || {}));
+        return encryptBytesWithPassword(encoded, password);
+    }
+
+    async function decryptJsonWithPassword(bundle, password) {
+        const decrypted = await decryptBytesWithPassword(bundle, password);
+        return JSON.parse(textDecoder.decode(decrypted));
+    }
+
     async function encryptJsonWithContentKey(payload, contentKey) {
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const encoded = textEncoder.encode(JSON.stringify(payload || {}));
@@ -317,6 +327,8 @@
         decryptRequestPayloadForUser,
         decryptRequestPayloadForAdmin,
         reencryptRequestPayloadForAdmin,
+        encryptJsonWithPassword,
+        decryptJsonWithPassword,
         signLicensePayload,
         verifyLicenseBundle
     };
