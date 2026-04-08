@@ -3083,6 +3083,10 @@
         }
         const confirmed = confirm(`신청 ${requestId}를 Firebase에서 완전히 삭제할까요?\n삭제 후에는 목록과 암호화 본문이 함께 사라집니다.`);
         if (!confirmed) return;
+        const lookupKey = String(record.lookupEmailPasswordKey || '').trim();
+        if (lookupKey) {
+            await remove(ref(db, `subscriptionRequestLookup/${lookupKey}`));
+        }
         await remove(ref(db, `subscriptionRequests/${requestId}`));
         delete subscriptionRequestCache[requestId];
         renderSubscriptionRequests();

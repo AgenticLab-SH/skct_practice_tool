@@ -74,7 +74,7 @@
         advancedGuide: {
             title: '🔒 고급 이용 안내',
             loginTitle: '1. 승인된 신청으로 고급 모드 열기',
-            loginBody: '승인된 신청의 <strong>신청번호</strong>와 <strong>조회 비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 바로 고급 모드로 들어갈 수 있습니다.',
+            loginBody: '승인된 신청에 쓴 <strong>이메일</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 바로 고급 모드로 들어갈 수 있습니다.',
             featureTitle: '2. 고급 모드에서 달라지는 점',
             featureCard1Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">실전형 도구</strong>\n계산기 동작, 우측 버튼 열, 도구 설정을 더 실제 환경에 가깝게 쓸 수 있습니다.',
             featureCard2Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">빠른 복기</strong>\n정오표 일괄입력과 문항별 상세 통계 저장으로 복기 시간이 줄어듭니다.',
@@ -83,13 +83,13 @@
             planTitle: '3. 이용권 선택',
             planIntro: '현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 필요한 기간을 선택해 신청하면 됩니다.',
             donateButton: '후원 페이지 열기',
-            flowHtml: '<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 저장 후 표시되는 <strong>신청번호 + 조회 비밀번호</strong>를 보관합니다.<br>\n4. 신청 조회에서 승인 상태를 확인하고, 승인되면 서명된 라이선스를 이 브라우저에 적용합니다.',
+            flowHtml: '<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 신청 이메일과 조회 비밀번호를 입력해 저장합니다.<br>\n4. 신청 조회에서 승인 상태를 확인하고, 승인되면 서명된 라이선스를 이 브라우저에 적용합니다.',
             formTitle: '4. 이용권 신청서',
             formDescription: '후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 라이선스를 확인하고 적용할 수 있습니다.',
-            passwordHint: '여기서 입력하는 비밀번호는 <strong>신청 조회 및 라이선스 확인용</strong>입니다. 신청번호와 함께 꼭 보관해 주세요.',
+            passwordHint: '여기서 입력하는 비밀번호는 <strong>신청 조회 및 라이선스 확인용</strong>입니다. 신청 이메일과 함께 기억해 주세요.',
             submitButton: '신청서 저장',
             lookupTitle: '5. 신청 조회',
-            lookupDescription: '저장 후 받은 <strong>신청번호</strong>와 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태를 확인하고, 승인된 경우 라이선스를 바로 적용할 수 있습니다.',
+            lookupDescription: '저장 후에는 <strong>신청 이메일</strong>과 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태를 확인하고, 승인된 경우 라이선스를 바로 적용할 수 있습니다.',
             lookupButton: '조회',
             contactHtml: '문의가 있으면 <strong>zhdlsqpdj@gmail.com</strong>로 보내주세요.'
         },
@@ -107,15 +107,15 @@
         },
         messages: {
             advancedLoading: '고급 라이선스 정보를 불러오는 중입니다.',
-            advancedCooldown: '신청번호 또는 조회 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.',
+            advancedCooldown: '이메일/ID 또는 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.',
             advancedUnlocked: '이 브라우저에 유효한 라이선스가 저장되어 있어 바로 고급 모드를 열 수 있습니다.',
-            advancedAvailable: '승인된 신청번호와 조회 비밀번호를 입력하면 바로 고급 팝업이 열립니다.',
+            advancedAvailable: '신청 이메일 또는 승인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.',
             advancedNone: '아직 사용 가능한 라이선스가 없습니다. 먼저 이용권 신청 후 승인을 받아주세요.',
             advancedNeedConfig: '고급 라이선스 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.',
             advancedRetryAfter: '{seconds}초 후에 다시 시도할 수 있습니다.',
-            advancedChecking: '신청번호와 조회 비밀번호를 확인하고 있습니다...',
+            advancedChecking: '신청 이메일 또는 승인 ID와 비밀번호를 확인하고 있습니다...',
             advancedOpening: '고급 버전 팝업을 여는 중입니다.',
-            advancedNeedRelogin: '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청번호와 조회 비밀번호로 다시 확인해주세요.',
+            advancedNeedRelogin: '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.',
             advancedReuse: '저장된 라이선스로 고급 버전을 다시 엽니다.',
             manualClosed: '현재 수동 이용권 신청이 닫혀 있습니다.',
             manualConfigNotReady: '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.',
@@ -124,11 +124,11 @@
             manualInvalidEmail: '이메일 형식이 올바르지 않습니다.',
             manualPasswordShort: '조회 비밀번호는 6자 이상으로 설정해주세요.',
             manualPasswordMismatch: '조회 비밀번호 확인이 일치하지 않습니다.',
-            manualSubmitSuccess: '신청서가 저장되었습니다. <strong>신청번호 {requestId}</strong> 와 조회 비밀번호를 꼭 보관해주세요. 아래 신청 조회에서 같은 값으로 상태를 다시 확인할 수 있습니다.',
+            manualSubmitSuccess: '신청서가 저장되었습니다. 신청 이메일과 조회 비밀번호로 상태를 다시 확인할 수 있습니다.',
             manualSubmitError: '신청 저장 중 오류가 발생했습니다.',
-            manualLookupRequired: '신청번호와 조회 비밀번호를 모두 입력해주세요.',
+            manualLookupRequired: '이메일과 조회 비밀번호를 모두 입력해주세요.',
             manualLookupError: '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-            manualLookupNotFound: '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.',
+            manualLookupNotFound: '해당 이메일로 조회되는 신청을 찾지 못했습니다. 이메일 또는 조회 비밀번호를 다시 확인해주세요.',
             manualLookupDecryptError: '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.'
         }
     };
@@ -245,7 +245,7 @@
         { key: 'messages.manualSubmitError', label: '상태 메시지: 신청 저장 실패', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupRequired', label: '상태 메시지: 조회 필수값', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupError', label: '상태 메시지: 조회 오류', category: '상태 메시지', visual: false },
-        { key: 'messages.manualLookupNotFound', label: '상태 메시지: 신청번호 없음', category: '상태 메시지', visual: false },
+        { key: 'messages.manualLookupNotFound', label: '상태 메시지: 신청 조회 없음', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupDecryptError', label: '상태 메시지: 조회 복호화 실패', category: '상태 메시지', visual: false }
     ];
     const PREVIEW_APPLY_EVENT = 'skct-site-text-preview-apply';

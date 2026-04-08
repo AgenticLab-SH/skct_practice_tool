@@ -97,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const FIREBASE_RTDB_BASE_URL = 'https://skct-tool-default-rtdb.firebaseio.com';
     const ADVANCED_ACCOUNT_LICENSES_BASE_URL = `${FIREBASE_RTDB_BASE_URL}/advancedAccountLicenses`;
+    const SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL = `${FIREBASE_RTDB_BASE_URL}/subscriptionRequestLookup`;
     const POPUP_EDITOR_MESSAGE_TYPES = {
         preview: 'skct-popup-layout-preview',
         saveRequest: 'skct-popup-layout-save-request',
@@ -367,6 +368,30 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!trimmed.includes('@')) return trimmed ? `${trimmed.slice(0, 2)}***` : '-';
         const [local, domain] = trimmed.split('@');
         return `${local.slice(0, 2)}***@${domain}`;
+    }
+
+    function normalizeLookupEmail(value) {
+        return String(value || '').trim().toLowerCase();
+    }
+
+    function isLikelyEmailAddress(value) {
+        const normalized = normalizeLookupEmail(value);
+        if (!normalized || !normalized.includes('@')) return false;
+        const segments = normalized.split('@');
+        return segments.length === 2 && segments[0].length > 0 && segments[1].length > 0;
+    }
+
+    async function sha256Hex(value) {
+        const encoder = new TextEncoder();
+        const digest = await crypto.subtle.digest('SHA-256', encoder.encode(String(value || '')));
+        return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function buildSubscriptionLookupKey(email, password) {
+        const normalizedEmail = normalizeLookupEmail(email);
+        const normalizedPassword = String(password || '');
+        if (!normalizedEmail || !normalizedPassword) return '';
+        return sha256Hex(`${normalizedEmail}::${normalizedPassword}`);
     }
 
     function maskText(value) {
@@ -986,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setAdvancedModeState(false);
                 removeAdvancedQueryParam();
                 if (!silent && advancedAccessStatus) {
-                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청번호와 조회 비밀번호로 다시 확인해주세요.');
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.');
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
             }
@@ -1013,7 +1038,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #bfdbfe;">
                 <div style="font-weight:800; color:#1d4ed8; margin-bottom:8px;">${escapeHtml(statusMap[record.status] || record.status || '대기')}</div>
                 <div style="font-size:12px; color:#334155; line-height:1.75;">
-                    <div><strong>신청번호</strong>: ${escapeHtml(record.requestId || '-')}</div>
                     <div><strong>신청 플랜</strong>: ${escapeHtml(record.planLabel || '-')}</div>
                     <div><strong>신청 시각</strong>: ${escapeHtml(formatKstDateTime(record.createdAt))}</div>
                     <div><strong>후원 닉네임</strong>: ${escapeHtml(payload?.donationName || '-')}</div>
@@ -1075,11 +1099,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = `신청번호 또는 조회 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
+            advancedAccessSummary.textContent = `이메일/ID 또는 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
         } else if (verifiedAdvancedLicenseBundle) {
             advancedAccessSummary.textContent = `이 브라우저에 유효한 고급 라이선스가 저장되어 있습니다. 만료: ${formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)}`;
         } else {
-            advancedAccessSummary.textContent = '승인 후 받은 신청번호 또는 관리자에게서 받은 ID와 비밀번호를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.';
+            advancedAccessSummary.textContent = '승인 후에는 신청에 쓴 이메일 또는 관리자가 발급한 ID와 비밀번호로 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.';
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = cooldownRemainingMs > 0;
     };
@@ -1095,6 +1119,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return payload ? { ...payload, requestId: trimmedRequestId } : null;
     }
 
+    async function resolveSubscriptionRequestId(identifier, requestPassword) {
+        const trimmedIdentifier = String(identifier || '').trim();
+        if (!trimmedIdentifier) return '';
+        if (!isLikelyEmailAddress(trimmedIdentifier)) {
+            return trimmedIdentifier;
+        }
+        const lookupKey = await buildSubscriptionLookupKey(trimmedIdentifier, requestPassword);
+        if (!lookupKey) return '';
+        const response = await fetch(`${SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL}/${encodeURIComponent(lookupKey)}.json`);
+        if (!response.ok) {
+            throw new Error(readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'));
+        }
+        const payload = await response.json();
+        if (!payload) return '';
+        if (typeof payload === 'string') {
+            return payload.trim();
+        }
+        return String(payload?.requestId || '').trim();
+    }
+
     async function fetchAdvancedAccountLicenseRecord(loginId) {
         const loginIdKey = getAdvancedLoginIdKey(loginId);
         if (!loginIdKey) return null;
@@ -1107,7 +1151,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function hydrateAdvancedLicenseFromRequest(requestId, requestPassword) {
-        const record = await fetchSubscriptionRequestRecord(requestId);
+        const resolvedRequestId = await resolveSubscriptionRequestId(requestId, requestPassword);
+        const record = await fetchSubscriptionRequestRecord(resolvedRequestId);
         if (!record) {
             return { ok: false, reason: 'not_found' };
         }
@@ -1175,7 +1220,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function hydrateAdvancedLicenseFromCredentials(identifier, password, options = {}) {
         const trimmedIdentifier = String(identifier || '').trim();
+        const idLooksLikeEmail = isLikelyEmailAddress(trimmedIdentifier);
         const idLooksLikeRequest = /^REQ-[A-Z0-9]+-[A-Z0-9]+$/i.test(trimmedIdentifier);
+        if (idLooksLikeEmail) {
+            const requestResult = await hydrateAdvancedLicenseFromRequest(trimmedIdentifier, password);
+            return { ...requestResult, mode: 'request' };
+        }
         if (idLooksLikeRequest) {
             const requestResult = await hydrateAdvancedLicenseFromRequest(trimmedIdentifier, password);
             if (requestResult.ok || requestResult.reason !== 'not_found') {
@@ -1262,14 +1312,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const duplicatedRecentSubmission = findRecentDuplicateManualSubmission(submitFingerprint);
         if (duplicatedRecentSubmission) {
             manualSubscriptionSubmitStatus.style.color = '#b45309';
-            manualSubscriptionSubmitStatus.innerHTML = duplicatedRecentSubmission.requestId
-                ? `같은 내용의 신청이 최근에 이미 저장되었습니다. <strong>${escapeHtml(duplicatedRecentSubmission.requestId)}</strong> 신청번호로 먼저 조회해주세요.`
-                : '같은 내용의 신청이 최근에 이미 저장되었습니다. 먼저 신청 조회에서 상태를 확인해주세요.';
+            manualSubscriptionSubmitStatus.innerHTML = '같은 내용의 신청이 최근에 이미 저장되었습니다. 먼저 <strong>신청 이메일과 조회 비밀번호</strong>로 상태를 확인해주세요.';
             return;
         }
         setManualSubscriptionSubmittingState(true);
         try {
             const requestId = `REQ-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+            const lookupKey = await buildSubscriptionLookupKey(email, requestPassword);
             const encrypted = await window.SKCTSubscriptionCrypto.encryptRequestPayload({
                 donationName,
                 requestedStartDate,
@@ -1292,6 +1341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 requesterMask: maskText(siteNickname),
                 emailMask: maskEmail(email),
                 donationMask: maskText(donationName),
+                lookupEmailPasswordKey: lookupKey,
                 ...encrypted
             };
             const writeResponse = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
@@ -1304,16 +1354,40 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!writeResponse.ok) {
                 throw new Error('신청서 저장 중 오류가 발생했습니다.');
             }
+            if (!lookupKey) {
+                await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
+                    method: 'DELETE'
+                }).catch(() => {});
+                throw new Error('이메일 조회 키를 만들지 못해 신청을 저장할 수 없습니다. 이메일과 비밀번호를 다시 확인해주세요.');
+            }
+            const lookupResponse = await fetch(`${SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL}/${encodeURIComponent(lookupKey)}.json`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    requestId,
+                    createdAt: Date.now(),
+                    emailMask: maskEmail(email)
+                })
+            });
+            if (!lookupResponse.ok) {
+                await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
+                    method: 'DELETE'
+                }).catch(() => {});
+                throw new Error('이메일 조회 연결 저장에 실패해 신청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.');
+            }
             writeManualSubscriptionSubmitGuard({
                 fingerprint: submitFingerprint,
                 requestId,
                 createdAt: Date.now()
             });
-            saveRecentRequestInfo({ requestId, createdAt: Date.now() });
-            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = requestId;
+            saveRecentRequestInfo({ requestId, lookupIdentifier: normalizeLookupEmail(email), createdAt: Date.now() });
+            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = normalizeLookupEmail(email);
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
+            if (advancedAccessIdInput) advancedAccessIdInput.value = normalizeLookupEmail(email);
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
-            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. <strong>신청번호 ${escapeHtml(requestId)}</strong>와 조회 비밀번호를 꼭 보관하세요. 아래 신청 조회와 고급 모드 로그인에서 같은 값으로 바로 확인할 수 있습니다.`;
+            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. 이제 <strong>이메일 ${escapeHtml(normalizeLookupEmail(email))}</strong>와 조회 비밀번호로 바로 상태를 확인할 수 있습니다.`;
         } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
             manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');
@@ -1327,19 +1401,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const requestId = manualSubscriptionLookupIdInput?.value.trim() || '';
         const requestPassword = manualSubscriptionLookupPasswordInput?.value || '';
         if (!requestId || !requestPassword) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '신청번호와 조회 비밀번호를 모두 입력해주세요.');
-            return;
-        }
-        const record = await fetchSubscriptionRequestRecord(requestId);
-        if (!record) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.');
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '이메일과 조회 비밀번호를 모두 입력해주세요.');
             return;
         }
         try {
+            const resolvedRequestId = await resolveSubscriptionRequestId(requestId, requestPassword);
+            const record = await fetchSubscriptionRequestRecord(resolvedRequestId);
+            if (!record) {
+                manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 이메일로 조회되는 신청을 찾지 못했습니다. 이메일 또는 조회 비밀번호를 다시 확인해주세요.');
+                return;
+            }
             const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
             renderManualRequestLookup(record, payload);
         } catch (error) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupDecryptError', '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.');
+            manualSubscriptionLookupResult.textContent = error?.message || readSiteText('messages.manualLookupDecryptError', '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.');
         }
     };
 
@@ -1347,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const validBundle = await syncStoredAdvancedLicenseState({ silent: true });
         if (!validBundle) {
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청번호와 조회 비밀번호로 다시 확인해주세요.');
+                advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.');
                 advancedAccessStatus.style.color = '#b91c1c';
             }
             return false;
@@ -3566,12 +3641,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
             ensureManualSubscriptionStartDate();
             const recentRequest = readRecentRequestInfo();
-            if (recentRequest?.requestId) {
+            if (recentRequest?.requestId || recentRequest?.lookupIdentifier) {
+                const recentLookupValue = String(recentRequest.lookupIdentifier || recentRequest.requestId || '').trim();
                 if (manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
-                    manualSubscriptionLookupIdInput.value = recentRequest.requestId;
+                    manualSubscriptionLookupIdInput.value = recentLookupValue;
                 }
                 if (advancedAccessIdInput && !advancedAccessIdInput.value) {
-                    advancedAccessIdInput.value = recentRequest.requestId;
+                    advancedAccessIdInput.value = recentLookupValue;
                 }
             }
             updateAdvancedAccessPanel();
@@ -3752,7 +3828,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 advancedAccessStatus.textContent = readSiteText('messages.advancedChecking', '입력한 정보와 라이선스를 확인하고 있습니다...');
                 advancedAccessStatus.style.color = '#64748b';
             }
-            const licenseResult = await hydrateAdvancedLicenseFromCredentials(requestId, password);
+            let licenseResult = null;
+            try {
+                licenseResult = await hydrateAdvancedLicenseFromCredentials(requestId, password);
+            } catch (error) {
+                if (advancedAccessStatus) {
+                    advancedAccessStatus.textContent = error?.message || readSiteText('messages.advancedLookupError', '고급 계정 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+                return;
+            }
             if (!licenseResult.ok) {
                 const failState = registerAdvancedPasswordFailure();
                 if (advancedAccessStatus) {
@@ -3760,7 +3845,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? Math.max(0, failState.lockedUntil - Date.now())
                         : 0;
                     advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
-                        ? `신청번호 또는 조회 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
+                        ? `이메일/ID 또는 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
                         : licenseResult.reason === 'pending'
                             ? '아직 승인 전입니다. 신청 조회에서 상태를 먼저 확인해주세요.'
                             : licenseResult.reason === 'rejected'
@@ -3768,12 +3853,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                 : licenseResult.reason === 'invalid_license'
                                     ? '승인된 라이선스를 검증하지 못했습니다. 관리자에게 다시 문의해주세요.'
                                     : licenseResult.reason === 'not_found'
-                                        ? '해당 신청번호를 찾지 못했습니다.'
+                                        ? '해당 이메일 또는 승인 ID로 조회되는 내역을 찾지 못했습니다.'
                                         : !password
                                             ? '비밀번호를 입력해주세요.'
                                             : !requestId
-                                                ? '신청번호 또는 승인된 ID를 입력해주세요.'
-                                                : '신청번호/ID 또는 비밀번호가 일치하지 않습니다.';
+                                                ? '신청 이메일 또는 승인된 ID를 입력해주세요.'
+                                                : '이메일/ID 또는 비밀번호가 일치하지 않습니다.';
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
                 if (!String(requestId || '').trim() && advancedAccessIdInput) {

@@ -91,8 +91,15 @@
         ".write": "auth != null || (!data.exists() && newData.child('requestId').val() === $requestId && newData.child('status').val() === 'pending')"
       }
     },
-    "advancedAccountLicenses": {
+    "subscriptionRequestLookup": {
       ".read": false,
+      "$lookupKey": {
+        ".read": true,
+        ".write": "auth != null || (newData.hasChildren(['requestId', 'createdAt']) && newData.child('requestId').isString() && newData.child('createdAt').isNumber())"
+      }
+    },
+    "advancedAccountLicenses": {
+      ".read": "auth != null",
       ".write": "auth != null",
       "$loginIdKey": {
         ".read": true,

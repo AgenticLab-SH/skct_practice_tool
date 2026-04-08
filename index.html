@@ -454,10 +454,10 @@
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
                     <div id="advancedGuideLoginTitle" style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 고급 모드 열기</div>
                     <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
-                        승인된 신청의 <strong>신청번호</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.
+                        승인된 신청에 쓴 <strong>이메일</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
-                        <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청번호 또는 승인 ID 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청 이메일 또는 승인 ID 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="조회 비밀번호 또는 계정 비밀번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">라이선스 확인</button>
                     </div>
@@ -511,7 +511,7 @@
                         1. 이용권 금액을 확인합니다.<br>
                         2. 투네이션 후원을 진행합니다.<br>
                         3. 아래 신청 칸에 희망 ID와 조회 비밀번호를 입력합니다.<br>
-                        4. 승인 후 받은 신청번호와 조회 비밀번호로 상태를 확인하고, 라이선스를 적용합니다.
+                        4. 승인 후에는 신청 이메일과 조회 비밀번호로 상태를 확인하고, 라이선스를 적용합니다.
                     </div>
                 </div>
                 <div style="padding:14px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; display:flex; flex-direction:column; gap:10px;">
@@ -520,7 +520,7 @@
                         <div style="font-size:11px; color:#64748b;">아래 칸만 순서대로 입력하면 됩니다.</div>
                     </div>
                     <div id="advancedGuideFormDescription" style="font-size:12px; color:#475569; line-height:1.7;">
-                        희망 ID는 신청 정보로만 쓰이고, 실제 승인 확인과 고급 모드 진입은 신청번호와 조회 비밀번호로 이어집니다.
+                        희망 ID는 신청 정보로만 쓰이고, 실제 승인 확인과 고급 모드 진입은 신청 이메일과 조회 비밀번호로 이어집니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
@@ -562,7 +562,7 @@
                         </label>
                     </div>
                     <div id="advancedGuidePasswordHint" style="font-size:11px; color:#64748b; line-height:1.7;">
-                        비밀번호는 <strong>최소 6자리</strong>로 입력해 주세요. 신청 저장 후 상태 확인도, 승인 후 고급 모드 로그인도 같은 <strong>ID + 비밀번호</strong>로 진행합니다.
+                        비밀번호는 <strong>최소 6자리</strong>로 입력해 주세요. 신청 저장 후 상태 확인은 <strong>이메일 + 비밀번호</strong>, 승인 후 고급 모드 로그인은 <strong>이메일 또는 승인 ID + 비밀번호</strong>로 진행합니다.
                     </div>
                     <button id="manualSubscriptionSubmitBtn" type="button" style="padding:11px 14px; background:#0f766e; color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer;">2. 신청 저장</button>
                     <div id="manualSubscriptionSubmitStatus" style="min-height:20px; font-size:12px; color:#64748b; line-height:1.6;"></div>
@@ -570,10 +570,10 @@
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
                     <div id="advancedGuideLookupTitle" style="font-size:14px; font-weight:800; color:#1d4ed8;">5. 신청 조회</div>
                     <div id="advancedGuideLookupDescription" style="font-size:12px; color:#1e40af; line-height:1.7;">
-                        저장 직후 받은 <strong>신청번호</strong>와 <strong>조회 비밀번호</strong>로 현재 상태를 확인합니다. 승인된 경우 아래에서 이 브라우저에 라이선스를 바로 적용할 수 있습니다.
+                        저장 후에는 <strong>신청 이메일</strong>과 <strong>조회 비밀번호</strong>로 현재 상태를 확인합니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
-                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청 이메일" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <input id="manualSubscriptionLookupPasswordInput" type="password" autocomplete="off" placeholder="신청한 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="manualSubscriptionLookupBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">조회</button>
                     </div>
