@@ -1,5 +1,5 @@
 # 2026-04-09 이메일 조회 전환 운영 반영
-작성일시: 2026-04-09 01:55:00 KST
+작성일시: 2026-04-09 02:02:00 KST
 
 사용자 요청: 신청번호를 사용자 화면에서 없애고, 이메일 기반 조회 전환을 실제 운영에 반영한다.
 
@@ -25,5 +25,16 @@
 - `database.rules.json` JSON 파싱
 - 로컬 브라우저에서 이메일 기준 입력칸 반영 확인
 
-## 4. 운영 반영 메모
-- 이 문서는 코드 반영, 원격 siteTextConfig 동기화, rules 배포, 정적 배포까지 이어진 운영 작업의 기준 기록이다.
+## 4. 운영 반영 결과
+- Git 커밋: `009ee15 feat: switch manual subscription lookup to email`
+- GitHub `main` push 완료
+- GitHub Pages 빌드 `24146827392` 성공
+- Firebase RTDB rules 재배포 완료
+- Firebase `config/siteTextConfig` 코드 기본값 동기화 완료
+
+## 5. 최종 확인
+- 라이브 `index.html`에서 아래가 실제 반영됨을 확인
+  - `신청 이메일 또는 승인 ID 입력`
+  - `신청 이메일`
+  - 신청 흐름/비밀번호 안내/조회 설명에서 신청번호 제거
+- Firebase `config/siteTextConfig`에서도 `신청 이메일` 기준 문구가 저장된 상태를 확인
