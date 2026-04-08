@@ -2841,7 +2841,10 @@
                                 닉네임 ${esc(record.requesterMask || '-')} · 이메일 ${esc(record.emailMask || '-')} · 투네이션 ${esc(record.donationMask || '-')}
                             </div>
                         </div>
-                        <button type="button" class="btn btn-ghost btn-sm" data-request-act="decrypt" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px;">${payload ? '다시 열람' : '복호화'}</button>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                            <button type="button" class="btn btn-ghost btn-sm" data-request-act="decrypt" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px;">${payload ? '다시 열람' : '복호화'}</button>
+                            <button type="button" class="btn btn-ghost btn-sm" data-request-act="delete" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px; color:#b91c1c; border-color:#fecaca;">삭제</button>
+                        </div>
                     </div>
                     ${payload ? `
                         <div style="padding:10px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.75;">
@@ -2863,11 +2866,10 @@
                             <button type="button" class="btn btn-primary btn-sm" data-request-act="approve" data-request-id="${esc(record.requestId)}">승인 후 라이선스 발급</button>
                             <button type="button" class="btn btn-ghost btn-sm" data-request-act="reject" data-request-id="${esc(record.requestId)}" style="color:#b91c1c; border-color:#fecaca;">반려</button>
                             <button type="button" class="btn btn-ghost btn-sm" data-request-act="toggle-block" data-request-id="${esc(record.requestId)}" style="color:#b45309; border-color:#fdba74;">${record.status === 'blocked' ? '차단 해제' : '차단'}</button>
-                            <button type="button" class="btn btn-ghost btn-sm" data-request-act="delete" data-request-id="${esc(record.requestId)}" style="color:#b91c1c; border-color:#fecaca;">삭제</button>
                         </div>
                     ` : `
                         <div style="font-size:11px; color:#64748b; line-height:1.7;">
-                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있습니다.' : '현재 화면에 신청 복호화 개인키가 없어 본문을 열 수 없습니다. 먼저 위 영역에 개인키를 넣어주세요.'}
+                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있고, 필요하면 바로 삭제도 가능합니다.' : '현재 화면에 신청 복호화 개인키가 없어 본문을 열 수 없습니다. 그래도 이 카드의 삭제 버튼으로 개별 삭제는 가능합니다.'}
                         </div>
                     `}
                 </div>
