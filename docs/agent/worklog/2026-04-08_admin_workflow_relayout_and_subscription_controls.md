@@ -1,5 +1,5 @@
 # 2026-04-08 관리자 워크플로 재배치 및 구독 운영 복구
-작성일시: 2026-04-08 22:27:04 KST
+작성일시: 2026-04-08 22:58:07 KST
 
 ## 작업 배경
 사용자는 관리자 페이지에서 다음 문제를 동시에 겪고 있었다.
@@ -53,6 +53,16 @@
    * `stats/live_peak_daily.json` -> `200`
    * `config/advancedFeatureConfig.json` -> `401`
 5. 로컬 브라우저 재로드 후 `live_peak_daily` 관련 콘솔 권한 오류가 사라진 것 확인
+
+## 추가 반영: 관리자 키 자동 불러오기
+1. 표준 키 경로를 다음으로 정리했다.
+   * `C:\Users\kshcg\.codex\private\skct_tool\manual_subscription_request_private.pem`
+   * `C:\Users\kshcg\.codex\private\skct_tool\manual_subscription_license_private.pem`
+2. 기존 PEM을 위 표준 경로로 복사해 두었다.
+3. 관리자 페이지에 `키 폴더 연결`, `폴더 연결 해제`, `로컬 키 자동 불러오기` 버튼을 추가했다.
+4. 운영 `https` 관리자 페이지에서는 브라우저 보안 때문에 `localhost` 직접 fetch가 막힐 수 있어, 기본 권장 방식은 `키 폴더 연결`이다.
+5. 한 번 `C:\Users\kshcg\.codex\private\skct_tool` 폴더를 연결하면 다음부터는 관리자 로그인 후 페이지가 저장된 폴더 핸들에서 PEM을 자동으로 읽는다.
+6. 로컬 키 브리지(`scripts/local_admin_key_bridge.py`)도 예비 경로로 추가했고, 현재 호스트에서는 백그라운드 실행 중이다.
 
 ## 운영자 확인 권장
 1. 운영 관리자 페이지 로그인

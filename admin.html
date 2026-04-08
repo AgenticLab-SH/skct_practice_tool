@@ -383,6 +383,16 @@
                         </label>
                         <div id="manualSubscriptionConfigStatus" style="font-size:11px; color:var(--adm-text-muted);"></div>
                     </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
+                        <div id="localAdminKeyBridgeStatus" style="font-size:11px; color:#475569; line-height:1.7;">
+                            운영 페이지에서는 먼저 `키 폴더 연결`을 한 번 해두는 방식을 권장합니다.
+                        </div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionLinkLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">키 폴더 연결</button>
+                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionForgetLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">폴더 연결 해제</button>
+                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionAutoLoadLocalKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">로컬 키 자동 불러오기</button>
+                        </div>
+                    </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; margin-bottom:12px;">
                         <div style="padding:12px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa;">
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
@@ -779,6 +789,12 @@
         subscriptions: []
     };
     const MANUAL_SUBSCRIPTION_PRIVATE_KEY_STORAGE_KEY = 'skct_manual_subscription_private_key';
+    const LOCAL_ADMIN_KEY_BRIDGE_URL = 'http://127.0.0.1:47831/keys';
+    const LOCAL_ADMIN_KEY_HANDLE_DB = 'skct-admin-key-store';
+    const LOCAL_ADMIN_KEY_HANDLE_STORE = 'handles';
+    const LOCAL_ADMIN_KEY_HANDLE_ID = 'manual-admin-key-dir';
+    const LOCAL_ADMIN_REQUEST_KEY_FILENAME = 'manual_subscription_request_private.pem';
+    const LOCAL_ADMIN_LICENSE_KEY_FILENAME = 'manual_subscription_license_private.pem';
     const DEFAULT_MANUAL_SUBSCRIPTION_CONFIG = {
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
@@ -1417,6 +1433,11 @@
         listenConfig();
         listenStagingConfig();
         loadSubscriptionRequests();
+        loadAdminKeysFromLinkedDirectory({ silent: true }).then((loaded) => {
+            if (!loaded) {
+                loadAdminKeysFromLocalBridge({ silent: true });
+            }
+        });
     }
 
     // ── Live Stats ──
@@ -1708,6 +1729,77 @@
     };
     let subscriptionRequestCache = {};
     let pendingBackupImport = null;
+    let localAdminKeyBridgeState = {
+        connected: false,
+        lastMessage: '운영 페이지에서는 먼저 `키 폴더 연결`을 한 번 해두는 방식을 권장합니다.'
+    };
+
+    function openAdminKeyHandleDb() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(LOCAL_ADMIN_KEY_HANDLE_DB, 1);
+            request.onupgradeneeded = () => {
+                const dbHandle = request.result;
+                if (!dbHandle.objectStoreNames.contains(LOCAL_ADMIN_KEY_HANDLE_STORE)) {
+                    dbHandle.createObjectStore(LOCAL_ADMIN_KEY_HANDLE_STORE);
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error || new Error('키 폴더 연결 저장소를 열지 못했습니다.'));
+        });
+    }
+
+    async function saveAdminKeyDirectoryHandle(handle) {
+        const dbHandle = await openAdminKeyHandleDb();
+        await new Promise((resolve, reject) => {
+            const tx = dbHandle.transaction(LOCAL_ADMIN_KEY_HANDLE_STORE, 'readwrite');
+            tx.objectStore(LOCAL_ADMIN_KEY_HANDLE_STORE).put(handle, LOCAL_ADMIN_KEY_HANDLE_ID);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error || new Error('키 폴더 연결 정보를 저장하지 못했습니다.'));
+        });
+        dbHandle.close();
+    }
+
+    async function loadSavedAdminKeyDirectoryHandle() {
+        const dbHandle = await openAdminKeyHandleDb();
+        const result = await new Promise((resolve, reject) => {
+            const tx = dbHandle.transaction(LOCAL_ADMIN_KEY_HANDLE_STORE, 'readonly');
+            const request = tx.objectStore(LOCAL_ADMIN_KEY_HANDLE_STORE).get(LOCAL_ADMIN_KEY_HANDLE_ID);
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => reject(request.error || new Error('저장된 키 폴더 연결 정보를 읽지 못했습니다.'));
+        });
+        dbHandle.close();
+        return result;
+    }
+
+    async function clearSavedAdminKeyDirectoryHandle() {
+        const dbHandle = await openAdminKeyHandleDb();
+        await new Promise((resolve, reject) => {
+            const tx = dbHandle.transaction(LOCAL_ADMIN_KEY_HANDLE_STORE, 'readwrite');
+            tx.objectStore(LOCAL_ADMIN_KEY_HANDLE_STORE).delete(LOCAL_ADMIN_KEY_HANDLE_ID);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error || new Error('저장된 키 폴더 연결 정보를 지우지 못했습니다.'));
+        });
+        dbHandle.close();
+    }
+
+    async function ensureDirectoryReadPermission(handle, requestPermission = false) {
+        if (!handle) return false;
+        const current = await handle.queryPermission({ mode: 'read' });
+        if (current === 'granted') return true;
+        if (!requestPermission) return false;
+        const next = await handle.requestPermission({ mode: 'read' });
+        return next === 'granted';
+    }
+
+    async function readKeyTextFromDirectory(handle, filename) {
+        try {
+            const fileHandle = await handle.getFileHandle(filename);
+            const file = await fileHandle.getFile();
+            return (await file.text()).trim();
+        } catch (error) {
+            return '';
+        }
+    }
 
     const DEFAULT_SUPPORT_CONFIG = {
         modalTitle: "☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!",
@@ -1938,7 +2030,132 @@
             statusEl.textContent = message || fallbackMessage;
             statusEl.style.color = isError ? '#b91c1c' : ((config.adminPublicKeyPem && config.licensePublicKeyPem) ? 'var(--adm-text-muted)' : '#9a3412');
         }
+        renderLocalAdminKeyBridgeStatus();
         renderBackupImportPreview();
+    }
+
+    function renderLocalAdminKeyBridgeStatus(message = localAdminKeyBridgeState.lastMessage, isError = false) {
+        const statusEl = document.getElementById('localAdminKeyBridgeStatus');
+        if (!statusEl) return;
+        localAdminKeyBridgeState.lastMessage = message;
+        statusEl.textContent = message;
+        if (isError) {
+            statusEl.style.color = '#b91c1c';
+            return;
+        }
+        statusEl.style.color = localAdminKeyBridgeState.connected ? '#0f766e' : '#475569';
+    }
+
+    async function loadAdminKeysFromLinkedDirectory(options = {}) {
+        const { silent = false, requestPermission = false } = options;
+        if (typeof window.showDirectoryPicker !== 'function') {
+            return false;
+        }
+        try {
+            const directoryHandle = await loadSavedAdminKeyDirectoryHandle();
+            if (!directoryHandle) return false;
+            const hasPermission = await ensureDirectoryReadPermission(directoryHandle, requestPermission);
+            if (!hasPermission) return false;
+            const requestKeyPem = await readKeyTextFromDirectory(directoryHandle, LOCAL_ADMIN_REQUEST_KEY_FILENAME);
+            const licenseKeyPem = await readKeyTextFromDirectory(directoryHandle, LOCAL_ADMIN_LICENSE_KEY_FILENAME);
+            if (!requestKeyPem && !licenseKeyPem) {
+                throw new Error(`연결된 폴더에서 ${LOCAL_ADMIN_REQUEST_KEY_FILENAME} 또는 ${LOCAL_ADMIN_LICENSE_KEY_FILENAME} 파일을 찾지 못했습니다.`);
+            }
+            const requestArea = document.getElementById('manualSubscriptionPrivateKeyArea');
+            const licenseArea = document.getElementById('manualSubscriptionLicensePrivateKeyArea');
+            if (requestArea && requestKeyPem) requestArea.value = requestKeyPem;
+            if (licenseArea && licenseKeyPem) licenseArea.value = licenseKeyPem;
+            localAdminKeyBridgeState.connected = true;
+            renderLocalAdminKeyBridgeStatus(`연결된 키 폴더에서 자동 불러오기 성공. 폴더: ${directoryHandle.name}`, false);
+            renderManualSubscriptionAdminForm('연결된 키 폴더에서 개인키를 읽어 현재 화면에 채웠습니다.');
+            if (!silent) toast('✅ 연결된 키 폴더에서 자동 불러오기 완료');
+            return true;
+        } catch (error) {
+            localAdminKeyBridgeState.connected = false;
+            if (!silent) {
+                const message = error.message || '연결된 키 폴더에서 개인키를 읽지 못했습니다.';
+                renderLocalAdminKeyBridgeStatus(message, true);
+                renderManualSubscriptionAdminForm(message, true);
+                toast(`❌ ${message}`, true);
+            }
+            return false;
+        }
+    }
+
+    async function connectLocalAdminKeyDirectory() {
+        if (typeof window.showDirectoryPicker !== 'function') {
+            renderManualSubscriptionAdminForm('이 브라우저는 키 폴더 연결 기능을 지원하지 않습니다. Chromium 계열 브라우저에서 다시 시도해주세요.', true);
+            return;
+        }
+        try {
+            const directoryHandle = await window.showDirectoryPicker({ mode: 'read' });
+            const hasPermission = await ensureDirectoryReadPermission(directoryHandle, true);
+            if (!hasPermission) {
+                throw new Error('키 폴더 읽기 권한이 허용되지 않았습니다.');
+            }
+            await saveAdminKeyDirectoryHandle(directoryHandle);
+            localAdminKeyBridgeState.connected = true;
+            renderLocalAdminKeyBridgeStatus(`키 폴더를 연결했습니다. 폴더: ${directoryHandle.name}`, false);
+            await loadAdminKeysFromLinkedDirectory({ silent: false, requestPermission: false });
+        } catch (error) {
+            if (error?.name === 'AbortError') return;
+            const message = error.message || '키 폴더 연결 중 오류가 발생했습니다.';
+            localAdminKeyBridgeState.connected = false;
+            renderLocalAdminKeyBridgeStatus(message, true);
+            renderManualSubscriptionAdminForm(message, true);
+        }
+    }
+
+    async function forgetLocalAdminKeyDirectory() {
+        await clearSavedAdminKeyDirectoryHandle();
+        localAdminKeyBridgeState.connected = false;
+        renderLocalAdminKeyBridgeStatus('저장된 키 폴더 연결을 해제했습니다. 필요하면 다시 연결해주세요.', false);
+        toast('✅ 키 폴더 연결 해제 완료');
+    }
+
+    async function loadAdminKeysFromLocalBridge(options = {}) {
+        const { silent = false } = options;
+        try {
+            const response = await fetch(LOCAL_ADMIN_KEY_BRIDGE_URL, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-store'
+            });
+            if (!response.ok) {
+                throw new Error(`로컬 키 브리지가 ${response.status} 응답을 반환했습니다.`);
+            }
+            const payload = await response.json();
+            const requestKeyPem = String(payload?.requestPrivateKeyPem || '').trim();
+            const licenseKeyPem = String(payload?.licensePrivateKeyPem || '').trim();
+            if (!requestKeyPem && !licenseKeyPem) {
+                throw new Error('지정 경로에서 불러온 개인키가 없습니다.');
+            }
+            const requestArea = document.getElementById('manualSubscriptionPrivateKeyArea');
+            const licenseArea = document.getElementById('manualSubscriptionLicensePrivateKeyArea');
+            if (requestArea && requestKeyPem) requestArea.value = requestKeyPem;
+            if (licenseArea && licenseKeyPem) licenseArea.value = licenseKeyPem;
+            localAdminKeyBridgeState.connected = true;
+            const sourceSummary = [
+                payload?.requestPrivateKeyPath ? `복호화키: ${payload.requestPrivateKeyPath}` : '',
+                payload?.licensePrivateKeyPath ? `서명키: ${payload.licensePrivateKeyPath}` : ''
+            ].filter(Boolean).join(' / ');
+            const message = sourceSummary
+                ? `로컬 키 자동 불러오기 성공. ${sourceSummary}`
+                : '로컬 키 자동 불러오기 성공.';
+            renderLocalAdminKeyBridgeStatus(message, false);
+            renderManualSubscriptionAdminForm('로컬 키 브리지에서 개인키를 읽어 현재 화면에 채웠습니다.');
+            if (!silent) toast('✅ 로컬 키 자동 불러오기 완료');
+            return true;
+        } catch (error) {
+            localAdminKeyBridgeState.connected = false;
+            const message = error.message || '로컬 키 브리지를 찾지 못했습니다. 브리지를 실행했는지 확인해주세요.';
+            renderLocalAdminKeyBridgeStatus(message, !silent);
+            if (!silent) {
+                renderManualSubscriptionAdminForm(message, true);
+                toast(`❌ ${message}`, true);
+            }
+            return false;
+        }
     }
 
     function collectManualSubscriptionConfig() {
@@ -2986,6 +3203,9 @@
     });
     document.getElementById('manualSubscriptionBackupRestoreBtn').addEventListener('click', restorePendingBackupToDatabase);
     document.getElementById('manualSubscriptionRequestRefreshBtn').addEventListener('click', loadSubscriptionRequests);
+    document.getElementById('manualSubscriptionLinkLocalKeyDirBtn').addEventListener('click', connectLocalAdminKeyDirectory);
+    document.getElementById('manualSubscriptionForgetLocalKeyDirBtn').addEventListener('click', forgetLocalAdminKeyDirectory);
+    document.getElementById('manualSubscriptionAutoLoadLocalKeysBtn').addEventListener('click', () => loadAdminKeysFromLocalBridge({ silent: false }));
     document.getElementById('manualSubscriptionDownloadPrivateKeyBtn').addEventListener('click', downloadManualSubscriptionPrivateKey);
     document.getElementById('manualSubscriptionGenerateKeysBtn').addEventListener('click', async () => {
         try {
