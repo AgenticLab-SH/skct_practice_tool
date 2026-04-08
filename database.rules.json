@@ -16,6 +16,12 @@
       ".read": true,
       ".write": true
     },
+    "stats": {
+      "live_peak_daily": {
+        ".read": true,
+        ".write": true
+      }
+    },
     "config": {
       ".read": "auth != null",
       "appName": {
