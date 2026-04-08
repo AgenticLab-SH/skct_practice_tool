@@ -129,8 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedAccessIdInput = document.getElementById('advancedAccessIdInput');
     const advancedAccessPasswordInput = document.getElementById('advancedAccessPasswordInput');
     const advancedAccessSubmitBtn = document.getElementById('advancedAccessSubmitBtn');
-    const advancedAccessReveal = document.getElementById('advancedAccessReveal');
-    const advancedAccessReuseBtn = document.getElementById('advancedAccessReuseBtn');
     const advancedAccessStatus = document.getElementById('advancedAccessStatus');
     const manualSubscriptionDonateLink = document.getElementById('manualSubscriptionDonateLink');
     const manualSubscriptionPlanCards = document.getElementById('manualSubscriptionPlanCards');
@@ -994,31 +992,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!advancedAccessSummary) return;
         const activeCount = remoteAdvancedFeatureConfig.legacyPasswords.length
             + remoteAdvancedFeatureConfig.subscriptions.filter(isActiveAdvancedSubscription).length;
-        const unlockRemainingMs = getAdvancedUnlockRemainingMs();
         const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
         if (!isAdvancedConfigReady) {
-            advancedAccessSummary.textContent = readSiteText('messages.advancedLoading', '고급 구독 정보를 불러오는 중입니다.');
+            advancedAccessSummary.textContent = '고급 이용권 정보를 불러오는 중입니다.';
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
-            if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = !hasAdvancedUnlock();
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = readSiteText('messages.advancedCooldown', 'ID 또는 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.', {
-                seconds: Math.ceil(cooldownRemainingMs / 1000)
-            });
-        } else if (unlockRemainingMs > 0) {
-            advancedAccessSummary.textContent = readSiteText('messages.advancedUnlocked', '이 브라우저는 이미 인증되어 있습니다. 약 {minutes}분 동안 바로 고급 모드를 열 수 있습니다.', {
-                minutes: Math.max(1, Math.ceil(unlockRemainingMs / 60000))
-            });
+            advancedAccessSummary.textContent = `ID 또는 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
         } else if (activeCount > 0) {
-            advancedAccessSummary.textContent = readSiteText('messages.advancedAvailable', '현재 사용 가능한 고급 이용권 {count}건을 확인했습니다. 관리자에게 받은 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.', {
-                count: activeCount
-            });
+            advancedAccessSummary.textContent = '발급받은 ID와 비밀번호를 입력하면 바로 고급 모드 팝업이 열립니다.';
         } else {
-            advancedAccessSummary.textContent = readSiteText('messages.advancedNone', '현재 사용 가능한 고급 이용권이 없습니다. 관리자 페이지의 고급 구독 관리 표를 먼저 확인하세요.');
+            advancedAccessSummary.textContent = '현재 이용 가능한 고급 이용권이 없습니다. 아래 이용권을 선택해 신청할 수 있습니다.';
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = activeCount === 0 || cooldownRemainingMs > 0;
-        if (advancedAccessReuseBtn) advancedAccessReuseBtn.disabled = unlockRemainingMs <= 0;
     };
 
     const submitManualSubscriptionRequest = async () => {
@@ -1038,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const email = manualSubscriptionEmailInput?.value.trim() || '';
         const desiredLoginId = manualSubscriptionDesiredIdInput?.value.trim() || '';
         const requestedStartDate = manualSubscriptionStartDateInput?.value || '';
-        const memo = manualSubscriptionMemoInput?.value.trim() || '';
+        const memo = '';
         const requestPassword = manualSubscriptionPasswordInput?.value || '';
         const requestPasswordConfirm = manualSubscriptionPasswordConfirmInput?.value || '';
 
@@ -1047,7 +1034,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (!donationName || !siteNickname || !email || !desiredLoginId || !requestedStartDate || !requestPassword || !requestPasswordConfirm) {
-            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualRequiredFields', '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 조회 비밀번호를 모두 입력해주세요.');
+            manualSubscriptionSubmitStatus.textContent = '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 비밀번호를 모두 입력해주세요.';
             return;
         }
         if (!email.includes('@')) {
@@ -1055,11 +1042,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (requestPassword.length < 6) {
-            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualPasswordShort', '조회 비밀번호는 6자 이상으로 설정해주세요.');
+            manualSubscriptionSubmitStatus.textContent = '비밀번호는 최소 6자 이상으로 설정해주세요.';
             return;
         }
         if (requestPassword !== requestPasswordConfirm) {
-            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualPasswordMismatch', '조회 비밀번호 확인이 일치하지 않습니다.');
+            manualSubscriptionSubmitStatus.textContent = '비밀번호 확인이 일치하지 않습니다.';
             return;
         }
         try {
@@ -1070,12 +1057,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 siteNickname,
                 email,
                 desiredLoginId,
+                requestPassword,
                 memo,
                 createdAt: Date.now(),
                 adminResponse: null
             }, requestPassword, remoteManualSubscriptionConfig.adminPublicKeyPem);
             const record = {
                 requestId,
+                desiredLoginIdKey: getAdvancedLoginIdKey(desiredLoginId),
                 status: 'pending',
                 planCode: plan.code,
                 planLabel: plan.label,
@@ -1096,15 +1085,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!writeResponse.ok) {
                 throw new Error('신청서 저장 중 오류가 발생했습니다.');
             }
-            saveRecentRequestInfo({ requestId, createdAt: Date.now() });
-            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = requestId;
+            saveRecentRequestInfo({ loginId: desiredLoginId, createdAt: Date.now() });
+            if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = desiredLoginId;
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
-            manualSubscriptionSubmitStatus.innerHTML = readSiteText('messages.manualSubmitSuccess', '신청서가 저장되었습니다. <strong>신청번호 {requestId}</strong> 와 조회 비밀번호를 꼭 보관해주세요. 아래 신청 조회에서 같은 값으로 상태를 다시 확인할 수 있습니다.', {
-                requestId: escapeHtml(requestId)
-            });
-            if (manualSubscriptionMemoInput) manualSubscriptionMemoInput.value = '';
-        } catch (error) {
+            manualSubscriptionSubmitStatus.innerHTML = '신청이 저장되었습니다. 아래 신청 조회에서 같은 <strong>ID + 비밀번호</strong>로 상태를 바로 확인할 수 있습니다.';
+            } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
             manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');
         }
@@ -1112,28 +1098,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lookupManualSubscriptionRequest = async () => {
         if (!manualSubscriptionLookupResult) return;
-        const requestId = manualSubscriptionLookupIdInput?.value.trim() || '';
+        const loginId = manualSubscriptionLookupIdInput?.value.trim() || '';
+        const loginIdKey = getAdvancedLoginIdKey(loginId);
         const requestPassword = manualSubscriptionLookupPasswordInput?.value || '';
-        if (!requestId || !requestPassword) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '신청번호와 조회 비밀번호를 모두 입력해주세요.');
+        if (!loginIdKey || !requestPassword) {
+            manualSubscriptionLookupResult.textContent = '신청한 ID와 비밀번호를 모두 입력해주세요.';
             return;
         }
-        const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`);
+        const query = `orderBy=${encodeURIComponent('"desiredLoginIdKey"')}&equalTo=${encodeURIComponent(`"${loginIdKey}"`)}`;
+        const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests.json?${query}`);
         if (!response.ok) {
             manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
-        const record = await response.json();
-        if (!record) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 신청번호를 찾지 못했습니다. 오타가 없는지 다시 확인해주세요.');
+        const data = await response.json();
+        const records = Object.entries(data || {})
+            .map(([key, value]) => ({ ...value, requestId: key }))
+            .sort((a, b) => ((b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0)));
+        if (!records.length) {
+            manualSubscriptionLookupResult.textContent = '해당 ID로 신청된 내역을 찾지 못했습니다.';
             return;
         }
-        try {
-            const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
-            renderManualRequestLookup(record, payload);
-        } catch (error) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupDecryptError', '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.');
+        for (const record of records) {
+            try {
+                const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
+                if (getAdvancedLoginIdKey(payload?.desiredLoginId) !== loginIdKey) continue;
+                renderManualRequestLookup(record, payload);
+                return;
+            } catch (error) {
+                // Try the next record with the same desired login ID.
+            }
         }
+        manualSubscriptionLookupResult.textContent = 'ID 또는 비밀번호가 일치하지 않습니다.';
     };
 
     const openAdvancedModeWindow = () => {
@@ -3334,8 +3330,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
             ensureManualSubscriptionStartDate();
             const recentRequest = readRecentRequestInfo();
-            if (recentRequest?.requestId && manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
-                manualSubscriptionLookupIdInput.value = recentRequest.requestId;
+            if (recentRequest?.loginId && manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
+                manualSubscriptionLookupIdInput.value = recentRequest.loginId;
             }
             updateAdvancedAccessPanel();
             advancedGuideModal.classList.remove('hidden');
@@ -3531,28 +3527,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 event.preventDefault();
                 advancedAccessSubmitBtn?.click();
             }
-        });
-    }
-    if (advancedAccessReveal && advancedAccessPasswordInput) {
-        advancedAccessReveal.addEventListener('change', () => {
-            advancedAccessPasswordInput.type = advancedAccessReveal.checked ? 'text' : 'password';
-        });
-    }
-    if (advancedAccessReuseBtn) {
-        advancedAccessReuseBtn.addEventListener('click', () => {
-            if (!hasAdvancedUnlock()) {
-                if (advancedAccessStatus) {
-                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 인증 상태가 없거나 만료되었습니다. ID와 비밀번호를 다시 입력해주세요.');
-                    advancedAccessStatus.style.color = '#b45309';
-                }
-                updateAdvancedAccessPanel();
-                return;
-            }
-            if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = readSiteText('messages.advancedReuse', '저장된 인증 상태로 고급 버전을 다시 엽니다.');
-                advancedAccessStatus.style.color = '#0f766e';
-            }
-            openAdvancedModeWindow();
         });
     }
     updateAdvancedAccessPanel();

@@ -2008,7 +2008,7 @@
                         </div>
                         <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px;">
                             <input class="form-input" data-field="issuedLoginId" value="${esc(payload.adminResponse?.issuedLoginId || payload.desiredLoginId || '')}" placeholder="발급 ID">
-                            <input class="form-input" data-field="issuedPassword" value="${esc(payload.adminResponse?.issuedPassword || generateSuggestedAdvancedPassword())}" placeholder="발급 비밀번호">
+                            <input class="form-input" data-field="issuedPassword" value="${esc(payload.adminResponse?.issuedPassword || payload.requestPassword || generateSuggestedAdvancedPassword())}" placeholder="발급 비밀번호">
                             <input class="form-input" data-field="statusMessage" value="${esc(payload.adminResponse?.statusMessage || '')}" placeholder="처리 메모">
                         </div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">

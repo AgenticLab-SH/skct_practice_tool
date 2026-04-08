@@ -451,11 +451,8 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:14px;">
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
-                    <div id="advancedGuideLoginTitle" style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 이미 이용권이 있다면 바로 로그인</div>
+                    <div id="advancedGuideLoginTitle" style="font-size:15px; font-weight:800; color:#1d4ed8;">1. 고급 모드 로그인</div>
                     <div id="advancedAccessSummary" style="padding:10px 12px; border-radius:8px; background:#ffffff; border:1px solid #dbeafe; font-size:12px; line-height:1.65; color:#1d4ed8;">
-                        고급 구독 정보를 불러오는 중입니다.
-                    </div>
-                    <div id="advancedGuideLoginBody" style="font-size:13px; line-height:1.65; color:#1e3a8a;">
                         발급받은 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 바로 고급 모드로 들어갈 수 있습니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
@@ -463,35 +460,26 @@
                         <input id="advancedAccessPasswordInput" type="password" autocomplete="off" placeholder="고급 비밀번호 입력" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="advancedAccessSubmitBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">고급 모드 열기</button>
                     </div>
-                    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; font-size:12px; color:#475569;">
-                        <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-                            <input id="advancedAccessReveal" type="checkbox">
-                            비밀번호 보기
-                        </label>
-                        <button id="advancedAccessReuseBtn" type="button" style="padding:6px 10px; background:#ffffff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer;">
-                            인증된 브라우저면 바로 열기
-                        </button>
-                    </div>
                     <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
                 </div>
                 <div style="padding:14px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; display:flex; flex-direction:column; gap:10px;">
                     <div id="advancedGuideFeatureTitle" style="font-size:15px; font-weight:800; color:#0f172a;">2. 고급 모드에서 달라지는 점</div>
                     <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
                         <div id="advancedGuideFeatureCard1" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">실전형 도구</strong>
-                            계산기 동작, 우측 버튼 열, 도구 설정을 더 실제 환경에 가깝게 쓸 수 있습니다.
+                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">실전형 화면 적응</strong>
+                            계산기 배치와 우측 버튼 열이 더 실제와 비슷해서, 시험 전에 화면 적응에 쓰는 시간을 줄여줍니다.
                         </div>
                         <div id="advancedGuideFeatureCard2" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">빠른 복기</strong>
-                            정오표 일괄입력과 문항별 상세 통계 저장으로 복기 시간이 줄어듭니다.
+                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">채점·복기 시간 절약</strong>
+                            정오표 일괄입력과 상세 통계 저장으로, 답 옮기기와 복기 정리에 드는 시간을 크게 줄일 수 있습니다.
                         </div>
                         <div id="advancedGuideFeatureCard3" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">반복 연습</strong>
-                            과목/전체 타이머 재시작으로 같은 세트를 여러 번 실전처럼 연습할 수 있습니다.
+                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">반복 연습이 쉬움</strong>
+                            과목 초기화와 전체 초기화로 같은 세트를 다시 맞추는 시간이 줄어, 반복 실전 연습이 더 편해집니다.
                         </div>
                         <div id="advancedGuideFeatureCard4" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 감각 훈련</strong>
-                            문항별 시간 가이드를 보며 실제 시험 페이스를 더 세밀하게 익힐 수 있습니다.
+                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 운영 훈련</strong>
+                            문항별 시간 가이드와 상세 기록으로 어디서 시간을 잃는지 바로 확인할 수 있습니다.
                         </div>
                     </div>
                 </div>
@@ -500,10 +488,10 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
                         <div>
                             <div id="advancedGuidePlanIntro" style="font-size:12px; color:#9a3412; line-height:1.6; margin-top:4px;">
-                                현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 필요한 기간을 선택해 신청하면 됩니다.
+                                필요한 기간을 고르고, 후원 후, 아래 신청 칸만 순서대로 채우면 됩니다.
                             </div>
                         </div>
-                        <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" style="padding:9px 12px; background:#ea580c; color:#fff; border-radius:999px; text-decoration:none; font-size:12px; font-weight:800; white-space:nowrap;">후원 페이지 열기</a>
+                        <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" style="padding:9px 12px; background:#ea580c; color:#fff; border-radius:999px; text-decoration:none; font-size:12px; font-weight:800; white-space:nowrap;">1. 투네이션 후원</a>
                     </div>
                     <div id="manualSubscriptionPlanCards" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
                         <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #fdba74;">
@@ -518,20 +506,20 @@
                         </div>
                     </div>
                     <div id="advancedGuideFlow" style="padding:12px; border-radius:8px; background:#fff; border:1px dashed #fdba74; font-size:12px; color:#7c2d12; line-height:1.7;">
-                        <strong>신청 흐름</strong><br>
-                        1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>
-                        2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>
-                        3. 저장 후 표시되는 <strong>신청번호 + 조회 비밀번호</strong>를 보관합니다.<br>
-                        4. 신청 조회에서 승인 상태와 발급된 계정 정보를 확인합니다.
+                        <strong>진행 순서</strong><br>
+                        1. 이용권 금액을 확인합니다.<br>
+                        2. 투네이션 후원을 진행합니다.<br>
+                        3. 아래 신청 칸에 ID와 비밀번호까지 입력합니다.<br>
+                        4. 같은 ID와 비밀번호로 승인 상태와 발급 결과를 확인합니다.
                     </div>
                 </div>
                 <div style="padding:14px; border-radius:10px; background:#f8fafc; border:1px solid #e2e8f0; display:flex; flex-direction:column; gap:10px;">
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
                         <div id="advancedGuideFormTitle" style="font-size:14px; font-weight:800; color:#0f172a;">4. 이용권 신청서</div>
-                        <div style="font-size:11px; color:#64748b;">신청 후에는 신청번호와 조회 비밀번호로 다시 확인할 수 있습니다.</div>
+                        <div style="font-size:11px; color:#64748b;">아래 칸만 순서대로 입력하면 됩니다.</div>
                     </div>
                     <div id="advancedGuideFormDescription" style="font-size:12px; color:#475569; line-height:1.7;">
-                        후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 로그인용 계정 정보를 확인할 수 있습니다.
+                        승인되면 신청한 ID와 비밀번호 기준으로 바로 고급 모드에 들어갈 수 있습니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px;">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
@@ -564,32 +552,28 @@
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
-                            <span>조회 비밀번호</span>
-                            <input id="manualSubscriptionPasswordInput" type="password" autocomplete="new-password" placeholder="조회 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                            <span>비밀번호</span>
+                            <input id="manualSubscriptionPasswordInput" type="password" autocomplete="new-password" placeholder="사용할 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
                         </label>
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
-                            <span>조회 비밀번호 확인</span>
-                            <input id="manualSubscriptionPasswordConfirmInput" type="password" autocomplete="new-password" placeholder="조회 비밀번호 확인" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
+                            <span>비밀번호 확인</span>
+                            <input id="manualSubscriptionPasswordConfirmInput" type="password" autocomplete="new-password" placeholder="비밀번호 확인" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
                         </label>
                     </div>
-                    <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
-                        <span>메모 (선택)</span>
-                        <textarea id="manualSubscriptionMemoInput" rows="3" placeholder="남길 메모가 있으면 적어주세요. 예: 토요일부터 사용 예정" style="padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; line-height:1.6; resize:vertical;"></textarea>
-                    </label>
                     <div id="advancedGuidePasswordHint" style="font-size:11px; color:#64748b; line-height:1.7;">
-                        여기서 입력하는 비밀번호는 <strong>신청 조회용</strong>입니다. 고급 로그인 비밀번호와는 다르니, 신청번호와 함께 꼭 보관해 주세요.
+                        비밀번호는 <strong>최소 6자리</strong>로 입력해 주세요. 신청 후 상태 확인도 같은 <strong>ID + 비밀번호</strong>로 진행합니다.
                     </div>
-                    <button id="manualSubscriptionSubmitBtn" type="button" style="padding:11px 14px; background:#0f766e; color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer;">신청서 저장</button>
+                    <button id="manualSubscriptionSubmitBtn" type="button" style="padding:11px 14px; background:#0f766e; color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer;">2. 신청 저장</button>
                     <div id="manualSubscriptionSubmitStatus" style="min-height:20px; font-size:12px; color:#64748b; line-height:1.6;"></div>
                 </div>
                 <div style="padding:14px; border-radius:10px; background:#eff6ff; border:1px solid #bfdbfe; display:flex; flex-direction:column; gap:10px;">
                     <div id="advancedGuideLookupTitle" style="font-size:14px; font-weight:800; color:#1d4ed8;">5. 신청 조회</div>
                     <div id="advancedGuideLookupDescription" style="font-size:12px; color:#1e40af; line-height:1.7;">
-                        저장 후 받은 <strong>신청번호</strong>와 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태와 발급 결과를 확인할 수 있습니다.
+                        신청할 때 입력한 <strong>ID</strong>와 <strong>비밀번호</strong>로 현재 상태와 발급 결과를 확인할 수 있습니다.
                     </div>
                     <div style="display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) auto; gap:8px; align-items:center;">
-                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
-                        <input id="manualSubscriptionLookupPasswordInput" type="password" autocomplete="off" placeholder="조회 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청한 ID" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
+                        <input id="manualSubscriptionLookupPasswordInput" type="password" autocomplete="off" placeholder="신청한 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <button id="manualSubscriptionLookupBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">조회</button>
                     </div>
                     <div id="manualSubscriptionLookupResult" style="min-height:24px; font-size:12px; color:#334155; line-height:1.7;"></div>
@@ -623,10 +607,10 @@
                     </div>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; color:#334155; line-height:1.7;">
-                    <div id="advancedFeatureItem1"><strong>1. 실전형 도구 환경</strong><br>계산기 동작, 우측 버튼 열, 세부 도구 설정이 보강되어 실제 풀이 리듬에 더 가깝게 연습할 수 있습니다.</div>
-                    <div id="advancedFeatureItem2"><strong>2. 빠른 정답 반영과 복기</strong><br>정오표 일괄입력과 문항별 상세 통계 저장으로 수정과 복기 시간을 줄일 수 있습니다.</div>
-                    <div id="advancedFeatureItem3"><strong>3. 반복 연습에 유리한 타이머</strong><br>현재 과목 또는 전체 흐름을 다시 시작하며 여러 번 실전처럼 반복할 수 있습니다.</div>
-                    <div id="advancedFeatureItem4"><strong>4. 시간 운영 훈련</strong><br>문항별 시간 가이드와 고급 보정 기능으로 실제 시험 페이스를 더 세밀하게 익힐 수 있습니다.</div>
+                    <div id="advancedFeatureItem1"><strong>1. 실전형 도구 환경</strong><br>계산기 배치와 우측 버튼 열이 더 실제와 비슷해, 시험 전 화면 적응에 쓰는 시간을 줄일 수 있습니다.</div>
+                    <div id="advancedFeatureItem2"><strong>2. 빠른 정답 반영과 복기</strong><br>정오표 일괄입력과 상세 통계 저장으로 답 옮기기와 복기 정리에 드는 시간을 크게 줄일 수 있습니다.</div>
+                    <div id="advancedFeatureItem3"><strong>3. 반복 연습에 유리한 타이머</strong><br>과목 초기화와 전체 초기화로 같은 세트를 다시 세팅하는 수고를 줄여 반복 연습이 편해집니다.</div>
+                    <div id="advancedFeatureItem4"><strong>4. 시간 운영 훈련</strong><br>문항별 시간 가이드와 기록으로 어디서 시간을 잃는지 바로 확인해 시간 배분 감각을 더 빨리 잡을 수 있습니다.</div>
                 </div>
                 <div style="display:flex; gap:10px; align-items:center;">
                     <button id="advancedStatsDownloadBtn" type="button" style="padding:10px 14px; background:#0f766e; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">문항별 상세 통계 TXT 다운로드</button>
