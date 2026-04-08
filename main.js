@@ -77,6 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
     const PERMANENT_ADVANCED_PLAN_TYPE = '영구이용권';
     const MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY = 'skct_manual_subscription_recent_request';
+    const MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY = 'skct_manual_subscription_submit_guard';
+    const MANUAL_SUBSCRIPTION_SUBMIT_GUARD_WINDOW_MS = 1000 * 60 * 10;
     const DEFAULT_ADVANCED_FEATURE_CONFIG = {
         subscriptions: []
     };
@@ -158,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastPopupWindowOnlySignature = '';
     let isAdvancedConfigReady = false;
     let remoteManualSubscriptionConfig = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG;
+    let manualSubscriptionSubmitInFlight = false;
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
     if (settingsVersionRow) {
@@ -383,6 +386,53 @@ document.addEventListener('DOMContentLoaded', () => {
             return JSON.parse(localStorage.getItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY) || 'null');
         } catch (error) {
             return null;
+        }
+    }
+
+    function buildManualSubscriptionSubmitFingerprint(fields = {}) {
+        return JSON.stringify({
+            planCode: String(fields.planCode || '').trim(),
+            donationName: String(fields.donationName || '').trim().toLowerCase(),
+            siteNickname: String(fields.siteNickname || '').trim().toLowerCase(),
+            email: String(fields.email || '').trim().toLowerCase(),
+            desiredLoginId: getAdvancedLoginIdKey(fields.desiredLoginId || ''),
+            requestedStartDate: String(fields.requestedStartDate || '').trim()
+        });
+    }
+
+    function readManualSubscriptionSubmitGuard() {
+        try {
+            return JSON.parse(localStorage.getItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY) || 'null');
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function writeManualSubscriptionSubmitGuard(info) {
+        localStorage.setItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY, JSON.stringify(info));
+    }
+
+    function clearManualSubscriptionSubmitGuard() {
+        localStorage.removeItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY);
+    }
+
+    function findRecentDuplicateManualSubmission(fingerprint) {
+        const recent = readManualSubscriptionSubmitGuard();
+        if (!recent || recent.fingerprint !== fingerprint || !Number.isFinite(recent.createdAt)) {
+            return null;
+        }
+        if (Date.now() - recent.createdAt > MANUAL_SUBSCRIPTION_SUBMIT_GUARD_WINDOW_MS) {
+            clearManualSubscriptionSubmitGuard();
+            return null;
+        }
+        return recent;
+    }
+
+    function setManualSubscriptionSubmittingState(isSubmitting) {
+        manualSubscriptionSubmitInFlight = isSubmitting === true;
+        if (manualSubscriptionSubmitBtn) {
+            manualSubscriptionSubmitBtn.disabled = manualSubscriptionSubmitInFlight;
+            manualSubscriptionSubmitBtn.textContent = manualSubscriptionSubmitInFlight ? '신청 저장 중...' : '입력한 내용으로 신청하기';
         }
     }
 
@@ -1066,6 +1116,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const submitManualSubscriptionRequest = async () => {
         if (!manualSubscriptionSubmitStatus) return;
+        if (manualSubscriptionSubmitInFlight) {
+            manualSubscriptionSubmitStatus.style.color = '#b45309';
+            manualSubscriptionSubmitStatus.textContent = '현재 신청서를 저장하는 중입니다. 잠시만 기다려주세요.';
+            return;
+        }
         manualSubscriptionSubmitStatus.style.color = '#64748b';
         if (!remoteManualSubscriptionConfig.enabled) {
             manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualClosed', '현재 수동 이용권 신청이 닫혀 있습니다.');
@@ -1105,6 +1160,23 @@ document.addEventListener('DOMContentLoaded', () => {
             manualSubscriptionSubmitStatus.textContent = '비밀번호 확인이 일치하지 않습니다.';
             return;
         }
+        const submitFingerprint = buildManualSubscriptionSubmitFingerprint({
+            planCode: plan.code,
+            donationName,
+            siteNickname,
+            email,
+            desiredLoginId,
+            requestedStartDate
+        });
+        const duplicatedRecentSubmission = findRecentDuplicateManualSubmission(submitFingerprint);
+        if (duplicatedRecentSubmission) {
+            manualSubscriptionSubmitStatus.style.color = '#b45309';
+            manualSubscriptionSubmitStatus.innerHTML = duplicatedRecentSubmission.requestId
+                ? `같은 내용의 신청이 최근에 이미 저장되었습니다. <strong>${escapeHtml(duplicatedRecentSubmission.requestId)}</strong> 신청번호로 먼저 조회해주세요.`
+                : '같은 내용의 신청이 최근에 이미 저장되었습니다. 먼저 신청 조회에서 상태를 확인해주세요.';
+            return;
+        }
+        setManualSubscriptionSubmittingState(true);
         try {
             const requestId = `REQ-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
             const encrypted = await window.SKCTSubscriptionCrypto.encryptRequestPayload({
@@ -1141,14 +1213,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!writeResponse.ok) {
                 throw new Error('신청서 저장 중 오류가 발생했습니다.');
             }
+            writeManualSubscriptionSubmitGuard({
+                fingerprint: submitFingerprint,
+                requestId,
+                createdAt: Date.now()
+            });
             saveRecentRequestInfo({ requestId, createdAt: Date.now() });
             if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = requestId;
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
             manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. <strong>신청번호 ${escapeHtml(requestId)}</strong>와 조회 비밀번호를 꼭 보관하세요. 아래 신청 조회와 고급 모드 로그인에서 같은 값으로 바로 확인할 수 있습니다.`;
-            } catch (error) {
+        } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
             manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');
+        } finally {
+            setManualSubscriptionSubmittingState(false);
         }
     };
 

@@ -1022,13 +1022,86 @@
         return normalizeManualSubscriptionConfig(config).plans.find((plan) => plan.code === code) || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[0];
     }
 
-    function buildManualSubscriptionExpiry(days) {
-        const now = new Date();
+    function buildManualSubscriptionExpiry(days, startDate = '') {
+        const base = String(startDate || '').trim()
+            ? new Date(`${String(startDate).trim()}T12:00:00+09:00`)
+            : new Date();
+        const now = Number.isFinite(base.getTime()) ? base : new Date();
         const next = new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
         const year = next.getFullYear();
         const month = String(next.getMonth() + 1).padStart(2, '0');
         const date = String(next.getDate()).padStart(2, '0');
         return `${year}-${month}-${date}`;
+    }
+
+    function deriveAdvancedPlanTypeFromManualRequest(record) {
+        const plan = getManualPlanByCode(loadedConfig.manualSubscriptionConfig, record?.planCode);
+        const planLabel = String(record?.planLabel || plan?.label || '').trim();
+        if (ADVANCED_SUBSCRIPTION_PLAN_OPTIONS.includes(planLabel)) {
+            return planLabel;
+        }
+        const planDays = Math.max(0, parseInt(plan?.days, 10) || 0);
+        if (planDays >= 365) return '1년 이용권';
+        if (planDays >= 30) return '1달 이용권';
+        if (planDays >= 14) return '14일 이용권';
+        if (planDays >= 7) return '7일 이용권';
+        if (planDays >= 3) return '3일 이용권';
+        return DEFAULT_ADVANCED_PLAN_TYPE;
+    }
+
+    function appendApprovalNote(baseNote, requestId, email) {
+        const nextNote = `수동 신청 승인 ${requestId}${email ? ` (${email})` : ''}`;
+        if (!String(baseNote || '').trim()) return nextNote;
+        return String(baseNote).includes(requestId) ? String(baseNote) : `${String(baseNote).trim()} | ${nextNote}`;
+    }
+
+    async function upsertApprovedSubscriptionFromRequest(record, payload, expiresAt) {
+        const loginId = normalizeAdvancedLoginId(payload?.desiredLoginId || '');
+        if (!loginId) {
+            throw new Error('신청 본문에 희망 ID가 없어 고급 구독 내역에 반영할 수 없습니다.');
+        }
+        const config = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
+        const existingIndex = config.subscriptions.findIndex((item) => getAdvancedLoginIdKey(item.loginId) === getAdvancedLoginIdKey(loginId));
+        const current = existingIndex >= 0
+            ? normalizeAdvancedSubscription(config.subscriptions[existingIndex], existingIndex)
+            : createEmptySubscriptionRow();
+        const planType = deriveAdvancedPlanTypeFromManualRequest(record);
+        const persistence = normalizeAdvancedPersistenceFields(planType, expiresAt);
+        const nextSubscription = {
+            ...current,
+            id: current.id || createEmptySubscriptionRow().id,
+            planType: persistence.planType,
+            userIdentity: String(payload?.siteNickname || payload?.donationName || payload?.email || loginId).trim(),
+            loginId,
+            status: 'active',
+            expiresAt: persistence.expiresAt,
+            note: appendApprovalNote(current.note, record.requestId, payload?.email || '')
+        };
+        const sourcePassword = String(payload?.requestPassword || '').trim();
+        if (!sourcePassword) {
+            throw new Error('신청 비밀번호가 없어 고급 구독 계정을 생성할 수 없습니다.');
+        }
+        nextSubscription.passwordSalt = current.passwordSalt || (crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`);
+        nextSubscription.passwordHash = await hashAdvancedPassword(sourcePassword, nextSubscription.passwordSalt);
+        if (currentAdminPassword) {
+            const encrypted = await encryptAdminRecoverablePassword(sourcePassword, currentAdminPassword);
+            nextSubscription.passwordCipher = encrypted.passwordCipher;
+            nextSubscription.passwordCipherIv = encrypted.passwordCipherIv;
+            nextSubscription.passwordCipherSalt = encrypted.passwordCipherSalt;
+        } else {
+            nextSubscription.passwordCipher = current.passwordCipher || '';
+            nextSubscription.passwordCipherIv = current.passwordCipherIv || '';
+            nextSubscription.passwordCipherSalt = current.passwordCipherSalt || '';
+        }
+        if (existingIndex >= 0) {
+            config.subscriptions.splice(existingIndex, 1, nextSubscription);
+        } else {
+            config.subscriptions.push(nextSubscription);
+        }
+        loadedConfig.advancedFeatureConfig = config;
+        await set(ref(db, 'config/advancedFeatureConfig'), config);
+        renderAdvancedFeatureForm();
+        return nextSubscription;
     }
 
     function createEmptySubscriptionRow() {
@@ -2478,7 +2551,7 @@
                             ${payload.adminResponse?.licenseBundle ? `<div style="margin-top:8px; padding:8px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe;"><strong>라이선스</strong>: 발급 완료 / <strong>만료일</strong>: ${esc(payload.adminResponse.expiresAt || '영구')}</div>` : ''}
                         </div>
                         <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
-                            <input class="form-input" data-field="expiresAt" type="date" value="${esc(payload.adminResponse?.expiresAt || buildManualSubscriptionExpiry(plan.days))}">
+                            <input class="form-input" data-field="expiresAt" type="date" value="${esc(payload.adminResponse?.expiresAt || buildManualSubscriptionExpiry(plan.days, payload.requestedStartDate))}">
                             <input class="form-input" data-field="statusMessage" value="${esc(payload.adminResponse?.statusMessage || '')}" placeholder="처리 메모">
                         </div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -2577,6 +2650,7 @@
             }
         };
         const encryptedPayload = await window.SKCTSubscriptionCrypto.reencryptRequestPayloadForAdmin(record, nextPayload, privateKeyPem);
+        await upsertApprovedSubscriptionFromRequest(record, nextPayload, expiresAt);
         await update(ref(db, `subscriptionRequests/${requestId}`), {
             status: 'fulfilled',
             updatedAt: Date.now(),
@@ -2591,7 +2665,7 @@
             _payload: nextPayload
         };
         renderSubscriptionRequests();
-        renderManualSubscriptionAdminForm(`${requestId} 신청에 서명된 고급 라이선스를 발급했습니다.`);
+        renderManualSubscriptionAdminForm(`${requestId} 신청에 서명된 고급 라이선스를 발급하고 고급 구독 내역에 반영했습니다.`);
         toast('✅ 신청 승인 및 라이선스 발급 완료');
     }
 
