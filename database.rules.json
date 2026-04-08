@@ -93,6 +93,7 @@
     },
     "advancedAccountLicenses": {
       ".read": false,
+      ".write": "auth != null",
       "$loginIdKey": {
         ".read": true,
         ".write": "auth != null"

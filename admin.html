@@ -571,7 +571,7 @@
                             서버 상태 관리 <br>
                             <span style="font-size:11px; color:#64748b; font-weight:normal;">가짜 접속자(좀비 커넥션) 누적 시 강제 초기화</span>
                         </div>
-                        <button class="btn btn-ghost btn-sm" id="clearZombiesBtn" style="color:#ef4444; border:1px solid #ef4444; font-size:11px;">⚠️ 실시간 접속자 초기화</button>
+                        <button class="btn btn-ghost btn-sm" id="clearZombiesBtn" style="color:#ef4444; border:1px solid #ef4444; font-size:11px;">⚠️ 유령 세션 정리</button>
                     </label>
                 </div>
             </div>
@@ -3319,12 +3319,22 @@
     }
 
     document.getElementById('clearZombiesBtn').addEventListener('click', async () => {
-        if(!confirm('모든 방문자의 접속 상태가 0명으로 초기화되며, 실제 접속자는 새로고침 시 다시 정상 집계됩니다. 진행할까요?')) return;
+        if (!confirm('최근 150초 안에 하트비트를 보낸 실제 세션은 유지하고, 오래된 유령 세션과 예전 형식 값만 정리합니다. 진행할까요?')) return;
         try {
-            await set(ref(db, 'active_visitors'), null);
-            toast('✅ 실시간 접속자 데이터가 초기화되었습니다.');
+            const snap = await get(activeVisitorsRef);
+            const raw = snap.exists() && typeof snap.val() === 'object' ? snap.val() : {};
+            const now = Date.now();
+            const targets = Object.entries(raw)
+                .filter(([, value]) => !(typeof value === 'number' && (now - value) < PRESENCE_STALE_MS))
+                .map(([key]) => key);
+            for (const key of targets) {
+                await remove(ref(db, `active_visitors/${key}`));
+            }
+            toast(targets.length
+                ? `✅ 유령 세션 ${targets.length}건을 정리했습니다. 최근 활성 세션 수는 유지됩니다.`
+                : 'ℹ️ 정리할 유령 세션이 없었습니다. 현재 값은 대부분 최근 활성 세션입니다.');
         } catch(e) {
-            toast('❌ 초기화 오류: ' + e.message);
+            toast('❌ 유령 세션 정리 오류: ' + e.message, true);
         }
     });
 
