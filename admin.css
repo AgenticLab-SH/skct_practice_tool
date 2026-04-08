@@ -251,6 +251,7 @@ body {
     display: grid;
     grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
     gap: 14px;
+    align-items: start;
 }
 
 .site-text-sidebar,
@@ -266,6 +267,9 @@ body {
     flex-direction: column;
     gap: 10px;
     min-height: 620px;
+    max-height: calc(100vh - 32px);
+    position: sticky;
+    top: 16px;
 }
 
 .site-text-count,
@@ -278,10 +282,13 @@ body {
 
 .site-text-list {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 8px;
+    min-height: 0;
     overflow-y: auto;
     padding-right: 4px;
+    overscroll-behavior: contain;
 }
 
 .site-text-list-item {
@@ -311,6 +318,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-width: 0;
 }
 
 .site-text-toolbar,
@@ -655,6 +663,8 @@ body {
 
     .site-text-sidebar {
         min-height: 280px;
+        max-height: none;
+        position: static;
     }
     
     .form-row {

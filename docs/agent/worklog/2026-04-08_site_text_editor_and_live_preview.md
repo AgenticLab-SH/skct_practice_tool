@@ -1,5 +1,5 @@
 # 2026-04-08 사이트 텍스트 편집기 및 실시간 미리보기 구축 기록
-작성일시: 2026-04-08 14:22:23 KST
+작성일시: 2026-04-08 15:14:33 KST
 
 ## 사용자 요청
 - 현재 웹 사이트에서 보이는 세부 문구를 개발자 페이지에서 쉽게 수정하고 싶음
@@ -45,6 +45,24 @@
   - 운영 페이지에서 `applyRemoteSiteTextConfig()` 호출 시 버튼/모달 제목이 즉시 변경되는 것 확인
   - `textEditor=1` 모드에서 요소가 `data-site-text-key`로 주석 처리되고 선택 모드 하이라이트가 동작하는 것 확인
   - 관리자 페이지 숨김 대시보드 DOM 기준으로 텍스트 목록 렌더링, 검색, 선택, 미리보기 highlight, iframe 실시간 반영이 동작하는 것 확인
+
+## 후속 보정
+- 사용자 피드백에 따라 사이트 텍스트 편집기 좌측 목록이 별도 스크롤되도록 `admin.css`를 보정함
+- 원인
+  - 좌측 패널은 `overflow-y: auto`만 있었고, 실제 스크롤 높이를 제한하는 `max-height`와 flex 축소 조건이 약했음
+  - 우측 미리보기 iframe이 길어질 때 좌측 패널도 같이 늘어나 목록만 독립적으로 스크롤된다는 느낌이 약해졌음
+- 조치
+  - `.site-text-editor`에 `align-items: start`를 추가해 사이드바가 우측 높이에 맞춰 과도하게 늘어나지 않게 함
+  - `.site-text-sidebar`를 `position: sticky`, `top: 16px`, `max-height: calc(100vh - 32px)`로 제한해 화면 내에서 고정형 작업 패널처럼 동작하게 함
+  - `.site-text-list`에 `flex: 1 1 auto`, `min-height: 0`, `overscroll-behavior: contain`을 추가해 내부 목록이 독립 스크롤 컨테이너로 안정적으로 작동하게 함
+- 모바일 구간에서는 sticky를 해제해 기존 세로 흐름을 유지함
+- 로컬 브라우저 데스크톱 검증(`1440x1200`)에서 좌측 목록의 `scrollHeight > clientHeight` 상태와 sticky 상단 고정을 함께 확인함
+
+## 저장 구조 메모
+- 사이트 텍스트 편집기의 실제 저장 위치는 Firebase Realtime Database의 `config/siteTextConfig` 경로임
+- 좌측 목록 선택과 textarea 입력은 먼저 브라우저 메모리의 `loadedConfig.siteTextConfig`와 iframe 미리보기에만 반영됨
+- 실제 운영 설정값 반영은 `저장` 버튼 또는 전체 저장 흐름에서 `saveSiteTextSettings()`가 호출될 때 `set(ref(db, 'config/siteTextConfig'), loadedConfig.siteTextConfig)`로 이루어짐
+- 즉, 현재 구조는 “미리보기는 즉시 반영, Firebase 저장은 명시적 저장 버튼 시점”이며 자동 실시간 저장 방식은 아님
 
 ## 한계 및 다음 후보
 - 이번 카탈로그는 운영에 자주 쓰는 주요 안내 문구와 핵심 상태 메시지를 우선 포함함
