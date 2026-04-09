@@ -27,6 +27,13 @@ $publicFiles = @(
     "googleb305551590fcb6e6.html"
 )
 
+$publicGeneratedFiles = @(
+    @{
+        Source = Join-Path $projectRoot "scripts/public-clean-admin-stub.html"
+        Destination = "admin.html"
+    }
+)
+
 $publicDirectories = @(
     "images",
     "guide",
@@ -62,6 +69,18 @@ foreach ($relativePath in $publicDirectories) {
     }
     $targetPath = Join-Path $destination $relativePath
     Copy-Item -LiteralPath $sourcePath -Destination $targetPath -Recurse -Force
+}
+
+foreach ($generatedFile in $publicGeneratedFiles) {
+    if (-not (Test-Path -LiteralPath $generatedFile.Source)) {
+        continue
+    }
+    $targetPath = Join-Path $destination $generatedFile.Destination
+    $targetDir = Split-Path -Parent $targetPath
+    if ($targetDir -and -not (Test-Path -LiteralPath $targetDir)) {
+        New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+    }
+    Copy-Item -LiteralPath $generatedFile.Source -Destination $targetPath -Force
 }
 
 Write-Host "public-clean export completed:"

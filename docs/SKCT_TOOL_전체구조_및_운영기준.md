@@ -1,5 +1,5 @@
 # SKCT Tool 전체 구조 및 운영 기준
-작성일시: 2026-04-09 23:13:20 +09:00
+작성일시: 2026-04-10 00:03:31 +09:00
 
 이 문서는 현재 SKCT Tool 프로젝트를 한 번에 이해하기 위한 기준 문서입니다.  
 개별 작업 로그가 많아도, 이 문서 하나로 “무슨 화면이 있고, 어디서 수정하고, 어떤 순서로 반영하는지”를 바로 파악할 수 있도록 정리합니다.
@@ -32,6 +32,7 @@
 
 ### 운영
 - 실제 사용자들이 쓰는 페이지입니다.
+- 현재 GitHub Pages 게시 원본은 `public-clean / (root)`입니다.
 - 사용자 승인 전에는 운영 반영을 하지 않는 것이 기준입니다.
 
 ## 3. 모드 구분
@@ -47,6 +48,7 @@
 ### 관리자 페이지
 - 기본값 저장, 공지, 후원 문구, 구독 관리 등을 처리하는 전용 화면입니다.
 - 일반 사용자 화면과 분리된 관리용 UI입니다.
+- 공개 배포물에서는 실제 관리자 화면을 직접 노출하지 않고, 차단 안내 페이지로 대체합니다.
 
 ## 4. 주요 파일 역할
 
@@ -71,6 +73,7 @@
 
 ### 공개 배포 추출 준비
 - [scripts/export_public_clean.ps1](/C:/dev/01_career/_assets/tools/skct_tool/scripts/export_public_clean.ps1)
+- [scripts/public-clean-admin-stub.html](/C:/dev/01_career/_assets/tools/skct_tool/scripts/public-clean-admin-stub.html)
 
 ### 스테이징 사용자 화면
 - [staging/site/index.html](/C:/dev/01_career/_assets/tools/skct_tool/staging/site/index.html)
@@ -113,6 +116,7 @@
 2. 타이머/OMR/메모장/계산기 사용
 3. 필요하면 팝업 모드로 더 좁은 화면 사용
 4. `더보기`에서 게시판, 활성 세션, 문서형 안내, 후원 확인
+5. 공개 배포에서는 관리자 경로를 열어도 차단 안내만 보입니다.
 
 ### 고급 사용자
 1. 일반 화면의 `고급 안내` 버튼 또는 숨김 진입 사용

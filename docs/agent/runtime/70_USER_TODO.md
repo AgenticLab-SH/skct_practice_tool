@@ -1,7 +1,7 @@
 # SKCT Tool 운영 반영 전 사용자 TODO
-작성일시: 2026-04-09 23:44:30 +09:00
+작성일시: 2026-04-10 00:03:31 +09:00
 
-이 문서는 코드 준비는 끝났지만, 실제 운영 반영 전에 사용자가 직접 결정하거나 실행해야 하는 항목만 모아 둔 목록입니다.
+이 문서는 공개 배포 이후에도 사용자가 직접 결정하거나 실행해야 하는 남은 항목만 모아 둔 목록입니다.
 
 ## 1. Firebase Functions 배포
 
@@ -46,24 +46,14 @@
    - 고급 로그인이 정상 동작하는지
    - 커뮤니티 / 활성 세션이 현재 강화된 검증과 충돌하지 않는지
 
-## 4. public-clean 배포 브랜치
-
-1. 로컬 `public-clean` 브랜치는 이미 준비돼 있습니다.
-2. GitHub에 `public-clean` 브랜치를 push합니다.
-   `git push origin public-clean`
-3. GitHub 저장소 `Settings -> Pages`에서 게시 원본을 `public-clean / (root)`로 바꿀지 최종 승인 후 결정합니다.
-
-## 5. 도메인/광고 값
+## 4. 도메인/광고 값
 
 1. 커스텀 도메인을 쓸지 결정합니다.
 2. `CNAME`에 넣을 실제 도메인이 있으면 값이 필요합니다.
 3. 광고를 붙일 계획이면 `ads.txt`에 넣을 실제 퍼블리셔 ID가 필요합니다.
 
-## 6. 배포 직전 최소 체크
+## 5. 현재 끝난 것
 
-1. 현재 작업 브랜치 HEAD가 `9e382e7` 이후인지 확인합니다.
-2. `public-clean` 브랜치가 준비돼 있는지 확인합니다.
-   `git branch --list public-clean`
-3. 공개 배포물 미리보기가 필요하면 아래 명령을 실행합니다.
-   `pwsh -File scripts\export_public_clean.ps1 -OutputDir tmp\public-clean-preview`
-4. `tmp\public-clean-preview`만 별도 정적 서버로 열어 메인 화면이 정상 표시되는지 확인합니다.
+1. GitHub Pages 게시 원본은 이미 `public-clean / (root)`로 전환했습니다.
+2. 공개 배포의 `admin.html`은 실제 관리자 UI 대신 차단 안내 페이지로 바꿨습니다.
+3. 따라서 지금 남은 것은 `Functions 배포 -> 관리자 secureApiBaseUrl 저장 -> rules 최종 잠금` 흐름입니다.
