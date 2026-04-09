@@ -890,9 +890,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="build-info.js?v=202604091519"></script>
+    <script src="build-info.js?v=202604091640"></script>
     <script src="site-text-config.js?v=202604091519"></script>
-    <script src="main.js?v=202604091519"></script>
+    <script src="main.js?v=202604091640"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -1094,7 +1094,7 @@
         }
 
         // ============================================
-        // 📢 Help 모달 리소스 - Firebase 1회 조회 (캐싱)
+        // 📢 공개 설정 - Firebase 1회 조회 + 공지 실시간 동기화
         // ============================================
         const PUBLIC_CONFIG_KEYS = [
             'maintenance',
@@ -1113,12 +1113,54 @@
             'toolUiConfig',
             'sponsors'
         ];
+        const NOTICE_CONFIG_KEYS = ['notice', 'notice_help', 'notice_sidebar'];
+        const liveNoticeConfig = Object.create(null);
+
+        function syncLiveNoticeConfig(partial = {}) {
+            NOTICE_CONFIG_KEYS.forEach((key) => {
+                if (Object.prototype.hasOwnProperty.call(partial, key)) {
+                    liveNoticeConfig[key] = partial[key];
+                }
+            });
+
+            if (typeof renderNotice === 'function') {
+                window.__skctNoticeLoaded = true;
+                const helpNoticeData = liveNoticeConfig.notice_help || liveNoticeConfig.notice;
+                renderNotice(helpNoticeData || { show: false });
+            }
+
+            if (typeof window.renderSidebarNotice === 'function') {
+                const sidebarNoticeData = liveNoticeConfig.notice_sidebar || liveNoticeConfig.notice_help || liveNoticeConfig.notice;
+                window.renderSidebarNotice(sidebarNoticeData || { show: false });
+            }
+        }
+
+        function subscribeLiveNoticeConfig() {
+            NOTICE_CONFIG_KEYS.forEach((key) => {
+                onValue(
+                    ref(db, `config/${key}`),
+                    (snap) => {
+                        syncLiveNoticeConfig({
+                            [key]: snap.exists() ? snap.val() : undefined
+                        });
+                    },
+                    (error) => {
+                        console.error(`live notice sync error (${key}):`, error);
+                    }
+                );
+            });
+        }
 
         async function fetchConfig() {
             try {
                 const entries = await Promise.all(PUBLIC_CONFIG_KEYS.map(async (key) => {
-                    const snap = await get(ref(db, `config/${key}`));
-                    return [key, snap.exists() ? snap.val() : undefined];
+                    try {
+                        const snap = await get(ref(db, `config/${key}`));
+                        return [key, snap.exists() ? snap.val() : undefined];
+                    } catch (error) {
+                        console.error(`fetchConfig key error (${key}):`, error);
+                        return [key, undefined];
+                    }
                 }));
                 handleConfigData(Object.fromEntries(entries.filter(([, value]) => value !== undefined)));
             } catch(e) { console.error('fetchConfig error:', e); }
@@ -1141,12 +1183,7 @@
             if (cfg.appName) {
                 document.title = window.SKCT_FLAGS?.advanced === true ? `${cfg.appName} | 고급버전` : cfg.appName;
             }
-            if (typeof renderNotice === 'function') {
-                window.__skctNoticeLoaded = true;
-                // 하위호환
-                const noticeData = cfg.notice_help || cfg.notice;
-                if (noticeData) renderNotice(noticeData);
-            }
+            syncLiveNoticeConfig(cfg);
             if (cfg.useful_links && cfg.useful_links.length > 0) {
                 let html = `<div style="font-weight: bold; color: #1e293b; font-size: 14px; margin-top: 15px; margin-bottom: 8px;">🔗 유용한 링크</div>`;
                 html += `<div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 15px;">`;
@@ -1168,10 +1205,6 @@
             }
             if (typeof window.applyRemoteSiteTextConfig === 'function') {
                 window.applyRemoteSiteTextConfig(cfg.siteTextConfig);
-            }
-            if (typeof window.renderSidebarNotice === 'function') {
-                const sidebarNoticeData = cfg.notice_sidebar || cfg.notice_help || cfg.notice;
-                if (sidebarNoticeData) window.renderSidebarNotice(sidebarNoticeData);
             }
             if (typeof window.applyManualSubscriptionConfig === 'function') {
                 window.applyManualSubscriptionConfig(cfg.manualSubscriptionConfig, { source: 'remote' });
@@ -1270,6 +1303,7 @@
             }
         }
         fetchConfig();
+        subscribeLiveNoticeConfig();
     </script>
     <!-- Community Module (loaded after Firebase init) -->
     <script type="module" src="community.js"></script>

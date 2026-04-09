@@ -4381,9 +4381,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderNotice(data) {
-        if (!data.show) return;
         const noticeContainer = document.getElementById('devNotice');
         if (!noticeContainer) return;
+        if (!data || !data.show) {
+            noticeContainer.innerHTML = '';
+            return;
+        }
 
         const typeColors = {
             info: { bg: '#eff6ff', border: '#3b82f6', icon: '💡' },
