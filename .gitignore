@@ -1,0 +1,12 @@
+functions/node_modules/
+functions/.firebase/
+functions/.cache/
+functions/__pycache__/
+functions/*.log
+tmp/public-clean-preview/
+tmp/firebase-emulator-data/
+.firebase/
+firebase-debug.log
+ui-debug.log
+__pycache__/
+*.pyc
