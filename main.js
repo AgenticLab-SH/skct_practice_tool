@@ -91,14 +91,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let isAdvancedMode = false;
     const DEFAULT_LAYOUT_RATIOS = { timer: 8.6, utils: 45.0, calc: 46.4 };
     const DEFAULT_POPUP_LAYOUT = {
-        window: { widthRatio: 0.269, heightRatio: 0.98, leftRatio: 0.731, topRatio: 0 },
-        omrWidthRatio: 0.30
+        window: { widthRatio: 0.305, heightRatio: 0.98, leftRatio: 0.695, topRatio: 0 },
+        omrWidthRatio: 0.31
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-        updatedAt: '2026-04-10 10:45:00 +09:00',
-        version: 'v2026.04.10.1045',
-        assetVersion: '202604101045'
+        updatedAt: '2026-04-10 01:49:00 +09:00',
+        version: 'v2026.04.10.0149',
+        assetVersion: '202604100149'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildPopupWindowMetrics(windowConfig = currentPopupLayout.window) {
         const normalized = normalizePopupLayout({ window: windowConfig });
         const { availWidth, availHeight, availLeft, availTop } = getScreenMetrics();
-        const width = clampNumber(Math.round(availWidth * normalized.window.widthRatio), 300, availWidth);
+        const width = clampNumber(Math.round(availWidth * normalized.window.widthRatio), 520, availWidth);
         const height = clampNumber(Math.round(availHeight * normalized.window.heightRatio), 520, availHeight);
         const maxLeft = Math.max(0, availWidth - width);
         const maxTop = Math.max(0, availHeight - height);
@@ -664,7 +664,8 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPopupLayout.omrWidthRatio = Number.isFinite(safeRatio) ? safeRatio : 0.30;
         if (!appContainerEl) return;
         const maxWidth = Math.round(appContainerEl.clientWidth * 0.8);
-        const nextWidth = clampNumber(Math.round(appContainerEl.clientWidth * currentPopupLayout.omrWidthRatio), 120, maxWidth);
+        const minWidth = isPopupMode ? 150 : 120;
+        const nextWidth = clampNumber(Math.round(appContainerEl.clientWidth * currentPopupLayout.omrWidthRatio), minWidth, maxWidth);
         document.documentElement.style.setProperty('--omr-width', `${nextWidth}px`);
     }
 
