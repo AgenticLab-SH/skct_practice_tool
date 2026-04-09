@@ -559,14 +559,37 @@ body.popup-mode .omr-body {
     min-height: 250px;
 }
 
+body.popup-mode .omr-actions {
+    gap: 4px;
+    padding-top: 6px;
+}
+
+body.popup-mode .omr-action-btn {
+    padding: 7px 8px;
+    font-size: 11px;
+}
+
+body.popup-mode .score-result {
+    font-size: 11px;
+}
+
 body.popup-mode.advanced-mode .advanced-coach-panel {
-    padding: 8px;
-    gap: 5px;
+    padding: 6px 7px;
+    gap: 4px;
 }
 
 body.popup-mode.advanced-mode .advanced-coach-lead,
 body.popup-mode.advanced-mode .advanced-coach-hint {
     display: none;
+}
+
+body.popup-mode.advanced-mode .advanced-coach-title {
+    font-size: 11px;
+}
+
+body.popup-mode.advanced-mode .advanced-coach-guide-btn {
+    padding: 3px 7px;
+    font-size: 9px;
 }
 
 body.popup-mode.advanced-mode .advanced-coach-step {
@@ -1249,6 +1272,91 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     cursor: pointer;
 }
 
+.help-section-title {
+    font-weight: 800;
+    color: #1e293b;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.help-example-section {
+    margin-bottom: 6px;
+}
+
+.help-example-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.help-example-card {
+    min-width: 0;
+}
+
+.help-example-caption {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 4px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.help-reference-block {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #64748b;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #334155;
+    margin-bottom: 18px;
+    line-height: 1.6;
+}
+
+.help-feature-diagram {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 15px;
+    color: white;
+    font-size: 13px;
+    display: flex;
+    gap: 10px;
+}
+
+.help-feature-panel {
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.help-feature-panel-sidebar {
+    flex: 1;
+    border: 2px solid #3b82f6;
+    position: relative;
+    text-align: left;
+}
+
+.help-feature-stack {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.help-feature-panel-timer {
+    border: 2px solid #a855f7;
+}
+
+.help-feature-panel-practice {
+    border: 2px solid #eab308;
+    flex: 3;
+}
+
+.help-feature-panel-calc {
+    border: 2px solid #22c55e;
+    flex: 2;
+}
+
 .help-advanced-gallery {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1450,6 +1558,219 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 
 .help-advanced-omr-action-accent {
     background: linear-gradient(180deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
+.advanced-guide-modal-content {
+    max-width: 560px;
+}
+
+.advanced-guide-modal-body,
+.advanced-feature-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.advanced-guide-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 10px;
+}
+
+.advanced-guide-section-login {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.advanced-guide-section-neutral {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.advanced-guide-section-warm {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    gap: 12px;
+}
+
+.advanced-guide-section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.advanced-guide-section-title-small {
+    font-size: 14px;
+}
+
+.advanced-guide-section-title-blue {
+    color: #1d4ed8;
+}
+
+.advanced-guide-section-title-warm {
+    color: #9a3412;
+}
+
+.advanced-guide-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.advanced-guide-section-kicker {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.advanced-guide-info,
+.advanced-guide-description,
+.advanced-guide-note,
+.advanced-guide-hint,
+.advanced-guide-contact {
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.advanced-guide-info {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #dbeafe;
+    color: #1d4ed8;
+}
+
+.advanced-guide-description {
+    color: #475569;
+}
+
+.advanced-guide-description-blue {
+    color: #1e40af;
+}
+
+.advanced-guide-note {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+}
+
+.advanced-guide-plan-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.advanced-guide-plan-copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.advanced-guide-plan-intro {
+    font-size: 12px;
+    color: #9a3412;
+    line-height: 1.6;
+}
+
+.advanced-guide-donate-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 9px 12px;
+    background: #ea580c;
+    color: #fff;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.advanced-guide-plan-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.advanced-guide-flow {
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px dashed #fdba74;
+    font-size: 12px;
+    color: #7c2d12;
+    line-height: 1.7;
+}
+
+.advanced-guide-card-grid,
+.advanced-guide-form-grid,
+.advanced-guide-password-grid,
+.advanced-guide-login-grid,
+.advanced-guide-lookup-grid {
+    display: grid;
+}
+
+.advanced-guide-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.advanced-guide-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.advanced-guide-password-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.advanced-guide-login-grid,
+.advanced-guide-lookup-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+}
+
+.advanced-guide-hint {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.advanced-guide-submit {
+    padding: 11px 14px;
+    background: #0f766e;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.advanced-guide-contact {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+    font-size: 13px;
+}
+
+.advanced-feature-modal-content {
+    max-width: 560px;
+}
+
+.advanced-feature-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 /* Utility Section (Notepad/Canvas) */
@@ -2163,6 +2484,78 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     .utility-card-grid {
         grid-template-columns: 1fr;
     }
+}
+
+@media (max-width: 760px) {
+    .help-example-grid,
+    .advanced-guide-card-grid,
+    .advanced-guide-plan-cards,
+    .advanced-guide-form-grid,
+    .advanced-guide-password-grid,
+    .advanced-guide-login-grid,
+    .advanced-guide-lookup-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .help-feature-diagram {
+        flex-direction: column;
+        padding: 12px;
+    }
+
+    .help-feature-stack {
+        gap: 8px;
+    }
+
+    .advanced-guide-modal-content,
+    .advanced-feature-modal-content,
+    .help-modal-content {
+        width: calc(100vw - 20px);
+        max-width: none;
+    }
+}
+
+body.popup-mode .help-modal-content,
+body.popup-mode .advanced-guide-modal-content,
+body.popup-mode .advanced-feature-modal-content {
+    width: calc(100vw - 12px);
+    max-width: none;
+    max-height: 96vh;
+}
+
+body.popup-mode .help-modal-header {
+    padding: 14px 16px;
+}
+
+body.popup-mode .help-modal-body {
+    padding: 14px;
+}
+
+body.popup-mode .help-example-grid,
+body.popup-mode .advanced-guide-card-grid,
+body.popup-mode .advanced-guide-plan-cards,
+body.popup-mode .advanced-guide-form-grid,
+body.popup-mode .advanced-guide-password-grid,
+body.popup-mode .advanced-guide-login-grid,
+body.popup-mode .advanced-guide-lookup-grid {
+    grid-template-columns: 1fr;
+}
+
+body.popup-mode .help-feature-diagram {
+    flex-direction: column;
+    padding: 12px;
+}
+
+body.popup-mode .help-feature-stack {
+    gap: 8px;
+}
+
+body.popup-mode .advanced-guide-modal-body,
+body.popup-mode .advanced-feature-modal-body {
+    gap: 10px;
+}
+
+body.popup-mode .advanced-guide-section {
+    padding: 12px;
 }
 
 /* ============================================================
