@@ -1,12 +1,11 @@
 # TODO 작업 인덱스
-작성일시: 2026-04-09 02:42:28 KST
+작성일시: 2026-04-09 16:10:35 KST
 
 이 폴더는 2026-04-09 TODO 전체 일괄 처리 결과와, 다음에 새 TODO를 추가할 때 다시 이어갈 기준을 함께 보관하는 실행 기록입니다.
 
 ## 현재 상태
-- 이번 라운드에서 `10_부분해결`, `20_미해결`, `30_추가개선` 문서를 모두 로컬 코드와 문서 기준으로 처리했습니다.
-- 운영 서버와 운영 Firebase 기본값은 건드리지 않았습니다.
-- 폴더 이름은 이력 추적을 위해 유지했고, 실제 남은 항목은 `사용자 승인 또는 운영 반영이 필요한 후속`뿐입니다.
+- 이번 라운드에서 `10_부분해결`, `20_미해결`, `30_추가개선` 문서를 모두 구현했고, 이후 턴에서 운영 반영과 rules 배포도 대부분 끝냈습니다.
+- 폴더 이름은 이력 추적을 위해 유지했고, 현재는 `미구현 TODO`보다 `운영 모니터링 또는 실계정 최종 검증` 성격의 후속만 남아 있습니다.
 
 ## 문서별 처리 결과
 1. [관리자 문구 편집기 확장](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/10_부분해결/01_관리자_문구_편집기_확장.md)
@@ -42,16 +41,18 @@
 11. [보안 2차 강화](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/30_추가개선/06_보안_2차_강화.md)
 - 완료: 세션성 민감값을 `sessionStorage`로 축소하고, 개인 자료 저장소 규칙과 보안 체크 문서를 추가했습니다.
 
-## 남은 운영 후속
-- 코드와 정적 파일 배포는 사용자 승인 후에만 진행합니다.
-- `database.rules.json`의 `userStudyLibrary` 규칙은 실제 RTDB rules 배포가 필요합니다.
-- `study-archive.html`을 운영에서 쓰려면 Email/Password Auth 활성화, 허용 도메인, 실계정 검증을 별도로 확인해야 합니다.
-- 새 기본 문구를 운영 Firebase `config/siteTextConfig`의 공식 기본값으로 덮어쓸지는 별도 승인 후 진행해야 합니다.
+## 현재 남은 후속
+- `study-archive.html`의 실제 사용자 계정 기준 저장/조회까지 운영에서 끝단 검증하는 작업은 아직 별도 확인이 있으면 더 안전합니다.
+- `활성 세션`, `더보기`, `고급 안내`처럼 최근에 크게 바뀐 표현은 실제 사용자 문의 패턴을 보며 추가 문구 축약이 필요한지만 보면 됩니다.
+- CSP 같은 보안 2차 강화의 확장 항목은 별도 스테이징 검토가 필요한 미래 개선입니다.
 
 ## 다시 사용할 핵심 문서
 - [01_AGENT_RUNBOOK.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/01_AGENT_RUNBOOK.md)
 - [02_AGENT_WORK_QUEUE.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/02_AGENT_WORK_QUEUE.md)
 - [03_AGENT_PROMPT.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/03_AGENT_PROMPT.md)
+
+## 원본 메모
+- [TODO.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/TODO.md), [TODO1.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/TODO1.md)는 당시 사용자 피드백을 적어 둔 원본 메모이며, 현재 작업 상태 판정은 위 인덱스와 실행 큐 문서를 기준으로 봅니다.
 
 ## 함께 확인할 기록
 - [2026-04-09_todo_full_sweep_and_backup.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/worklog/2026-04-09_todo_full_sweep_and_backup.md)
