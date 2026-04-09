@@ -1,20 +1,26 @@
 # SKCT Tool 운영 반영 전 사용자 TODO
-작성일시: 2026-04-09 23:29:30 +09:00
+작성일시: 2026-04-09 23:42:19 +09:00
 
 이 문서는 코드 준비는 끝났지만, 실제 운영 반영 전에 사용자가 직접 결정하거나 실행해야 하는 항목만 모아 둔 목록입니다.
 
 ## 1. Firebase Functions 배포
 
-1. 프로젝트 루트에서 아래 순서로 실행합니다.
+1. 먼저 Cloud Functions API를 활성화합니다.
+   현재 읽기 전용 점검에서 `skct-tool` 프로젝트의 `cloudfunctions.googleapis.com`이 비활성 상태로 확인됐습니다.
+   열기: `https://console.developers.google.com/apis/api/cloudfunctions.googleapis.com/overview?project=skct-tool`
+2. 첫 배포에서는 추가 API 활성화 안내가 더 나올 수 있습니다.
+   `firebase-functions/v2` 기준으로 `Cloud Run`, `Cloud Build`, `Artifact Registry` 활성화가 함께 요구될 가능성이 높습니다.
+   이 경우 안내에 따라 활성화한 뒤 몇 분 기다렸다가 다시 배포합니다.
+3. 프로젝트 루트에서 아래 순서로 실행합니다.
    `cd C:\dev\01_career\_assets\tools\skct_tool`
    `cd functions`
    `npm install`
    `cd ..`
-2. 로컬 점검이 필요하면 아래 명령으로 emulator를 띄웁니다.
+4. 로컬 점검이 필요하면 아래 명령으로 emulator를 띄웁니다.
    `npx firebase-tools emulators:start --only functions --project skct-tool`
-3. 실제 배포는 아래 명령으로 진행합니다.
+5. 실제 배포는 아래 명령으로 진행합니다.
    `npx firebase-tools deploy --only functions --project skct-tool`
-4. 배포가 끝나면 출력된 함수 URL을 확인합니다.
+6. 배포가 끝나면 출력된 함수 URL을 확인합니다.
    예: `https://REGION-PROJECT.cloudfunctions.net/skctSecureApi`
 
 ## 2. 관리자 설정 저장
@@ -55,7 +61,7 @@
 
 ## 6. 배포 직전 최소 체크
 
-1. 현재 작업 브랜치 HEAD가 `726c9d4` 이후인지 확인합니다.
+1. 현재 작업 브랜치 HEAD가 `4c41105` 이후인지 확인합니다.
 2. `public-clean` 브랜치가 준비돼 있는지 확인합니다.
    `git branch --list public-clean`
 3. 공개 배포물 미리보기가 필요하면 아래 명령을 실행합니다.
