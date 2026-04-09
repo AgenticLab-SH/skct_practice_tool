@@ -3710,15 +3710,37 @@
         }
     }
 
-    document.getElementById('noticeSaveBtn').addEventListener('click', () => saveNoticeConfig(false));
-    document.getElementById('popularSaveBtn').addEventListener('click', () => savePopularConfig(false));
-    document.getElementById('generalMetaSaveBtn').addEventListener('click', saveGeneralMetaSettings);
-    document.getElementById('runtimeDefaultsSaveBtn').addEventListener('click', saveRuntimeDefaults);
-    document.getElementById('supportSaveBtn').addEventListener('click', saveSupportSettings);
-    document.getElementById('siteTextSaveBtn').addEventListener('click', () => saveSiteTextSettings(false));
+    function formatAdminSaveError(error) {
+        const code = String(error?.code || '');
+        const message = String(error?.message || '');
+        const combined = `${code} ${message}`.toLowerCase();
+        if (combined.includes('permission-denied') || combined.includes('permission denied')) {
+            return '로그인 세션이 만료되었거나 쓰기 권한이 없습니다. 페이지를 새로고침한 뒤 다시 로그인해서 저장해 주세요.';
+        }
+        if (combined.includes('network')) {
+            return '네트워크 문제로 저장하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.';
+        }
+        return message || '알 수 없는 오류';
+    }
+
+    async function runAdminSaveAction(action, label) {
+        try {
+            await action();
+        } catch (error) {
+            console.error(`${label} failed:`, error);
+            toast(`❌ ${label} 실패: ${formatAdminSaveError(error)}`, true);
+        }
+    }
+
+    document.getElementById('noticeSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveNoticeConfig(false), '공지 저장'));
+    document.getElementById('popularSaveBtn').addEventListener('click', () => runAdminSaveAction(() => savePopularConfig(false), '인기글 기준 저장'));
+    document.getElementById('generalMetaSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveGeneralMetaSettings(false), '앱/링크 설정 저장'));
+    document.getElementById('runtimeDefaultsSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveRuntimeDefaults(false), '타이머/레이아웃 저장'));
+    document.getElementById('supportSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveSupportSettings(false), '후원/운영 문구 저장'));
+    document.getElementById('siteTextSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveSiteTextSettings(false), '사이트 텍스트 저장'));
     document.getElementById('siteTextPromoteDefaultsBtn').addEventListener('click', () => promoteCodeDefaultsToAdminBaseline());
-    document.getElementById('sponsorsSaveBtn').addEventListener('click', saveSponsors);
-    document.getElementById('manualSubscriptionSaveBtn').addEventListener('click', saveManualSubscriptionSettings);
+    document.getElementById('sponsorsSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveSponsors(false), '후원 내역 저장'));
+    document.getElementById('manualSubscriptionSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveManualSubscriptionSettings(false), '수동 구독 설정 저장'));
     document.getElementById('advancedFeatureSaveBtn').addEventListener('click', saveAdvancedSubscriptions);
     document.getElementById('manualSubscriptionBackupBtn').addEventListener('click', downloadManualSubscriptionBackup);
     document.getElementById('manualSubscriptionBackupUploadInput').addEventListener('change', async (event) => {
