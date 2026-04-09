@@ -1,5 +1,5 @@
 # SKCT Tool 작업 기준서
-작성일시: 2026-04-09 23:13:20 +09:00
+작성일시: 2026-04-09 23:17:46 +09:00
 
 이 문서는 이 프로젝트에서 작업을 시작할 때 가장 먼저 읽는 얇은 기준서입니다. 긴 worklog를 처음부터 다 읽지 않고도, 현재 운영 경계와 다음 우선순위를 바로 파악할 수 있게 유지합니다.
 
@@ -14,6 +14,7 @@
   - 추가 백업 브랜치: `backup/20260409_225421-remaining-todo-start`
   - 추가 백업 태그: `backup-20260409_225421-remaining-todo-start`
   - 작업 브랜치: `work/20260409_201424-local-safe-hardening`
+  - 공개 배포 브랜치(로컬 준비): `public-clean`
 
 ## 2. 현재 프로젝트 한 줄 상태
 
@@ -39,8 +40,8 @@
 2. 민감 경로 rules 최종 잠금
 - secure API가 검증되면 `subscriptionRequests`, `subscriptionRequestLookup`, `advancedAccountLicenses`의 공개 read/write를 auth 전용으로 잠가야 합니다.
 
-3. public-clean 브랜치 반영
-- `scripts/export_public_clean.ps1` 출력물을 기준으로 로컬 `public-clean` 브랜치를 만들고, 운영 Pages 원본을 거기로 바꿀 준비를 해야 합니다.
+3. public-clean 운영 반영
+- 로컬 `public-clean` 브랜치는 이미 만들었고, 사용자 승인 후 GitHub Pages 원본을 그 브랜치로 바꿀지 결정하면 됩니다.
 
 4. 검색/광고 운영 마감
 - `ads.txt`, `CNAME`, Search Console/GA 최종 점검은 실제 운영 도메인과 광고 계정 값이 있어야 마무리할 수 있습니다.
