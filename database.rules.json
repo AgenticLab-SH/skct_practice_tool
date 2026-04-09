@@ -45,6 +45,9 @@
       "notice_help": {
         ".read": true
       },
+      "notice_sidebar": {
+        ".read": true
+      },
       "notice_community": {
         ".read": true
       },
@@ -165,6 +168,9 @@
           ".read": true
         },
         "notice_help": {
+          ".read": true
+        },
+        "notice_sidebar": {
           ".read": true
         },
         "notice_community": {
