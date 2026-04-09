@@ -1,5 +1,5 @@
 # SKCT Tool 문서 인덱스
-작성일시: 2026-04-09 02:42:28 KST
+작성일시: 2026-04-09 09:27:20 KST
 
 이 문서는 `docs/` 아래 문서를 빠르게 찾기 위한 기준 인덱스입니다.
 
@@ -36,7 +36,7 @@
 ## 4. 고급 기능과 보안 메모
 
 - [36_HIDDEN_ADVANCED_FEATURES.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/36_HIDDEN_ADVANCED_FEATURES.md)
-  숨김 고급 기능의 진입 방식과 분리 원칙 메모입니다.
+  고급 모드 전용 기능 목록, 자료 보관함 접근 정책, 관리자 수정 가능 문구 범위를 한 번에 보는 기준 문서입니다.
 
 - [37_SECURITY_RENDERING_CHECKLIST.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/37_SECURITY_RENDERING_CHECKLIST.md)
   새 HTML 경로, 저장소 경계, sanitize 경로를 점검할 때 쓰는 보안 체크 문서입니다.

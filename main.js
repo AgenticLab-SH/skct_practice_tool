@@ -114,7 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const topBarEl = document.querySelector('.top-bar');
     const utilityToggle = document.getElementById('utilityToggle');
     const utilityModal = document.getElementById('utilityModal');
+    const utilityModalDescription = document.getElementById('utilityModalDescription');
     const studyArchiveOpenBtn = document.getElementById('studyArchiveOpenBtn');
+    const utilityArchiveDescription = document.getElementById('utilityArchiveDescription');
     const utilitySectionEl = document.querySelector('.utility-section');
     const calculatorSectionEl = document.querySelector('.calculator-section');
     const topBarResizerEl = document.getElementById('topBarResizer');
@@ -1049,6 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (typeof updateModeUI === 'function') updateModeUI();
         if (typeof renderOMR === 'function') renderOMR();
+        updateUtilityArchiveCardState();
     }
 
     async function syncStoredAdvancedLicenseState(options = {}) {
@@ -1142,23 +1145,41 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!advancedAccessSummary) return;
         const cooldownRemainingMs = getAdvancedCooldownRemainingMs();
         if (!isAdvancedConfigReady) {
-            advancedAccessSummary.textContent = '고급 라이선스 정보를 불러오는 중입니다.';
+            advancedAccessSummary.textContent = readSiteText('messages.advancedLoading', '고급 라이선스 정보를 불러오는 중입니다.');
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
             return;
         }
         if (!remoteManualSubscriptionConfig.licensePublicKeyPem) {
-            advancedAccessSummary.textContent = '아직 라이선스 검증 공개키가 설정되지 않았습니다. 관리자 설정 저장 후 다시 시도해주세요.';
+            advancedAccessSummary.textContent = readSiteText('messages.advancedConfigMissing', '아직 라이선스 검증 공개키가 설정되지 않았습니다. 관리자 설정 저장 후 다시 시도해주세요.');
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = `이메일 또는 로그인 ID / 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
+            advancedAccessSummary.textContent = readSiteText('messages.advancedCooldown', '이메일 또는 로그인 ID / 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.', {
+                seconds: Math.ceil(cooldownRemainingMs / 1000)
+            });
         } else if (verifiedAdvancedLicenseBundle) {
-            advancedAccessSummary.textContent = `이 브라우저에 유효한 고급 라이선스가 저장되어 있습니다. 만료: ${formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)}`;
+            advancedAccessSummary.textContent = readSiteText('messages.advancedUnlocked', '이 브라우저에 유효한 라이선스가 저장되어 있어 바로 고급 모드를 열 수 있습니다. 만료: {expiry}', {
+                expiry: formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)
+            });
         } else {
-            advancedAccessSummary.textContent = '승인 후에는 신청 이메일 또는 로그인 ID와 비밀번호로 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다. 신청번호는 로그인에 쓰지 않습니다.';
+            advancedAccessSummary.textContent = readSiteText('messages.advancedAvailable', '신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.');
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = cooldownRemainingMs > 0;
+    };
+
+    const updateUtilityArchiveCardState = () => {
+        if (studyArchiveOpenBtn) {
+            studyArchiveOpenBtn.classList.toggle('hidden', !isAdvancedMode);
+        }
+        if (utilityModalDescription) {
+            utilityModalDescription.innerHTML = isAdvancedMode
+                ? readSiteText('utilityModal.descriptionAdvancedHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 운영 후원을 여기서 엽니다.')
+                : readSiteText('utilityModal.descriptionHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 운영 후원을 여기서 엽니다.');
+        }
+        if (utilityArchiveDescription) {
+            utilityArchiveDescription.textContent = readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.');
+        }
     };
 
     async function fetchSubscriptionRequestRecord(requestId) {
@@ -4007,10 +4028,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     updateAdvancedAccessPanel();
+    updateUtilityArchiveCardState();
 
     // Modal & Help Controls
     if (utilityToggle && utilityModal) {
-        utilityToggle.addEventListener('click', () => utilityModal.classList.remove('hidden'));
+        utilityToggle.addEventListener('click', () => {
+            updateUtilityArchiveCardState();
+            utilityModal.classList.remove('hidden');
+        });
     }
     document.querySelectorAll('.close-utility-before-open').forEach((button) => {
         button.addEventListener('click', () => {
@@ -4019,6 +4044,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (studyArchiveOpenBtn) {
         studyArchiveOpenBtn.addEventListener('click', () => {
+            if (!isAdvancedMode) {
+                utilityModal?.classList.add('hidden');
+                advancedGuideModal?.classList.remove('hidden');
+                return;
+            }
             utilityModal?.classList.add('hidden');
             const archiveUrl = 'study-archive.html';
             const popup = window.open(archiveUrl, '_blank', 'noopener');

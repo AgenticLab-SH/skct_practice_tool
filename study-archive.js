@@ -21,12 +21,20 @@ const firebaseConfig = {
     measurementId: "G-F00PXNPBJ5"
 };
 
+const FIREBASE_RTDB_BASE_URL = firebaseConfig.databaseURL;
+const ADVANCED_LICENSE_STORAGE_KEY = 'skct_advanced_license_bundle';
+const DEFAULT_MANUAL_SUBSCRIPTION_CONFIG = {
+    licensePublicKeyPem: ''
+};
 const STORAGE_TYPES = ['문제+AI 응답', '문제 원문', 'AI 응답', '복기 메모'];
 const SUBJECT_KEYWORDS = ['언어이해', '자료해석', '창의수리', '언어추리', '수열추리', '실행역량', '복합'];
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+let remoteManualSubscriptionConfig = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG;
+let remoteSiteTextConfig = window.SKCTSiteTextConfig?.normalizeSiteTextConfig?.({}) || {};
+let verifiedAdvancedLicenseBundle = null;
 
 const state = {
     authMode: 'login',
@@ -38,16 +46,32 @@ const state = {
     currentUser: null
 };
 
+const accessGate = document.getElementById('archiveAccessGate');
+const accessGateTitle = document.getElementById('archiveAccessGateTitle');
+const accessGateBody = document.getElementById('archiveAccessGateBody');
+const accessGateStatus = document.getElementById('archiveAccessGateStatus');
+const accessGuideLink = document.getElementById('archiveAccessGuideLink');
+const archiveHeroEyebrow = document.getElementById('archiveHeroEyebrow');
+const archiveHeroTitle = document.getElementById('archiveHeroTitle');
+const archiveHeroCopy = document.getElementById('archiveHeroCopy');
+const archiveBackButton = document.getElementById('archiveBackButton');
 const authPanel = document.getElementById('archiveAuthPanel');
 const workspace = document.getElementById('archiveWorkspace');
+const authLoginTab = document.getElementById('authLoginTab');
+const authRegisterTab = document.getElementById('authRegisterTab');
 const authTitle = document.getElementById('authTitle');
 const authDescription = document.getElementById('authDescription');
+const authEmailLabel = document.getElementById('authEmailLabel');
+const authPasswordLabel = document.getElementById('authPasswordLabel');
 const authEmailInput = document.getElementById('authEmailInput');
 const authPasswordInput = document.getElementById('authPasswordInput');
 const authSubmitBtn = document.getElementById('authSubmitBtn');
 const authStatus = document.getElementById('authStatus');
+const archiveAuthFootnote = document.getElementById('archiveAuthFootnote');
 const authLogoutBtn = document.getElementById('authLogoutBtn');
 const currentUserBadge = document.getElementById('currentUserBadge');
+const archiveWorkspaceTitle = document.getElementById('archiveWorkspaceTitle');
+const archiveWorkspaceCopy = document.getElementById('archiveWorkspaceCopy');
 const entryFormTitle = document.getElementById('entryFormTitle');
 const entryTitleInput = document.getElementById('entryTitleInput');
 const entryOrganizerInput = document.getElementById('entryOrganizerInput');
@@ -87,6 +111,58 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+function readSiteText(path, fallback = '', tokens = {}) {
+    const api = window.SKCTSiteTextConfig;
+    let value = api?.getValueByPath?.(remoteSiteTextConfig, path);
+    if ((value == null || value === '') && api?.DEFAULT_SITE_TEXT_CONFIG) {
+        value = api.getValueByPath(api.DEFAULT_SITE_TEXT_CONFIG, path);
+    }
+    const baseText = value == null || value === '' ? fallback : String(value);
+    return baseText.replace(/\{(\w+)\}/g, (_, token) => (Object.prototype.hasOwnProperty.call(tokens, token) ? String(tokens[token]) : `{${token}}`));
+}
+
+function formatConfiguredHtml(value) {
+    if (window.SKCTSiteTextConfig?.sanitizeHtml) {
+        return window.SKCTSiteTextConfig.sanitizeHtml(value, { multiline: true });
+    }
+    return String(value ?? '');
+}
+
+function setElementText(element, value) {
+    if (!element) return;
+    element.textContent = value;
+}
+
+function setElementHtml(element, value) {
+    if (!element) return;
+    element.innerHTML = formatConfiguredHtml(value);
+}
+
+function applyArchiveStaticText() {
+    document.title = readSiteText('archivePage.metaTitle', document.title);
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+        metaDescription.setAttribute('content', readSiteText('archivePage.metaDescription', metaDescription.getAttribute('content') || ''));
+    }
+    setElementText(archiveHeroEyebrow, readSiteText('archivePage.heroEyebrow', 'Advanced Study Library'));
+    setElementText(archiveHeroTitle, readSiteText('archivePage.heroTitle', '개인 학습자료 보관함'));
+    setElementHtml(archiveHeroCopy, readSiteText('archivePage.heroCopyHtml', '고급 모드 이용자 전용 보관함입니다. 자료보관함 로그인 후 문제 원문, AI 응답, 복기 메모를 계정별로 분리해 저장하고 다시 꺼내 볼 수 있습니다.'));
+    setElementText(archiveBackButton, readSiteText('archivePage.backButton', '메인 연습 도구로 돌아가기'));
+    setElementText(accessGateTitle, readSiteText('archivePage.gateTitle', '고급 모드 확인이 먼저 필요합니다'));
+    setElementHtml(accessGateBody, readSiteText('archivePage.gateBodyHtml', '이 페이지는 <strong>고급 모드 전용</strong>입니다. 메인 화면의 <strong>고급 안내</strong>에서 승인된 신청 이메일 또는 로그인 ID로 라이선스를 먼저 확인한 뒤 다시 들어와 주세요.'));
+    setElementText(accessGuideLink, readSiteText('archivePage.gateButton', '고급 안내로 돌아가기'));
+    setElementText(authLoginTab, readSiteText('archivePage.authLoginTab', '로그인'));
+    setElementText(authRegisterTab, readSiteText('archivePage.authRegisterTab', '회원가입'));
+    setElementText(authEmailLabel, readSiteText('archivePage.authEmailLabel', '이메일'));
+    setElementText(authPasswordLabel, readSiteText('archivePage.authPasswordLabel', '비밀번호'));
+    if (authEmailInput) authEmailInput.placeholder = readSiteText('archivePage.authEmailPlaceholder', 'example@email.com');
+    if (authPasswordInput) authPasswordInput.placeholder = readSiteText('archivePage.authPasswordPlaceholder', '비밀번호 6자 이상');
+    setElementHtml(archiveAuthFootnote, readSiteText('archivePage.authFootnoteHtml', '세션은 브라우저를 닫으면 종료됩니다. 일반 모드에서는 이 페이지를 사용할 수 없고, 고급 라이선스 확인 후에만 로그인 화면이 열립니다.'));
+    setElementText(archiveWorkspaceTitle, readSiteText('archivePage.workspaceTitle', '내 보관함 작업 공간'));
+    setElementHtml(archiveWorkspaceCopy, readSiteText('archivePage.workspaceCopyHtml', '입력 폼에서 저장하고, 오른쪽 목록에서 필터링하며, 상세 패널에서 복기 내용을 바로 확인합니다.'));
+    setElementText(authLogoutBtn, readSiteText('archivePage.logoutButton', '로그아웃'));
+}
+
 function setStatus(target, message = '', tone = 'muted') {
     if (!target) return;
     target.textContent = message;
@@ -95,6 +171,114 @@ function setStatus(target, message = '', tone = 'muted') {
         : tone === 'success'
             ? '#0f766e'
             : '#475569';
+}
+
+function normalizeManualSubscriptionConfig(raw) {
+    return {
+        licensePublicKeyPem: String(raw?.licensePublicKeyPem || '').trim()
+    };
+}
+
+function readStoredAdvancedLicenseBundle() {
+    try {
+        return JSON.parse(localStorage.getItem(ADVANCED_LICENSE_STORAGE_KEY) || 'null');
+    } catch (error) {
+        return null;
+    }
+}
+
+function clearArchiveSubscription() {
+    if (state.unsubscribe) {
+        state.unsubscribe();
+        state.unsubscribe = null;
+    }
+}
+
+function resetArchiveDataState() {
+    state.items = [];
+    state.selectedId = '';
+    state.editingId = '';
+    state.tagFilters.clear();
+    clearArchiveSubscription();
+    renderFilterOptions();
+    renderTagFilters();
+    renderEntryList();
+    renderDetail();
+    resetForm();
+}
+
+async function verifyAdvancedLicenseBundle(bundle) {
+    if (!bundle || !remoteManualSubscriptionConfig.licensePublicKeyPem || !window.SKCTSubscriptionCrypto?.verifyLicenseBundle) {
+        return null;
+    }
+    try {
+        const verified = await window.SKCTSubscriptionCrypto.verifyLicenseBundle(bundle, remoteManualSubscriptionConfig.licensePublicKeyPem);
+        if (!verified) return null;
+        const payloadStatus = String(bundle?.payload?.status || '').trim().toLowerCase();
+        if (payloadStatus && payloadStatus !== 'active') return null;
+        const expiryTime = Date.parse(bundle?.payload?.expiresAt || '');
+        if (Number.isFinite(expiryTime) && expiryTime < Date.now()) return null;
+        return bundle;
+    } catch (error) {
+        return null;
+    }
+}
+
+async function loadArchiveRemoteConfig() {
+    try {
+        const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/config.json`);
+        if (response.ok) {
+            const config = await response.json();
+            remoteManualSubscriptionConfig = normalizeManualSubscriptionConfig(config?.manualSubscriptionConfig || {});
+            if (window.SKCTSiteTextConfig?.normalizeSiteTextConfig) {
+                remoteSiteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(config?.siteTextConfig || {});
+            }
+        } else {
+            remoteManualSubscriptionConfig = normalizeManualSubscriptionConfig({});
+        }
+    } catch (error) {
+        remoteManualSubscriptionConfig = normalizeManualSubscriptionConfig({});
+    }
+    applyArchiveStaticText();
+}
+
+async function hydrateArchiveAdvancedAccess() {
+    setStatus(accessGateStatus, readSiteText('messages.archiveAccessChecking', '이 브라우저의 고급 라이선스를 확인하는 중입니다.'));
+    const storedBundle = readStoredAdvancedLicenseBundle();
+    verifiedAdvancedLicenseBundle = await verifyAdvancedLicenseBundle(storedBundle);
+    if (!verifiedAdvancedLicenseBundle && storedBundle) {
+        localStorage.removeItem(ADVANCED_LICENSE_STORAGE_KEY);
+    }
+}
+
+function syncArchiveAccessView() {
+    const hasAdvancedAccess = Boolean(verifiedAdvancedLicenseBundle);
+    const hasUser = Boolean(state.currentUser);
+    accessGate?.classList.toggle('hidden', hasAdvancedAccess);
+    authPanel?.classList.toggle('hidden', !hasAdvancedAccess || hasUser);
+    workspace?.classList.toggle('hidden', !hasAdvancedAccess || !hasUser);
+
+    if (!hasAdvancedAccess) {
+        setStatus(accessGateStatus, readSiteText('messages.archiveAccessDenied', '자료 보관함은 고급 모드 전용입니다. 메인 화면의 고급 안내에서 승인된 신청 이메일 또는 로그인 ID로 고급 모드를 먼저 열어주세요.'), 'error');
+        resetArchiveDataState();
+        return;
+    }
+
+    setStatus(accessGateStatus, '');
+    if (!hasUser) {
+        clearArchiveSubscription();
+        currentUserBadge.textContent = readSiteText('messages.archiveGuestLabel', '로그인이 필요합니다.');
+        state.items = [];
+        state.selectedId = '';
+        state.tagFilters.clear();
+        renderFilterOptions();
+        renderTagFilters();
+        renderEntryList();
+        renderDetail();
+        return;
+    }
+
+    currentUserBadge.textContent = `${state.currentUser.email || readSiteText('messages.archiveGuestLabel', '로그인이 필요합니다.')} · ${readSiteText('messages.archiveSessionSuffix', '세션 로그인')}`;
 }
 
 function formatDateTime(value) {
@@ -242,12 +426,12 @@ function getUserItemsPath(uid = state.currentUser?.uid) {
 
 function describeAuthError(error, mode) {
     const code = String(error?.code || '');
-    if (code === 'auth/invalid-credential') return '이메일 또는 비밀번호를 다시 확인해주세요.';
-    if (code === 'auth/email-already-in-use') return '이미 사용 중인 이메일입니다. 로그인으로 전환하거나 다른 이메일을 사용해주세요.';
-    if (code === 'auth/weak-password') return '비밀번호는 6자 이상으로 설정해주세요.';
-    if (code === 'auth/operation-not-allowed') return '현재 Firebase에서 이메일/비밀번호 가입이 비활성화되어 있습니다. 관리자 설정을 확인해주세요.';
-    if (mode === 'register') return '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    return '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    if (code === 'auth/invalid-credential') return readSiteText('messages.archiveAuthInvalidCredential', '이메일 또는 비밀번호를 다시 확인해주세요.');
+    if (code === 'auth/email-already-in-use') return readSiteText('messages.archiveAuthEmailInUse', '이미 사용 중인 이메일입니다. 로그인으로 전환하거나 다른 이메일을 사용해주세요.');
+    if (code === 'auth/weak-password') return readSiteText('messages.archiveAuthWeakPassword', '비밀번호는 6자 이상으로 설정해주세요.');
+    if (code === 'auth/operation-not-allowed') return readSiteText('messages.archiveAuthOperationNotAllowed', '현재 Firebase에서 이메일/비밀번호 가입이 비활성화되어 있습니다. 관리자 설정을 확인해주세요.');
+    if (mode === 'register') return readSiteText('messages.archiveAuthRegisterError', '회원가입 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    return readSiteText('messages.archiveAuthLoginError', '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
 }
 
 function setAuthMode(mode) {
@@ -255,11 +439,17 @@ function setAuthMode(mode) {
     document.querySelectorAll('[data-auth-mode]').forEach((button) => {
         button.classList.toggle('active', button.dataset.authMode === mode);
     });
-    authTitle.textContent = mode === 'register' ? '개인 보관함 계정 만들기' : '내 자료에 로그인';
-    authDescription.textContent = mode === 'register'
-        ? '처음이라면 이메일/비밀번호 계정을 만들고, 같은 계정으로만 내 자료를 읽고 수정할 수 있습니다.'
-        : '이 보관함은 계정별 전용 저장소입니다. 로그인한 계정만 자기 자료를 읽고 수정할 수 있습니다.';
-    authSubmitBtn.textContent = mode === 'register' ? '회원가입 후 시작' : '로그인';
+    authTitle.textContent = mode === 'register'
+        ? readSiteText('archivePage.authRegisterTitle', '자료보관함 계정 만들기')
+        : readSiteText('archivePage.authLoginTitle', '내 자료에 로그인');
+    authDescription.innerHTML = formatConfiguredHtml(
+        mode === 'register'
+            ? readSiteText('archivePage.authRegisterDescription', '처음이라면 이메일/비밀번호 계정을 만들고, 같은 계정으로만 내 자료를 읽고 수정할 수 있습니다.')
+            : readSiteText('archivePage.authLoginDescription', '고급 모드가 확인된 뒤에는 자료보관함 전용 계정으로 로그인해야 자기 자료를 읽고 수정할 수 있습니다.')
+    );
+    authSubmitBtn.textContent = mode === 'register'
+        ? readSiteText('archivePage.authRegisterButton', '회원가입 후 시작')
+        : readSiteText('archivePage.authLoginButton', '로그인');
     authPasswordInput.setAttribute('autocomplete', mode === 'register' ? 'new-password' : 'current-password');
     setStatus(authStatus, '');
 }
@@ -268,18 +458,23 @@ async function handleAuthSubmit() {
     const email = authEmailInput.value.trim();
     const password = authPasswordInput.value;
     if (!email || !password) {
-        setStatus(authStatus, '이메일과 비밀번호를 모두 입력해주세요.', 'error');
+        setStatus(authStatus, readSiteText('messages.archiveAuthRequired', '이메일과 비밀번호를 모두 입력해주세요.'), 'error');
         return;
     }
     authSubmitBtn.disabled = true;
-    setStatus(authStatus, state.authMode === 'register' ? '계정을 만드는 중입니다...' : '로그인하는 중입니다...');
+    setStatus(
+        authStatus,
+        state.authMode === 'register'
+            ? readSiteText('messages.archiveAuthRegistering', '계정을 만드는 중입니다...')
+            : readSiteText('messages.archiveAuthLoggingIn', '로그인하는 중입니다...')
+    );
     try {
         if (state.authMode === 'register') {
             await createUserWithEmailAndPassword(auth, email, password);
-            setStatus(authStatus, '계정을 만들고 로그인했습니다. 이제 자료를 저장할 수 있습니다.', 'success');
+            setStatus(authStatus, readSiteText('messages.archiveAuthRegisterSuccess', '계정을 만들고 로그인했습니다. 이제 자료를 저장할 수 있습니다.'), 'success');
         } else {
             await signInWithEmailAndPassword(auth, email, password);
-            setStatus(authStatus, '로그인했습니다.', 'success');
+            setStatus(authStatus, readSiteText('messages.archiveAuthLoginSuccess', '로그인했습니다.'), 'success');
         }
         authPasswordInput.value = '';
     } catch (error) {
@@ -491,6 +686,8 @@ async function handleLogout() {
 
 async function init() {
     await setPersistence(auth, browserSessionPersistence);
+    await loadArchiveRemoteConfig();
+    await hydrateArchiveAdvancedAccess();
 
     document.querySelectorAll('[data-auth-mode]').forEach((button) => {
         button.addEventListener('click', () => setAuthMode(button.dataset.authMode));
@@ -527,30 +724,23 @@ async function init() {
     renderFilterOptions();
     renderAutoTagPreview();
     setAuthMode('login');
+    syncArchiveAccessView();
 
     onAuthStateChanged(auth, (user) => {
         state.currentUser = user;
-        authPanel.classList.toggle('hidden', Boolean(user));
-        workspace.classList.toggle('hidden', !user);
         if (!user) {
-            currentUserBadge.textContent = '로그인이 필요합니다.';
-            state.items = [];
-            state.selectedId = '';
-            state.tagFilters.clear();
-            if (state.unsubscribe) {
-                state.unsubscribe();
-                state.unsubscribe = null;
-            }
-            renderFilterOptions();
-            renderTagFilters();
-            renderEntryList();
-            renderDetail();
-            resetForm();
+            resetArchiveDataState();
+            currentUserBadge.textContent = readSiteText('messages.archiveGuestLabel', '로그인이 필요합니다.');
+            syncArchiveAccessView();
             return;
         }
-        currentUserBadge.textContent = `${user.email || '익명 사용자'} · 세션 로그인`;
-        subscribeUserItems(user.uid);
-        resetForm();
+        if (verifiedAdvancedLicenseBundle) {
+            subscribeUserItems(user.uid);
+            resetForm();
+        } else {
+            clearArchiveSubscription();
+        }
+        syncArchiveAccessView();
     });
 }
 

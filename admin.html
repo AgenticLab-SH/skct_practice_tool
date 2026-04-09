@@ -670,7 +670,7 @@
 <div id="toast" class="toast"></div>
 
 <!-- Firebase SDK -->
-<script src="site-text-config.js?v=202604090915"></script>
+<script src="site-text-config.js?v=202604090955"></script>
 <script src="subscription-crypto.js?v=202604081955"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
@@ -2290,9 +2290,12 @@
         if (
             key.startsWith('advancedGuide.') ||
             key.startsWith('advancedFeature.') ||
+            key.startsWith('archivePage.') ||
             key.startsWith('messages.advanced') ||
+            key.startsWith('messages.archive') ||
             key.startsWith('messages.manual') ||
-            category.includes('고급')
+            category.includes('고급') ||
+            category.includes('자료 보관함')
         ) {
             return '고급';
         }
