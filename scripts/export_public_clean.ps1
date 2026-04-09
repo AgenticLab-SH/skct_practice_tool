@@ -14,6 +14,7 @@ if (-not $destination.StartsWith($projectRoot, [System.StringComparison]::Ordina
 $publicFiles = @(
     ".nojekyll",
     "index.html",
+    "advanced-tools.html",
     "main.js",
     "main.css",
     "site-text-config.js",

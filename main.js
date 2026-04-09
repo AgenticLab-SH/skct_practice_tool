@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-        updatedAt: '2026-04-09 11:19:44 +09:00',
-        version: 'v2026.04.09.1119',
-        assetVersion: '202604091119'
+        updatedAt: '2026-04-10 10:45:00 +09:00',
+        version: 'v2026.04.10.1045',
+        assetVersion: '202604101045'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let remoteManualSubscriptionConfig = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG;
     let manualSubscriptionSubmitInFlight = false;
 
+    document.body.classList.toggle('popup-mode', isPopupMode);
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
 
     function clampNumber(value, min, max) {
@@ -1321,13 +1322,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (advancedModeStatusFootnote) advancedModeStatusFootnote.innerHTML = readSiteText('advancedMode.footnoteHtml', '자료 보관함은 고급 모드가 열린 브라우저에서만 더보기에 나타나며, 들어간 뒤에도 자료보관함 로그인으로 한 번 더 본인 확인을 합니다.');
         if (advancedModeGuideBtn) advancedModeGuideBtn.textContent = readSiteText('advancedMode.guideButton', '고급 활용 보기');
         if (advancedModeArchiveBtn) advancedModeArchiveBtn.textContent = readSiteText('advancedMode.archiveButton', '자료 보관함 열기');
-        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 버튼 사용 순서');
-        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '일반 모드에는 없는 버튼만 짧게 정리했습니다. 정답 입력 후에는 아래 순서대로 쓰면 복기가 가장 빠릅니다.');
-        if (advancedCoachStep1) advancedCoachStep1.innerHTML = readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력 모드</strong><br>답안 체크가 끝나면 정답 입력 모드로 바꾸고 실제 정답을 넣습니다.');
-        if (advancedCoachStep2) advancedCoachStep2.innerHTML = readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 및 과목별 통계</strong><br>채점 후 과목별 상세 통계와 TXT 다운로드로 약점을 바로 정리합니다.');
-        if (advancedCoachStep3) advancedCoachStep3.innerHTML = readSiteText('advancedMode.coachStep3Html', '<strong>3. 다시 풀기 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 반복 연습 속도를 높입니다.');
-        if (advancedCoachHint) advancedCoachHint.innerHTML = readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만 다시 시작하고, <strong>전↺</strong>는 전체 시험을 처음 상태로 되돌립니다. 자료 보관함은 더보기에서 따로 열립니다.');
-        if (advancedCoachGuideBtn) advancedCoachGuideBtn.textContent = readSiteText('advancedMode.coachGuideButton', '고급 활용');
+        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 복기 순서');
+        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '처음에는 아래 세 줄만 기억하면 됩니다.');
+        if (advancedCoachStep1) advancedCoachStep1.innerHTML = readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력</strong><br>답안 체크 뒤 실제 정답만 넣습니다.');
+        if (advancedCoachStep2) advancedCoachStep2.innerHTML = readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 확인</strong><br>맞은 수와 정답률을 먼저 봅니다.');
+        if (advancedCoachStep3) advancedCoachStep3.innerHTML = readSiteText('advancedMode.coachStep3Html', '<strong>3. 복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.');
+        if (advancedCoachHint) advancedCoachHint.innerHTML = readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.');
+        if (advancedCoachGuideBtn) advancedCoachGuideBtn.textContent = readSiteText('advancedMode.coachGuideButton', '전체 안내');
         if (helpAdvancedLinkBtn) helpAdvancedLinkBtn.textContent = readSiteText('helpModal.advancedLinkButton', '고급 기능 보기');
 
         if (advancedModeValueState) {
