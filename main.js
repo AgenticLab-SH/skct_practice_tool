@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const isAdminPreviewMode = runtimeFlags.adminPreview === true;
     const isPopupMode = window.name === 'skct_popup_mode';
     const isPopupEditorMode = isPopupMode && isAdminPreviewMode && runtimeFlags.popupEditor === true;
+    const analyticsState = {
+        practiceStarted: false
+    };
     const ADVANCED_LICENSE_STORAGE_KEY = 'skct_advanced_license_bundle';
     const ADVANCED_PASSWORD_FAIL_STORAGE_KEY = 'skct_advanced_password_failures';
     const ADVANCED_FAIL_WINDOW_MS = 1000 * 60 * 10;
@@ -26,6 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return JSON.parse(localStorage.getItem(ADVANCED_LICENSE_STORAGE_KEY) || 'null');
         } catch (error) {
             return null;
+        }
+    };
+    const trackAnalyticsEvent = (eventName, params = {}) => {
+        if (!eventName || typeof window.gtag !== 'function') return;
+        try {
+            window.gtag('event', eventName, {
+                page_path: window.location.pathname,
+                ...params
+            });
+        } catch (error) {
+            // Analytics 오류는 사용자 기능을 막지 않는다.
         }
     };
     const writeStoredAdvancedLicenseBundle = (bundle) => {
@@ -1234,8 +1248,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (utilityModalDescription) {
             utilityModalDescription.innerHTML = isAdvancedMode
-                ? readSiteText('utilityModal.descriptionAdvancedHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 운영 후원을 여기서 엽니다.')
-                : readSiteText('utilityModal.descriptionHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 운영 후원을 여기서 엽니다.');
+                ? readSiteText('utilityModal.descriptionAdvancedHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.')
+                : readSiteText('utilityModal.descriptionHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.');
         }
         if (utilityArchiveDescription) {
             utilityArchiveDescription.textContent = readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.');
@@ -1574,6 +1588,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 createdAt: Date.now()
             });
             saveRecentRequestInfo({ lookupIdentifier: normalizeLookupEmail(email), createdAt: Date.now() });
+            trackAnalyticsEvent('advanced_apply_submit', {
+                plan_code: plan.code,
+                plan_days: Number.isFinite(plan.days) ? plan.days : 0,
+                advanced_entry: desiredLoginId ? 'email_or_login_id' : 'email_only'
+            });
             if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = normalizeLookupEmail(email);
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             if (advancedAccessIdInput) advancedAccessIdInput.value = normalizeLookupEmail(email);
@@ -2557,7 +2576,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        updateScoreSummaryPanel();
+        const model = updateScoreSummaryPanel();
+        trackAnalyticsEvent('result_view', {
+            practice_mode: isPracticeMode ? 'practice' : 'exam',
+            advanced_mode: isAdvancedMode ? 'yes' : 'no',
+            correct_count: model.overall.correct,
+            attempted_count: model.overall.attempted,
+            total_questions: model.overall.total
+        });
         renderOMR();
     });
 
@@ -3864,6 +3890,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 timerInterval = setInterval(timerTick, 1000);
                 timerIsRunning = true;
+                if (!analyticsState.practiceStarted) {
+                    analyticsState.practiceStarted = true;
+                    trackAnalyticsEvent('practice_start', {
+                        practice_mode: isPracticeMode ? 'practice' : 'exam',
+                        total_minutes: configTotalMins,
+                        subject_minutes: configSubjectMins,
+                        break_minutes: configBreakMins
+                    });
+                }
                 syncTimerPlayButtonLabel(true);
                 applyPhaseToOMR();
             }
@@ -3906,44 +3941,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const practiceModeInput = document.getElementById('cfgPracticeMode');
             if (practiceModeInput) practiceModeInput.checked = isPracticeMode;
             settingsModal.classList.remove('hidden');
-        });
-    }
-
-    /* --- Extension Modal Logic --- */
-    const extToggle = document.getElementById('extensionToggle');
-    const extModal = document.getElementById('extensionModal');
-    const extClose = document.getElementById('extensionClose');
-    const extStatusCheck = document.getElementById('extStatusCheck');
-    const extInstallGuide = document.getElementById('extInstallGuide');
-    
-    if (extToggle && extModal && extClose) {
-        extToggle.addEventListener('click', () => {
-            extModal.style.display = 'flex';
-            extModal.classList.remove('hidden');
-            
-            // Check if extension injected the marker
-            setTimeout(() => {
-                const marker = document.getElementById('skct-extension-installed');
-                if (marker) {
-                    extStatusCheck.innerHTML = `
-                        <div style="font-size:50px; margin-bottom:10px;">✅</div>
-                        <div style="font-weight:bold; font-size:18px; color:#10b981;">설치 완료 및 정상 작동중!</div>
-                        <div style="font-size:12px; color:#94a3b8; margin-top:8px;">이제 링커리어 화면에 가림막이 뜨지 않습니다.</div>
-                    `;
-                    extInstallGuide.classList.add('hidden');
-                } else {
-                    extStatusCheck.innerHTML = `
-                        <div style="font-size:50px; margin-bottom:10px;">❌</div>
-                        <div style="font-weight:bold; font-size:18px; color:#ef4444;">무적모드(테스트 기능) 확장이 아직 설치되지 않았습니다</div>
-                    `;
-                    extInstallGuide.classList.remove('hidden');
-                }
-            }, 300); // 딜레이 약간 주어 렌더링 안정화
-        });
-        
-        extClose.addEventListener('click', () => {
-            extModal.classList.add('hidden');
-            extModal.style.display = '';
         });
     }
 
@@ -4346,6 +4343,10 @@ document.addEventListener('DOMContentLoaded', () => {
         donateConfirmBtn.addEventListener('click', () => {
             donateModal.classList.add('hidden');
             const targetUrl = donateConfirmBtn.dataset.href || DEFAULT_SUPPORT_CONFIG.buttonUrl;
+            trackAnalyticsEvent('support_click', {
+                source: 'donate_modal',
+                target_type: 'external_link'
+            });
             window.open(targetUrl, '_blank');
         });
     }
@@ -4369,16 +4370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Developer Notice System - Firebase 기반 공지 렌더링 함수 (호출은 index.html에서 수행)
-
-    // 🛡️ 숨겨진 관리자 페이지 통로
-    const helpModalHeaderTitle = document.querySelector('.help-modal-header h3');
-    if (helpModalHeaderTitle) {
-        helpModalHeaderTitle.style.cursor = 'pointer';
-        helpModalHeaderTitle.title = "더블 클릭 시 관리자 페이지로 이동합니다.";
-        helpModalHeaderTitle.addEventListener('dblclick', () => {
-            window.open('admin.html', '_blank');
-        });
-    }
 
     function renderNotice(data) {
         const noticeContainer = document.getElementById('devNotice');

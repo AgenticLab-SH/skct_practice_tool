@@ -1,5 +1,5 @@
 # SKCT Tool 문서 인덱스
-작성일시: 2026-04-09 09:27:20 KST
+작성일시: 2026-04-09 20:17:20 +09:00
 
 이 문서는 `docs/` 아래 문서를 빠르게 찾기 위한 기준 인덱스입니다.
 
@@ -16,14 +16,20 @@
 
 ## 2. 현재 작업 기준
 
-- [00_TODO_INDEX.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/00_TODO_INDEX.md)
-  2026-04-09 TODO 전체 일괄 처리 결과와 남은 운영 후속을 보는 첫 문서입니다.
+- [30_MASTER_DOC.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/runtime/30_MASTER_DOC.md)
+  지금 이 프로젝트에서 가장 먼저 읽어야 하는 얇은 기준서입니다. 운영 경계, 현재 우선순위, 문서 동기화 기준을 짧게 정리합니다.
+
+- [TODO.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/TODO.md)
+  사용자가 직접 남긴 큰 방향 메모입니다. 초기 구조 재정비 제안과 남은 장기 과제가 함께 들어 있습니다.
 
 - [70_USER_TODO.md](/C:/dev/01_career/_assets/tools/skct_tool/70_USER_TODO.md)
   이번 라운드에서 사용자 승인이나 운영 절차가 필요한 후속 작업만 따로 모아 둔 문서입니다.
 
 - [2026-04-09_todo_full_sweep_and_backup.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/worklog/2026-04-09_todo_full_sweep_and_backup.md)
   이번 라운드의 백업, 구현, 검증, 보류 사유를 한 번에 정리한 작업 기록입니다.
+
+- [2026-04-09_project_analysis_and_todo_review.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/worklog/2026-04-09_project_analysis_and_todo_review.md)
+  현재 코드와 `docs/TODO/TODO.md`를 다시 대조해, 이미 반영된 것과 아직 남은 것을 구분한 최신 비교 기록입니다.
 
 ## 3. 운영과 설계 관련 문서
 
@@ -62,5 +68,5 @@
 
 - 구조를 알고 싶다: `전체구조_및_운영기준`
 - 무엇을 바꿨는지 보고 싶다: `기능_변경이력_요약`
-- 지금 남은 일과 후속을 보고 싶다: `docs/TODO/00_TODO_INDEX.md`, `70_USER_TODO.md`
+- 지금 남은 일과 후속을 보고 싶다: `docs/agent/runtime/30_MASTER_DOC.md`, `docs/TODO/TODO.md`, `70_USER_TODO.md`
 - 세부 구현 흐름을 추적하고 싶다: `docs/agent/worklog`

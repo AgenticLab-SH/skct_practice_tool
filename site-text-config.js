@@ -7,8 +7,8 @@
             ogDescription: '실전 SKCT 환경 완벽 구현! OMR, 타이머, 메모장, 계산기를 무료로 사용해보세요.',
             twitterTitle: 'SKCT 온라인 연습 도구 | OMR & 타이머',
             twitterDescription: '실전 SKCT 환경 완벽 구현! OMR, 타이머, 메모장, 계산기를 무료로 사용해보세요.',
-            srTitle: 'SKCT 연습 툴 - SKCT 실제화면과 동일한 온라인 SKCT 환경 가이드',
-            srDescription: "본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!"
+            srTitle: 'SKCT 온라인 연습 도구',
+            srDescription: 'SKCT 연습을 위해 OMR, 타이머, 메모장, 그림판, 계산기를 한 화면에서 사용할 수 있는 온라인 연습 도구입니다.'
         },
         sidebar: {
             helpLabel: '가이드',
@@ -58,14 +58,16 @@
         },
         utilityModal: {
             title: '⋯ 보조 기능 모음',
-            descriptionHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 운영 후원을 여기서 엽니다.',
-            descriptionAdvancedHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 운영 후원을 여기서 엽니다.',
+            descriptionHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.',
+            descriptionAdvancedHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.',
             statsTitle: '활성 세션 보기',
             statsDescription: '현재 열려 있는 세션과 최근 방문 기록을 확인합니다.',
             communityTitle: '커뮤니티',
             communityDescription: '공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.',
             archiveTitle: '자료 보관함',
             archiveDescription: '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.',
+            extensionTitle: '별도 테스트 자료',
+            extensionDescription: '핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.',
             donateTitle: '운영 후원',
             donateDescription: '광고 없이 유지되는 연습 공간 운영을 응원할 수 있습니다.'
         },
@@ -94,7 +96,7 @@
             advancedLinkButton: '고급 기능 보기',
             referenceBlockHtml: '<strong style="color:#1e293b;">[참고사항]</strong><br>\n1. <strong>실제 시험장 사용 불가</strong>: 실제 온라인 SKCT 시험은 전용 보안 프로그램에서 진행되므로 본 연습 툴을 병행하여 띄워둘 수 없습니다.<br>\n2. <strong>유사 환경 구현</strong>: 본 도구는 실제 시험의 타이머 작동 방식, 리셋되는 메모장, 제한적 계산기 등 UI/UX를 최대한 비슷하게 체험하도록 제작한 모의 연습 도구입니다.<br>\n3. <strong>OMR은 연습 전용</strong>: 실제 시험에는 OMR이 없으며 문제 에 직접 정답을 체크하는 방식입니다. 본 서비스의 OMR 기능은 여러분의 채점 편의를 위해 가상으로 추가된 기능입니다.',
             featureSectionTitle: '🗺️ 일반 모드 핵심 기능',
-            sidebarFeatureHtml: '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>가이드</strong> — 일반 모드 사용 순서와 핵심 기능 확인</p>\n<p>📝 <strong>연습 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 화면 비율 조정</p>\n<p>🔒 <strong>고급 기능</strong> — 신청, 승인 확인, 고급 모드에서 추가되는 기능 확인</p>\n<p>↗ <strong>팝업</strong> — 더 좁은 실전 화면으로 연습</p>\n<p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 운영 후원 열기</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">처음에는 <strong>답안 마킹 → 채점 및 통계</strong> 흐름만 익혀도 충분합니다.</p>\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>',
+            sidebarFeatureHtml: '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>가이드</strong> — 일반 모드 사용 순서와 핵심 기능 확인</p>\n<p>📝 <strong>연습 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 화면 비율 조정</p>\n<p>🔒 <strong>고급 기능</strong> — 신청, 승인 확인, 고급 모드에서 추가되는 기능 확인</p>\n<p>↗ <strong>팝업</strong> — 더 좁은 실전 화면으로 연습</p>\n<p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 별도 테스트 자료, 운영 후원, 문서 링크 열기</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">처음에는 <strong>답안 마킹 → 채점 및 통계</strong> 흐름만 익혀도 충분합니다.</p>\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>',
             timerFeatureHtml: '<strong>🕒 다중 페이즈 타이머</strong><br>\n전체 시간, 과목 시간, 가이드 시간을 <strong>한 화면에서 동시 확인</strong><br>\n<span style="color:#c4b5fd;">과목 → 쉬는시간 자동 전환, 설정에서 시간 조절 가능</span>',
             practiceFeatureHtml: '<strong>✏️ 연습장 (메모장 & 그림판)</strong><br>\n다음 문제 넘어가면 <strong>자동 초기화</strong><br>\n<span style="color:#fde68a;">문제 풀이 흔적이 남지 않도록 실제 흐름에 맞춰 동작</span>',
             calculatorFeatureHtml: '<strong>🧮 키보드 사용 가능한 계산기</strong><br>\n숫자/연산 입력과 버튼 조작 지원<br>\n<span style="color:#86efac;">복잡한 공학 기능 없이 실전형 제한 계산기</span>'
@@ -254,6 +256,8 @@
     };
 
     const LEGACY_SITE_TEXT_DEFAULTS = {
+        'meta.srTitle': ['SKCT 연습 툴 - SKCT 실제화면과 동일한 온라인 SKCT 환경 가이드'],
+        'meta.srDescription': ["본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!"],
         'toolbar.popupButton': ['화면 더 줄이기'],
         'helpModal.sidebarFeatureHtml': ['<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📖 <strong>GUIDE</strong> — 업데이트 공지, 사용 예시, 기능 설명 확인</p>\n<p>📝 <strong>연습용 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 가이드 시간, 화면 비율 조정</p>\n<p>↗ <strong>화면 더 줄이기</strong> — 팝업으로 더 좁은 실전 화면 구성</p>\n<p>🛡️ <strong>무적모드(테스트)</strong> — 링커리어 화면 가림막 대응 확장 설치</p>\n<p>🔥 <strong>접속자 수</strong> — 실시간 현황과 최근 7일 그래프</p>\n<p>💬 <strong>게시판</strong> — 공지, Q&A, Tip, 후기, 개선요청, FAQ</p>\n<p>☕ <strong>커피후원</strong> — 운영 후원과 문의 링크</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>'],
         'helpModal.advancedSectionTitle': ['🔒 고급 기능은 별도 버튼에서 확인'],
@@ -402,6 +406,8 @@
         { key: 'utilityModal.communityDescription', label: '보조 기능: 커뮤니티 설명', category: '보조 기능', selector: '#utilityCommunityDescription', prop: 'text' },
         { key: 'utilityModal.archiveTitle', label: '보조 기능: 자료 보관함 제목', category: '보조 기능', selector: '#utilityArchiveTitle', prop: 'text' },
         { key: 'utilityModal.archiveDescription', label: '보조 기능: 자료 보관함 설명', category: '보조 기능', selector: '#utilityArchiveDescription', prop: 'text' },
+        { key: 'utilityModal.extensionTitle', label: '보조 기능: 별도 테스트 자료 제목', category: '보조 기능', selector: '#utilityExtensionTitle', prop: 'text' },
+        { key: 'utilityModal.extensionDescription', label: '보조 기능: 별도 테스트 자료 설명', category: '보조 기능', selector: '#utilityExtensionDescription', prop: 'text' },
         { key: 'utilityModal.donateTitle', label: '보조 기능: 후원 제목', category: '보조 기능', selector: '#utilityDonateTitle', prop: 'text' },
         { key: 'utilityModal.donateDescription', label: '보조 기능: 후원 설명', category: '보조 기능', selector: '#utilityDonateDescription', prop: 'text' },
         { key: 'statsModal.title', label: '활성 세션 모달 제목', category: '활성 세션', selector: '#statsModalTitle', prop: 'text' },

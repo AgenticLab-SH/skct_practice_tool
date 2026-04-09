@@ -1,5 +1,5 @@
 # SKCT Tool 전체 구조 및 운영 기준
-작성일시: 2026-04-06 14:44:17 KST
+작성일시: 2026-04-09 21:10:58 +09:00
 
 이 문서는 현재 SKCT Tool 프로젝트를 한 번에 이해하기 위한 기준 문서입니다.  
 개별 작업 로그가 많아도, 이 문서 하나로 “무슨 화면이 있고, 어디서 수정하고, 어떤 순서로 반영하는지”를 바로 파악할 수 있도록 정리합니다.
@@ -54,6 +54,13 @@
 - [index.html](/C:/dev/01_career/_assets/tools/skct_tool/index.html)
 - [main.js](/C:/dev/01_career/_assets/tools/skct_tool/main.js)
 - [main.css](/C:/dev/01_career/_assets/tools/skct_tool/main.css)
+- [docs-pages.css](/C:/dev/01_career/_assets/tools/skct_tool/docs-pages.css)
+- [guide/index.html](/C:/dev/01_career/_assets/tools/skct_tool/guide/index.html)
+- [faq/index.html](/C:/dev/01_career/_assets/tools/skct_tool/faq/index.html)
+- [pricing/index.html](/C:/dev/01_career/_assets/tools/skct_tool/pricing/index.html)
+- [privacy/index.html](/C:/dev/01_career/_assets/tools/skct_tool/privacy/index.html)
+- [terms/index.html](/C:/dev/01_career/_assets/tools/skct_tool/terms/index.html)
+- [extension-info.html](/C:/dev/01_career/_assets/tools/skct_tool/extension-info.html)
 
 ### 운영 관리자 화면
 - [admin.html](/C:/dev/01_career/_assets/tools/skct_tool/admin.html)
@@ -97,7 +104,7 @@
 1. 일반 페이지 진입
 2. 타이머/OMR/메모장/계산기 사용
 3. 필요하면 팝업 모드로 더 좁은 화면 사용
-4. 게시판, 후원, 통계 확인
+4. `더보기`에서 게시판, 활성 세션, 문서형 안내, 후원 확인
 
 ### 고급 사용자
 1. 일반 화면의 `고급 안내` 버튼 또는 숨김 진입 사용

@@ -44,6 +44,13 @@
 ```
 skct_tool/
 ├── index.html              # 메인 페이지 (SPA)
+├── docs-pages.css          # guide/faq/pricing/privacy/terms 공통 스타일
+├── guide/                  # 사용 가이드 페이지
+├── faq/                    # 자주 묻는 질문 페이지
+├── pricing/                # 후원 및 유료 기능 안내 페이지
+├── privacy/                # 개인정보 처리 안내 페이지
+├── terms/                  # 이용 안내 페이지
+├── extension-info.html     # 별도 테스트 자료 안내 페이지
 ├── main.js                 # 메인 앱 로직
 ├── main.css                # 메인 스타일
 ├── admin.html              # 관리자 대시보드 (Firebase Auth 기반)
@@ -91,6 +98,10 @@ skct_tool/
    - 공개 페이지는 더 이상 공개 DB의 계정 해시를 읽어 로그인하지 않습니다.
    - 신청 본문은 관리자 공개키로 암호화되고, 승인 후에는 관리자 서명 라이선스만 사용자에게 전달됩니다.
    - 관리자 페이지를 사용하려면 Firebase Auth 로그인과 RTDB rules 배포가 필요합니다.
+
+4. **문서형 페이지 분리**
+   - `guide`, `faq`, `pricing`, `privacy`, `terms` 페이지를 별도 경로로 두어 사용법, 정책, 유료 기능 안내를 한 화면에 섞지 않도록 정리합니다.
+   - 확장 ZIP은 메인 앱 안의 직접 다운로드가 아니라 `extension-info.html` 같은 별도 안내 페이지에서만 다룹니다.
 
 ---
 
