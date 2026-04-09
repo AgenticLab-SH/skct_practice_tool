@@ -1,5 +1,5 @@
 # 메모장 드래그 끊김 및 커서 수정 운영 반영 보고
-작성일시: 2026-04-09 14:18:07 KST
+작성일시: 2026-04-09 14:20:58 KST
 
 이 문서는 메모장 드래그 끊김 완화, 메모장 십자 커서 적용, 운영 반영 결과를 한 번에 정리한 보고서입니다.
 
@@ -19,5 +19,8 @@
 - Chromium `390x844`: `scrollTop 2948`, `endLine 178`
 - Firefox `390x844`: `scrollTop 1871`, `endLine 104`
 
-## 운영 반영 대기
-- 다음 단계는 `main` push 후 GitHub Pages 빌드 성공 확인입니다.
+## 운영 반영 결과
+- 운영 반영 커밋: `262f73e`
+- GitHub Pages run: `24173838768`
+- 라이브 자산 버전: `main.css?v=202604091417`, `main.js?v=202604091417`, `build-info.js?v=202604091417`
+- 라이브 검증: 메모장 커서 `crosshair`, drag selection `scrollTop 2946`, `endLine 177`
