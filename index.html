@@ -30,7 +30,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604071255">
+    <link rel="stylesheet" href="main.css?v=202604091119">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -102,6 +102,23 @@
                         <div class="stat-line"><span id="statSkippedLabel">건너뛴 문제</span> <strong id="statSkipped">0</strong></div>
                         <div class="stat-line"><span id="statUnansweredLabel">못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
                     </div>
+                    <div id="advancedCoachPanel" class="advanced-panel-only advanced-coach-panel">
+                        <div class="advanced-coach-header">
+                            <div id="advancedCoachTitle" class="advanced-coach-title">고급 버튼 빠른 설명</div>
+                            <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">안내 창</button>
+                        </div>
+                        <div id="advancedCoachLead" class="advanced-coach-lead">
+                            정답 입력 모드로 바꾼 뒤 채점과 복기 버튼을 순서대로 쓰면 됩니다. 처음에는 이 박스 순서대로만 따라가도 충분합니다.
+                        </div>
+                        <div class="advanced-coach-grid">
+                            <div id="advancedCoachStep1" class="advanced-coach-step"><strong>1. 정답 입력 모드</strong><br>답안 체크가 끝나면 정답 입력 모드로 바꾸고 실제 정답을 넣습니다.</div>
+                            <div id="advancedCoachStep2" class="advanced-coach-step"><strong>2. 채점 및 과목별 통계</strong><br>채점 후 과목별 상세 통계와 TXT 다운로드로 약점을 바로 정리합니다.</div>
+                            <div id="advancedCoachStep3" class="advanced-coach-step"><strong>3. 다시 풀기 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 반복 연습 속도를 높입니다.</div>
+                        </div>
+                        <div id="advancedCoachHint" class="advanced-coach-hint">
+                            <strong>과↺</strong>는 현재 과목만 다시 시작하고, <strong>전↺</strong>는 전체 시험을 처음 상태로 되돌립니다. 자료 보관함은 더보기에서 따로 열립니다.
+                        </div>
+                    </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
                     <button id="advancedStatsDownloadBtn" class="omr-action-btn detail-btn hidden advanced-action-only" type="button">문항별 상세 통계 TXT 다운로드</button>
                     <div id="advancedToolsStatus" class="hidden advanced-action-only" style="font-size:11px; color:#94a3b8; line-height:1.5; padding:0 2px 4px;"></div>
@@ -143,6 +160,41 @@
                     </div>
                 </div>
             </header>
+            <section id="advancedModeStatusBar" class="advanced-panel-only advanced-status-bar">
+                <div class="advanced-status-main">
+                    <div id="advancedModeStatusTitle" class="advanced-status-title">고급 모드 상태</div>
+                    <div id="advancedModeStatusLead" class="advanced-status-lead">이 브라우저에서 현재 어떤 고급 기능이 열려 있는지 바로 확인할 수 있습니다.</div>
+                </div>
+                <div class="advanced-status-grid">
+                    <div class="advanced-status-chip">
+                        <span id="advancedModeLabelState" class="advanced-status-label">상태</span>
+                        <strong id="advancedModeValueState" class="advanced-status-value">비활성</strong>
+                    </div>
+                    <div class="advanced-status-chip">
+                        <span id="advancedModeLabelLogin" class="advanced-status-label">로그인</span>
+                        <strong id="advancedModeValueLogin" class="advanced-status-value">확인 전</strong>
+                    </div>
+                    <div class="advanced-status-chip">
+                        <span id="advancedModeLabelExpiry" class="advanced-status-label">만료</span>
+                        <strong id="advancedModeValueExpiry" class="advanced-status-value">확인 전</strong>
+                    </div>
+                    <div class="advanced-status-chip">
+                        <span id="advancedModeLabelArchive" class="advanced-status-label">자료 보관함</span>
+                        <strong id="advancedModeValueArchive" class="advanced-status-value">잠김</strong>
+                    </div>
+                    <div class="advanced-status-chip">
+                        <span id="advancedModeLabelRail" class="advanced-status-label">우측 실제환경 여백</span>
+                        <strong id="advancedModeValueRail" class="advanced-status-value">숨김</strong>
+                    </div>
+                </div>
+                <div class="advanced-status-actions">
+                    <button id="advancedModeGuideBtn" type="button" class="advanced-status-action-btn">고급 기능 다시 보기</button>
+                    <button id="advancedModeArchiveBtn" type="button" class="advanced-status-action-btn secondary">자료 보관함 열기</button>
+                </div>
+                <div id="advancedModeStatusFootnote" class="advanced-status-footnote">
+                    자료 보관함은 고급 모드가 열린 브라우저에서만 더보기에 나타나며, 들어간 뒤에도 자료보관함 로그인으로 한 번 더 본인 확인을 합니다.
+                </div>
+            </section>
             <div class="layout-resizer horizontal hidden" id="topBarResizer" aria-hidden="true"></div>
 
             <!-- Tools Grid -->
@@ -287,6 +339,25 @@
                     </div>
                 </div>
 
+                <div class="help-advanced-section">
+                    <div id="helpAdvancedSectionTitle" class="help-advanced-section-title">🧭 고급 모드 활용 가이드</div>
+                    <div id="helpAdvancedSectionLead" class="help-advanced-section-lead">
+                        고급 모드에서는 복기 버튼, 자료 보관함, 실제환경 우측 여백이 함께 열립니다. 아래 두 장만 먼저 보면 어디를 눌러야 할지 빠르게 감이 잡힙니다.
+                    </div>
+                    <div class="help-advanced-gallery">
+                        <div class="help-advanced-card">
+                            <div id="helpAdvancedImage1Title" class="help-advanced-card-title">1. 상단 상태 바와 우측 실제환경 여백 확인</div>
+                            <img src="images/advanced_mode_status_highlight.png" alt="고급 모드 상태 바와 우측 실제환경 여백 강조 이미지" class="help-advanced-image">
+                            <div id="helpAdvancedImage1Caption" class="help-advanced-card-caption">고급 모드가 열리면 상단 상태 바에서 로그인 ID, 만료 시각, 자료 보관함 가능 여부를 먼저 확인하고, 우측에는 실제환경처럼 버튼 자리와 여백이 복원됩니다.</div>
+                        </div>
+                        <div class="help-advanced-card">
+                            <div id="helpAdvancedImage2Title" class="help-advanced-card-title">2. OMR 아래 고급 버튼 안내 패널 따라가기</div>
+                            <img src="images/advanced_mode_omr_highlight.png" alt="고급 모드 OMR 하단 버튼 가이드 강조 이미지" class="help-advanced-image">
+                            <div id="helpAdvancedImage2Caption" class="help-advanced-card-caption">정답 입력 모드, 채점, 상세 통계, 정오표 일괄입력은 OMR 아래 버튼 구역에 모여 있습니다. 새 안내 패널이 순서를 바로 설명해 줍니다.</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="helpReferenceBlock" style="background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #64748b; padding: 10px 14px; border-radius: 4px; font-size: 12px; color: #334155; margin-bottom: 18px; line-height: 1.5;">
                     <strong style="color:#1e293b;">[참고사항]</strong><br>
                     1. <strong>실제 시험장 사용 불가</strong>: 실제 온라인 SKCT 시험은 전용 보안 프로그램에서 진행되므로 본 연습 툴을 병행하여 띄워둘 수 없습니다.<br>
@@ -342,8 +413,8 @@
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
-                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: 2026-04-08 13:36:00 +09:00</div>
-                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: v2026.04.08.1336</div>
+                    <div><strong style="color:#334155;">현재 업데이트 일시</strong>: <span id="settingsUpdatedAt">-</span></div>
+                    <div id="settingsVersionRow"><strong style="color:#334155;">현재 버전</strong>: -</div>
                 </div>
                 <!-- 모드 설정 -->
                 <div>
@@ -835,8 +906,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="site-text-config.js?v=202604090955"></script>
-    <script src="main.js?v=202604091010"></script>
+    <script src="build-info.js?v=202604091119"></script>
+    <script src="site-text-config.js?v=202604091119"></script>
+    <script src="main.js?v=202604091119"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">

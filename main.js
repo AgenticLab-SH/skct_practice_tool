@@ -81,6 +81,11 @@ document.addEventListener('DOMContentLoaded', () => {
         omrWidthRatio: 0.30
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
+    const BUILD_INFO = window.SKCTBuildInfo || {
+        updatedAt: '2026-04-09 11:19:44 +09:00',
+        version: 'v2026.04.09.1119',
+        assetVersion: '202604091119'
+    };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
     const PERMANENT_ADVANCED_PLAN_TYPE = '영구이용권';
@@ -168,7 +173,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedToolsStatus = document.getElementById('advancedToolsStatus');
     const advancedFeatureManualFlowBtn = document.getElementById('advancedFeatureManualFlowBtn');
     const advancedFeatureDonateLink = document.getElementById('advancedFeatureDonateLink');
+    const settingsUpdatedAt = document.getElementById('settingsUpdatedAt');
     const settingsVersionRow = document.getElementById('settingsVersionRow');
+    const advancedModeStatusTitle = document.getElementById('advancedModeStatusTitle');
+    const advancedModeStatusLead = document.getElementById('advancedModeStatusLead');
+    const advancedModeLabelState = document.getElementById('advancedModeLabelState');
+    const advancedModeValueState = document.getElementById('advancedModeValueState');
+    const advancedModeLabelLogin = document.getElementById('advancedModeLabelLogin');
+    const advancedModeValueLogin = document.getElementById('advancedModeValueLogin');
+    const advancedModeLabelExpiry = document.getElementById('advancedModeLabelExpiry');
+    const advancedModeValueExpiry = document.getElementById('advancedModeValueExpiry');
+    const advancedModeLabelArchive = document.getElementById('advancedModeLabelArchive');
+    const advancedModeValueArchive = document.getElementById('advancedModeValueArchive');
+    const advancedModeLabelRail = document.getElementById('advancedModeLabelRail');
+    const advancedModeValueRail = document.getElementById('advancedModeValueRail');
+    const advancedModeStatusFootnote = document.getElementById('advancedModeStatusFootnote');
+    const advancedModeGuideBtn = document.getElementById('advancedModeGuideBtn');
+    const advancedModeArchiveBtn = document.getElementById('advancedModeArchiveBtn');
+    const advancedCoachTitle = document.getElementById('advancedCoachTitle');
+    const advancedCoachLead = document.getElementById('advancedCoachLead');
+    const advancedCoachStep1 = document.getElementById('advancedCoachStep1');
+    const advancedCoachStep2 = document.getElementById('advancedCoachStep2');
+    const advancedCoachStep3 = document.getElementById('advancedCoachStep3');
+    const advancedCoachHint = document.getElementById('advancedCoachHint');
+    const advancedCoachGuideBtn = document.getElementById('advancedCoachGuideBtn');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
@@ -178,9 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let manualSubscriptionSubmitInFlight = false;
 
     document.body.classList.toggle('popup-editor-mode', isPopupEditorMode);
-    if (settingsVersionRow) {
-        settingsVersionRow.innerHTML = '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525';
-    }
 
     function clampNumber(value, min, max) {
         return Math.min(max, Math.max(min, value));
@@ -885,12 +910,22 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const formatMultilineHtml = (value) => sanitizeConfiguredHtml(value, { multiline: true });
     const formatInlineHtml = (value) => sanitizeConfiguredHtml(value, { multiline: false });
+    const renderSettingsBuildInfo = () => {
+        if (settingsUpdatedAt) {
+            settingsUpdatedAt.textContent = BUILD_INFO.updatedAt || '-';
+        }
+        if (settingsVersionRow) {
+            const versionLabel = `${BUILD_INFO.version || '-'}${isAdvancedMode ? ' (고급버전)' : ''}`;
+            settingsVersionRow.innerHTML = `<strong style="color:#334155;">현재 버전</strong>: ${versionLabel}`;
+        }
+    };
     const readSiteText = (path, fallback, tokens) => {
         if (window.SKCTSiteTextConfig?.getTextValue) {
             return window.SKCTSiteTextConfig.getTextValue(path, fallback, tokens);
         }
         return String(fallback ?? '');
     };
+    renderSettingsBuildInfo();
 
     const DEFAULT_SUPPORT_CONFIG = {
         modalTitle: "☕ 광고 없이 운영되는 SKCT 연습 공간",
@@ -1047,14 +1082,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.title = isAdvancedMode
             ? `${document.title.replace(' | 고급버전', '')} | 고급버전`
             : document.title.replace(' | 고급버전', '');
-        if (settingsVersionRow) {
-            settingsVersionRow.innerHTML = isAdvancedMode
-                ? '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525 (고급버전)'
-                : '<strong style="color:#334155;">현재 버전</strong>: v2026.04.06.1525';
-        }
+        renderSettingsBuildInfo();
         if (typeof updateModeUI === 'function') updateModeUI();
         if (typeof renderOMR === 'function') renderOMR();
         updateUtilityArchiveCardState();
+        updateAdvancedModeStatusBar();
+        syncToolsRightRail();
+        requestAnimationFrame(() => {
+            syncToolsRightRail();
+        });
     }
 
     async function syncStoredAdvancedLicenseState(options = {}) {
@@ -1167,11 +1203,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isAdvancedConfigReady) {
             advancedAccessSummary.textContent = readSiteText('messages.advancedLoading', '고급 라이선스 정보를 불러오는 중입니다.');
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
+            updateAdvancedModeStatusBar();
             return;
         }
         if (!remoteManualSubscriptionConfig.licensePublicKeyPem) {
             advancedAccessSummary.textContent = readSiteText('messages.advancedConfigMissing', '아직 라이선스 검증 공개키가 설정되지 않았습니다. 관리자 설정 저장 후 다시 시도해주세요.');
             if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = true;
+            updateAdvancedModeStatusBar();
             return;
         }
         if (cooldownRemainingMs > 0) {
@@ -1186,6 +1224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             advancedAccessSummary.textContent = readSiteText('messages.advancedAvailable', '신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.');
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = cooldownRemainingMs > 0;
+        updateAdvancedModeStatusBar();
     };
 
     const updateUtilityArchiveCardState = () => {
@@ -1201,6 +1240,66 @@ document.addEventListener('DOMContentLoaded', () => {
             utilityArchiveDescription.textContent = readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.');
         }
     };
+
+    function readAdvancedIdentityLabel(bundle) {
+        const payload = bundle?.payload || {};
+        return String(
+            payload.loginId
+            || payload.email
+            || payload.requestEmail
+            || payload.nickname
+            || payload.displayName
+            || ''
+        ).trim();
+    }
+
+    function updateAdvancedModeStatusBar() {
+        if (advancedModeStatusTitle) advancedModeStatusTitle.textContent = readSiteText('advancedMode.statusTitle', '고급 모드 상태');
+        if (advancedModeStatusLead) advancedModeStatusLead.innerHTML = readSiteText('advancedMode.statusLeadHtml', '이 브라우저에서 현재 어떤 고급 기능이 열려 있는지 바로 확인할 수 있습니다.');
+        if (advancedModeLabelState) advancedModeLabelState.textContent = readSiteText('advancedMode.labelState', '상태');
+        if (advancedModeLabelLogin) advancedModeLabelLogin.textContent = readSiteText('advancedMode.labelLogin', '로그인');
+        if (advancedModeLabelExpiry) advancedModeLabelExpiry.textContent = readSiteText('advancedMode.labelExpiry', '만료');
+        if (advancedModeLabelArchive) advancedModeLabelArchive.textContent = readSiteText('advancedMode.labelArchive', '자료 보관함');
+        if (advancedModeLabelRail) advancedModeLabelRail.textContent = readSiteText('advancedMode.labelRail', '우측 실제환경 여백');
+        if (advancedModeStatusFootnote) advancedModeStatusFootnote.innerHTML = readSiteText('advancedMode.footnoteHtml', '자료 보관함은 고급 모드가 열린 브라우저에서만 더보기에 나타나며, 들어간 뒤에도 자료보관함 로그인으로 한 번 더 본인 확인을 합니다.');
+        if (advancedModeGuideBtn) advancedModeGuideBtn.textContent = readSiteText('advancedMode.guideButton', '고급 기능 다시 보기');
+        if (advancedModeArchiveBtn) advancedModeArchiveBtn.textContent = readSiteText('advancedMode.archiveButton', '자료 보관함 열기');
+        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 버튼 빠른 설명');
+        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '정답 입력 모드로 바꾼 뒤 채점과 복기 버튼을 순서대로 쓰면 됩니다. 처음에는 이 박스 순서대로만 따라가도 충분합니다.');
+        if (advancedCoachStep1) advancedCoachStep1.innerHTML = readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력 모드</strong><br>답안 체크가 끝나면 정답 입력 모드로 바꾸고 실제 정답을 넣습니다.');
+        if (advancedCoachStep2) advancedCoachStep2.innerHTML = readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 및 과목별 통계</strong><br>채점 후 과목별 상세 통계와 TXT 다운로드로 약점을 바로 정리합니다.');
+        if (advancedCoachStep3) advancedCoachStep3.innerHTML = readSiteText('advancedMode.coachStep3Html', '<strong>3. 다시 풀기 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 반복 연습 속도를 높입니다.');
+        if (advancedCoachHint) advancedCoachHint.innerHTML = readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만 다시 시작하고, <strong>전↺</strong>는 전체 시험을 처음 상태로 되돌립니다. 자료 보관함은 더보기에서 따로 열립니다.');
+        if (advancedCoachGuideBtn) advancedCoachGuideBtn.textContent = readSiteText('advancedMode.coachGuideButton', '안내 창');
+
+        if (advancedModeValueState) {
+            advancedModeValueState.textContent = isAdvancedMode
+                ? readSiteText('advancedMode.valueStateActive', '활성')
+                : readSiteText('advancedMode.valueStateInactive', '비활성');
+        }
+        if (advancedModeValueLogin) {
+            advancedModeValueLogin.textContent = readAdvancedIdentityLabel(verifiedAdvancedLicenseBundle)
+                || readSiteText('advancedMode.valueLoginFallback', '확인 전');
+        }
+        if (advancedModeValueExpiry) {
+            advancedModeValueExpiry.textContent = verifiedAdvancedLicenseBundle
+                ? formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)
+                : readSiteText('advancedMode.valueExpiryFallback', '확인 전');
+        }
+        if (advancedModeValueArchive) {
+            advancedModeValueArchive.textContent = isAdvancedMode
+                ? readSiteText('advancedMode.valueArchiveReady', '사용 가능')
+                : readSiteText('advancedMode.valueArchiveBlocked', '잠김');
+        }
+        if (advancedModeValueRail) {
+            advancedModeValueRail.textContent = isAdvancedMode
+                ? readSiteText('advancedMode.valueRailReady', '복원됨')
+                : readSiteText('advancedMode.valueRailBlocked', '숨김');
+        }
+        if (advancedModeArchiveBtn) {
+            advancedModeArchiveBtn.disabled = !isAdvancedMode;
+        }
+    }
 
     async function fetchSubscriptionRequestRecord(requestId) {
         const trimmedRequestId = String(requestId || '').trim();
@@ -4049,8 +4148,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     updateAdvancedAccessPanel();
     updateUtilityArchiveCardState();
+    updateAdvancedModeStatusBar();
 
     // Modal & Help Controls
+    const openStudyArchivePage = () => {
+        if (!isAdvancedMode) {
+            utilityModal?.classList.add('hidden');
+            advancedGuideModal?.classList.remove('hidden');
+            return;
+        }
+        const archiveUrl = 'study-archive.html';
+        const popup = window.open(archiveUrl, '_blank', 'noopener');
+        if (!popup) {
+            window.location.assign(archiveUrl);
+        }
+    };
     if (utilityToggle && utilityModal) {
         utilityToggle.addEventListener('click', () => {
             updateUtilityArchiveCardState();
@@ -4064,17 +4176,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (studyArchiveOpenBtn) {
         studyArchiveOpenBtn.addEventListener('click', () => {
-            if (!isAdvancedMode) {
-                utilityModal?.classList.add('hidden');
-                advancedGuideModal?.classList.remove('hidden');
-                return;
-            }
             utilityModal?.classList.add('hidden');
-            const archiveUrl = 'study-archive.html';
-            const popup = window.open(archiveUrl, '_blank', 'noopener');
-            if (!popup) {
-                window.location.assign(archiveUrl);
-            }
+            openStudyArchivePage();
+        });
+    }
+    if (advancedModeArchiveBtn) {
+        advancedModeArchiveBtn.addEventListener('click', () => {
+            openStudyArchivePage();
+        });
+    }
+    const openAdvancedFeatureGuide = () => {
+        if (!isAdvancedMode) {
+            advancedGuideModal?.classList.remove('hidden');
+            return;
+        }
+        if (advancedToolsStatus) {
+            advancedToolsStatus.textContent = '';
+            advancedToolsStatus.classList.add('hidden');
+        }
+        advancedFeatureModal?.classList.remove('hidden');
+    };
+    if (advancedModeGuideBtn) {
+        advancedModeGuideBtn.addEventListener('click', () => {
+            openAdvancedFeatureGuide();
+        });
+    }
+    if (advancedCoachGuideBtn) {
+        advancedCoachGuideBtn.addEventListener('click', () => {
+            openAdvancedFeatureGuide();
         });
     }
 

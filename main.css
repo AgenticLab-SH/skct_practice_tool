@@ -465,6 +465,143 @@ body.advanced-mode .advanced-calc-slot {
     flex-shrink: 0;
 }
 
+.advanced-status-bar {
+    margin: 8px 8px 0;
+    padding: 12px 14px;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
+    color: #1e3a8a;
+    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.08);
+}
+
+.advanced-status-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.advanced-status-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #1d4ed8;
+}
+
+.advanced-status-lead,
+.advanced-status-footnote {
+    font-size: 12px;
+    line-height: 1.65;
+    color: #334155;
+}
+
+.advanced-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.advanced-status-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(191, 219, 254, 0.9);
+}
+
+.advanced-status-label {
+    font-size: 11px;
+    color: #64748b;
+}
+
+.advanced-status-value {
+    font-size: 13px;
+    color: #0f172a;
+}
+
+.advanced-status-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.advanced-status-action-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.advanced-status-action-btn.secondary {
+    background: #fff;
+    color: #1d4ed8;
+    border: 1px solid #93c5fd;
+}
+
+.advanced-coach-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+    border: 1px solid #bfdbfe;
+    color: #334155;
+}
+
+.advanced-coach-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.advanced-coach-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #1d4ed8;
+}
+
+.advanced-coach-guide-btn {
+    padding: 5px 9px;
+    border-radius: 999px;
+    border: 1px solid #93c5fd;
+    background: #fff;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.advanced-coach-lead,
+.advanced-coach-hint {
+    font-size: 11px;
+    line-height: 1.6;
+    color: #475569;
+}
+
+.advanced-coach-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+}
+
+.advanced-coach-step {
+    padding: 9px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid #dbeafe;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
 .omr-action-btn {
     width: 100%;
     padding: 8px 10px;
@@ -693,6 +830,10 @@ body.advanced-mode .popup-btn {
 
     .timer-phase-block {
         min-width: 86px;
+    }
+
+    .advanced-status-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -1104,6 +1245,64 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     flex-direction: column;
     padding: 0 var(--tools-right-rail-reserve, 58px) var(--tools-bottom-padding, 0px) 0;
     min-height: 0;
+}
+
+.help-advanced-section {
+    margin: 14px 0 18px;
+    padding: 12px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
+    border: 1px solid #fed7aa;
+}
+
+.help-advanced-section-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: #9a3412;
+    margin-bottom: 6px;
+}
+
+.help-advanced-section-lead {
+    font-size: 12px;
+    line-height: 1.7;
+    color: #7c2d12;
+}
+
+.help-advanced-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.help-advanced-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #fdba74;
+    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.08);
+}
+
+.help-advanced-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #9a3412;
+}
+
+.help-advanced-image {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.help-advanced-card-caption {
+    font-size: 11px;
+    line-height: 1.65;
+    color: #78716c;
 }
 
 /* Utility Section (Notepad/Canvas) */
