@@ -58,8 +58,8 @@
         },
         utilityModal: {
             title: '⋯ 보조 기능 모음',
-            descriptionHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.',
-            descriptionAdvancedHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.',
+            descriptionHtml: '핵심 연습 밖 기능만 모아 둔 공간입니다.',
+            descriptionAdvancedHtml: '핵심 연습 밖 기능과 보관함을 한곳에서 엽니다.',
             statsTitle: '활성 세션 보기',
             statsDescription: '현재 열려 있는 세션과 최근 방문 기록을 확인합니다.',
             communityTitle: '커뮤니티',
@@ -115,7 +115,7 @@
         advancedGuide: {
             title: '🔒 고급 모드 신청 · 진입 안내',
             loginTitle: '1. 승인된 경우 바로 열기',
-            loginBody: '신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 모드로 들어갑니다. 신청번호는 로그인에 쓰지 않습니다.',
+            loginBody: '승인 후 이메일 또는 로그인 ID와 비밀번호로 바로 들어갑니다.',
             accessButton: '고급 모드 열기',
             accessIdPlaceholder: '신청 이메일 또는 로그인 ID',
             accessPasswordPlaceholder: '비밀번호',
@@ -124,37 +124,37 @@
             featureCard2Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">상세 복기 기능</strong>\n과목별 상세 통계, TXT 다운로드, 정오표 일괄입력으로 복기를 짧게 이어갑니다.',
             featureCard3Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 감각 확인</strong>\n문항별 시간 가이드와 기록으로 시간이 밀린 구간을 더 쉽게 찾습니다.',
             featureCard4Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">개인 자료 보관함</strong>\n고급 모드에서만 보이며, 페이지 안에서 다시 로그인한 계정만 자기 자료를 읽고 수정할 수 있습니다.',
-            featureAccessHtml: '<strong>이 창의 역할</strong><br>이 창은 <strong>신청과 진입</strong>을 설명합니다. 실제 버튼 사용 순서는 고급 모드 안의 <strong>고급 활용</strong> 창에서 빠르게 다시 볼 수 있습니다.',
+            featureAccessHtml: '신청, 승인 확인, 첫 진입만 여기서 보면 됩니다.',
             planTitle: '3. 처음 신청하기',
-            planIntro: '후원 후 신청서를 저장하고, 승인되면 같은 창에서 바로 들어가면 됩니다.',
+            planIntro: '후원 확인 -> 신청 저장 -> 상태 확인 -> 고급 진입 순서입니다.',
             donateButton: '1. 후원 페이지 열기',
-            flowHtml: '<strong>신청 순서</strong><br>\n1. 후원 페이지에서 금액을 확인합니다.<br>\n2. 신청서를 저장합니다.<br>\n3. 신청 이메일과 비밀번호로 상태를 확인합니다.<br>\n4. 승인 뒤 이메일 또는 로그인 ID로 고급 모드를 엽니다.',
+            flowHtml: '후원 확인 -> 신청 저장 -> 신청 이메일로 상태 확인 -> 승인 후 고급 진입',
             formTitle: '4. 신청서 저장',
-            formDescription: '시작일, 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력합니다. 로그인 ID는 일반 ID나 이메일 형식 모두 사용할 수 있습니다.',
+            formDescription: '시작일, 닉네임, 이메일, 로그인 ID, 비밀번호만 입력하면 됩니다.',
             passwordHint: '같은 비밀번호를 <strong>신청 조회</strong>와 <strong>고급 로그인</strong>에 함께 씁니다. 신청번호를 기억할 필요는 없습니다.',
             submitButton: '2. 신청 저장',
             lookupTitle: '5. 신청 상태 확인',
-            lookupDescription: '신청 조회는 <strong>신청 이메일</strong>과 비밀번호로만 합니다. 승인 후 고급 로그인은 이메일 또는 로그인 ID로 진행합니다.',
+            lookupDescription: '조회는 신청 이메일만 씁니다. 승인 뒤 로그인은 이메일 또는 로그인 ID를 씁니다.',
             lookupButton: '상태 확인',
             lookupIdPlaceholder: '신청 이메일',
             lookupPasswordPlaceholder: '신청한 비밀번호',
-            contactHtml: '문의가 있으면 <strong>zhdlsqpdj@gmail.com</strong>로 보내주세요.'
+            contactHtml: '문의: <strong>zhdlsqpdj@gmail.com</strong>'
         },
         advancedFeature: {
             title: '✨ 고급 모드 빠른 사용',
-            introHtml: '<div style="font-weight:800; margin-bottom:6px;">이 창은 신청 절차가 아니라, 들어온 뒤 어디를 누르는지 다시 찾는 용도입니다.</div>\n고급 모드에서는 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>자료 보관함</strong>, <strong>우측 실제환경 여백</strong>이 추가됩니다.',
-            summaryHtml: '<strong>추천 흐름</strong><br><strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>',
-            planHtml: '<strong>자료 보관함 위치</strong><br>자료 보관함은 OMR 아래가 아니라 <strong>더보기</strong> 메뉴에서 따로 엽니다. 고급 모드가 열린 브라우저에서만 보입니다.',
+            introHtml: '<div style="font-weight:800; margin-bottom:6px;">이미 들어온 뒤 버튼 위치만 다시 찾는 창입니다.</div>\n핵심은 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>더보기 안 자료 보관함</strong>입니다.',
+            summaryHtml: '<strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>',
+            planHtml: '자료 보관함은 <strong>더보기</strong>에서 따로 엽니다.',
             image1Title: '1. 상단 상태와 우측 여백 확인',
             image1Caption: '지금 열린 권한, 로그인 ID, 만료 시각은 상단에서 바로 확인합니다. 우측 여백은 실제 환경 감각을 맞추는 용도입니다.',
             image2Title: '2. OMR 아래 복기 버튼 익히기',
             image2Caption: '정답 입력, 채점, 상세 통계, TXT 다운로드, 정오표 일괄입력은 모두 OMR 아래에 모여 있습니다. 이 구역만 익히면 복기 속도가 빨라집니다.',
             flowButton: '신청 안내 보기',
             statsButton: '문항별 상세 통계 TXT 다운로드',
-            feature1Html: '<strong>1. 결과부터 확인</strong><br>채점 및 통계 확인으로 맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.',
-            feature2Html: '<strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 어떤 영역이 흔들렸는지 바로 확인합니다.',
-            feature3Html: '<strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계 TXT 다운로드로 복기 기록을 저장합니다.',
-            feature4Html: '<strong>4. 반복 연습 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 같은 세트를 다시 돌립니다.'
+            feature1Html: '<strong>1. 결과부터 확인</strong><br>맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.',
+            feature2Html: '<strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 흔들린 영역을 바로 봅니다.',
+            feature3Html: '<strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계를 파일로 저장합니다.',
+            feature4Html: '<strong>4. 반복 연습 준비</strong><br>정오표, 과↺, 전↺, 시간 가이드로 다시 풉니다.'
         },
         advancedMode: {
             statusTitle: '고급 모드 상태',
@@ -272,8 +272,14 @@
             '고급 모드에서는 <strong>복기 버튼</strong>, <strong>자료 보관함</strong>, <strong>실제환경 우측 여백</strong>이 함께 열립니다. 아래 두 장만 먼저 보면 어디를 눌러야 할지 빠르게 감이 잡힙니다.'
         ],
         'helpModal.advancedLinkButton': ['고급 기능 보기'],
-        'utilityModal.descriptionHtml': ['핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 운영 후원을 여기서 엽니다.'],
-        'utilityModal.descriptionAdvancedHtml': ['핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 운영 후원을 여기서 엽니다.'],
+        'utilityModal.descriptionHtml': [
+            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 운영 후원을 여기서 엽니다.',
+            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.'
+        ],
+        'utilityModal.descriptionAdvancedHtml': [
+            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 운영 후원을 여기서 엽니다.',
+            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.'
+        ],
         'utilityModal.archiveDescription': ['고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.'],
         'advancedFeature.image1Title': ['1. 상태 바와 우측 실제환경 여백부터 확인'],
         'advancedFeature.image1Caption': ['상단 상태 바에서는 로그인 ID, 만료 시각, 자료 보관함 가능 여부를 바로 확인할 수 있고, 우측에는 실제환경 감각을 맞추는 버튼 자리와 여백이 함께 복원됩니다.'],
@@ -285,7 +291,8 @@
             '승인된 신청에 쓴 <strong>이메일</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 바로 고급 모드로 들어갈 수 있습니다.',
             '승인 후에는 신청 이메일 또는 관리자가 발급한 ID와 비밀번호로 라이선스를 확인하고, 바로 고급 모드로 들어갈 수 있습니다.',
             '승인 후에는 신청 이메일 또는 로그인 ID와 비밀번호로 라이선스를 확인하고, 같은 브라우저에서 자료 보관함 접근도 함께 열 수 있습니다.',
-            '승인 후에는 신청 이메일 또는 로그인 ID와 비밀번호로 라이선스를 확인하고, 바로 고급 모드로 들어갈 수 있습니다. 같은 브라우저에서 자료 보관함 접근도 함께 열립니다. 신청번호는 로그인에 쓰지 않습니다.'
+            '승인 후에는 신청 이메일 또는 로그인 ID와 비밀번호로 라이선스를 확인하고, 바로 고급 모드로 들어갈 수 있습니다. 같은 브라우저에서 자료 보관함 접근도 함께 열립니다. 신청번호는 로그인에 쓰지 않습니다.',
+            '신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 모드로 들어갑니다. 신청번호는 로그인에 쓰지 않습니다.'
         ],
         'advancedGuide.accessIdPlaceholder': ['승인 이메일 또는 발급 ID'],
         'advancedGuide.featureTitle': ['2. 고급 모드 전용 기능', '2. 일반 모드에 추가로 열리는 기능'],
@@ -295,24 +302,30 @@
         'advancedGuide.featureCard4Html': ['<strong style="display:block; color:#0f172a; margin-bottom:4px;">개인 자료 보관함</strong>\n자료 보관함은 고급 모드에서만 보이며, 페이지 안에서 다시 로그인한 계정만 자기 자료를 읽고 수정할 수 있습니다.'],
         'advancedGuide.featureAccessHtml': [
             '<strong>접근 기준</strong><br>과목 건너뛰기, 과목 초기화, 전체 초기화, 문항별 시간 가이드, 상세 통계 다운로드, 자료 보관함은 모두 고급 모드 전용입니다. 특히 자료 보관함은 고급 라이선스가 있는 브라우저에서만 열리고, 들어간 뒤에도 로그인한 계정만 사용할 수 있습니다.',
-            '<strong>일반 모드와의 차이</strong><br>과목 건너뛰기, 과목 초기화, 전체 초기화, 문항별 시간 가이드, 상세 통계 다운로드, 자료 보관함, 우측 실제환경 여백은 모두 고급 모드에서만 추가됩니다.'
+            '<strong>일반 모드와의 차이</strong><br>과목 건너뛰기, 과목 초기화, 전체 초기화, 문항별 시간 가이드, 상세 통계 다운로드, 자료 보관함, 우측 실제환경 여백은 모두 고급 모드에서만 추가됩니다.',
+            '<strong>이 창의 역할</strong><br>이 창은 <strong>신청과 진입</strong>을 설명합니다. 실제 버튼 사용 순서는 고급 모드 안의 <strong>고급 활용</strong> 창에서 빠르게 다시 볼 수 있습니다.',
+            '신청, 승인 확인, 첫 진입만 여기서 보면 됩니다.'
         ],
         'advancedGuide.planTitle': ['3. 이용권 선택', '3. 후원 후 신청 남기기', '3. 처음 신청하는 경우'],
         'advancedGuide.planIntro': [
             '현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 필요한 기간을 선택해 신청하면 됩니다.',
-            '필요한 기간을 고르고 후원을 마친 뒤, 아래 신청서를 한 번만 저장하면 됩니다.'
+            '필요한 기간을 고르고 후원을 마친 뒤, 아래 신청서를 한 번만 저장하면 됩니다.',
+            '후원 후 신청서를 저장하고, 승인되면 같은 창에서 바로 들어가면 됩니다.'
         ],
         'advancedGuide.donateButton': ['후원 페이지 열기'],
         'advancedGuide.flowHtml': [
             '<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 신청 이메일과 조회 비밀번호를 입력해 저장합니다.<br>\n4. 신청 조회에서 승인 상태를 확인하고, 승인되면 서명된 라이선스를 이 브라우저에 적용합니다.',
-            '<strong>진행 순서</strong><br>\n1. 기간과 금액을 확인합니다.<br>\n2. 후원을 진행합니다.<br>\n3. 아래 신청서에 이메일, 로그인 ID, 시작일, 조회 비밀번호를 입력합니다.<br>\n4. 신청 상태를 이메일로 확인하고, 승인되면 이메일 또는 로그인 ID로 고급 모드를 엽니다.'
+            '<strong>진행 순서</strong><br>\n1. 기간과 금액을 확인합니다.<br>\n2. 후원을 진행합니다.<br>\n3. 아래 신청서에 이메일, 로그인 ID, 시작일, 조회 비밀번호를 입력합니다.<br>\n4. 신청 상태를 이메일로 확인하고, 승인되면 이메일 또는 로그인 ID로 고급 모드를 엽니다.',
+            '<strong>신청 순서</strong><br>\n1. 후원 페이지에서 금액을 확인합니다.<br>\n2. 신청서를 저장합니다.<br>\n3. 신청 이메일과 비밀번호로 상태를 확인합니다.<br>\n4. 승인 뒤 이메일 또는 로그인 ID로 고급 모드를 엽니다.',
+            '후원 확인 -> 신청 저장 -> 신청 이메일로 상태 확인 -> 승인 후 고급 진입'
         ],
         'advancedGuide.formTitle': ['4. 이용권 신청서', '4. 신청 정보 저장'],
         'advancedGuide.formDescription': [
             '후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 라이선스를 확인하고 적용할 수 있습니다.',
             '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 희망 ID, 조회 비밀번호만 입력하면 됩니다.',
             '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력하면 됩니다.',
-            '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력하면 됩니다. 로그인 ID는 일반 ID나 이메일 형식 모두 사용할 수 있습니다.'
+            '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력하면 됩니다. 로그인 ID는 일반 ID나 이메일 형식 모두 사용할 수 있습니다.',
+            '시작일, 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력합니다. 로그인 ID는 일반 ID나 이메일 형식 모두 사용할 수 있습니다.'
         ],
         'advancedGuide.passwordHint': [
             '여기서 입력하는 비밀번호는 <strong>신청 조회 및 라이선스 확인용</strong>입니다. 신청 이메일과 함께 기억해 주세요.',
@@ -324,17 +337,43 @@
         'advancedGuide.lookupDescription': [
             '저장 후에는 <strong>신청 이메일</strong>과 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태를 확인하고, 승인된 경우 라이선스를 바로 적용할 수 있습니다.',
             '신청 이메일과 조회 비밀번호로 현재 상태를 확인하고, 승인되면 바로 라이선스를 적용할 수 있습니다.',
-            '신청 상태 확인은 신청 이메일과 조회 비밀번호로만 진행합니다. 신청번호는 따로 쓸 필요가 없고, 승인 후 로그인은 이메일 또는 로그인 ID로 진행합니다.'
+            '신청 상태 확인은 신청 이메일과 조회 비밀번호로만 진행합니다. 신청번호는 따로 쓸 필요가 없고, 승인 후 로그인은 이메일 또는 로그인 ID로 진행합니다.',
+            '신청 조회는 <strong>신청 이메일</strong>과 비밀번호로만 합니다. 승인 후 고급 로그인은 이메일 또는 로그인 ID로 진행합니다.'
         ],
+        'advancedGuide.contactHtml': ['문의가 있으면 <strong>zhdlsqpdj@gmail.com</strong>로 보내주세요.'],
         'advancedGuide.lookupButton': ['조회'],
         'advancedFeature.title': ['🔒 고급 기능', '🔒 고급 기능 빠른 안내', '✨ 고급 활용 가이드'],
         'advancedFeature.flowButton': ['고급 기능 신청 보기', '신청 안내 다시 보기'],
-        'advancedFeature.introHtml': ['<div style="font-weight:800; margin-bottom:6px;">고급 모드 활용 가이드</div>\n대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 어디에서 무엇을 누르면 되는지만 빠르게 확인하는 용도로 보시면 됩니다.'],
-        'advancedFeature.summaryHtml': ['<strong>기본 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.<br><br><strong>자료 보관함</strong>은 일반 모드에서 보이지 않으며, 고급 라이선스가 확인된 브라우저에서만 더보기 메뉴로 열 수 있습니다.'],
-        'advancedFeature.planHtml': ['<strong>복기 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>, <strong>과목/전체 초기화</strong>, <strong>문항별 시간 가이드</strong>는 모두 고급 모드에서 씁니다.<br><br><strong>자료 보관함</strong>은 더보기 메뉴 안의 별도 페이지이며, 고급 라이선스와 페이지 로그인 둘 다 필요합니다.'],
-        'advancedFeature.feature1Html': ['<strong>1. 채점 결과 먼저 보기</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 누르면 맞은 수, 정답률, 건너뜀, 못 푼 문제를 바로 확인할 수 있습니다.'],
-        'advancedFeature.feature2Html': ['<strong>2. 과목별 상세 통계 열기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.'],
-        'advancedFeature.feature4Html': ['<strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.'],
+        'advancedFeature.introHtml': [
+            '<div style="font-weight:800; margin-bottom:6px;">고급 모드 활용 가이드</div>\n대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 어디에서 무엇을 누르면 되는지만 빠르게 확인하는 용도로 보시면 됩니다.',
+            '<div style="font-weight:800; margin-bottom:6px;">이 창은 신청 절차가 아니라, 들어온 뒤 어디를 누르는지 다시 찾는 용도입니다.</div>\n고급 모드에서는 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>자료 보관함</strong>, <strong>우측 실제환경 여백</strong>이 추가됩니다.',
+            '<div style="font-weight:800; margin-bottom:6px;">이미 들어온 뒤 버튼 위치만 다시 찾는 창입니다.</div>\n핵심은 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>더보기 안 자료 보관함</strong>입니다.'
+        ],
+        'advancedFeature.summaryHtml': [
+            '<strong>기본 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.<br><br><strong>자료 보관함</strong>은 일반 모드에서 보이지 않으며, 고급 라이선스가 확인된 브라우저에서만 더보기 메뉴로 열 수 있습니다.',
+            '<strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>'
+        ],
+        'advancedFeature.planHtml': [
+            '<strong>복기 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>, <strong>과목/전체 초기화</strong>, <strong>문항별 시간 가이드</strong>는 모두 고급 모드에서 씁니다.<br><br><strong>자료 보관함</strong>은 더보기 메뉴 안의 별도 페이지이며, 고급 라이선스와 페이지 로그인 둘 다 필요합니다.',
+            '<strong>자료 보관함 위치</strong><br>자료 보관함은 OMR 아래가 아니라 <strong>더보기</strong> 메뉴에서 따로 엽니다. 고급 모드가 열린 브라우저에서만 보입니다.',
+            '자료 보관함은 <strong>더보기</strong>에서 따로 엽니다.'
+        ],
+        'advancedFeature.feature1Html': [
+            '<strong>1. 채점 결과 먼저 보기</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 누르면 맞은 수, 정답률, 건너뜀, 못 푼 문제를 바로 확인할 수 있습니다.',
+            '<strong>1. 결과부터 확인</strong><br>채점 및 통계 확인으로 맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.'
+        ],
+        'advancedFeature.feature2Html': [
+            '<strong>2. 과목별 상세 통계 열기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.',
+            '<strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 어떤 영역이 흔들렸는지 바로 확인합니다.'
+        ],
+        'advancedFeature.feature3Html': [
+            '<strong>3. TXT로 복기 기록 남기기</strong><br><strong>문항별 상세 통계 TXT 다운로드</strong> 버튼으로 정오답, 미응답, 문항별 시간 기록을 파일로 저장합니다.',
+            '<strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계 TXT 다운로드로 복기 기록을 저장합니다.'
+        ],
+        'advancedFeature.feature4Html': [
+            '<strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.',
+            '<strong>4. 반복 연습 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 같은 세트를 다시 돌립니다.'
+        ],
         'advancedMode.statusTitle': ['고급 모드 상태'],
         'advancedMode.statusLeadHtml': ['이 브라우저에서 현재 어떤 <strong>고급 기능</strong>이 열려 있는지 바로 확인할 수 있습니다.'],
         'advancedMode.labelState': ['상태'],

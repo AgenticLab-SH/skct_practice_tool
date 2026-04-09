@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-        updatedAt: '2026-04-10 01:49:00 +09:00',
-        version: 'v2026.04.10.0149',
-        assetVersion: '202604100149'
+        updatedAt: '2026-04-10 02:19:08 +09:00',
+        version: 'v2026.04.10.0219',
+        assetVersion: '202604100219'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -212,6 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedCoachStep3 = document.getElementById('advancedCoachStep3');
     const advancedCoachHint = document.getElementById('advancedCoachHint');
     const advancedCoachGuideBtn = document.getElementById('advancedCoachGuideBtn');
+    const quickInfoModal = document.getElementById('quickInfoModal');
+    const quickInfoModalTitle = document.getElementById('quickInfoModalTitle');
+    const quickInfoModalBody = document.getElementById('quickInfoModalBody');
     const helpAdvancedLinkBtn = document.getElementById('helpAdvancedLinkBtn');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
@@ -983,6 +986,137 @@ document.addEventListener('DOMContentLoaded', () => {
             return window.SKCTSiteTextConfig.getTextValue(path, fallback, tokens);
         }
         return String(fallback ?? '');
+    };
+    const buildQuickInfoCard = (title, bodyHtml) => `
+        <div class="quick-info-card">
+            <strong>${escapeHtml(title)}</strong>
+            <div>${bodyHtml}</div>
+        </div>
+    `;
+    const buildQuickInfoStep = (bodyHtml) => `<div class="quick-info-step">${bodyHtml}</div>`;
+    const getContextHelpContent = (topic) => {
+        switch (String(topic || '').trim()) {
+            case 'settings':
+                return {
+                    title: '⚙ 설정 빠른 도움말',
+                    body: [
+                        buildQuickInfoCard('이 창에서 바꾸는 것', '시간, 채점 기준, 화면 비율, 도구 기본값을 현재 브라우저에 적용합니다. 적용을 누르면 지금 화면에 바로 반영됩니다.'),
+                        buildQuickInfoCard(
+                            readSiteText('settingsModal.practiceModeTitle', '🎯 모드 설정'),
+                            formatMultilineHtml(readSiteText('settingsModal.practiceModeHint', 'OFF = 실전 모드: 과목 시간 종료 시 자동 잠금 및 다음 과목 강제 전환\nON = 연습 모드: 시간 제한·강제 전환 없이 자유롭게 마킹'))
+                        ),
+                        buildQuickInfoCard(
+                            readSiteText('settingsModal.scoringTitle', '📊 채점 기준'),
+                            formatMultilineHtml(readSiteText('settingsModal.scoringHint', 'OFF = 건너뜀으로 별도 집계\nON = 상세 통계와 오답 복기에서 건너뜀도 오답으로 함께 봄'))
+                        ),
+                        buildQuickInfoCard(readSiteText('settingsModal.timerTitle', '🕒 타이머 설정'), '전체 시간, 과목 시간, 쉬는 시간을 바꿉니다. 타이머가 돌고 있으면 적용 시 멈추고 새 기준으로 다시 맞춥니다.'),
+                        buildQuickInfoCard(readSiteText('settingsModal.layoutTitle', '📐 높이 비율 설정 (우측 영역)'), '타이머, 메모/그림판, 계산기 높이를 숫자로 조정합니다.')
+                    ].concat(isAdvancedMode ? [
+                        buildQuickInfoCard(readSiteText('settingsModal.guideTitle', '⏱️ 문항별 시간 가이드'), '고급 모드에서만 보입니다. 1문항당 권장 시간을 상단 가이드로 표시합니다.'),
+                        buildQuickInfoCard(readSiteText('settingsModal.toolTitle', '🧰 도구 설정'), '고급 모드에서 메모장 글씨 크기와 그림판 선 굵기를 조정합니다.')
+                    ] : []).join('')
+                };
+            case 'utility':
+                return {
+                    title: '⋯ 보조 기능 도움말',
+                    body: [
+                        buildQuickInfoCard('이 창의 역할', isAdvancedMode
+                            ? '핵심 연습 밖 기능과 고급 전용 보관함을 한곳에서 엽니다.'
+                            : '핵심 연습 밖 기능만 한곳에서 여는 공간입니다.'),
+                        buildQuickInfoCard(readSiteText('utilityModal.statsTitle', '활성 세션 보기'), escapeHtml(readSiteText('utilityModal.statsDescription', '현재 열려 있는 세션과 최근 방문 기록을 확인합니다.'))),
+                        buildQuickInfoCard(readSiteText('utilityModal.communityTitle', '커뮤니티'), escapeHtml(readSiteText('utilityModal.communityDescription', '공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.'))),
+                        isAdvancedMode
+                            ? buildQuickInfoCard(readSiteText('utilityModal.archiveTitle', '자료 보관함'), escapeHtml(readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.')))
+                            : '',
+                        buildQuickInfoCard(readSiteText('utilityModal.extensionTitle', '별도 테스트 자료'), escapeHtml(readSiteText('utilityModal.extensionDescription', '핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.'))),
+                        buildQuickInfoCard(readSiteText('utilityModal.donateTitle', '운영 후원'), escapeHtml(readSiteText('utilityModal.donateDescription', '광고 없이 유지되는 연습 공간 운영을 응원할 수 있습니다.')))
+                    ].filter(Boolean).join('')
+                };
+            case 'advanced-entry':
+                return {
+                    title: '🔒 고급 신청 · 진입 도움말',
+                    body: [
+                        buildQuickInfoCard(
+                            readSiteText('advancedGuide.loginTitle', '1. 승인된 경우 바로 열기'),
+                            readSiteText('advancedGuide.loginBody', '승인 후 이메일 또는 로그인 ID와 비밀번호로 바로 들어갑니다.')
+                        ),
+                        buildQuickInfoCard('이 창의 역할', '신청, 승인 확인, 첫 진입만 여기서 보면 됩니다.'),
+                        buildQuickInfoCard(
+                            readSiteText('advancedGuide.planTitle', '3. 처음 신청하기'),
+                            '후원 확인 -> 신청 저장 -> 신청 이메일로 상태 확인 -> 승인 후 고급 진입'
+                        ),
+                        buildQuickInfoCard(
+                            readSiteText('advancedGuide.lookupTitle', '5. 신청 상태 확인'),
+                            '조회는 신청 이메일만 씁니다. 승인 뒤 로그인은 이메일 또는 로그인 ID를 씁니다.'
+                        )
+                    ].join('')
+                };
+            case 'advanced-tools':
+                return {
+                    title: '✨ 고급 활용 도움말',
+                    body: [
+                        buildQuickInfoCard('추천 흐름', '<strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>'),
+                        buildQuickInfoCard('자료 보관함 위치', '<strong>더보기</strong>에서 따로 엽니다.'),
+                        `<div class="quick-info-flow">
+                            ${buildQuickInfoStep(readSiteText('advancedFeature.feature1Html', '<strong>1. 결과부터 확인</strong><br>맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedFeature.feature2Html', '<strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 흔들린 영역을 바로 봅니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedFeature.feature3Html', '<strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계를 파일로 저장합니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedFeature.feature4Html', '<strong>4. 반복 연습 준비</strong><br>정오표, 과↺, 전↺, 시간 가이드로 다시 풉니다.'))}
+                        </div>`
+                    ].join('')
+                };
+            case 'advanced-omr':
+                return {
+                    title: readSiteText('advancedMode.coachTitle', '고급 복기 순서'),
+                    body: [
+                        buildQuickInfoCard('핵심 3단계', readSiteText('advancedMode.coachLeadHtml', '처음에는 아래 세 줄만 기억하면 됩니다.')),
+                        `<div class="quick-info-flow">
+                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력</strong><br>답안 체크 뒤 실제 정답만 넣습니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 확인</strong><br>맞은 수와 정답률을 먼저 봅니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep3Html', '<strong>3. 복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.'))}
+                        </div>`,
+                        buildQuickInfoCard('추가 팁', readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.'))
+                    ].join('')
+                };
+            case 'stats':
+                return {
+                    title: '🔥 활성 세션 읽는 법',
+                    body: [
+                        buildQuickInfoCard('현재 활성 세션', '최근 하트비트를 보낸 브라우저 탭 기준으로 집계합니다. 같은 사람이 여러 탭을 열면 여러 세션으로 보일 수 있습니다.'),
+                        buildQuickInfoCard('최근 7일 방문 기록', '날짜별 흐름을 보는 용도입니다. 접속 추세를 보는 참고용으로 이해하면 됩니다.'),
+                        buildQuickInfoCard('누적 방문 기록', '브라우저 기준 누적 방문 수입니다. 로그인 사용자 수가 아니라 전체 사용 흐름을 보기 위한 값입니다.')
+                    ].join('')
+                };
+            case 'detail-stats':
+                return {
+                    title: '📋 과목별 상세 통계 읽는 법',
+                    body: [
+                        buildQuickInfoCard('표 보는 순서', '과목별로 <strong>맞은/푼/전체</strong>를 먼저 보고, 그다음 <strong>건너뜀</strong>, <strong>못 풂</strong>, <strong>정답률</strong> 순서로 확인하면 됩니다.'),
+                        buildQuickInfoCard('건너뜀과 못 풂 차이', '건너뜀은 문항을 넘긴 경우이고, 못 풂은 끝까지 답을 넣지 않은 경우입니다. 두 값이 같이 보여야 시간 운영 문제를 더 쉽게 볼 수 있습니다.'),
+                        buildQuickInfoCard('현재 채점 기준', configTreatSkippedAsWrong
+                            ? '현재는 <strong>건너뜀도 오답 흐름에 함께 포함</strong>해서 보고 있습니다.'
+                            : '현재는 <strong>건너뜀을 오답과 분리</strong>해서 보고 있습니다. 필요하면 설정에서 바꿀 수 있습니다.')
+                    ].join('')
+                };
+            case 'bulk-import':
+                return {
+                    title: '📥 정오표 일괄입력 도움말',
+                    body: [
+                        buildQuickInfoCard('입력 형식', '정오표 표를 그대로 붙여넣으면 됩니다. 보통 <strong>문항 번호</strong>와 <strong>정답</strong> 열만 있으면 읽을 수 있습니다.'),
+                        buildQuickInfoCard('권장 순서', '붙여넣기 -> <strong>붙여넣기 분석</strong> -> 열 선택 확인 -> <strong>정답 일괄 반영</strong> 순서로 진행하면 됩니다.'),
+                        buildQuickInfoCard('주의할 점', '이 기능은 <strong>고급 모드의 정답 입력 상태</strong>에서만 씁니다. 자동 인식이 애매하면 문항 번호 열과 정답 열을 직접 바꿔서 맞추면 됩니다.')
+                    ].join('')
+                };
+            default:
+                return null;
+        }
+    };
+    const openContextHelp = (topic) => {
+        const content = getContextHelpContent(topic);
+        if (!content || !quickInfoModal || !quickInfoModalTitle || !quickInfoModalBody) return;
+        quickInfoModalTitle.textContent = content.title || '빠른 도움말';
+        quickInfoModalBody.innerHTML = content.body || '';
+        quickInfoModal.classList.remove('hidden');
     };
     renderSettingsBuildInfo();
 
@@ -4413,6 +4547,11 @@ document.addEventListener('DOMContentLoaded', () => {
             openAdvancedFeatureGuide();
         });
     }
+    document.querySelectorAll('[data-context-help]').forEach((button) => {
+        button.addEventListener('click', () => {
+            openContextHelp(button.dataset.contextHelp);
+        });
+    });
 
     const donateToggle = document.getElementById('donateToggle');
     const donateModal = document.getElementById('donateModal');
@@ -4570,10 +4709,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('mockChatBtn')?.addEventListener('click', () => {
-        alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
-    });
-
-    document.getElementById('mockQuestionBtn')?.addEventListener('click', () => {
         alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
     });
 
