@@ -1,12 +1,12 @@
 # 2026-04-09 고급 모드 가이드 확장 운영 반영
-작성일시: 2026-04-09 11:25:30 KST
+작성일시: 2026-04-09 11:30:10 KST
 
 ## 1. 요청 요약
 - 로컬에서 보강해 둔 고급 모드 설명, 상태 바, 빠른 설명 패널, 시각 가이드를 실제 운영에 반영한다.
 - 일반 모드와 고급 모드의 노출 경계가 유지되는지 함께 확인한다.
 
 ## 2. 운영 반영 내용
-- `main` 브랜치에 고급 모드 가이드 확장 커밋 `176099e`를 반영하고 `origin/main`으로 push했다.
+- 고급 모드 가이드 확장 코드 커밋 `176099e`를 `main`에 반영했고, 운영 기록 정리 커밋 `5af7b34`까지 포함해 `origin/main`으로 push했다.
 - 새 정적 자산 버전은 `202604091119`로 통일했다.
 - `build-info.js`를 운영 자산에 포함해 사용자/관리자 화면 버전 정보를 공용값으로 읽게 정리했다.
 - 도움말 모달에 `고급 모드 활용 가이드` 섹션과 강조 이미지 2장을 운영 반영했다.
@@ -23,9 +23,10 @@
   - `node --check site-text-config.js`
   - `python scripts/annotate_advanced_help_images.py`
 - GitHub Pages
-  - workflow `pages-build-deployment` run `24169080498`
+  - workflow `pages-build-deployment` run `24169232511`
+  - 대상 커밋 `5af7b34`
   - 상태 `completed / success`
-  - 완료 시각 `2026-04-09 11:23:23 KST`
+  - 완료 시각 `2026-04-09 11:29:33 KST`
 - 라이브 자산 확인
   - 메인 HTML에서 `main.css?v=202604091119`, `build-info.js?v=202604091119`, `main.js?v=202604091119` 확인
   - `study-archive.html`에서 `build-info.js?v=202604091119`, `study-archive.js?v=202604091119` 확인

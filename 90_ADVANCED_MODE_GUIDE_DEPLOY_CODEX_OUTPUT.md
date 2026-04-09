@@ -1,8 +1,8 @@
 # 고급 모드 가이드 확장 운영 반영 요약
-작성일시: 2026-04-09 11:25:30 KST
+작성일시: 2026-04-09 11:30:10 KST
 
 고급 모드 상태 바, OMR 하단 빠른 설명, 도움말 시각 가이드 이미지, 공용 빌드 정보 구조를 운영에 반영했습니다. 일반 모드에서는 자료 보관함 버튼이 계속 숨겨지고, 고급 안내 로그인 후에는 `SB / 123456` 기준으로 실제 고급 모드가 열리며 상태 바와 우측 실제환경 레일도 함께 복원됩니다.
 
-운영 반영 기준 커밋은 `176099e`, GitHub Pages 빌드 run 은 `24169080498`이며 `2026-04-09 11:23:23 KST`에 `success`를 확인했습니다. 운영 Firebase `config/siteTextConfig`는 `_backup/20260409_112409_site_text_before_advanced_guide_deploy/siteTextConfig.before.json`으로 백업 후 새 코드 기본값으로 동기화했습니다.
+기능 코드 반영 커밋은 `176099e`이고, 운영 기록까지 포함한 최종 `main` 커밋은 `5af7b34`입니다. GitHub Pages 마지막 빌드 run 은 `24169232511`이며 `2026-04-09 11:29:33 KST`에 `success`를 확인했습니다. 운영 Firebase `config/siteTextConfig`는 `_backup/20260409_112409_site_text_before_advanced_guide_deploy/siteTextConfig.before.json`으로 백업 후 새 코드 기본값으로 동기화했습니다.
 
 라이브 검증 결과 메인 HTML은 `main.css?v=202604091119`, `build-info.js?v=202604091119`, `main.js?v=202604091119`를 가리키고, 자료보관함 페이지는 `study-archive.js?v=202604091119`를 가리킵니다. 도움말 강조 이미지 2장도 운영에서 정상 로드됩니다.
