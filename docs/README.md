@@ -1,5 +1,5 @@
 # SKCT Tool 문서 인덱스
-작성일시: 2026-04-09 20:17:20 +09:00
+작성일시: 2026-04-10 00:19:10 +09:00
 
 이 문서는 `docs/` 아래 문서를 빠르게 찾기 위한 기준 인덱스입니다.
 
@@ -20,9 +20,9 @@
   지금 이 프로젝트에서 가장 먼저 읽어야 하는 얇은 기준서입니다. 운영 경계, 현재 우선순위, 문서 동기화 기준을 짧게 정리합니다.
 
 - [TODO.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/TODO/TODO.md)
-  사용자가 직접 남긴 큰 방향 메모입니다. 초기 구조 재정비 제안과 남은 장기 과제가 함께 들어 있습니다.
+  현재 기준으로 실제 남은 일만 모은 단일 TODO 문서입니다.
 
-- [70_USER_TODO.md](/C:/dev/01_career/_assets/tools/skct_tool/70_USER_TODO.md)
+- [70_USER_TODO.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/runtime/70_USER_TODO.md)
   이번 라운드에서 사용자 승인이나 운영 절차가 필요한 후속 작업만 따로 모아 둔 문서입니다.
 
 - [2026-04-09_todo_full_sweep_and_backup.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/worklog/2026-04-09_todo_full_sweep_and_backup.md)
@@ -47,7 +47,7 @@
 - [37_SECURITY_RENDERING_CHECKLIST.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/37_SECURITY_RENDERING_CHECKLIST.md)
   새 HTML 경로, 저장소 경계, sanitize 경로를 점검할 때 쓰는 보안 체크 문서입니다.
 
-- [35_LEARNING_NOTES.md](/C:/dev/01_career/_assets/tools/skct_tool/35_LEARNING_NOTES.md)
+- [35_LEARNING_NOTES.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/runtime/35_LEARNING_NOTES.md)
   작업 중 배운 점과 재발 방지 포인트를 초보자도 이해하기 쉽게 남긴 메모입니다.
 
 ## 5. 작업 로그
@@ -68,5 +68,5 @@
 
 - 구조를 알고 싶다: `전체구조_및_운영기준`
 - 무엇을 바꿨는지 보고 싶다: `기능_변경이력_요약`
-- 지금 남은 일과 후속을 보고 싶다: `docs/agent/runtime/30_MASTER_DOC.md`, `docs/TODO/TODO.md`, `70_USER_TODO.md`
+- 지금 남은 일과 후속을 보고 싶다: `docs/agent/runtime/30_MASTER_DOC.md`, `docs/TODO/TODO.md`, `docs/agent/runtime/70_USER_TODO.md`
 - 세부 구현 흐름을 추적하고 싶다: `docs/agent/worklog`
