@@ -998,15 +998,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function applyManualSubscriptionConfig(config) {
+    function applyManualSubscriptionConfig(config, options = {}) {
+        const { source = 'remote' } = options;
         remoteManualSubscriptionConfig = normalizeManualSubscriptionConfig(config);
-        isAdvancedConfigReady = true;
+        isAdvancedConfigReady = source === 'remote';
         renderManualSubscriptionPlans();
         ensureManualSubscriptionStartDate();
-        void syncStoredAdvancedLicenseState();
+        if (isAdvancedConfigReady) {
+            void syncStoredAdvancedLicenseState();
+        }
     }
     window.applyManualSubscriptionConfig = applyManualSubscriptionConfig;
-    applyManualSubscriptionConfig();
+    applyManualSubscriptionConfig(undefined, { source: 'bootstrap' });
 
     function getAdvancedLicenseExpiryTime(bundle) {
         const raw = bundle?.payload?.expiresAt;
@@ -1057,6 +1060,23 @@ document.addEventListener('DOMContentLoaded', () => {
     async function syncStoredAdvancedLicenseState(options = {}) {
         const { silent = false } = options;
         const storedBundle = readStoredAdvancedLicenseBundle();
+        const canVerifyStoredBundle = Boolean(
+            remoteManualSubscriptionConfig.licensePublicKeyPem
+            && window.SKCTSubscriptionCrypto?.verifyLicenseBundle
+        );
+        if (storedBundle && !canVerifyStoredBundle) {
+            verifiedAdvancedLicenseBundle = null;
+            if (advancedModeRequested && isAdvancedConfigReady) {
+                setAdvancedModeState(false);
+                removeAdvancedQueryParam();
+                if (!silent && advancedAccessStatus) {
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedConfigMissing', '아직 라이선스 검증 공개키가 설정되지 않았습니다. 관리자 설정 저장 후 다시 시도해주세요.');
+                    advancedAccessStatus.style.color = '#b91c1c';
+                }
+            }
+            updateAdvancedAccessPanel();
+            return null;
+        }
         const verifiedBundle = await verifyAdvancedLicenseBundle(storedBundle);
         verifiedAdvancedLicenseBundle = verifiedBundle;
         if (!verifiedBundle && storedBundle) {

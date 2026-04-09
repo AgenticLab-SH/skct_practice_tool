@@ -836,7 +836,7 @@
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
     <script src="site-text-config.js?v=202604090955"></script>
-    <script src="main.js?v=202604090955"></script>
+    <script src="main.js?v=202604091010"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
@@ -1113,7 +1113,7 @@
                 window.applyRemoteSiteTextConfig(cfg.siteTextConfig);
             }
             if (typeof window.applyManualSubscriptionConfig === 'function') {
-                window.applyManualSubscriptionConfig(cfg.manualSubscriptionConfig);
+                window.applyManualSubscriptionConfig(cfg.manualSubscriptionConfig, { source: 'remote' });
             }
             
             // Timer Defaults Sync
