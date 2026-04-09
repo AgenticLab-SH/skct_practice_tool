@@ -1359,7 +1359,7 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     outline: none;
     background: var(--panel-bg);
     color: var(--text-main);
-    cursor: crosshair;
+    cursor: text;
     user-select: text;
     -webkit-user-select: text;
 }
