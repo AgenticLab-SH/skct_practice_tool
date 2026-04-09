@@ -58,8 +58,10 @@ skct_tool/
 ├── community.js            # 커뮤니티 게시판 로직
 ├── site-text-config.js     # 운영 문구/미리보기 적용 로직
 ├── subscription-crypto.js  # 신청 암호화 / 라이선스 서명 검증 유틸
+├── functions/              # 민감 흐름 서버 분리용 Firebase Functions 준비 코드
 ├── database.rules.json     # Firebase RTDB 규칙
 ├── firebase.json           # Firebase 배포 설정
+├── scripts/export_public_clean.ps1  # 공개 배포용 파일만 추출하는 스크립트
 ├── staging/                # 로컬 전용 스테이징 사본
 ├── images/                 # 이미지 에셋 폴더
 ├── docs/                   # 문서 폴더 (운영가이드 등)
@@ -102,6 +104,14 @@ skct_tool/
 4. **문서형 페이지 분리**
    - `guide`, `faq`, `pricing`, `privacy`, `terms` 페이지를 별도 경로로 두어 사용법, 정책, 유료 기능 안내를 한 화면에 섞지 않도록 정리합니다.
    - 확장 ZIP은 메인 앱 안의 직접 다운로드가 아니라 `extension-info.html` 같은 별도 안내 페이지에서만 다룹니다.
+
+5. **민감 흐름 서버 분리 준비**
+   - `functions/` 아래에 신청 저장, 신청 조회, 고급 라이선스 조회를 서버 경유로 옮길 준비 코드를 둡니다.
+   - 관리자 페이지의 `수동 구독 신청 관리`에서 `보안 API 기본 URL`을 저장하면 메인 앱이 direct RTDB 대신 서버 경로를 우선 사용합니다.
+
+6. **공개 배포 경계 정리**
+   - `scripts/export_public_clean.ps1`로 공개 앱에 필요한 파일만 `tmp` 또는 `artifacts/releases` 아래로 추출할 수 있습니다.
+   - 운영 반영 전에 이 추출 결과를 기준으로 `public-clean` 브랜치를 만들면 작업 파일과 배포 파일이 덜 섞입니다.
 
 ---
 

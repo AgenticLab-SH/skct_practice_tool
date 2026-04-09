@@ -113,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
         supportEmail: 'zhdlsqpdj@gmail.com',
+        secureApiBaseUrl: '',
         adminPublicKeyPem: '',
         licensePublicKeyPem: '',
         plans: [
@@ -379,6 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
             enabled: raw?.enabled !== false,
             donationUrl: String(raw?.donationUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl).trim(),
             supportEmail: String(raw?.supportEmail || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.supportEmail).trim(),
+            secureApiBaseUrl: String(raw?.secureApiBaseUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.secureApiBaseUrl || '').trim().replace(/\/+$/, ''),
             adminPublicKeyPem: String(raw?.adminPublicKeyPem || '').trim(),
             licensePublicKeyPem: String(raw?.licensePublicKeyPem || '').trim(),
             plans: plans.length ? plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.map((plan) => ({ ...plan }))
@@ -443,6 +445,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const normalizedPassword = String(password || '');
         if (!normalizedEmail || !normalizedPassword) return '';
         return sha256Hex(`${normalizedEmail}::${normalizedPassword}`);
+    }
+
+    function getSecureApiBaseUrl() {
+        return String(remoteManualSubscriptionConfig?.secureApiBaseUrl || '').trim().replace(/\/+$/, '');
+    }
+
+    function buildSecureApiUrl(path) {
+        const baseUrl = getSecureApiBaseUrl();
+        if (!baseUrl) return '';
+        const normalizedPath = String(path || '').startsWith('/') ? String(path || '') : `/${String(path || '')}`;
+        return `${baseUrl}${normalizedPath}`;
+    }
+
+    async function postToSecureApi(path, payload, fallbackMessage) {
+        const url = buildSecureApiUrl(path);
+        if (!url) return null;
+        let response = null;
+        try {
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload || {})
+            });
+        } catch (error) {
+            throw new Error(fallbackMessage);
+        }
+        let responsePayload = null;
+        try {
+            responsePayload = await response.json();
+        } catch (error) {
+            responsePayload = null;
+        }
+        if (!response.ok) {
+            throw new Error(
+                String(responsePayload?.errorMessage || responsePayload?.message || fallbackMessage || '보안 API 호출 중 오류가 발생했습니다.')
+            );
+        }
+        return responsePayload && typeof responsePayload === 'object' ? responsePayload : {};
     }
 
     function maskText(value) {
@@ -1320,6 +1362,17 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchSubscriptionRequestRecord(requestId) {
         const trimmedRequestId = String(requestId || '').trim();
         if (!trimmedRequestId) return null;
+        const secureApiPayload = await postToSecureApi(
+            '/subscription/request-record',
+            { requestId: trimmedRequestId },
+            readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+        );
+        if (secureApiPayload) {
+            const record = secureApiPayload?.record && typeof secureApiPayload.record === 'object'
+                ? secureApiPayload.record
+                : null;
+            return record ? { ...record, requestId: String(secureApiPayload.requestId || trimmedRequestId).trim() || trimmedRequestId } : null;
+        }
         const response = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(trimmedRequestId)}.json`);
         if (!response.ok) {
             throw new Error(readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'));
@@ -1333,6 +1386,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isLikelyEmailAddress(normalizedEmail)) return '';
         const lookupKey = await buildSubscriptionLookupKey(normalizedEmail, requestPassword);
         if (!lookupKey) return '';
+        const secureApiPayload = await postToSecureApi(
+            '/subscription/lookup',
+            { lookupKey },
+            readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+        );
+        if (secureApiPayload) {
+            return String(secureApiPayload?.requestId || '').trim();
+        }
         const response = await fetch(`${SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL}/${encodeURIComponent(lookupKey)}.json`);
         if (!response.ok) {
             throw new Error(readSiteText('messages.manualLookupError', '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'));
@@ -1348,6 +1409,15 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchAdvancedAccountLicenseRecord(loginId) {
         const loginIdKey = getAdvancedLoginIdKey(loginId);
         if (!loginIdKey) return null;
+        const secureApiPayload = await postToSecureApi(
+            '/advanced/license',
+            { loginIdKey },
+            readSiteText('messages.advancedLookupError', '고급 계정 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
+        );
+        if (secureApiPayload) {
+            const record = secureApiPayload?.record;
+            return record && typeof record === 'object' ? record : null;
+        }
         const response = await fetch(`${ADVANCED_ACCOUNT_LICENSES_BASE_URL}/${encodeURIComponent(loginIdKey)}.json`);
         if (!response.ok) {
             throw new Error(readSiteText('messages.advancedLookupError', '고급 계정 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'));
@@ -1524,6 +1594,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const requestId = `REQ-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
             const lookupKey = await buildSubscriptionLookupKey(email, requestPassword);
+            const requestCreatedAt = Date.now();
             const encrypted = await window.SKCTSubscriptionCrypto.encryptRequestPayload({
                 donationName,
                 requestedStartDate,
@@ -1532,7 +1603,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 desiredLoginId,
                 requestPassword,
                 memo,
-                createdAt: Date.now(),
+                createdAt: requestCreatedAt,
                 adminResponse: null
             }, requestPassword, remoteManualSubscriptionConfig.adminPublicKeyPem);
             const record = {
@@ -1541,53 +1612,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 status: 'pending',
                 planCode: plan.code,
                 planLabel: plan.label,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
+                createdAt: requestCreatedAt,
+                updatedAt: requestCreatedAt,
                 requesterMask: maskText(siteNickname),
                 emailMask: maskEmail(email),
                 donationMask: maskText(donationName),
                 lookupEmailPasswordKey: lookupKey,
                 ...encrypted
             };
-            const writeResponse = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(record)
-            });
-            if (!writeResponse.ok) {
-                throw new Error('신청서 저장 중 오류가 발생했습니다.');
-            }
             if (!lookupKey) {
-                await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
-                    method: 'DELETE'
-                }).catch(() => {});
                 throw new Error('이메일 조회 키를 만들지 못해 신청을 저장할 수 없습니다. 이메일과 비밀번호를 다시 확인해주세요.');
             }
-            const lookupResponse = await fetch(`${SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL}/${encodeURIComponent(lookupKey)}.json`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
+            const lookupRecord = {
+                requestId,
+                createdAt: requestCreatedAt,
+                emailMask: maskEmail(email)
+            };
+            const secureApiPayload = await postToSecureApi(
+                '/subscription/request',
+                {
                     requestId,
-                    createdAt: Date.now(),
-                    emailMask: maskEmail(email)
-                })
-            });
-            if (!lookupResponse.ok) {
-                await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
-                    method: 'DELETE'
-                }).catch(() => {});
-                throw new Error('이메일 조회 연결 저장에 실패해 신청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.');
+                    lookupKey,
+                    record,
+                    lookupRecord
+                },
+                readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.')
+            );
+            if (!secureApiPayload) {
+                const writeResponse = await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(record)
+                });
+                if (!writeResponse.ok) {
+                    throw new Error('신청서 저장 중 오류가 발생했습니다.');
+                }
+                const lookupResponse = await fetch(`${SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL}/${encodeURIComponent(lookupKey)}.json`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(lookupRecord)
+                });
+                if (!lookupResponse.ok) {
+                    await fetch(`${FIREBASE_RTDB_BASE_URL}/subscriptionRequests/${encodeURIComponent(requestId)}.json`, {
+                        method: 'DELETE'
+                    }).catch(() => {});
+                    throw new Error('이메일 조회 연결 저장에 실패해 신청을 완료하지 못했습니다. 잠시 후 다시 시도해주세요.');
+                }
             }
             writeManualSubscriptionSubmitGuard({
                 fingerprint: submitFingerprint,
                 requestId,
-                createdAt: Date.now()
+                createdAt: requestCreatedAt
             });
-            saveRecentRequestInfo({ lookupIdentifier: normalizeLookupEmail(email), createdAt: Date.now() });
+            saveRecentRequestInfo({ lookupIdentifier: normalizeLookupEmail(email), createdAt: requestCreatedAt });
             trackAnalyticsEvent('advanced_apply_submit', {
                 plan_code: plan.code,
                 plan_days: Number.isFinite(plan.days) ? plan.days : 0,

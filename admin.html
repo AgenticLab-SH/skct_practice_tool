@@ -369,6 +369,10 @@
                             <input id="manualSubscriptionSupportEmail" type="text" class="form-input" placeholder="example@example.com">
                         </div>
                         <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">보안 API 기본 URL</div>
+                            <input id="manualSubscriptionSecureApiBaseUrl" type="text" class="form-input" placeholder="https://REGION-PROJECT.cloudfunctions.net/skctSecureApi">
+                        </div>
+                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
                             <div style="font-size:11px; color:#475569; margin-bottom:6px;">7일권 가격</div>
                             <input id="manualSubscriptionPrice7d" type="number" class="form-input" min="1000" step="100">
                         </div>
@@ -884,6 +888,7 @@
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
         supportEmail: 'zhdlsqpdj@gmail.com',
+        secureApiBaseUrl: '',
         adminPublicKeyPem: '',
         licensePublicKeyPem: '',
         plans: [
@@ -1074,6 +1079,7 @@
             enabled: raw?.enabled !== false,
             donationUrl: String(raw?.donationUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl).trim(),
             supportEmail: String(raw?.supportEmail || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.supportEmail).trim(),
+            secureApiBaseUrl: String(raw?.secureApiBaseUrl || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.secureApiBaseUrl || '').trim().replace(/\/+$/, ''),
             adminPublicKeyPem: String(raw?.adminPublicKeyPem || '').trim(),
             licensePublicKeyPem: String(raw?.licensePublicKeyPem || '').trim(),
             plans: plans.length ? plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.map((plan) => ({ ...plan }))
@@ -2539,6 +2545,7 @@
         document.getElementById('manualSubscriptionEnabled').checked = config.enabled !== false;
         document.getElementById('manualSubscriptionDonationUrl').value = config.donationUrl || '';
         document.getElementById('manualSubscriptionSupportEmail').value = config.supportEmail || '';
+        document.getElementById('manualSubscriptionSecureApiBaseUrl').value = config.secureApiBaseUrl || '';
         document.getElementById('manualSubscriptionPrice7d').value = getManualPlanByCode(config, 'manual-7d').price;
         document.getElementById('manualSubscriptionPrice14d').value = getManualPlanByCode(config, 'manual-14d').price;
         const publicKeyStatus = document.getElementById('manualSubscriptionPublicKeyStatus');
@@ -2695,6 +2702,7 @@
             enabled: document.getElementById('manualSubscriptionEnabled').checked,
             donationUrl: document.getElementById('manualSubscriptionDonationUrl').value.trim() || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.donationUrl,
             supportEmail: document.getElementById('manualSubscriptionSupportEmail').value.trim() || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.supportEmail,
+            secureApiBaseUrl: document.getElementById('manualSubscriptionSecureApiBaseUrl').value.trim().replace(/\/+$/, ''),
             adminPublicKeyPem: current.adminPublicKeyPem || '',
             licensePublicKeyPem: current.licensePublicKeyPem || '',
             plans: [

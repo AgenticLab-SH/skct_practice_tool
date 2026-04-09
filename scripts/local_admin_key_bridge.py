@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 HOST = "127.0.0.1"
 PORT = 47831
-ALLOWED_HOSTS = {"127.0.0.1", "localhost", "agenticlab-sh.github.io"}
+ALLOWED_HOSTS = {"127.0.0.1", "localhost"}
 
 
 def newest_matching_path(pattern: str) -> str:

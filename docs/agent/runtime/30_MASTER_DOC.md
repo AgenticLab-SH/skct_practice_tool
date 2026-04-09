@@ -1,5 +1,5 @@
 # SKCT Tool 작업 기준서
-작성일시: 2026-04-09 21:10:58 +09:00
+작성일시: 2026-04-09 23:13:20 +09:00
 
 이 문서는 이 프로젝트에서 작업을 시작할 때 가장 먼저 읽는 얇은 기준서입니다. 긴 worklog를 처음부터 다 읽지 않고도, 현재 운영 경계와 다음 우선순위를 바로 파악할 수 있게 유지합니다.
 
@@ -11,6 +11,8 @@
 - 현재 로컬 안전 백업 기준:
   - 백업 브랜치: `backup/20260409_201424-local-safe-start`
   - 백업 태그: `backup-20260409_201424-local-safe-start`
+  - 추가 백업 브랜치: `backup/20260409_225421-remaining-todo-start`
+  - 추가 백업 태그: `backup-20260409_225421-remaining-todo-start`
   - 작업 브랜치: `work/20260409_201424-local-safe-hardening`
 
 ## 2. 현재 프로젝트 한 줄 상태
@@ -19,7 +21,8 @@
 - 2026-04-08 이후 관리자 인증, 고급 라이선스 검증, 자료 보관함 게이트는 강화됐습니다.
 - 공개 메인 화면에서는 `커뮤니티`와 `활성 세션`을 유지하고, 확장 ZIP은 `extension-info.html` 같은 별도 안내 페이지로 분리했습니다.
 - `guide`, `faq`, `pricing`, `privacy`, `terms`는 메인 연습 도구와 분리된 문서형 경로로 준비했습니다.
-- 다만 일부 공개 RTDB 쓰기 경로와 민감 흐름의 클라이언트 직결 구조는 아직 남아 있습니다.
+- 수동 신청/조회/고급 라이선스 확인은 `secureApiBaseUrl`이 설정되면 서버 경유를 우선 사용하도록 바뀌었고, `functions/` 준비 코드도 추가했습니다.
+- 공개 RTDB 쓰기는 완전 차단 전 단계로, 통계/커뮤니티 경로에 입력 검증을 먼저 넣었습니다.
 
 ## 3. 가장 먼저 볼 문서
 
@@ -30,17 +33,17 @@
 
 ## 4. 현재 우선순위
 
-1. RTDB 공개 쓰기 범위 축소
-- `active_visitors`, `daily_visits`, `posts`, `replies`, `userLikes`처럼 공개 화면이 직접 쓰는 경로를 기능 보존 전제 아래 더 좁히는 설계가 다음 우선순위입니다.
+1. Functions 배포와 secure API URL 저장
+- `functions/index.js`를 운영 Firebase에 배포하고, 관리자 페이지 `보안 API 기본 URL`에 실제 엔드포인트를 저장해야 민감 흐름의 direct RTDB fallback을 끊을 수 있습니다.
 
-2. 민감 흐름의 서버측 이전 설계
-- 신청 저장, 신청 조회, 고급 로그인 확인은 여전히 클라이언트가 RTDB를 직접 만지는 구조라서, 장기적으로는 서버 경유 구조가 필요합니다.
+2. 민감 경로 rules 최종 잠금
+- secure API가 검증되면 `subscriptionRequests`, `subscriptionRequestLookup`, `advancedAccountLicenses`의 공개 read/write를 auth 전용으로 잠가야 합니다.
 
-3. 문서형 페이지와 부가 경로 운영 정리
-- `guide`, `faq`, `pricing`, `privacy`, `terms`, `extension-info.html`을 운영 반영 전에 한 번 더 검토하고 문구 기준을 관리자 설정값과 맞춰야 합니다.
+3. public-clean 브랜치 반영
+- `scripts/export_public_clean.ps1` 출력물을 기준으로 로컬 `public-clean` 브랜치를 만들고, 운영 Pages 원본을 거기로 바꿀 준비를 해야 합니다.
 
-4. 측정과 검색 노출 마감
-- 이미 심은 GA4 이벤트가 실제 운영 플로우와 맞는지 확인하고, 사이트맵과 문서형 페이지 연결을 최종 점검합니다.
+4. 검색/광고 운영 마감
+- `ads.txt`, `CNAME`, Search Console/GA 최종 점검은 실제 운영 도메인과 광고 계정 값이 있어야 마무리할 수 있습니다.
 
 ## 5. 기능 문서 동기화 기준
 

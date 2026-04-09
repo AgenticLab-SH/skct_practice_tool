@@ -1,5 +1,5 @@
 # SKCT Tool 학습 메모
-작성일시: 2026-04-09 21:10:58 +09:00
+작성일시: 2026-04-09 23:13:20 +09:00
 
 이 문서는 같은 실수를 반복하지 않기 위한 짧은 재발 방지 메모입니다.
 
@@ -25,3 +25,9 @@
 - 이번에는 `index.html`의 숨김 제목과 설명을 바꿔도, 로딩 후에는 다시 예전 문구로 돌아가는 현상이 있었습니다.
 - 원인은 Firebase `config/siteTextConfig`와 `site-text-config.js` fallback이 HTML을 다시 덮어쓰는 구조였기 때문입니다.
 - 메타/가이드/더보기 같은 문구를 바꿀 때는 `index.html`만 수정하지 말고, `site-text-config.js` 기본값과 legacy migration까지 같이 봐야 같은 문제가 반복되지 않습니다.
+
+## 5. 정적 앱을 서버 분리로 옮길 때는 프런트 fallback부터 정리해야 한다
+
+- GitHub Pages 정적 앱에서 갑자기 direct RTDB를 전부 끊어버리면, 서버가 준비되기 전까지 신청/조회/고급 로그인 흐름이 한꺼번에 죽습니다.
+- 이번에는 `manualSubscriptionConfig.secureApiBaseUrl`이 있을 때만 서버 경유를 우선 쓰고, 없으면 기존 direct 경로를 유지하는 식으로 전환 발판을 먼저 만들었습니다.
+- 이런 식으로 `새 경로 우선 + 구 경로 fallback`을 먼저 넣어 두면, 운영 반영은 `서버 배포 -> 설정 저장 -> rules 잠금` 순서로 끊김 없이 옮길 수 있습니다.

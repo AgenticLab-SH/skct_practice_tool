@@ -1,12 +1,12 @@
 # SKCT Tool 전체 구조 및 운영 기준
-작성일시: 2026-04-09 21:10:58 +09:00
+작성일시: 2026-04-09 23:13:20 +09:00
 
 이 문서는 현재 SKCT Tool 프로젝트를 한 번에 이해하기 위한 기준 문서입니다.  
 개별 작업 로그가 많아도, 이 문서 하나로 “무슨 화면이 있고, 어디서 수정하고, 어떤 순서로 반영하는지”를 바로 파악할 수 있도록 정리합니다.
 
 ## 1. 프로젝트 한 줄 설명
 
-이 프로젝트는 `순수 HTML/CSS/Vanilla JS + Firebase RTDB + GitHub Pages` 기반의 SKCT 연습 웹입니다.
+이 프로젝트는 `순수 HTML/CSS/Vanilla JS + Firebase RTDB + GitHub Pages + Firebase Functions 준비 코드` 기반의 SKCT 연습 웹입니다.
 
 핵심 기능:
 - OMR
@@ -65,6 +65,13 @@
 ### 운영 관리자 화면
 - [admin.html](/C:/dev/01_career/_assets/tools/skct_tool/admin.html)
 
+### 민감 흐름 서버 분리 준비
+- [functions/index.js](/C:/dev/01_career/_assets/tools/skct_tool/functions/index.js)
+- [functions/README.md](/C:/dev/01_career/_assets/tools/skct_tool/functions/README.md)
+
+### 공개 배포 추출 준비
+- [scripts/export_public_clean.ps1](/C:/dev/01_career/_assets/tools/skct_tool/scripts/export_public_clean.ps1)
+
 ### 스테이징 사용자 화면
 - [staging/site/index.html](/C:/dev/01_career/_assets/tools/skct_tool/staging/site/index.html)
 - [staging/site/assets/scripts/app.bundle.js](/C:/dev/01_career/_assets/tools/skct_tool/staging/site/assets/scripts/app.bundle.js)
@@ -89,6 +96,7 @@
 - `popupLayout`
 - `toolUiConfig`
 - `supportConfig`
+- `manualSubscriptionConfig`
 - `advancedFeatureConfig`
 - `notice_*`
 
@@ -115,8 +123,9 @@
 ### 관리자
 1. 관리자 페이지 로그인
 2. 공지/후원/기본값/고급 구독 관리
-3. 스테이징에서 먼저 저장/검증
-4. 승인 후 운영으로 이식
+3. 필요하면 `manualSubscriptionConfig.secureApiBaseUrl`에 서버 경유 API 기본 URL 저장
+4. 스테이징에서 먼저 저장/검증
+5. 승인 후 운영으로 이식
 
 ## 7. 지금까지 크게 정리된 기능 묶음
 
@@ -147,6 +156,11 @@
 - 후원 문구를 관리자 페이지에서 저장 가능
 - 후원 목록 위치와 속도 조절 가능
 - 통계 표시와 상세 통계 다운로드 개선
+
+### 보안/배포 준비
+- 공개 쓰기 경로는 완전 차단 대신 먼저 값 검증을 강화해 스팸과 비정상 입력 폭을 줄였습니다.
+- 신청 저장/조회/고급 라이선스 확인은 나중에 Functions로 옮길 수 있도록 서버 경유 경로를 먼저 준비했습니다.
+- 공개 배포는 `scripts/export_public_clean.ps1`로 추출한 결과를 기준으로 별도 브랜치에 올릴 수 있게 정리했습니다.
 
 ### 고급모드
 - 숨김 진입 + 비밀번호 인증
