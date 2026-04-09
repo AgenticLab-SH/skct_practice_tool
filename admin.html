@@ -730,6 +730,73 @@
         setTimeout(() => el.className = 'toast', 3000);
     }
 
+    function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function isPermissionDeniedError(error) {
+        const code = String(error?.code || '').toLowerCase();
+        const message = String(error?.message || '').toLowerCase();
+        return code.includes('permission-denied') || message.includes('permission denied');
+    }
+
+    function buildDbRef(path = '') {
+        return path ? ref(db, path) : ref(db);
+    }
+
+    async function ensureAdminWriteSession(options = {}) {
+        const { forceRefresh = false, expectedUser = null } = options;
+        if (typeof auth.authStateReady === 'function') {
+            await auth.authStateReady();
+        }
+        const user = expectedUser || auth.currentUser;
+        if (!user) {
+            const missingSessionError = new Error('관리자 로그인 세션이 없습니다. 다시 로그인해주세요.');
+            missingSessionError.code = 'auth/admin-session-missing';
+            throw missingSessionError;
+        }
+        try {
+            await user.getIdToken(forceRefresh);
+            return user;
+        } catch (error) {
+            console.error('Admin token verification failed:', error);
+            const tokenError = new Error('관리자 인증 토큰을 확인하지 못했습니다. 다시 로그인해주세요.');
+            tokenError.code = error?.code || 'auth/admin-token-check-failed';
+            throw tokenError;
+        }
+    }
+
+    async function runAdminDatabaseWrite(operation, options = {}) {
+        const { retryOnPermissionDenied = true } = options;
+        await ensureAdminWriteSession();
+        try {
+            return await operation();
+        } catch (error) {
+            if (retryOnPermissionDenied && isPermissionDeniedError(error)) {
+                await ensureAdminWriteSession({ forceRefresh: true });
+                await sleep(150);
+                return operation();
+            }
+            throw error;
+        }
+    }
+
+    async function adminSetValue(path, value, options = {}) {
+        return runAdminDatabaseWrite(() => set(buildDbRef(path), value), options);
+    }
+
+    async function adminUpdateValue(path, value, options = {}) {
+        return runAdminDatabaseWrite(() => update(buildDbRef(path), value), options);
+    }
+
+    async function adminRemoveValue(path, options = {}) {
+        return runAdminDatabaseWrite(() => remove(buildDbRef(path)), options);
+    }
+
+    async function adminRunTransactionValue(path, updater, options = {}) {
+        return runAdminDatabaseWrite(() => runTransaction(buildDbRef(path), updater), options);
+    }
+
     function clampNumber(value, min, max) {
         return Math.min(max, Math.max(min, value));
     }
@@ -1222,16 +1289,16 @@
         const privateConfig = buildStoredAdvancedFeatureConfig(normalizedConfig);
         const publicAuthResult = await buildAdvancedAccountLicenseMap(normalizedConfig, options);
         loadedConfig.advancedFeatureConfig = normalizedConfig;
-        await set(ref(db, 'config/advancedFeatureConfig'), privateConfig);
+        await adminSetValue('config/advancedFeatureConfig', privateConfig);
         const nextKeys = new Set(Object.keys(publicAuthResult.records));
         const existingKeys = Object.keys(existingLicenseMap || {});
         for (const loginIdKey of existingKeys) {
             if (!nextKeys.has(loginIdKey)) {
-                await remove(ref(db, `${ADVANCED_ACCOUNT_LICENSES_PATH}/${loginIdKey}`));
+                await adminRemoveValue(`${ADVANCED_ACCOUNT_LICENSES_PATH}/${loginIdKey}`);
             }
         }
         for (const [loginIdKey, record] of Object.entries(publicAuthResult.records)) {
-            await set(ref(db, `${ADVANCED_ACCOUNT_LICENSES_PATH}/${loginIdKey}`), record);
+            await adminSetValue(`${ADVANCED_ACCOUNT_LICENSES_PATH}/${loginIdKey}`, record);
         }
         renderAdvancedFeatureForm();
         return {
@@ -1491,12 +1558,20 @@
         leaveDashboard();
     });
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-            document.getElementById('loginError').style.display = 'none';
-            document.getElementById('loginEmail').value = user.email || '';
-            enterDashboard();
-            return;
+            try {
+                await ensureAdminWriteSession({ expectedUser: user });
+                document.getElementById('loginError').style.display = 'none';
+                document.getElementById('loginEmail').value = user.email || '';
+                enterDashboard();
+                return;
+            } catch (error) {
+                console.error('Admin session bootstrap failed:', error);
+                document.getElementById('loginError').textContent = '로그인 상태를 복원하지 못했습니다. 다시 로그인해주세요.';
+                document.getElementById('loginError').style.display = 'block';
+                await signOut(auth).catch(() => {});
+            }
         }
         leaveDashboard();
     });
@@ -1560,9 +1635,9 @@
                 document.getElementById('settingRatioUtils').value = loadedConfig.layoutRatios.utils;
                 document.getElementById('settingRatioCalc').value = loadedConfig.layoutRatios.calc;
 
-                await set(ref(db, 'config/popupLayout'), loadedConfig.popupLayout);
-                await set(ref(db, 'config/layoutRatios'), loadedConfig.layoutRatios);
-                await set(ref(db, 'config/toolUiConfig'), loadedConfig.toolUiConfig);
+                await adminSetValue('config/popupLayout', loadedConfig.popupLayout);
+                await adminSetValue('config/layoutRatios', loadedConfig.layoutRatios);
+                await adminSetValue('config/toolUiConfig', loadedConfig.toolUiConfig);
 
                 renderPopupLayoutSummary();
                 toast('✅ 테스트 기본값을 실제 서버에 반영했습니다.');
@@ -1592,9 +1667,9 @@
                 stagingLoadedConfig.layoutRatios = normalizeLayoutRatios(message.payload?.layoutRatios);
                 stagingLoadedConfig.toolUiConfig = normalizeToolUiConfig(message.payload?.toolUiConfig);
 
-                await set(ref(db, 'staging_hidden_v1/config/popupLayout'), stagingLoadedConfig.popupLayout);
-                await set(ref(db, 'staging_hidden_v1/config/layoutRatios'), stagingLoadedConfig.layoutRatios);
-                await set(ref(db, 'staging_hidden_v1/config/toolUiConfig'), stagingLoadedConfig.toolUiConfig);
+                await adminSetValue('staging_hidden_v1/config/popupLayout', stagingLoadedConfig.popupLayout);
+                await adminSetValue('staging_hidden_v1/config/layoutRatios', stagingLoadedConfig.layoutRatios);
+                await adminSetValue('staging_hidden_v1/config/toolUiConfig', stagingLoadedConfig.toolUiConfig);
 
                 renderStagingPopupLayoutSummary();
                 toast('✅ 테스트 기본값 저장 완료');
@@ -1938,35 +2013,35 @@
         switch (action) {
             case 'pin': {
                 const snap = await get(ref(db, `posts/${pid}/pinned`));
-                await update(ref(db, `posts/${pid}`), { pinned: !(snap.val() || false) });
+                await adminUpdateValue(`posts/${pid}`, { pinned: !(snap.val() || false) });
                 toast('📌 고정 상태 변경됨');
                 loadPostsOnce();
                 break;
             }
             case 'move': {
                 if (!confirm('이 게시글을 FAQ로 이동할까요?')) return;
-                await update(ref(db, `posts/${pid}`), { category: 'faq' });
+                await adminUpdateValue(`posts/${pid}`, { category: 'faq' });
                 toast('📌 FAQ로 이동 완료');
                 loadPostsOnce();
                 break;
             }
             case 'delete': {
                 if (!confirm('이 게시글을 삭제할까요?')) return;
-                await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
+                await adminUpdateValue(`posts/${pid}`, { deleted: true, deletedAt: Date.now() });
                 toast('🗑️ 삭제됨');
                 loadPostsOnce();
                 break;
             }
             case 'restore': {
-                await update(ref(db, `posts/${pid}`), { deleted: false, deletedAt: null });
+                await adminUpdateValue(`posts/${pid}`, { deleted: false, deletedAt: null });
                 toast('♻️ 복원됨');
                 loadPostsOnce();
                 break;
             }
             case 'harddelete': {
                 if (!confirm('⚠️ 완전히 삭제합니다. 복구가 불가능합니다. 계속할까요?')) return;
-                await remove(ref(db, `posts/${pid}`));
-                await remove(ref(db, `replies/${pid}`));
+                await adminRemoveValue(`posts/${pid}`);
+                await adminRemoveValue(`replies/${pid}`);
                 toast('💀 완전 삭제됨');
                 loadPostsOnce();
                 break;
@@ -2034,23 +2109,23 @@
                 const a = btn.dataset.ract, rid = btn.dataset.rid;
                 if (a === 'rpin') {
                     const s = await get(ref(db, `replies/${pid}/${rid}/pinned`));
-                    await update(ref(db, `replies/${pid}/${rid}`), { pinned: !(s.val() || false) });
+                    await adminUpdateValue(`replies/${pid}/${rid}`, { pinned: !(s.val() || false) });
                     toast('📌 댓글 고정 변경');
                     openReplyModal(pid);
                 } else if (a === 'rdel') {
                     if (!confirm('댓글을 삭제할까요?')) return;
-                    await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
-                    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c || 0) - 1, 0));
+                    await adminUpdateValue(`replies/${pid}/${rid}`, { deleted: true, deletedAt: Date.now() });
+                    await adminRunTransactionValue(`posts/${pid}/replyCount`, c => Math.max((c || 0) - 1, 0));
                     toast('🗑️ 댓글 삭제됨');
                     openReplyModal(pid);
                 } else if (a === 'rrestore') {
-                    await update(ref(db, `replies/${pid}/${rid}`), { deleted: false, deletedAt: null });
-                    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c || 0) + 1);
+                    await adminUpdateValue(`replies/${pid}/${rid}`, { deleted: false, deletedAt: null });
+                    await adminRunTransactionValue(`posts/${pid}/replyCount`, c => (c || 0) + 1);
                     toast('♻️ 댓글 복원됨');
                     openReplyModal(pid);
                 } else if (a === 'rhard') {
                     if (!confirm('⚠️ 완전 삭제합니다.')) return;
-                    await remove(ref(db, `replies/${pid}/${rid}`));
+                    await adminRemoveValue(`replies/${pid}/${rid}`);
                     toast('💀 완전 삭제됨');
                     openReplyModal(pid);
                 }
@@ -2072,7 +2147,7 @@
             nickname: '🛡️ 관리자', passwordHash: '', content,
             timestamp: Date.now(), isAdmin: true, pinned: true, deleted: false
         });
-        await runTransaction(ref(db, `posts/${currentReplyPid}/replyCount`), c => (c || 0) + 1);
+        await adminRunTransactionValue(`posts/${currentReplyPid}/replyCount`, c => (c || 0) + 1);
         document.getElementById('adminReplyInput').value = '';
         toast('✅ 관리자 답글 등록');
         openReplyModal(currentReplyPid);
@@ -2745,8 +2820,8 @@
             generatedMessage += ' 라이선스 서명키를 자동 생성했습니다.';
         }
         loadedConfig.manualSubscriptionConfig = config;
-        await set(ref(db, 'config/manualSubscriptionConfig'), config);
-        await remove(ref(db, 'config/adminHash'));
+        await adminSetValue('config/manualSubscriptionConfig', config);
+        await adminRemoveValue('config/adminHash');
         renderManualSubscriptionAdminForm(`수동 구독 신청 설정이 저장되었습니다.${generatedMessage}`.trim());
         if (!silent) toast('✅ 수동 구독 신청 설정 저장 완료');
     }
@@ -2856,7 +2931,7 @@
             buildAdminLocalBackupPayload(currentDatabase, 'pre-restore-safety-backup')
         );
 
-        await set(ref(db), pendingBackupImport.database);
+        await adminSetValue('', pendingBackupImport.database);
         pendingBackupImport = null;
         renderBackupImportPreview('복원이 완료되었습니다. 업로드 대기 상태로 돌아갑니다.');
         renderManualSubscriptionAdminForm('백업 복원이 완료되었습니다. 현재 상태를 다시 불러옵니다.');
@@ -3042,7 +3117,7 @@
                 ? { [loginIdKey]: String(nextPayload.requestPassword || '').trim() }
                 : {}
         });
-        await update(ref(db, `subscriptionRequests/${requestId}`), {
+        await adminUpdateValue(`subscriptionRequests/${requestId}`, {
             status: 'fulfilled',
             updatedAt: Date.now(),
             payloadCipher: encryptedPayload.payloadCipher,
@@ -3082,7 +3157,7 @@
             }
         };
         const encryptedPayload = await window.SKCTSubscriptionCrypto.reencryptRequestPayloadForAdmin(record, nextPayload, privateKeyPem);
-        await update(ref(db, `subscriptionRequests/${requestId}`), {
+        await adminUpdateValue(`subscriptionRequests/${requestId}`, {
             status: 'rejected',
             updatedAt: Date.now(),
             payloadCipher: encryptedPayload.payloadCipher,
@@ -3125,7 +3200,7 @@
         };
         const encryptedPayload = await window.SKCTSubscriptionCrypto.reencryptRequestPayloadForAdmin(record, nextPayload, privateKeyPem);
         const nextStatus = isBlocked ? 'pending' : 'blocked';
-        await update(ref(db, `subscriptionRequests/${requestId}`), {
+        await adminUpdateValue(`subscriptionRequests/${requestId}`, {
             status: nextStatus,
             updatedAt: Date.now(),
             payloadCipher: encryptedPayload.payloadCipher,
@@ -3153,9 +3228,9 @@
         if (!confirmed) return;
         const lookupKey = String(record.lookupEmailPasswordKey || '').trim();
         if (lookupKey) {
-            await remove(ref(db, `subscriptionRequestLookup/${lookupKey}`));
+            await adminRemoveValue(`subscriptionRequestLookup/${lookupKey}`);
         }
-        await remove(ref(db, `subscriptionRequests/${requestId}`));
+        await adminRemoveValue(`subscriptionRequests/${requestId}`);
         delete subscriptionRequestCache[requestId];
         renderSubscriptionRequests();
         renderManualSubscriptionAdminForm(`${requestId} 신청을 Firebase에서 삭제했습니다.`);
@@ -3410,7 +3485,7 @@
                 .filter(([, value]) => !(typeof value === 'number' && (now - value) < PRESENCE_STALE_MS))
                 .map(([key]) => key);
             for (const key of targets) {
-                await remove(ref(db, `active_visitors/${key}`));
+                await adminRemoveValue(`active_visitors/${key}`);
             }
             toast(targets.length
                 ? `✅ 유령 세션 ${targets.length}건을 정리했습니다. 최근 활성 세션 수는 유지됩니다.`
@@ -3593,7 +3668,7 @@
             updated: new Date().toISOString().slice(0, 10)
         };
         loadedConfig[target] = notice;
-        await set(ref(db, `config/${target}`), notice);
+        await adminSetValue(`config/${target}`, notice);
         const targetLabel = target === 'notice_sidebar'
             ? '사이드바'
             : target === 'notice_help'
@@ -3607,7 +3682,7 @@
             minLikes: parseInt(document.getElementById('popMinLikes').value) || 5,
             minComments: parseInt(document.getElementById('popMinComments').value) || 3
         };
-        await set(ref(db, 'config/popularConfig'), config);
+        await adminSetValue('config/popularConfig', config);
         if (!silent) toast('✅ 인기글 기준 저장 완료');
     }
 
@@ -3621,9 +3696,9 @@
             time: document.getElementById('settingMaintenanceTime').value.trim() || '11:00'
         };
 
-        await set(ref(db, 'config/appName'), appName);
-        await set(ref(db, 'config/useful_links'), links);
-        await set(ref(db, 'config/maintenance'), maintenance);
+        await adminSetValue('config/appName', appName);
+        await adminSetValue('config/useful_links', links);
+        await adminSetValue('config/maintenance', maintenance);
         if (!silent) toast('✅ 앱/링크 설정 저장 완료');
     }
 
@@ -3647,30 +3722,30 @@
         };
         loadedConfig.layoutRatios = normalizeLayoutRatios(layoutRatios);
 
-        await set(ref(db, 'config/timerDefaults'), timerDefaults);
-        await set(ref(db, 'config/guideDefaults'), guideDefaults);
-        await set(ref(db, 'config/layoutRatios'), loadedConfig.layoutRatios);
-        await set(ref(db, 'config/toolUiConfig'), loadedConfig.toolUiConfig);
+        await adminSetValue('config/timerDefaults', timerDefaults);
+        await adminSetValue('config/guideDefaults', guideDefaults);
+        await adminSetValue('config/layoutRatios', loadedConfig.layoutRatios);
+        await adminSetValue('config/toolUiConfig', loadedConfig.toolUiConfig);
         renderPopupLayoutSummary();
         if (!silent) toast('✅ 타이머/레이아웃 저장 완료');
     }
 
     async function saveSupportSettings(silent = false) {
         const supportConfig = collectSupportConfig();
-        await set(ref(db, 'config/supportConfig'), supportConfig);
+        await adminSetValue('config/supportConfig', supportConfig);
         if (!silent) toast('✅ 후원/운영 문구 저장 완료');
     }
 
     async function saveSiteTextSettings(silent = false) {
         loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(loadedConfig.siteTextConfig);
         hasRemoteSiteTextConfig = true;
-        await set(ref(db, 'config/siteTextConfig'), loadedConfig.siteTextConfig);
+        await adminSetValue('config/siteTextConfig', loadedConfig.siteTextConfig);
         renderSiteTextEditorStatus('사이트 텍스트 설정이 저장되었습니다.');
         if (!silent) toast('✅ 사이트 텍스트 저장 완료');
     }
 
     async function saveSponsors(silent = false) {
-        await set(ref(db, 'config/sponsors'), loadedConfig.sponsors || []);
+        await adminSetValue('config/sponsors', loadedConfig.sponsors || []);
         if (!silent) toast('✅ 후원 내역 저장 완료');
     }
 
