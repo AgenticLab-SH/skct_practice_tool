@@ -2755,6 +2755,80 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasWrapper = document.getElementById('canvasWrapper');
     const notepad = document.getElementById('notepad');
     const canvasCursorIndicator = document.getElementById('canvasCursorIndicator');
+    const NOTEPAD_DRAG_SCROLL_EDGE_PX = 34;
+    const NOTEPAD_DRAG_SCROLL_MAX_STEP = 30;
+    let isNotepadDragSelecting = false;
+    let notepadDragPointerY = 0;
+    let notepadDragScrollFrame = 0;
+    let notepadDragAnchor = 0;
+    let lastNotepadSelectionStart = 0;
+    let lastNotepadSelectionEnd = 0;
+    let suppressCalculatorFocusUntil = 0;
+
+    function stopNotepadDragSelection(options = {}) {
+        const { preserveSuppression = false } = options;
+        if (isNotepadDragSelecting && !preserveSuppression) {
+            suppressCalculatorFocusUntil = Date.now() + 220;
+        }
+        isNotepadDragSelecting = false;
+        if (notepadDragScrollFrame) {
+            cancelAnimationFrame(notepadDragScrollFrame);
+            notepadDragScrollFrame = 0;
+        }
+        lastNotepadSelectionStart = notepad?.selectionStart ?? 0;
+        lastNotepadSelectionEnd = notepad?.selectionEnd ?? 0;
+    }
+
+    function updateNotepadDragSelectionPointer(clientY) {
+        notepadDragPointerY = clientY;
+        if (isNotepadDragSelecting && !notepadDragScrollFrame) {
+            notepadDragScrollFrame = requestAnimationFrame(runNotepadDragAutoScroll);
+        }
+    }
+
+    function runNotepadDragAutoScroll() {
+        notepadDragScrollFrame = 0;
+        if (!isNotepadDragSelecting || !notepad || notepadWrapper?.classList.contains('hidden')) return;
+        const rect = notepad.getBoundingClientRect();
+        let delta = 0;
+        if (notepadDragPointerY < rect.top + NOTEPAD_DRAG_SCROLL_EDGE_PX) {
+            const ratio = Math.min(1.8, (rect.top + NOTEPAD_DRAG_SCROLL_EDGE_PX - notepadDragPointerY) / NOTEPAD_DRAG_SCROLL_EDGE_PX);
+            delta = -Math.ceil(NOTEPAD_DRAG_SCROLL_MAX_STEP * ratio);
+        } else if (notepadDragPointerY > rect.bottom - NOTEPAD_DRAG_SCROLL_EDGE_PX) {
+            const ratio = Math.min(1.8, (notepadDragPointerY - (rect.bottom - NOTEPAD_DRAG_SCROLL_EDGE_PX)) / NOTEPAD_DRAG_SCROLL_EDGE_PX);
+            delta = Math.ceil(NOTEPAD_DRAG_SCROLL_MAX_STEP * ratio);
+        }
+        if (delta !== 0) {
+            notepad.scrollTop += delta;
+            extendNotepadSelectionForAutoScroll(delta);
+        }
+        lastNotepadSelectionStart = notepad.selectionStart;
+        lastNotepadSelectionEnd = notepad.selectionEnd;
+        if (isNotepadDragSelecting) {
+            notepadDragScrollFrame = requestAnimationFrame(runNotepadDragAutoScroll);
+        }
+    }
+
+    function extendNotepadSelectionForAutoScroll(delta) {
+        if (!notepad) return;
+        const value = notepad.value || '';
+        const selectionStart = notepad.selectionStart;
+        const selectionEnd = notepad.selectionEnd;
+        if (delta > 0 && selectionEnd === lastNotepadSelectionEnd) {
+            const nextBreakIndex = value.indexOf('\n', selectionEnd);
+            const nextTarget = nextBreakIndex === -1 ? Math.min(value.length, selectionEnd + 24) : Math.min(value.length, nextBreakIndex + 1);
+            if (nextTarget > selectionEnd) {
+                notepad.setSelectionRange(Math.min(notepadDragAnchor, nextTarget), Math.max(notepadDragAnchor, nextTarget), 'forward');
+            }
+        } else if (delta < 0 && selectionStart === lastNotepadSelectionStart) {
+            const previousSlice = value.slice(0, selectionStart - 1);
+            const previousBreakIndex = previousSlice.lastIndexOf('\n');
+            const previousTarget = previousBreakIndex === -1 ? Math.max(0, selectionStart - 24) : Math.max(0, previousBreakIndex + 1);
+            if (previousTarget < selectionStart) {
+                notepad.setSelectionRange(Math.min(notepadDragAnchor, previousTarget), Math.max(notepadDragAnchor, previousTarget), 'backward');
+            }
+        }
+    }
 
     function setCanvasCursorVisibility(visible) {
         if (!canvasCursorIndicator) return;
@@ -2784,8 +2858,44 @@ document.addEventListener('DOMContentLoaded', () => {
         tabNotepad.classList.remove('active');
         canvasWrapper.classList.remove('hidden');
         notepadWrapper.classList.add('hidden');
+        stopNotepadDragSelection({ preserveSuppression: true });
         resizeCanvas(); // Ensure canvas fits when revealed
     });
+
+    if (notepad) {
+        const notepadDragCaptureOptions = { capture: true };
+        const handleNotepadDragStart = (event) => {
+            if (event.button !== 0) return;
+            isNotepadDragSelecting = true;
+            notepadDragAnchor = notepad.selectionStart;
+            lastNotepadSelectionStart = notepad.selectionStart;
+            lastNotepadSelectionEnd = notepad.selectionEnd;
+            updateNotepadDragSelectionPointer(event.clientY);
+        };
+        const handleNotepadDragMove = (event) => {
+            if (!isNotepadDragSelecting) return;
+            lastNotepadSelectionStart = notepad.selectionStart;
+            lastNotepadSelectionEnd = notepad.selectionEnd;
+            updateNotepadDragSelectionPointer(event.clientY);
+        };
+        const handleNotepadDragEnd = () => {
+            stopNotepadDragSelection();
+        };
+
+        notepad.addEventListener('mousedown', handleNotepadDragStart, notepadDragCaptureOptions);
+        notepad.addEventListener('pointerdown', handleNotepadDragStart, notepadDragCaptureOptions);
+        notepad.addEventListener('blur', () => {
+            stopNotepadDragSelection({ preserveSuppression: true });
+        });
+        document.addEventListener('mousemove', handleNotepadDragMove, notepadDragCaptureOptions);
+        document.addEventListener('pointermove', handleNotepadDragMove, notepadDragCaptureOptions);
+        document.addEventListener('mouseup', handleNotepadDragEnd, notepadDragCaptureOptions);
+        document.addEventListener('pointerup', handleNotepadDragEnd, notepadDragCaptureOptions);
+        document.addEventListener('pointercancel', handleNotepadDragEnd, notepadDragCaptureOptions);
+        window.addEventListener('blur', () => {
+            stopNotepadDragSelection({ preserveSuppression: true });
+        });
+    }
 
     /* --- Drawing Board (Canvas) Logic --- */
     const canvas = document.getElementById('drawingBoard');
@@ -4312,11 +4422,13 @@ document.addEventListener('DOMContentLoaded', () => {
         calculatorSectionEl.tabIndex = -1;
         calculatorSectionEl.addEventListener('mousedown', (e) => {
             if (!(e.target instanceof Element)) return;
+            if (Date.now() < suppressCalculatorFocusUntil) return;
             if (e.target.closest('.calc-btn, input, textarea')) return;
             requestAnimationFrame(focusCalculatorSurface);
         });
         calculatorSectionEl.addEventListener('click', (e) => {
             if (!(e.target instanceof Element)) return;
+            if (Date.now() < suppressCalculatorFocusUntil) return;
             if (e.target.closest('.calc-btn, input, textarea')) return;
             focusCalculatorSurface();
         });
@@ -4324,6 +4436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (calcHistoryEl) {
         calcHistoryEl.tabIndex = -1;
         calcHistoryEl.addEventListener('mousedown', () => {
+            if (Date.now() < suppressCalculatorFocusUntil) return;
             requestAnimationFrame(focusCalculatorSurface);
         });
     }

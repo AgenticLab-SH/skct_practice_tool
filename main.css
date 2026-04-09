@@ -1380,18 +1380,28 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 .tool-body {
     flex: 1;
     position: relative;
+    display: flex;
     min-height: 0;
+    overflow: hidden;
 }
 
 .tool-wrapper {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    isolation: isolate;
 }
 .tool-wrapper.hidden {
     display: none;
 }
 
 #notepad {
+    position: relative;
+    z-index: 1;
+    display: block;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
     height: 100%;
     border: none;
@@ -1402,6 +1412,9 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     outline: none;
     background: var(--panel-bg);
     color: var(--text-main);
+    cursor: crosshair;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 #canvasWrapper {
