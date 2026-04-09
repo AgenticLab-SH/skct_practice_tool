@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedCoachStep3 = document.getElementById('advancedCoachStep3');
     const advancedCoachHint = document.getElementById('advancedCoachHint');
     const advancedCoachGuideBtn = document.getElementById('advancedCoachGuideBtn');
+    const helpAdvancedLinkBtn = document.getElementById('helpAdvancedLinkBtn');
     let popupLayoutSyncTimeout = null;
     let popupMoveWatcher = null;
     let lastPopupEditorSignature = '';
@@ -1262,15 +1263,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (advancedModeLabelArchive) advancedModeLabelArchive.textContent = readSiteText('advancedMode.labelArchive', '자료 보관함');
         if (advancedModeLabelRail) advancedModeLabelRail.textContent = readSiteText('advancedMode.labelRail', '우측 실제환경 여백');
         if (advancedModeStatusFootnote) advancedModeStatusFootnote.innerHTML = readSiteText('advancedMode.footnoteHtml', '자료 보관함은 고급 모드가 열린 브라우저에서만 더보기에 나타나며, 들어간 뒤에도 자료보관함 로그인으로 한 번 더 본인 확인을 합니다.');
-        if (advancedModeGuideBtn) advancedModeGuideBtn.textContent = readSiteText('advancedMode.guideButton', '고급 기능 다시 보기');
+        if (advancedModeGuideBtn) advancedModeGuideBtn.textContent = readSiteText('advancedMode.guideButton', '고급 활용 보기');
         if (advancedModeArchiveBtn) advancedModeArchiveBtn.textContent = readSiteText('advancedMode.archiveButton', '자료 보관함 열기');
-        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 버튼 빠른 설명');
-        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '정답 입력 모드로 바꾼 뒤 채점과 복기 버튼을 순서대로 쓰면 됩니다. 처음에는 이 박스 순서대로만 따라가도 충분합니다.');
+        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 버튼 사용 순서');
+        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '일반 모드에는 없는 버튼만 짧게 정리했습니다. 정답 입력 후에는 아래 순서대로 쓰면 복기가 가장 빠릅니다.');
         if (advancedCoachStep1) advancedCoachStep1.innerHTML = readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력 모드</strong><br>답안 체크가 끝나면 정답 입력 모드로 바꾸고 실제 정답을 넣습니다.');
         if (advancedCoachStep2) advancedCoachStep2.innerHTML = readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 및 과목별 통계</strong><br>채점 후 과목별 상세 통계와 TXT 다운로드로 약점을 바로 정리합니다.');
         if (advancedCoachStep3) advancedCoachStep3.innerHTML = readSiteText('advancedMode.coachStep3Html', '<strong>3. 다시 풀기 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 반복 연습 속도를 높입니다.');
         if (advancedCoachHint) advancedCoachHint.innerHTML = readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만 다시 시작하고, <strong>전↺</strong>는 전체 시험을 처음 상태로 되돌립니다. 자료 보관함은 더보기에서 따로 열립니다.');
-        if (advancedCoachGuideBtn) advancedCoachGuideBtn.textContent = readSiteText('advancedMode.coachGuideButton', '안내 창');
+        if (advancedCoachGuideBtn) advancedCoachGuideBtn.textContent = readSiteText('advancedMode.coachGuideButton', '고급 활용');
+        if (helpAdvancedLinkBtn) helpAdvancedLinkBtn.textContent = readSiteText('helpModal.advancedLinkButton', '고급 기능 보기');
 
         if (advancedModeValueState) {
             advancedModeValueState.textContent = isAdvancedMode
@@ -3884,24 +3886,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const openAdvancedEntryModal = () => {
+        if (isAdvancedMode) return;
+        if (advancedAccessStatus) advancedAccessStatus.textContent = '';
+        if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
+        ensureManualSubscriptionStartDate();
+        const recentRequest = readRecentRequestInfo();
+        if (recentRequest?.lookupIdentifier) {
+            const recentLookupValue = String(recentRequest.lookupIdentifier || '').trim();
+            if (manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
+                manualSubscriptionLookupIdInput.value = recentLookupValue;
+            }
+            if (advancedAccessIdInput && !advancedAccessIdInput.value) {
+                advancedAccessIdInput.value = recentLookupValue;
+            }
+        }
+        updateAdvancedAccessPanel();
+        advancedGuideModal?.classList.remove('hidden');
+    };
     if (advancedGuideToggle && advancedGuideModal) {
         advancedGuideToggle.addEventListener('click', () => {
-            if (isAdvancedMode) return;
-            if (advancedAccessStatus) advancedAccessStatus.textContent = '';
-            if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
-            ensureManualSubscriptionStartDate();
-            const recentRequest = readRecentRequestInfo();
-            if (recentRequest?.lookupIdentifier) {
-                const recentLookupValue = String(recentRequest.lookupIdentifier || '').trim();
-                if (manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
-                    manualSubscriptionLookupIdInput.value = recentLookupValue;
-                }
-                if (advancedAccessIdInput && !advancedAccessIdInput.value) {
-                    advancedAccessIdInput.value = recentLookupValue;
-                }
-            }
-            updateAdvancedAccessPanel();
-            advancedGuideModal.classList.remove('hidden');
+            openAdvancedEntryModal();
         });
     }
     if (advancedToggle && advancedFeatureModal) {
@@ -4187,7 +4192,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const openAdvancedFeatureGuide = () => {
         if (!isAdvancedMode) {
-            advancedGuideModal?.classList.remove('hidden');
+            openAdvancedEntryModal();
             return;
         }
         if (advancedToolsStatus) {
@@ -4211,6 +4216,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const helpModal = document.getElementById('helpModal');
     if(helpToggle && helpModal) {
         helpToggle.addEventListener('click', () => helpModal.classList.remove('hidden'));
+    }
+    if (helpAdvancedLinkBtn) {
+        helpAdvancedLinkBtn.addEventListener('click', () => {
+            helpModal?.classList.add('hidden');
+            openAdvancedFeatureGuide();
+        });
     }
 
     const donateToggle = document.getElementById('donateToggle');

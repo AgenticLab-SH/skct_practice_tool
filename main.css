@@ -551,8 +551,8 @@ body.advanced-mode .advanced-calc-slot {
     gap: 8px;
     padding: 10px;
     border-radius: 8px;
-    background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
-    border: 1px solid #bfdbfe;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
     color: #334155;
 }
 
@@ -570,13 +570,13 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 .advanced-coach-guide-btn {
-    padding: 5px 9px;
+    padding: 5px 10px;
     border-radius: 999px;
     border: 1px solid #93c5fd;
     background: #fff;
     color: #1d4ed8;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -1251,21 +1251,33 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     margin: 14px 0 18px;
     padding: 12px;
     border-radius: 10px;
-    background: linear-gradient(180deg, #fff7ed 0%, #ffffff 100%);
-    border: 1px solid #fed7aa;
+    background: #f8fafc;
+    border: 1px solid #dbeafe;
 }
 
 .help-advanced-section-title {
     font-size: 14px;
     font-weight: 800;
-    color: #9a3412;
+    color: #1d4ed8;
     margin-bottom: 6px;
 }
 
 .help-advanced-section-lead {
     font-size: 12px;
     line-height: 1.7;
-    color: #7c2d12;
+    color: #475569;
+}
+
+.help-advanced-link-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border: 1px solid #93c5fd;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
 }
 
 .help-advanced-gallery {
@@ -1282,14 +1294,14 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     padding: 10px;
     border-radius: 8px;
     background: #ffffff;
-    border: 1px solid #fdba74;
-    box-shadow: 0 6px 16px rgba(249, 115, 22, 0.08);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
 }
 
 .help-advanced-card-title {
     font-size: 12px;
     font-weight: 700;
-    color: #9a3412;
+    color: #0f172a;
 }
 
 .help-advanced-image {
@@ -1302,7 +1314,7 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
 .help-advanced-card-caption {
     font-size: 11px;
     line-height: 1.65;
-    color: #78716c;
+    color: #64748b;
 }
 
 /* Utility Section (Notepad/Canvas) */
