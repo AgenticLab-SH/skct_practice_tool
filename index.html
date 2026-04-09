@@ -29,7 +29,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604100149">
+    <link rel="stylesheet" href="main.css?v=202604100219">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -105,21 +105,16 @@
                         <div class="stat-line"><span id="statSkippedLabel">건너뛴 문제</span> <strong id="statSkipped">0</strong></div>
                         <div class="stat-line"><span id="statUnansweredLabel">못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
                     </div>
-                    <div id="advancedCoachPanel" class="advanced-panel-only advanced-coach-panel">
-                        <div class="advanced-coach-header">
+                    <div id="advancedCoachPanel" class="advanced-panel-only advanced-coach-panel advanced-coach-panel-compact">
+                        <button id="advancedCoachHelpBtn" type="button" class="context-help-btn context-help-btn-omr" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
+                        <div class="context-help-source" hidden aria-hidden="true">
                             <div id="advancedCoachTitle" class="advanced-coach-title">고급 복기 순서</div>
                             <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">전체 안내</button>
-                        </div>
-                        <div id="advancedCoachLead" class="advanced-coach-lead">
-                            처음에는 아래 세 줄만 기억하면 됩니다.
-                        </div>
-                        <div class="advanced-coach-grid">
+                            <div id="advancedCoachLead" class="advanced-coach-lead">처음에는 아래 세 줄만 기억하면 됩니다.</div>
                             <div id="advancedCoachStep1" class="advanced-coach-step"><strong>1. 정답 입력</strong><br>답안 체크 뒤 실제 정답만 넣습니다.</div>
                             <div id="advancedCoachStep2" class="advanced-coach-step"><strong>2. 채점 확인</strong><br>맞은 수와 정답률을 먼저 봅니다.</div>
                             <div id="advancedCoachStep3" class="advanced-coach-step"><strong>3. 복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.</div>
-                        </div>
-                        <div id="advancedCoachHint" class="advanced-coach-hint">
-                            <strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.
+                            <div id="advancedCoachHint" class="advanced-coach-hint"><strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.</div>
                         </div>
                     </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
@@ -246,7 +241,7 @@
                 <button id="mockChatBtn" class="skct-floating-btn chat-btn advanced-layout-only" type="button" aria-label="채팅 버튼 자리">
                     <span class="chat-bubble-icon" aria-hidden="true"></span>
                 </button>
-                <button id="mockQuestionBtn" class="skct-floating-btn question-btn advanced-layout-only" type="button" aria-label="물음표 버튼 자리">?</button>
+                <button id="mockQuestionBtn" class="skct-floating-btn question-btn advanced-layout-only" type="button" data-context-help="advanced-omr" aria-label="현재 화면 도움말" title="현재 화면 도움말">?</button>
 
             </div>
         </main>
@@ -378,7 +373,10 @@
         <div class="modal-content" style="max-width: 320px;">
             <div class="modal-header">
                 <h3 id="settingsTitleTrigger">⚙ 통합 설정</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="settingsHelpBtn" type="button" class="context-help-btn" data-context-help="settings" aria-label="설정 도움말" title="설정 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
                 <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; color:#64748b; line-height:1.6;">
@@ -394,7 +392,7 @@
                             <span style="font-weight:600;">연습 모드</span>
                         </label>
                     </div>
-                    <div id="settingsPracticeModeHint" style="font-size:11px; color:#94a3b8; margin-top:6px; line-height:1.4; padding:0 4px;">
+                    <div id="settingsPracticeModeHint" class="context-help-source" hidden>
                         OFF = <strong style="color:#475569;">실전 모드</strong>: 과목 시간 종료 시 자동 잠금 및 다음 과목 강제 전환<br>
                         ON = <strong style="color:#475569;">연습 모드</strong>: 시간 제한·강제 전환 없이 자유롭게 마킹
                     </div>
@@ -406,7 +404,7 @@
                             <input type="checkbox" id="cfgSkippedAsWrong" style="margin:0; width:16px; height:16px; accent-color:#3b82f6;">
                             <span style="font-weight:600;">건너뛴 문제를 오답으로 처리</span>
                         </label>
-                        <div id="settingsScoringHint" style="font-size:11px; color:#94a3b8; line-height:1.45;">
+                        <div id="settingsScoringHint" class="context-help-source" hidden>
                             OFF = 건너뜀으로 별도 집계<br>
                             ON = 상세 통계와 오답 복기에서 건너뜀도 오답으로 함께 봄
                         </div>
@@ -483,13 +481,16 @@
         <div class="modal-content advanced-guide-modal-content">
             <div class="modal-header">
                 <h3 id="advancedGuideModalTitle">🔒 고급 모드 신청 · 진입 안내</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="advancedGuideHelpBtn" type="button" class="context-help-btn" data-context-help="advanced-entry" aria-label="고급 신청 도움말" title="고급 신청 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body advanced-guide-modal-body">
                 <div class="advanced-guide-section advanced-guide-section-login">
                     <div id="advancedGuideLoginTitle" class="advanced-guide-section-title advanced-guide-section-title-blue">1. 승인된 경우 바로 열기</div>
                     <div id="advancedGuideLoginBody" class="advanced-guide-info advanced-guide-info-blue">
-                        신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 모드로 들어갑니다. 신청번호는 로그인에 쓰지 않습니다.
+                        승인 후 이메일 또는 로그인 ID와 비밀번호로 바로 들어갑니다.
                     </div>
                     <div class="advanced-guide-login-grid">
                         <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청 이메일 또는 로그인 ID" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
@@ -519,8 +520,7 @@
                         </div>
                     </div>
                     <div id="advancedGuideFeatureAccess" class="advanced-guide-note">
-                        <strong style="color:#0f172a;">이 창의 역할</strong><br>
-                        이 창은 <strong>신청과 진입</strong>을 설명합니다. 실제 버튼 사용 순서는 고급 모드 안의 <strong>고급 활용</strong> 창에서 빠르게 다시 볼 수 있습니다.
+                        신청, 승인 확인, 첫 진입만 여기서 보면 됩니다.
                     </div>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-warm">
@@ -528,7 +528,7 @@
                     <div class="advanced-guide-plan-head">
                         <div class="advanced-guide-plan-copy">
                             <div id="advancedGuidePlanIntro" class="advanced-guide-plan-intro">
-                                후원 후 신청서를 저장하고, 승인되면 같은 창에서 바로 들어가면 됩니다.
+                                후원 확인 -> 신청 저장 -> 상태 확인 -> 고급 진입 순서입니다.
                             </div>
                         </div>
                         <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" class="advanced-guide-donate-link">1. 후원 페이지 열기</a>
@@ -546,11 +546,7 @@
                         </div>
                     </div>
                     <div id="advancedGuideFlow" class="advanced-guide-flow">
-                        <strong>신청 순서</strong><br>
-                        1. 후원 페이지에서 금액을 확인합니다.<br>
-                        2. 신청서를 저장합니다.<br>
-                        3. 신청 이메일과 비밀번호로 상태를 확인합니다.<br>
-                        4. 승인 뒤 이메일 또는 로그인 ID로 고급 모드를 엽니다.
+                        후원 확인 -> 신청 저장 -> 신청 이메일로 상태 확인 -> 승인 후 고급 진입
                     </div>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-neutral">
@@ -559,7 +555,7 @@
                         <div class="advanced-guide-section-kicker">필수값만 입력하면 됩니다.</div>
                     </div>
                     <div id="advancedGuideFormDescription" class="advanced-guide-description">
-                        시작일, 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력합니다. 로그인 ID는 일반 ID나 이메일 형식 모두 사용할 수 있습니다.
+                        시작일, 닉네임, 이메일, 로그인 ID, 비밀번호만 입력하면 됩니다.
                     </div>
                     <div class="advanced-guide-form-grid">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
@@ -609,7 +605,7 @@
                 <div class="advanced-guide-section advanced-guide-section-login">
                     <div id="advancedGuideLookupTitle" class="advanced-guide-section-title advanced-guide-section-title-small advanced-guide-section-title-blue">5. 신청 상태 확인</div>
                     <div id="advancedGuideLookupDescription" class="advanced-guide-description advanced-guide-description-blue">
-                        신청 조회는 <strong>신청 이메일</strong>과 비밀번호로만 합니다. 승인 후 고급 로그인은 이메일 또는 로그인 ID로 진행합니다.
+                        조회는 신청 이메일만 씁니다. 승인 뒤 로그인은 이메일 또는 로그인 ID를 씁니다.
                     </div>
                     <div class="advanced-guide-lookup-grid">
                         <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청 이메일" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
@@ -619,7 +615,7 @@
                     <div id="manualSubscriptionLookupResult" style="min-height:24px; font-size:12px; color:#334155; line-height:1.7;"></div>
                 </div>
                 <div id="advancedGuideContact" class="advanced-guide-contact">
-                    문의가 있으면 <strong>zhdlsqpdj@gmail.com</strong>로 보내주세요.
+                    문의: <strong>zhdlsqpdj@gmail.com</strong>
                 </div>
             </div>
         </div>
@@ -629,15 +625,18 @@
         <div class="modal-content advanced-feature-modal-content">
             <div class="modal-header">
                 <h3 id="advancedFeatureModalTitle">✨ 고급 모드 빠른 사용</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="advancedFeatureHelpBtn" type="button" class="context-help-btn" data-context-help="advanced-tools" aria-label="고급 활용 도움말" title="고급 활용 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body advanced-feature-modal-body">
                 <div id="advancedFeatureIntro" class="help-advanced-banner help-advanced-banner-info">
-                    <div style="font-weight:800; margin-bottom:6px;">이 창은 신청 절차가 아니라, 들어온 뒤 어디를 누르는지 다시 찾는 용도입니다.</div>
-                    고급 모드에서는 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>자료 보관함</strong>, <strong>우측 실제환경 여백</strong>이 추가됩니다.
+                    <div style="font-weight:800; margin-bottom:6px;">이미 들어온 뒤 버튼 위치만 다시 찾는 창입니다.</div>
+                    핵심은 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>더보기 안 자료 보관함</strong>입니다.
                 </div>
                 <div id="advancedFeatureSummary" class="help-advanced-banner help-advanced-banner-flow">
-                    <strong>추천 흐름</strong><br><strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>
+                    <strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>
                 </div>
                 <div class="help-advanced-gallery">
                     <div class="help-advanced-card">
@@ -679,13 +678,13 @@
                     </div>
                 </div>
                 <div id="advancedFeaturePlanInfo" class="help-advanced-banner help-advanced-banner-note">
-                    <strong>자료 보관함 위치</strong><br>자료 보관함은 OMR 아래가 아니라 <strong>더보기</strong> 메뉴에서 따로 엽니다. 고급 모드가 열린 브라우저에서만 보입니다.
+                    자료 보관함은 <strong>더보기</strong>에서 따로 엽니다.
                 </div>
                 <div class="help-advanced-checklist">
-                    <div id="advancedFeatureItem1" class="help-advanced-check-item"><strong>1. 결과부터 확인</strong><br>채점 및 통계 확인으로 맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.</div>
-                    <div id="advancedFeatureItem2" class="help-advanced-check-item"><strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 어떤 영역이 흔들렸는지 바로 확인합니다.</div>
-                    <div id="advancedFeatureItem3" class="help-advanced-check-item"><strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계 TXT 다운로드로 복기 기록을 저장합니다.</div>
-                    <div id="advancedFeatureItem4" class="help-advanced-check-item"><strong>4. 반복 연습 준비</strong><br>정오표 일괄입력, 과↺, 전↺, 시간 가이드를 조합해 같은 세트를 다시 돌립니다.</div>
+                    <div id="advancedFeatureItem1" class="help-advanced-check-item"><strong>1. 결과부터 확인</strong><br>맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.</div>
+                    <div id="advancedFeatureItem2" class="help-advanced-check-item"><strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 흔들린 영역을 바로 봅니다.</div>
+                    <div id="advancedFeatureItem3" class="help-advanced-check-item"><strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계를 파일로 저장합니다.</div>
+                    <div id="advancedFeatureItem4" class="help-advanced-check-item"><strong>4. 반복 연습 준비</strong><br>정오표, 과↺, 전↺, 시간 가이드로 다시 풉니다.</div>
                 </div>
                 <div class="advanced-feature-actions">
                     <button id="advancedFeatureManualFlowBtn" type="button" style="padding:8px 12px; background:#fff; color:#c2410c; border:1px solid #fdba74; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer;">신청 안내 보기</button>
@@ -700,7 +699,10 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h3>과목별 상세 통계</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="detailStatsHelpBtn" type="button" class="context-help-btn" data-context-help="detail-stats" aria-label="상세 통계 도움말" title="상세 통계 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body">
                 <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
@@ -729,12 +731,12 @@
         <div class="modal-content bulk-import-modal">
             <div class="modal-header">
                 <h3>📥 정오표 일괄입력</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="bulkImportHelpBtn" type="button" class="context-help-btn" data-context-help="bulk-import" aria-label="정오표 일괄입력 도움말" title="정오표 일괄입력 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body bulk-import-body">
-                <div class="bulk-import-note">
-                    정오표 표를 그대로 붙여넣으면 정답 열을 자동 인식합니다. 자동 인식이 애매하면 아래 열 선택에서 직접 바꾼 뒤 적용하면 됩니다.
-                </div>
                 <textarea id="bulkCorrectImportInput" class="bulk-import-textarea" placeholder="예시)&#10;NO.    정답    입력답    정오    정답률&#10;1      2       1       X      49.3%&#10;2      3       4       X      55.6%"></textarea>
                 <div class="bulk-import-toolbar">
                     <button id="bulkCorrectImportParseBtn" type="button" class="bulk-import-btn primary">붙여넣기 분석</button>
@@ -757,6 +759,18 @@
                     <div id="bulkCorrectImportStatus" class="bulk-import-status">고급모드의 정답 입력 상태에서만 사용할 수 있습니다.</div>
                     <button id="bulkCorrectImportApplyBtn" type="button" class="bulk-import-btn success" disabled>정답 일괄 반영</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="quickInfoModal" class="modal-overlay hidden">
+        <div class="modal-content quick-info-modal-content">
+            <div class="modal-header">
+                <h3 id="quickInfoModalTitle">빠른 도움말</h3>
+                <button class="close-modal btn-close">×</button>
+            </div>
+            <div class="modal-body quick-info-modal-body">
+                <div id="quickInfoModalBody" class="quick-info-body"></div>
             </div>
         </div>
     </div>
@@ -790,11 +804,14 @@
         <div class="modal-content utility-modal-content">
             <div class="modal-header">
                 <h3 id="utilityModalTitle">⋯ 보조 기능 모음</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="utilityHelpBtn" type="button" class="context-help-btn" data-context-help="utility" aria-label="보조 기능 도움말" title="보조 기능 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body utility-modal-body">
                 <p id="utilityModalDescription" class="utility-modal-description">
-                    핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.
+                    핵심 연습 밖 기능만 모아 둔 공간입니다.
                 </p>
                 <div class="utility-card-grid">
                     <button type="button" class="utility-action-card close-utility-before-open" id="statsToggle">
@@ -839,7 +856,10 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h3 id="statsModalTitle">🔥 활성 세션 현황</h3>
-                <button class="close-modal btn-close">×</button>
+                <div class="modal-header-actions">
+                    <button id="statsHelpBtn" type="button" class="context-help-btn" data-context-help="stats" aria-label="활성 세션 도움말" title="활성 세션 도움말">?</button>
+                    <button class="close-modal btn-close">×</button>
+                </div>
             </div>
             <div class="modal-body" style="display:flex; flex-direction:column; gap:20px;">
                 <!-- 1. 실시간 현재 접속자 -->
@@ -926,9 +946,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="build-info.js?v=202604100149"></script>
-    <script src="site-text-config.js?v=202604100149"></script>
-    <script src="main.js?v=202604100149"></script>
+    <script src="build-info.js?v=202604100219"></script>
+    <script src="site-text-config.js?v=202604100219"></script>
+    <script src="main.js?v=202604100219"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
