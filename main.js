@@ -4407,6 +4407,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     window.renderNotice = renderNotice;
 
+    const noticeToggle = document.getElementById('noticeToggle');
+    const noticeModal = document.getElementById('noticeModal');
+    const noticeModalBody = document.getElementById('noticeModalBody');
+    const noticeModalUpdated = document.getElementById('noticeModalUpdated');
+
+    function getNoticeTypeStyle(type) {
+        const typeColors = {
+            info: { bg: '#eff6ff', border: '#3b82f6', icon: '💡', color: '#1d4ed8' },
+            warning: { bg: '#fff7ed', border: '#f97316', icon: '❗', color: '#9a3412' },
+            update: { bg: '#f0fdf4', border: '#22c55e', icon: '🆕', color: '#166534' },
+            event: { bg: '#fdf4ff', border: '#a855f7', icon: '🎉', color: '#7e22ce' }
+        };
+        return typeColors[type] || typeColors.info;
+    }
+
+    function renderSidebarNotice(data = {}) {
+        if (!noticeToggle || !noticeModalBody || !noticeModalUpdated) return;
+        const siteText = window.SKCTSiteTextConfig?.getCurrentConfig?.() || {};
+        const modalText = siteText.noticeModal || {};
+        const normalized = {
+            show: data.show !== false,
+            type: data.type || 'warning',
+            title: data.title || modalText.title || '공지사항',
+            message: data.message || modalText.emptyBody || '현재 표시 중인 공지가 없습니다.',
+            updated: data.updated || ''
+        };
+        const style = getNoticeTypeStyle(normalized.type);
+        noticeToggle.classList.toggle('hidden', !normalized.show);
+        noticeToggle.dataset.noticeType = normalized.type;
+        noticeModalBody.style.background = style.bg;
+        noticeModalBody.style.borderColor = style.border;
+        noticeModalBody.style.color = style.color;
+        noticeModalBody.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:800; color:#111827;">
+                <span style="display:inline-flex; width:18px; height:18px; align-items:center; justify-content:center; border-radius:999px; background:${style.border}; color:#fff; font-size:12px;">${style.icon}</span>
+                <span>${formatInlineHtml(normalized.title)}</span>
+            </div>
+            <div>${formatMultilineHtml(normalized.message)}</div>
+        `;
+        noticeModalUpdated.textContent = normalized.updated
+            ? `${modalText.updatedPrefix || '마지막 업데이트'}: ${normalized.updated}`
+            : '';
+    }
+    window.renderSidebarNotice = renderSidebarNotice;
+
+    if (noticeToggle && noticeModal) {
+        noticeToggle.addEventListener('click', () => {
+            noticeModal.classList.remove('hidden');
+        });
+    }
+
     // (hitscounter.dev 로직이 Firebase total_visits로 대체되어 완전히 제거됨)
 
     // Clicking the calculator surface should move keyboard focus to the calculator.

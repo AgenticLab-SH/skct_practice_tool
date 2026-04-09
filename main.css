@@ -556,6 +556,36 @@ body.advanced-mode .advanced-calc-slot {
     color: #334155;
 }
 
+.notice-toggle {
+    font-size: 13px;
+    background: linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #be123c;
+    cursor: pointer;
+    gap: 2px;
+    border: 1px solid rgba(244, 63, 94, 0.42);
+    transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.notice-toggle:hover {
+    background: linear-gradient(180deg, #ffe4e6 0%, #fecdd3 100%);
+    transform: scale(1.08);
+    box-shadow: 0 6px 12px rgba(190, 24, 93, 0.24);
+}
+
+.notice-shortcut-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+}
+
 .advanced-coach-header {
     display: flex;
     align-items: center;

@@ -12,6 +12,7 @@
         },
         sidebar: {
             helpLabel: '가이드',
+            noticeLabel: '공지',
             omrLabelHtml: '연습<br>OMR',
             settingsLabel: '설정',
             advancedGuideLabelHtml: '고급<br>기능',
@@ -75,6 +76,11 @@
             trendTitle: '📈 최근 7일 방문 기록',
             totalTitle: '🗓️ 누적 방문 기록',
             totalHint: '브라우저 기준 방문 기록으로 집계됩니다.'
+        },
+        noticeModal: {
+            title: '공지사항',
+            emptyBody: '현재 표시 중인 공지가 없습니다.',
+            updatedPrefix: '마지막 업데이트'
         },
         helpModal: {
             title: '📘 기본 사용 가이드',
@@ -350,6 +356,7 @@
         { key: 'meta.srTitle', label: '숨김 H1 제목', category: '메타', selector: '#srMainTitle', prop: 'text' },
         { key: 'meta.srDescription', label: '숨김 설명문', category: '메타', selector: '#srMainDescription', prop: 'text' },
         { key: 'sidebar.helpLabel', label: '사이드바: 가이드', category: '메인 진입', selector: '#sidebarHelpLabel', prop: 'text' },
+        { key: 'sidebar.noticeLabel', label: '사이드바: 공지', category: '메인 진입', selector: '#sidebarNoticeLabel', prop: 'text' },
         { key: 'sidebar.omrLabelHtml', label: '사이드바: OMR', category: '메인 진입', selector: '#sidebarOmrLabel', prop: 'html', multiline: true },
         { key: 'sidebar.settingsLabel', label: '사이드바: 설정', category: '메인 진입', selector: '#sidebarSettingsLabel', prop: 'text' },
         { key: 'sidebar.advancedGuideLabelHtml', label: '사이드바: 고급 기능', category: '메인 진입', selector: '#sidebarAdvancedGuideLabel', prop: 'html', multiline: true },
@@ -403,6 +410,9 @@
         { key: 'statsModal.trendTitle', label: '활성 세션: 추세 제목', category: '활성 세션', selector: '#statsTrendTitle', prop: 'text' },
         { key: 'statsModal.totalTitle', label: '활성 세션: 누적 제목', category: '활성 세션', selector: '#statsTotalLabel', prop: 'text' },
         { key: 'statsModal.totalHint', label: '활성 세션: 누적 설명', category: '활성 세션', selector: '#statsTotalHint', prop: 'text' },
+        { key: 'noticeModal.title', label: '공지 모달 제목', category: '공지 모달', selector: '#noticeModalTitle', prop: 'text' },
+        { key: 'noticeModal.emptyBody', label: '공지 모달 빈 내용', category: '공지 모달', visual: false },
+        { key: 'noticeModal.updatedPrefix', label: '공지 모달 업데이트 접두어', category: '공지 모달', visual: false },
         { key: 'helpModal.title', label: '기본 가이드 제목', category: '가이드 모달', selector: '#helpModalTitle', prop: 'text' },
         { key: 'helpModal.exampleSectionTitle', label: '예시 섹션 제목', category: '가이드 모달', selector: '#helpExampleSectionTitle', prop: 'text' },
         { key: 'helpModal.pdfTitle', label: 'PDF 예시 제목', category: '가이드 모달', selector: '#helpPdfExampleTitle', prop: 'text' },
