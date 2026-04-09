@@ -301,7 +301,7 @@
                         </div>
                     </div>
                     <div style="font-size:11px; color:#9a3412; margin-bottom:10px; line-height:1.6;">
-                        이 표는 관리자 전용 <strong>고급 구독 계정 관리 영역</strong>입니다. 여기서 추가/수정/삭제한 계정 정보는 <strong>Firebase `config/advancedFeatureConfig`</strong>에 저장되며, 공개 페이지에는 평문 비밀번호가 노출되지 않습니다.
+                        이 표는 관리자 전용 <strong>고급 구독 계정 관리 영역</strong>입니다. 여기서 추가/수정/삭제한 계정 정보는 <strong>Firebase `config/advancedFeatureConfig`</strong>에 저장되며, 공개 페이지에는 평문 비밀번호가 노출되지 않습니다. 여기서 직접 추가한 계정은 이메일이 없어도 <strong>로그인 ID + 비밀번호</strong>만 맞으면 바로 로그인됩니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; margin-bottom:10px;">
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
@@ -309,8 +309,8 @@
                             이름, 이메일처럼 누구 계정인지 알아보기 위한 관리자용 표시입니다.
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
-                            <strong style="display:block; color:#0f172a;">ID</strong>
-                            로그인할 때 사용자가 직접 입력하는 계정 ID입니다. 각 계정마다 중복 없이 하나씩 써야 합니다.
+                            <strong style="display:block; color:#0f172a;">로그인 ID</strong>
+                            로그인할 때 사용자가 직접 입력하는 계정 ID입니다. 이메일처럼 생긴 값도 쓸 수 있고, 관리자 수기 등록처럼 이메일이 없는 계정도 이 값 하나로 로그인됩니다. 각 계정마다 중복 없이 하나씩 써야 합니다.
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
                             <strong style="display:block; color:#0f172a;">비밀번호</strong>
@@ -331,7 +331,7 @@
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">상태</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">구독 종류</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">사용자 식별</th>
-                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">ID</th>
+                                    <th style="padding:8px; border-bottom:1px solid #dbeafe;">로그인 ID</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">비밀번호</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">만료일</th>
                                     <th style="padding:8px; border-bottom:1px solid #dbeafe;">메모</th>
@@ -356,7 +356,7 @@
                         </div>
                     </div>
                     <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.7;">
-                        일반 사용자는 공개 목록이 아니라 <strong>신청한 ID + 비밀번호</strong>로만 본인 신청을 조회합니다. 신청 양식은 <strong>투네이션 이름 / 구독권 / 이용 시작일 / ID / 비밀번호 / 닉네임 / 이메일</strong> 기준으로 저장되며, 신청 본문은 브라우저에서 암호화됩니다. 운영자는 <strong>관리자 전용 개인키</strong>가 있어야 전체 비밀글을 열람할 수 있습니다.
+                        일반 사용자의 신청 상태 확인은 <strong>신청 이메일 + 조회 비밀번호</strong>로 진행되고, 승인 후 고급 로그인은 <strong>신청 이메일 또는 로그인 ID + 비밀번호</strong>로 진행됩니다. 신청 양식은 <strong>투네이션 이름 / 구독권 / 이용 시작일 / 로그인 ID / 비밀번호 / 닉네임 / 이메일</strong> 기준으로 저장되며, 신청 본문은 브라우저에서 암호화됩니다. 운영자는 <strong>관리자 전용 개인키</strong>가 있어야 전체 비밀글을 열람할 수 있습니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:12px;">
                         <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
@@ -520,6 +520,12 @@
                     <div class="site-text-editor">
                         <div class="site-text-sidebar">
                             <input id="siteTextSearchInput" type="text" class="form-input" placeholder="문구 검색">
+                            <select id="siteTextScopeFilter" class="form-input" style="margin-top:8px;">
+                                <option value="">범위 전체</option>
+                                <option value="공통">공통</option>
+                                <option value="고급">고급</option>
+                                <option value="운영">운영</option>
+                            </select>
                             <div id="siteTextEditorCount" class="site-text-count">0개</div>
                             <div id="siteTextEditorList" class="site-text-list"></div>
                         </div>
@@ -537,6 +543,9 @@
                             <div class="site-text-detail-card">
                                 <div id="siteTextSelectedLabel" class="site-text-selected-label">왼쪽에서 문구를 선택하세요.</div>
                                 <div id="siteTextSelectedMeta" class="site-text-selected-meta">실제 운영 페이지에서 보이는 텍스트와 상태 메시지를 함께 관리합니다.</div>
+                                <div id="siteTextSelectedHint" class="site-text-selected-meta" style="margin-top:4px; font-size:11px;">
+                                    항목을 선택하면 대상 사용자, 노출 위치, 저장 범위를 여기서 설명합니다.
+                                </div>
                                 <textarea id="siteTextEditorTextarea" class="form-textarea site-text-textarea" rows="8" placeholder="선택한 문구를 여기서 수정합니다."></textarea>
                                 <div class="site-text-detail-actions">
                                     <button class="btn btn-primary btn-sm" id="siteTextApplySelectedBtn" type="button">미리보기에 즉시 반영</button>
@@ -661,7 +670,7 @@
 <div id="toast" class="toast"></div>
 
 <!-- Firebase SDK -->
-<script src="site-text-config.js?v=202604081900"></script>
+<script src="site-text-config.js?v=202604090915"></script>
 <script src="subscription-crypto.js?v=202604081955"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
@@ -2275,6 +2284,51 @@
     let hasRemoteSiteTextConfig = false;
     let siteTextConfigLoadCompleted = false;
 
+    function inferSiteTextScope(entry) {
+        const key = String(entry?.key || '');
+        const category = String(entry?.category || '');
+        if (
+            key.startsWith('advancedGuide.') ||
+            key.startsWith('advancedFeature.') ||
+            key.startsWith('messages.advanced') ||
+            key.startsWith('messages.manual') ||
+            category.includes('고급')
+        ) {
+            return '고급';
+        }
+        if (
+            key.startsWith('utilityModal.') ||
+            key.startsWith('statsModal.') ||
+            category.includes('활성 세션') ||
+            category.includes('보조 기능')
+        ) {
+            return '운영';
+        }
+        if (key.startsWith('messages.')) {
+            return '운영';
+        }
+        return '공통';
+    }
+
+    function buildSiteTextEntryMetaText(entry) {
+        const scope = inferSiteTextScope(entry);
+        const previewMode = entry.visual === false ? '미리보기 클릭 선택 제외' : '미리보기 클릭 선택 가능';
+        return `${scope} · ${entry.category} · ${entry.key} · ${previewMode}`;
+    }
+
+    function buildSiteTextEntryHint(entry) {
+        const selectorText = entry.selector ? `노출 위치: ${entry.selector}` : '노출 위치: 상태 메시지 / 메타 정보';
+        let propertyText = '적용 방식: 텍스트';
+        if (entry.prop === 'html') propertyText = '적용 방식: HTML 허용(sanitize 적용)';
+        if (entry.prop === 'placeholder') propertyText = '적용 방식: 입력 placeholder';
+        if (entry.prop === 'content') propertyText = '적용 방식: 메타 content';
+        if (entry.prop === 'title') propertyText = '적용 방식: title 속성';
+        const saveBoundary = inferSiteTextScope(entry) === '운영'
+            ? '저장 경로: Firebase config/siteTextConfig'
+            : '저장 경로: Firebase config/siteTextConfig';
+        return `${selectorText} · ${propertyText} · ${saveBoundary}`;
+    }
+
     function getSiteTextPreviewFrame() {
         return document.getElementById('siteTextPreviewFrame');
     }
@@ -2308,9 +2362,12 @@
         const listEl = document.getElementById('siteTextEditorList');
         const countEl = document.getElementById('siteTextEditorCount');
         const keyword = (document.getElementById('siteTextSearchInput')?.value || '').trim().toLowerCase();
+        const scopeFilter = (document.getElementById('siteTextScopeFilter')?.value || '').trim();
         const visibleEntries = siteTextCatalog.filter((entry) => {
-            const haystack = `${entry.label} ${entry.category} ${entry.key}`.toLowerCase();
-            return !keyword || haystack.includes(keyword);
+            const haystack = `${entry.label} ${entry.category} ${entry.key} ${inferSiteTextScope(entry)}`.toLowerCase();
+            const matchesKeyword = !keyword || haystack.includes(keyword);
+            const matchesScope = !scopeFilter || inferSiteTextScope(entry) === scopeFilter;
+            return matchesKeyword && matchesScope;
         });
         if (countEl) {
             countEl.textContent = `${visibleEntries.length}개`;
@@ -2318,7 +2375,7 @@
         listEl.innerHTML = visibleEntries.map((entry) => `
             <button type="button" class="site-text-list-item ${entry.key === selectedSiteTextKey ? 'active' : ''}" data-site-text-key="${esc(entry.key)}">
                 ${esc(entry.label)}
-                <small>${esc(entry.category)} · ${esc(entry.key)}</small>
+                <small>${esc(inferSiteTextScope(entry))} · ${esc(entry.category)} · ${esc(entry.key)}</small>
             </button>
         `).join('');
         listEl.querySelectorAll('[data-site-text-key]').forEach((button) => {
@@ -2333,9 +2390,8 @@
         const entry = siteTextCatalog.find((item) => item.key === key);
         const value = window.SKCTSiteTextConfig.getValueByPath(loadedConfig.siteTextConfig, key) ?? '';
         document.getElementById('siteTextSelectedLabel').textContent = entry ? entry.label : '문구';
-        document.getElementById('siteTextSelectedMeta').textContent = entry
-            ? `${entry.category} · ${entry.key}${entry.visual === false ? ' · 미리보기 클릭 선택 제외' : ''}`
-            : '';
+        document.getElementById('siteTextSelectedMeta').textContent = entry ? buildSiteTextEntryMetaText(entry) : '';
+        document.getElementById('siteTextSelectedHint').textContent = entry ? buildSiteTextEntryHint(entry) : '';
         document.getElementById('siteTextEditorTextarea').value = value;
         renderSiteTextList();
         syncSiteTextPreview();
@@ -3133,7 +3189,7 @@
                     </select>
                 </td>
                 <td style="padding:8px;"><input class="form-input" data-field="userIdentity" value="${esc(subscription.userIdentity)}" placeholder="예: 홍길동 / user@example.com"></td>
-                <td style="padding:8px;"><input class="form-input" data-field="loginId" value="${esc(subscription.loginId)}" placeholder="예: sb_user01"></td>
+                <td style="padding:8px;"><input class="form-input" data-field="loginId" value="${esc(subscription.loginId)}" placeholder="예: sb_user01 또는 me@example.com"></td>
                 <td style="padding:8px;">
                     <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPasswordLocal || subscription._plainPassword || '')}" placeholder="새 계정은 필수 / 비워두면 기존 유지">
                     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-top:4px;">
@@ -3676,6 +3732,7 @@
         }
     });
     document.getElementById('siteTextSearchInput').addEventListener('input', renderSiteTextList);
+    document.getElementById('siteTextScopeFilter').addEventListener('change', renderSiteTextList);
     document.getElementById('siteTextEditorTextarea').addEventListener('input', applySelectedSiteTextDraft);
     document.getElementById('siteTextApplySelectedBtn').addEventListener('click', applySelectedSiteTextDraft);
     document.getElementById('siteTextResetSelectedBtn').addEventListener('click', resetSelectedSiteTextEntry);

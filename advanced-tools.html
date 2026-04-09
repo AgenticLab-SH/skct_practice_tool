@@ -117,12 +117,12 @@
     <div class="panel stack">
         <div>
             <h1>고급 기능 인증</h1>
-            <p>ID와 비밀번호 확인 후 실제 팝업 웹의 고급 기능 버전으로 전환됩니다.</p>
+            <p>신청 이메일 또는 로그인 ID와 비밀번호를 확인한 뒤 실제 팝업 웹의 고급 기능 버전으로 전환됩니다. 신청번호는 로그인에 쓰지 않습니다.</p>
         </div>
 
         <section id="authSection" class="stack">
             <div class="field">
-                <label for="advancedIdInput">ID</label>
+                <label for="advancedIdInput">신청 이메일 또는 로그인 ID</label>
                 <input id="advancedIdInput" type="text" autocomplete="off">
             </div>
             <div class="field">
@@ -169,7 +169,7 @@
             if (!syncReadyState()) return;
             const loginId = idInput.value.trim();
             const password = passwordInput.value.trim();
-            authStatus.textContent = 'ID와 비밀번호를 확인하고 있습니다.';
+            authStatus.textContent = '신청 이메일 또는 로그인 ID와 비밀번호를 확인하고 있습니다.';
             const result = bridge.validateCredentialsDetailed
                 ? await bridge.validateCredentialsDetailed(loginId, password)
                 : bridge.validatePasswordDetailed
@@ -177,12 +177,12 @@
                     : { ok: await bridge.validatePassword(password), reason: 'invalid' };
             if (!result.ok) {
                 authStatus.textContent = result.reason === 'expired'
-                    ? 'ID와 비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
+                    ? '이메일 또는 로그인 ID와 비밀번호는 맞지만 이용권이 만료되었거나 비활성화되었습니다.'
                     : result.reason === 'empty_password'
                         ? '비밀번호를 입력해주세요.'
                         : result.reason === 'empty'
-                            ? 'ID와 비밀번호를 모두 입력해주세요.'
-                            : 'ID 또는 비밀번호가 일치하지 않습니다.';
+                            ? '신청 이메일 또는 로그인 ID와 비밀번호를 모두 입력해주세요.'
+                            : '이메일 또는 로그인 ID / 비밀번호가 일치하지 않습니다.';
                 if (!loginId) {
                     idInput.select();
                 } else {

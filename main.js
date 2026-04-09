@@ -11,6 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedModeRequested = runtimeFlags.advancedRequested === true;
     let verifiedAdvancedLicenseBundle = null;
     let pendingAdvancedActivationBundle = null;
+    const readJsonStorage = (storage, key) => {
+        try {
+            return JSON.parse(storage.getItem(key) || 'null');
+        } catch (error) {
+            return null;
+        }
+    };
+    const writeJsonStorage = (storage, key, value) => {
+        storage.setItem(key, JSON.stringify(value));
+    };
     const readStoredAdvancedLicenseBundle = () => {
         try {
             return JSON.parse(localStorage.getItem(ADVANCED_LICENSE_STORAGE_KEY) || 'null');
@@ -31,17 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem(ADVANCED_LICENSE_STORAGE_KEY);
     };
     const readAdvancedFailState = () => {
-        try {
-            return JSON.parse(localStorage.getItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY) || 'null');
-        } catch (error) {
-            return null;
-        }
+        return readJsonStorage(sessionStorage, ADVANCED_PASSWORD_FAIL_STORAGE_KEY);
     };
     const writeAdvancedFailState = (state) => {
-        localStorage.setItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY, JSON.stringify(state));
+        writeJsonStorage(sessionStorage, ADVANCED_PASSWORD_FAIL_STORAGE_KEY, state);
     };
     const resetAdvancedFailState = () => {
-        localStorage.removeItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY);
+        sessionStorage.removeItem(ADVANCED_PASSWORD_FAIL_STORAGE_KEY);
     };
     const getAdvancedCooldownRemainingMs = () => {
         const state = readAdvancedFailState();
@@ -106,6 +112,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const appContainerEl = document.querySelector('.app-container');
     const mainContentEl = document.querySelector('.main-content');
     const topBarEl = document.querySelector('.top-bar');
+    const utilityToggle = document.getElementById('utilityToggle');
+    const utilityModal = document.getElementById('utilityModal');
+    const studyArchiveOpenBtn = document.getElementById('studyArchiveOpenBtn');
     const utilitySectionEl = document.querySelector('.utility-section');
     const calculatorSectionEl = document.querySelector('.calculator-section');
     const topBarResizerEl = document.getElementById('topBarResizer');
@@ -129,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasLineWidthValue = document.getElementById('canvasLineWidthValue');
     const advancedGuideToggle = document.getElementById('advancedGuideToggle');
     const advancedGuideModal = document.getElementById('advancedGuideModal');
-    const advancedAccessSummary = document.getElementById('advancedAccessSummary');
+    const advancedAccessSummary = document.getElementById('advancedGuideLoginBody');
     const advancedAccessIdInput = document.getElementById('advancedAccessIdInput');
     const advancedAccessPasswordInput = document.getElementById('advancedAccessPasswordInput');
     const advancedAccessSubmitBtn = document.getElementById('advancedAccessSubmitBtn');
@@ -405,16 +414,46 @@ document.addEventListener('DOMContentLoaded', () => {
         return remoteManualSubscriptionConfig.plans.find((plan) => plan.code === code) || remoteManualSubscriptionConfig.plans[0] || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[0];
     }
 
+    function normalizeRecentRequestInfo(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const lookupIdentifier = normalizeLookupEmail(raw.lookupIdentifier || '');
+        if (!isLikelyEmailAddress(lookupIdentifier)) return null;
+        const createdAt = Number(raw.createdAt);
+        return {
+            lookupIdentifier,
+            createdAt: Number.isFinite(createdAt) ? createdAt : Date.now()
+        };
+    }
+
+    function clearRecentRequestInfo() {
+        sessionStorage.removeItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY);
+        localStorage.removeItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY);
+    }
+
     function saveRecentRequestInfo(info) {
-        localStorage.setItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY, JSON.stringify(info));
+        const normalized = normalizeRecentRequestInfo(info);
+        if (!normalized) {
+            clearRecentRequestInfo();
+            return;
+        }
+        writeJsonStorage(sessionStorage, MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY, normalized);
+        localStorage.removeItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY);
     }
 
     function readRecentRequestInfo() {
-        try {
-            return JSON.parse(localStorage.getItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY) || 'null');
-        } catch (error) {
+        const current = normalizeRecentRequestInfo(readJsonStorage(sessionStorage, MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY));
+        if (current) {
+            return current;
+        }
+        sessionStorage.removeItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY);
+
+        const legacy = normalizeRecentRequestInfo(readJsonStorage(localStorage, MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY));
+        localStorage.removeItem(MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY);
+        if (!legacy) {
             return null;
         }
+        writeJsonStorage(sessionStorage, MANUAL_SUBSCRIPTION_REQUEST_STORAGE_KEY, legacy);
+        return legacy;
     }
 
     function buildManualSubscriptionSubmitFingerprint(fields = {}) {
@@ -429,19 +468,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function readManualSubscriptionSubmitGuard() {
-        try {
-            return JSON.parse(localStorage.getItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY) || 'null');
-        } catch (error) {
-            return null;
-        }
+        return readJsonStorage(sessionStorage, MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY);
     }
 
     function writeManualSubscriptionSubmitGuard(info) {
-        localStorage.setItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY, JSON.stringify(info));
+        writeJsonStorage(sessionStorage, MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY, info);
     }
 
     function clearManualSubscriptionSubmitGuard() {
-        localStorage.removeItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY);
+        sessionStorage.removeItem(MANUAL_SUBSCRIPTION_SUBMIT_GUARD_STORAGE_KEY);
     }
 
     function findRecentDuplicateManualSubmission(fingerprint) {
@@ -856,21 +891,39 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const DEFAULT_SUPPORT_CONFIG = {
-        modalTitle: "☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!",
-        modalLead: "결제와 광고 없는 쾌적한 환경은 여러분의 소중한 참여로 유지됩니다.",
-        modalBody: "안녕하세요! 저 역시 여러분과 함께 합격을 목표로 달리는 취준생입니다.\n이곳은 오직 공부에만 집중할 수 있도록 광고나 결제 유도 없이, 제가 직접 사비로 운영 중인 100% 무료 공간입니다.",
-        modalPromise: "최근 방문자가 늘어나면서 서버 유지 비용에 대한 부담이 커지고 있습니다.\n'광고 없는 무료 개방' 원칙을 다음 달에도 변함없이 지켜나가기 위해, 이용자분들의 따뜻한 응원이 필요합니다.",
-        modalHighlight: "이 공간이 준비에 도움이 되셨다면, 투네이션을 통해 '커피 한 잔 ☕' 정도의 마음을 나누어 주세요.\n보내주신 정성은 서버 운영 및 관리 비용으로만 사용됩니다.",
+        modalTitle: "☕ 광고 없이 운영되는 SKCT 연습 공간",
+        modalLead: "이 공간은 결제 유도와 배너 광고 없이, 공부 흐름을 해치지 않는 방향으로 유지하고 있습니다.",
+        modalBody: "운영 비용은 개인 부담으로 먼저 감당하고 있고, 필요한 분들이 바로 연습할 수 있도록 무료 공개를 유지하고 있습니다.\n가능한 한 오래 안정적으로 유지하려면 이용자분들의 자발적인 응원이 큰 도움이 됩니다.",
+        modalPromise: "후원 여부와 관계없이 핵심 기능은 계속 사용할 수 있습니다.\n다만 운영 여력을 안정적으로 확보해야 업데이트, 오류 대응, 서버 비용을 꾸준히 감당할 수 있습니다.",
+        modalHighlight: "연습에 실제로 도움이 되었다면, 부담 없는 범위에서 '커피 한 잔 ☕' 정도의 후원으로 운영을 응원해 주세요.\n보내주신 후원은 서버 운영과 유지보수 비용에만 사용됩니다.",
         breakFooter: "개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다.",
         contactText: "",
         contactUrl: "",
-        buttonLabel: "☕ 쿨하게 지원하기",
+        buttonLabel: "☕ 운영 응원하기",
         buttonUrl: "https://toon.at/donate/foreveryonehappy",
         sponsorTickerSeconds: 4
     };
+    const LEGACY_SUPPORT_DEFAULTS = {
+        modalTitle: ["☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!"],
+        modalLead: ["결제와 광고 없는 쾌적한 환경은 여러분의 소중한 참여로 유지됩니다."],
+        modalBody: ["안녕하세요! 저 역시 여러분과 함께 합격을 목표로 달리는 취준생입니다.\n이곳은 오직 공부에만 집중할 수 있도록 광고나 결제 유도 없이, 제가 직접 사비로 운영 중인 100% 무료 공간입니다."],
+        modalPromise: ["최근 방문자가 늘어나면서 서버 유지 비용에 대한 부담이 커지고 있습니다.\n'광고 없는 무료 개방' 원칙을 다음 달에도 변함없이 지켜나가기 위해, 이용자분들의 따뜻한 응원이 필요합니다."],
+        modalHighlight: ["이 공간이 준비에 도움이 되셨다면, 투네이션을 통해 '커피 한 잔 ☕' 정도의 마음을 나누어 주세요.\n보내주신 정성은 서버 운영 및 관리 비용으로만 사용됩니다."],
+        buttonLabel: ["☕ 쿨하게 지원하기"]
+    };
+
+    function migrateLegacySupportConfig(config) {
+        const nextConfig = { ...config };
+        Object.entries(LEGACY_SUPPORT_DEFAULTS).forEach(([key, legacyValues]) => {
+            if (legacyValues.includes(nextConfig[key])) {
+                nextConfig[key] = DEFAULT_SUPPORT_CONFIG[key];
+            }
+        });
+        return nextConfig;
+    }
 
     function applySupportConfig(config) {
-        const support = { ...DEFAULT_SUPPORT_CONFIG, ...(config || {}) };
+        const support = migrateLegacySupportConfig({ ...DEFAULT_SUPPORT_CONFIG, ...(config || {}) });
         const titleEl = document.getElementById('donateModalTitle');
         const leadEl = document.getElementById('donateModalLead');
         const bodyEl = document.getElementById('donateModalBody');
@@ -1011,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setAdvancedModeState(false);
                 removeAdvancedQueryParam();
                 if (!silent && advancedAccessStatus) {
-                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.');
+                    advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 로그인 ID와 비밀번호로 다시 확인해주세요.');
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
             }
@@ -1099,11 +1152,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (cooldownRemainingMs > 0) {
-            advancedAccessSummary.textContent = `이메일/ID 또는 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
+            advancedAccessSummary.textContent = `이메일 또는 로그인 ID / 비밀번호를 여러 번 틀려 ${Math.ceil(cooldownRemainingMs / 1000)}초 뒤에 다시 시도할 수 있습니다.`;
         } else if (verifiedAdvancedLicenseBundle) {
             advancedAccessSummary.textContent = `이 브라우저에 유효한 고급 라이선스가 저장되어 있습니다. 만료: ${formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)}`;
         } else {
-            advancedAccessSummary.textContent = '승인 후에는 신청에 쓴 이메일 또는 관리자가 발급한 ID와 비밀번호로 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다.';
+            advancedAccessSummary.textContent = '승인 후에는 신청 이메일 또는 로그인 ID와 비밀번호로 이 브라우저에 라이선스를 저장하고 고급 모드를 엽니다. 신청번호는 로그인에 쓰지 않습니다.';
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = cooldownRemainingMs > 0;
     };
@@ -1120,12 +1173,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function resolveSubscriptionRequestId(identifier, requestPassword) {
-        const trimmedIdentifier = String(identifier || '').trim();
-        if (!trimmedIdentifier) return '';
-        if (!isLikelyEmailAddress(trimmedIdentifier)) {
-            return trimmedIdentifier;
-        }
-        const lookupKey = await buildSubscriptionLookupKey(trimmedIdentifier, requestPassword);
+        const normalizedEmail = normalizeLookupEmail(identifier);
+        if (!isLikelyEmailAddress(normalizedEmail)) return '';
+        const lookupKey = await buildSubscriptionLookupKey(normalizedEmail, requestPassword);
         if (!lookupKey) return '';
         const response = await fetch(`${SUBSCRIPTION_REQUEST_LOOKUP_BASE_URL}/${encodeURIComponent(lookupKey)}.json`);
         if (!response.ok) {
@@ -1150,8 +1200,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return payload && typeof payload === 'object' ? payload : null;
     }
 
-    async function hydrateAdvancedLicenseFromRequest(requestId, requestPassword) {
+    async function hydrateAdvancedLicenseFromRequest(requestId, requestPassword, options = {}) {
+        const { persist = true } = options;
         const resolvedRequestId = await resolveSubscriptionRequestId(requestId, requestPassword);
+        if (!resolvedRequestId) {
+            return { ok: false, reason: 'not_found' };
+        }
         const record = await fetchSubscriptionRequestRecord(resolvedRequestId);
         if (!record) {
             return { ok: false, reason: 'not_found' };
@@ -1170,8 +1224,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!verifiedBundle) {
             return { ok: false, reason: 'invalid_license', record, payload };
         }
-        writeStoredAdvancedLicenseBundle(verifiedBundle);
-        verifiedAdvancedLicenseBundle = verifiedBundle;
+        if (persist) {
+            writeStoredAdvancedLicenseBundle(verifiedBundle);
+            verifiedAdvancedLicenseBundle = verifiedBundle;
+            pendingAdvancedActivationBundle = null;
+        } else {
+            pendingAdvancedActivationBundle = verifiedBundle;
+        }
         return { ok: true, record, payload, bundle: verifiedBundle };
     }
 
@@ -1220,14 +1279,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function hydrateAdvancedLicenseFromCredentials(identifier, password, options = {}) {
         const trimmedIdentifier = String(identifier || '').trim();
-        const idLooksLikeEmail = isLikelyEmailAddress(trimmedIdentifier);
-        const idLooksLikeRequest = /^REQ-[A-Z0-9]+-[A-Z0-9]+$/i.test(trimmedIdentifier);
-        if (idLooksLikeEmail) {
-            const requestResult = await hydrateAdvancedLicenseFromRequest(trimmedIdentifier, password);
-            return { ...requestResult, mode: 'request' };
-        }
-        if (idLooksLikeRequest) {
-            const requestResult = await hydrateAdvancedLicenseFromRequest(trimmedIdentifier, password);
+        if (isLikelyEmailAddress(trimmedIdentifier)) {
+            const requestResult = await hydrateAdvancedLicenseFromRequest(trimmedIdentifier, password, options);
             if (requestResult.ok || requestResult.reason !== 'not_found') {
                 return { ...requestResult, mode: 'request' };
             }
@@ -1235,11 +1288,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return { ...accountResult, mode: 'account' };
         }
         const accountResult = await hydrateAdvancedLicenseFromAdvancedAccount(trimmedIdentifier, password, options);
-        if (accountResult.ok || accountResult.reason !== 'not_found') {
-            return { ...accountResult, mode: 'account' };
-        }
-        const requestResult = await hydrateAdvancedLicenseFromRequest(trimmedIdentifier, password);
-        return { ...requestResult, mode: 'request' };
+        return { ...accountResult, mode: 'account' };
     }
 
     async function validateAdvancedCredentialsDetailed(identifier, password) {
@@ -1252,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!String(password || '')) {
             return { ok: false, reason: 'empty_password' };
         }
-        return hydrateAdvancedLicenseFromAdvancedAccount(identifier, password, { persist: false });
+        return hydrateAdvancedLicenseFromCredentials(identifier, password, { persist: false });
     }
 
     const submitManualSubscriptionRequest = async () => {
@@ -1286,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (!donationName || !siteNickname || !email || !desiredLoginId || !requestedStartDate || !requestPassword || !requestPasswordConfirm) {
-            manualSubscriptionSubmitStatus.textContent = '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 비밀번호를 모두 입력해주세요.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualRequiredFields', '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 비밀번호를 모두 입력해주세요.');
             return;
         }
         if (!email.includes('@')) {
@@ -1294,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (requestPassword.length < 6) {
-            manualSubscriptionSubmitStatus.textContent = '비밀번호는 최소 6자 이상으로 설정해주세요.';
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualPasswordShort', '비밀번호는 최소 6자 이상으로 설정해주세요.');
             return;
         }
         if (requestPassword !== requestPasswordConfirm) {
@@ -1382,12 +1431,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 requestId,
                 createdAt: Date.now()
             });
-            saveRecentRequestInfo({ requestId, lookupIdentifier: normalizeLookupEmail(email), createdAt: Date.now() });
+            saveRecentRequestInfo({ lookupIdentifier: normalizeLookupEmail(email), createdAt: Date.now() });
             if (manualSubscriptionLookupIdInput) manualSubscriptionLookupIdInput.value = normalizeLookupEmail(email);
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             if (advancedAccessIdInput) advancedAccessIdInput.value = normalizeLookupEmail(email);
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
-            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. 이제 <strong>이메일 ${escapeHtml(normalizeLookupEmail(email))}</strong>와 조회 비밀번호로 바로 상태를 확인할 수 있습니다.`;
+            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. 먼저 <strong>이메일 ${escapeHtml(normalizeLookupEmail(email))}</strong>와 조회 비밀번호로 상태를 확인할 수 있고, 승인 후에는 같은 이메일 또는 로그인 ID로 고급 모드에 들어갈 수 있습니다.`;
         } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
             manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');
@@ -1398,17 +1447,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lookupManualSubscriptionRequest = async () => {
         if (!manualSubscriptionLookupResult) return;
-        const requestId = manualSubscriptionLookupIdInput?.value.trim() || '';
+        const lookupEmail = manualSubscriptionLookupIdInput?.value.trim() || '';
         const requestPassword = manualSubscriptionLookupPasswordInput?.value || '';
-        if (!requestId || !requestPassword) {
-            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '이메일과 조회 비밀번호를 모두 입력해주세요.');
+        if (!lookupEmail || !requestPassword) {
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupRequired', '신청 이메일과 조회 비밀번호를 모두 입력해주세요.');
+            return;
+        }
+        if (!isLikelyEmailAddress(lookupEmail)) {
+            manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupEmailOnly', '신청 조회는 신청 이메일과 조회 비밀번호로만 할 수 있습니다.');
             return;
         }
         try {
-            const resolvedRequestId = await resolveSubscriptionRequestId(requestId, requestPassword);
+            const resolvedRequestId = await resolveSubscriptionRequestId(lookupEmail, requestPassword);
+            if (!resolvedRequestId) {
+                manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 이메일로 조회되는 신청을 찾지 못했습니다. 신청 이메일 또는 조회 비밀번호를 다시 확인해주세요.');
+                return;
+            }
             const record = await fetchSubscriptionRequestRecord(resolvedRequestId);
             if (!record) {
-                manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 이메일로 조회되는 신청을 찾지 못했습니다. 이메일 또는 조회 비밀번호를 다시 확인해주세요.');
+                manualSubscriptionLookupResult.textContent = readSiteText('messages.manualLookupNotFound', '해당 이메일로 조회되는 신청을 찾지 못했습니다. 신청 이메일 또는 조회 비밀번호를 다시 확인해주세요.');
                 return;
             }
             const payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForUser(record, requestPassword);
@@ -1422,7 +1479,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const validBundle = await syncStoredAdvancedLicenseState({ silent: true });
         if (!validBundle) {
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.');
+                advancedAccessStatus.textContent = readSiteText('messages.advancedNeedRelogin', '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 로그인 ID와 비밀번호로 다시 확인해주세요.');
                 advancedAccessStatus.style.color = '#b91c1c';
             }
             return false;
@@ -2555,12 +2612,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const notepadWrapper = document.getElementById('notepadWrapper');
     const canvasWrapper = document.getElementById('canvasWrapper');
     const notepad = document.getElementById('notepad');
+    const canvasCursorIndicator = document.getElementById('canvasCursorIndicator');
+
+    function setCanvasCursorVisibility(visible) {
+        if (!canvasCursorIndicator) return;
+        if (visible) {
+            canvasCursorIndicator.classList.remove('hidden');
+            requestAnimationFrame(() => canvasCursorIndicator.classList.add('visible'));
+            return;
+        }
+        canvasCursorIndicator.classList.remove('visible');
+        window.setTimeout(() => {
+            if (!canvasCursorIndicator.classList.contains('visible')) {
+                canvasCursorIndicator.classList.add('hidden');
+            }
+        }, 120);
+    }
 
     tabNotepad.addEventListener('click', () => {
         tabNotepad.classList.add('active');
         tabCanvas.classList.remove('active');
         notepadWrapper.classList.remove('hidden');
         canvasWrapper.classList.add('hidden');
+        setCanvasCursorVisibility(false);
     });
 
     tabCanvas.addEventListener('click', () => {
@@ -2626,18 +2700,34 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function updateCanvasCursorPosition(e) {
+        if (!canvasCursorIndicator) return;
+        const rect = canvas.getBoundingClientRect();
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+        if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+        canvasCursorIndicator.style.transform = `translate(${clientX - rect.left}px, ${clientY - rect.top}px)`;
+    }
+
     function startDrawing(e) {
         if(e.type === 'mousedown' && e.button !== 0) return; // Only left click
         isDrawing = true;
         const pos = getMousePos(e);
         lastX = pos.x;
         lastY = pos.y;
+        updateCanvasCursorPosition(e);
+        setCanvasCursorVisibility(!e.touches);
         e.preventDefault(); // prevent touch scroll
     }
 
     function draw(e) {
         if (!isDrawing) return;
         const pos = getMousePos(e);
+        updateCanvasCursorPosition(e);
         
         ctx.beginPath();
         ctx.moveTo(lastX, lastY);
@@ -2654,13 +2744,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mousemove', (event) => {
+        updateCanvasCursorPosition(event);
+        setCanvasCursorVisibility(true);
+        draw(event);
+    });
+    canvas.addEventListener('mouseenter', (event) => {
+        updateCanvasCursorPosition(event);
+        setCanvasCursorVisibility(true);
+    });
     canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('mouseout', () => {
+        stopDrawing();
+        setCanvasCursorVisibility(false);
+    });
     
-    canvas.addEventListener('touchstart', startDrawing);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', stopDrawing);
+    canvas.addEventListener('touchstart', (event) => {
+        setCanvasCursorVisibility(false);
+        startDrawing(event);
+    });
+    canvas.addEventListener('touchmove', (event) => {
+        setCanvasCursorVisibility(false);
+        draw(event);
+    });
+    canvas.addEventListener('touchend', () => {
+        stopDrawing();
+        setCanvasCursorVisibility(false);
+    });
 
     noteFontSizeRange?.addEventListener('input', () => {
         applyToolUiConfig({ noteFontSize: noteFontSizeRange.value });
@@ -3641,8 +3751,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (advancedAccessPasswordInput) advancedAccessPasswordInput.value = '';
             ensureManualSubscriptionStartDate();
             const recentRequest = readRecentRequestInfo();
-            if (recentRequest?.requestId || recentRequest?.lookupIdentifier) {
-                const recentLookupValue = String(recentRequest.lookupIdentifier || recentRequest.requestId || '').trim();
+            if (recentRequest?.lookupIdentifier) {
+                const recentLookupValue = String(recentRequest.lookupIdentifier || '').trim();
                 if (manualSubscriptionLookupIdInput && !manualSubscriptionLookupIdInput.value) {
                     manualSubscriptionLookupIdInput.value = recentLookupValue;
                 }
@@ -3795,7 +3905,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (advancedAccessSubmitBtn) {
         advancedAccessSubmitBtn.addEventListener('click', async () => {
-            const requestId = advancedAccessIdInput?.value.trim() || '';
+            const loginIdentifier = advancedAccessIdInput?.value.trim() || '';
             const password = advancedAccessPasswordInput?.value || '';
             if (!isAdvancedConfigReady) {
                 if (advancedAccessStatus) {
@@ -3805,7 +3915,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateAdvancedAccessPanel();
                 return;
             }
-            if ((!requestId || !password) && verifiedAdvancedLicenseBundle) {
+            if ((!loginIdentifier || !password) && verifiedAdvancedLicenseBundle) {
                 if (advancedAccessStatus) {
                     advancedAccessStatus.textContent = readSiteText('messages.advancedOpening', '고급 버전 팝업을 여는 중입니다.');
                     advancedAccessStatus.style.color = '#0f766e';
@@ -3825,12 +3935,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (advancedAccessStatus) {
-                advancedAccessStatus.textContent = readSiteText('messages.advancedChecking', '입력한 정보와 라이선스를 확인하고 있습니다...');
+                advancedAccessStatus.textContent = readSiteText('messages.advancedChecking', '신청 이메일 또는 로그인 ID와 비밀번호를 확인하고 있습니다...');
                 advancedAccessStatus.style.color = '#64748b';
             }
             let licenseResult = null;
             try {
-                licenseResult = await hydrateAdvancedLicenseFromCredentials(requestId, password);
+                licenseResult = await hydrateAdvancedLicenseFromCredentials(loginIdentifier, password);
             } catch (error) {
                 if (advancedAccessStatus) {
                     advancedAccessStatus.textContent = error?.message || readSiteText('messages.advancedLookupError', '고급 계정 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
@@ -3845,7 +3955,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ? Math.max(0, failState.lockedUntil - Date.now())
                         : 0;
                     advancedAccessStatus.textContent = nextCooldownRemainingMs > 0
-                        ? `이메일/ID 또는 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
+                        ? `이메일 또는 로그인 ID / 비밀번호 오류가 누적되어 ${Math.ceil(nextCooldownRemainingMs / 1000)}초 동안 다시 시도할 수 없습니다.`
                         : licenseResult.reason === 'pending'
                             ? '아직 승인 전입니다. 신청 조회에서 상태를 먼저 확인해주세요.'
                             : licenseResult.reason === 'rejected'
@@ -3853,15 +3963,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 : licenseResult.reason === 'invalid_license'
                                     ? '승인된 라이선스를 검증하지 못했습니다. 관리자에게 다시 문의해주세요.'
                                     : licenseResult.reason === 'not_found'
-                                        ? '해당 이메일 또는 승인 ID로 조회되는 내역을 찾지 못했습니다.'
+                                        ? '해당 이메일 또는 로그인 ID로 조회되는 내역을 찾지 못했습니다.'
                                         : !password
                                             ? '비밀번호를 입력해주세요.'
-                                            : !requestId
-                                                ? '신청 이메일 또는 승인된 ID를 입력해주세요.'
-                                                : '이메일/ID 또는 비밀번호가 일치하지 않습니다.';
+                                            : !loginIdentifier
+                                                ? '신청 이메일 또는 로그인 ID를 입력해주세요.'
+                                                : '이메일 또는 로그인 ID / 비밀번호가 일치하지 않습니다.';
                     advancedAccessStatus.style.color = '#b91c1c';
                 }
-                if (!String(requestId || '').trim() && advancedAccessIdInput) {
+                if (!String(loginIdentifier || '').trim() && advancedAccessIdInput) {
                     advancedAccessIdInput.focus();
                     advancedAccessIdInput.select();
                 } else if (advancedAccessPasswordInput) {
@@ -3899,6 +4009,25 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAdvancedAccessPanel();
 
     // Modal & Help Controls
+    if (utilityToggle && utilityModal) {
+        utilityToggle.addEventListener('click', () => utilityModal.classList.remove('hidden'));
+    }
+    document.querySelectorAll('.close-utility-before-open').forEach((button) => {
+        button.addEventListener('click', () => {
+            utilityModal?.classList.add('hidden');
+        });
+    });
+    if (studyArchiveOpenBtn) {
+        studyArchiveOpenBtn.addEventListener('click', () => {
+            utilityModal?.classList.add('hidden');
+            const archiveUrl = 'study-archive.html';
+            const popup = window.open(archiveUrl, '_blank', 'noopener');
+            if (!popup) {
+                window.location.assign(archiveUrl);
+            }
+        });
+    }
+
     const helpToggle = document.getElementById('helpToggle');
     const helpModal = document.getElementById('helpModal');
     if(helpToggle && helpModal) {

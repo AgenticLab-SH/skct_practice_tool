@@ -10,8 +10,17 @@
             srTitle: 'SKCT 연습 툴 - SKCT 실제화면과 동일한 온라인 SKCT 환경 가이드',
             srDescription: "본 웹사이트는 SK그룹 인적성 검사를 대비하기 위한 완벽한 무료 SKCT 연습 애플리케이션입니다. SKCT 실제 환경, SKCT 실제화면 인터페이스, 그리고 SKCT 크기 체감까지 고려하여 최대한 정밀하게 구현하였습니다. SKCT 모의고사 인적성 테스트를 진행할 때 필수적인 'SKCT 타이머', 'SKCT 화면 계산기', 'SKCT 메모장', 'SKCT 그림판', 'SKCT 실제 OMR'의 모든 기능을 하나의 SKCT 툴 화면 안에서 제공합니다. 실제 시험과 동일한 감각으로 SKCT 모의 연습을 철저히 준비하세요!"
         },
+        sidebar: {
+            helpLabel: '도움말',
+            omrLabelHtml: '연습<br>OMR',
+            settingsLabel: '설정',
+            advancedGuideLabelHtml: '고급<br>안내',
+            advancedModeLabelHtml: '고급<br>기능',
+            popupLabel: '팝업',
+            utilityLabel: '더보기'
+        },
         toolbar: {
-            popupButton: '화면 더 줄이기',
+            popupButton: '팝업 연습',
             totalTimeLabel: '전체 남은 시간',
             defaultPhaseName: '1과목 언어이해',
             guidePrefix: '가이드:',
@@ -46,6 +55,26 @@
             skipButton: '쉬는 시간 건너뛰기',
             supportHint: '개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다.'
         },
+        utilityModal: {
+            title: '⋯ 보조 기능 모음',
+            descriptionHtml: '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 활성 세션 확인, 커뮤니티, 개인 자료 보관함, 운영 후원은 여기서 이어서 열 수 있습니다.',
+            statsTitle: '활성 세션 보기',
+            statsDescription: '현재 열려 있는 세션과 최근 방문 기록을 확인합니다.',
+            communityTitle: '커뮤니티',
+            communityDescription: '공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.',
+            archiveTitle: '자료 보관함',
+            archiveDescription: '로그인한 계정별로 문제 원문과 AI 답변을 저장하고 다시 꺼내 봅니다.',
+            donateTitle: '운영 후원',
+            donateDescription: '광고 없이 유지되는 연습 공간 운영을 응원할 수 있습니다.'
+        },
+        statsModal: {
+            title: '🔥 활성 세션 현황',
+            activeTitle: '현재 활성 세션',
+            activeHint: '브라우저 탭 기준으로 실시간 반영됩니다.',
+            trendTitle: '📈 최근 7일 방문 기록',
+            totalTitle: '🗓️ 누적 방문 기록',
+            totalHint: '브라우저 기준 방문 기록으로 집계됩니다.'
+        },
         helpModal: {
             title: '📖 사용 가이드',
             exampleSectionTitle: '📷 실제 툴 사용 권장 예시',
@@ -55,7 +84,7 @@
             omrCaption: '정답 마킹 및 채점을 위해 OMR을 펼쳐두고 연습할 수 있습니다.',
             referenceBlockHtml: '<strong style="color:#1e293b;">[참고사항]</strong><br>\n1. <strong>실제 시험장 사용 불가</strong>: 실제 온라인 SKCT 시험은 전용 보안 프로그램에서 진행되므로 본 연습 툴을 병행하여 띄워둘 수 없습니다.<br>\n2. <strong>유사 환경 구현</strong>: 본 도구는 실제 시험의 타이머 작동 방식, 리셋되는 메모장, 제한적 계산기 등 UI/UX를 최대한 비슷하게 체험하도록 제작한 모의 연습 도구입니다.<br>\n3. <strong>OMR은 연습 전용</strong>: 실제 시험에는 OMR이 없으며 문제 에 직접 정답을 체크하는 방식입니다. 본 서비스의 OMR 기능은 여러분의 채점 편의를 위해 가상으로 추가된 기능입니다.',
             featureSectionTitle: '🗺️ 기능 안내',
-            sidebarFeatureHtml: '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📖 <strong>GUIDE</strong> — 업데이트 공지, 사용 예시, 기능 설명 확인</p>\n<p>📝 <strong>연습용 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 가이드 시간, 화면 비율 조정</p>\n<p>↗ <strong>화면 더 줄이기</strong> — 팝업으로 더 좁은 실전 화면 구성</p>\n<p>🛡️ <strong>무적모드(테스트)</strong> — 링커리어 화면 가림막 대응 확장 설치</p>\n<p>🔥 <strong>접속자 수</strong> — 실시간 현황과 최근 7일 그래프</p>\n<p>💬 <strong>게시판</strong> — 공지, Q&A, Tip, 후기, 개선요청, FAQ</p>\n<p>☕ <strong>커피후원</strong> — 운영 후원과 문의 링크</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>',
+            sidebarFeatureHtml: '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>도움말</strong> — 사용 예시, 공지, 핵심 기능 설명 확인</p>\n<p>📝 <strong>연습 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 화면 비율 조정</p>\n<p>🔒 <strong>고급 안내</strong> — 신청, 승인 확인, 고급 기능 흐름 확인</p>\n<p>↗ <strong>팝업</strong> — 더 좁은 실전 화면으로 연습</p>\n<p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 자료 보관함, 운영 후원 열기</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>',
             timerFeatureHtml: '<strong>🕒 다중 페이즈 타이머</strong><br>\n전체 시간, 과목 시간, 가이드 시간을 <strong>한 화면에서 동시 확인</strong><br>\n<span style="color:#c4b5fd;">과목 → 쉬는시간 자동 전환, 설정에서 시간 조절 가능</span>',
             practiceFeatureHtml: '<strong>✏️ 연습장 (메모장 & 그림판)</strong><br>\n다음 문제 넘어가면 <strong>자동 초기화</strong><br>\n<span style="color:#fde68a;">문제 풀이 흔적이 남지 않도록 실제 흐름에 맞춰 동작</span>',
             calculatorFeatureHtml: '<strong>🧮 키보드 사용 가능한 계산기</strong><br>\n숫자/연산 입력과 버튼 조작 지원<br>\n<span style="color:#86efac;">복잡한 공학 기능 없이 실전형 제한 계산기</span>'
@@ -72,65 +101,123 @@
             toolTitle: '🧰 도구 설정'
         },
         advancedGuide: {
-            title: '🔒 고급 이용 안내',
-            loginTitle: '1. 승인된 신청으로 고급 모드 열기',
-            loginBody: '승인된 신청에 쓴 <strong>이메일</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 바로 고급 모드로 들어갈 수 있습니다.',
-            featureTitle: '2. 고급 모드에서 달라지는 점',
-            featureCard1Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">실전형 도구</strong>\n계산기 동작, 우측 버튼 열, 도구 설정을 더 실제 환경에 가깝게 쓸 수 있습니다.',
-            featureCard2Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">빠른 복기</strong>\n정오표 일괄입력과 문항별 상세 통계 저장으로 복기 시간이 줄어듭니다.',
-            featureCard3Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">반복 연습</strong>\n과목/전체 타이머 재시작으로 같은 세트를 여러 번 실전처럼 연습할 수 있습니다.',
-            featureCard4Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 감각 훈련</strong>\n문항별 시간 가이드를 보며 실제 시험 페이스를 더 세밀하게 익힐 수 있습니다.',
-            planTitle: '3. 이용권 선택',
-            planIntro: '현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 필요한 기간을 선택해 신청하면 됩니다.',
-            donateButton: '후원 페이지 열기',
-            flowHtml: '<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 신청 이메일과 조회 비밀번호를 입력해 저장합니다.<br>\n4. 신청 조회에서 승인 상태를 확인하고, 승인되면 서명된 라이선스를 이 브라우저에 적용합니다.',
-            formTitle: '4. 이용권 신청서',
-            formDescription: '후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 라이선스를 확인하고 적용할 수 있습니다.',
-            passwordHint: '여기서 입력하는 비밀번호는 <strong>신청 조회 및 라이선스 확인용</strong>입니다. 신청 이메일과 함께 기억해 주세요.',
-            submitButton: '신청서 저장',
-            lookupTitle: '5. 신청 조회',
-            lookupDescription: '저장 후에는 <strong>신청 이메일</strong>과 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태를 확인하고, 승인된 경우 라이선스를 바로 적용할 수 있습니다.',
-            lookupButton: '조회',
+            title: '🔒 고급 기능 안내',
+            loginTitle: '1. 승인된 이용권으로 바로 열기',
+            loginBody: '승인 후에는 신청 이메일 또는 로그인 ID와 비밀번호로 라이선스를 확인하고, 바로 고급 모드로 들어갈 수 있습니다. 신청번호는 로그인에 쓰지 않습니다.',
+            accessButton: '고급 모드 열기',
+            accessIdPlaceholder: '신청 이메일 또는 로그인 ID',
+            accessPasswordPlaceholder: '비밀번호',
+            featureTitle: '2. 이럴 때 특히 유용합니다',
+            featureCard1Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">실전 배치 적응</strong>\n계산기 위치와 우측 버튼 열을 실제 시험처럼 익히고 싶은 분에게 가장 먼저 도움이 됩니다.',
+            featureCard2Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">채점·복기 시간 절약</strong>\n정오표 일괄입력과 상세 통계 저장으로 답 옮기기와 복기 메모 정리에 드는 시간을 줄입니다.',
+            featureCard3Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">반복 연습 정리</strong>\n과목 초기화와 전체 초기화로 같은 세트를 다시 돌릴 때 준비 시간이 크게 줄어듭니다.',
+            featureCard4Html: '<strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 감각 복기</strong>\n문항별 시간 가이드와 상세 기록으로 어디서 시간을 잃는지 바로 확인할 수 있습니다.',
+            planTitle: '3. 후원 후 신청 남기기',
+            planIntro: '필요한 기간을 고르고 후원을 마친 뒤, 아래 신청서를 한 번만 저장하면 됩니다.',
+            donateButton: '1. 후원 페이지 열기',
+            flowHtml: '<strong>진행 순서</strong><br>\n1. 기간과 금액을 확인합니다.<br>\n2. 후원을 진행합니다.<br>\n3. 아래 신청서에 이메일, 로그인 ID, 시작일, 조회 비밀번호를 입력합니다.<br>\n4. 신청 상태를 이메일로 확인하고, 승인되면 이메일 또는 로그인 ID로 고급 모드를 엽니다.',
+            formTitle: '4. 신청 정보 저장',
+            formDescription: '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력하면 됩니다. 로그인 ID는 일반 ID나 이메일 형식 모두 사용할 수 있습니다.',
+            passwordHint: '비밀번호는 <strong>신청 상태 확인</strong>과 <strong>고급 모드 로그인</strong>에 모두 같은 값을 씁니다. 신청번호를 따로 기억할 필요 없이, 신청 이메일과 로그인 ID만 기억하면 됩니다.',
+            submitButton: '2. 신청 저장',
+            lookupTitle: '5. 신청 상태 확인',
+            lookupDescription: '신청 상태 확인은 신청 이메일과 조회 비밀번호로만 진행합니다. 신청번호는 따로 쓸 필요가 없고, 승인 후 로그인은 이메일 또는 로그인 ID로 진행합니다.',
+            lookupButton: '상태 확인',
+            lookupIdPlaceholder: '신청 이메일',
+            lookupPasswordPlaceholder: '신청한 비밀번호',
             contactHtml: '문의가 있으면 <strong>zhdlsqpdj@gmail.com</strong>로 보내주세요.'
         },
         advancedFeature: {
-            title: '🔒 고급 기능',
-            introHtml: '<div style="font-weight:800; margin-bottom:6px;">고급 모드 활용 가이드</div>\n대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 어디에서 무엇을 누르면 되는지만 빠르게 확인하는 용도로 보시면 됩니다.',
-            summaryHtml: '<strong>기본 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.',
-            planHtml: '<strong>복기 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>은 모두 OMR 탭 아래 버튼 구역에 모여 있습니다.',
+            title: '🔒 고급 기능 빠른 안내',
+            introHtml: '<div style="font-weight:800; margin-bottom:6px;">어디서 무엇을 누르면 되는지 먼저 보여드립니다.</div>\n대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 복기 흐름을 빠르게 다시 찾는 용도로 보시면 됩니다.',
+            summaryHtml: '<strong>추천 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.',
+            planHtml: '<strong>주로 쓰는 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>은 모두 OMR 탭 아래 버튼 구역에 모여 있습니다.',
             flowButton: '신청 안내 다시 보기',
             statsButton: '문항별 상세 통계 TXT 다운로드',
-            feature1Html: '<strong>1. 채점 결과 먼저 보기</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 누르면 맞은 수, 정답률, 건너뜀, 못 푼 문제를 바로 확인할 수 있습니다.',
-            feature2Html: '<strong>2. 과목별 상세 통계 열기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.',
+            feature1Html: '<strong>1. 결과부터 확인</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 눌러 맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 확인합니다.',
+            feature2Html: '<strong>2. 과목별 약점 보기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.',
             feature3Html: '<strong>3. TXT로 복기 기록 남기기</strong><br><strong>문항별 상세 통계 TXT 다운로드</strong> 버튼으로 정오답, 미응답, 문항별 시간 기록을 파일로 저장합니다.',
-            feature4Html: '<strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.'
+            feature4Html: '<strong>4. 같은 세트 다시 돌리기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 반복 연습이 더 빨라집니다.'
         },
         messages: {
             advancedLoading: '고급 라이선스 정보를 불러오는 중입니다.',
-            advancedCooldown: '이메일/ID 또는 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.',
+            advancedCooldown: '이메일 또는 로그인 ID / 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.',
             advancedUnlocked: '이 브라우저에 유효한 라이선스가 저장되어 있어 바로 고급 모드를 열 수 있습니다.',
-            advancedAvailable: '신청 이메일 또는 승인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.',
+            advancedAvailable: '신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.',
             advancedNone: '아직 사용 가능한 라이선스가 없습니다. 먼저 이용권 신청 후 승인을 받아주세요.',
             advancedNeedConfig: '고급 라이선스 정보를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.',
             advancedRetryAfter: '{seconds}초 후에 다시 시도할 수 있습니다.',
-            advancedChecking: '신청 이메일 또는 승인 ID와 비밀번호를 확인하고 있습니다...',
+            advancedChecking: '신청 이메일 또는 로그인 ID와 비밀번호를 확인하고 있습니다...',
             advancedOpening: '고급 버전 팝업을 여는 중입니다.',
-            advancedNeedRelogin: '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.',
+            advancedNeedRelogin: '이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 로그인 ID와 비밀번호로 다시 확인해주세요.',
             advancedReuse: '저장된 라이선스로 고급 버전을 다시 엽니다.',
             manualClosed: '현재 수동 이용권 신청이 닫혀 있습니다.',
             manualConfigNotReady: '운영 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.',
             manualNoPlan: '신청 가능한 이용권이 아직 열리지 않았습니다.',
-            manualRequiredFields: '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 조회 비밀번호를 모두 입력해주세요.',
+            manualRequiredFields: '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 비밀번호를 모두 입력해주세요.',
             manualInvalidEmail: '이메일 형식이 올바르지 않습니다.',
-            manualPasswordShort: '조회 비밀번호는 6자 이상으로 설정해주세요.',
-            manualPasswordMismatch: '조회 비밀번호 확인이 일치하지 않습니다.',
-            manualSubmitSuccess: '신청서가 저장되었습니다. 신청 이메일과 조회 비밀번호로 상태를 다시 확인할 수 있습니다.',
+            manualPasswordShort: '비밀번호는 6자 이상으로 설정해주세요.',
+            manualPasswordMismatch: '비밀번호 확인이 일치하지 않습니다.',
+            manualSubmitSuccess: '신청서가 저장되었습니다. 상태 확인은 신청 이메일로, 고급 로그인은 승인 후 이메일 또는 로그인 ID로 진행할 수 있습니다.',
             manualSubmitError: '신청 저장 중 오류가 발생했습니다.',
-            manualLookupRequired: '이메일과 조회 비밀번호를 모두 입력해주세요.',
+            manualLookupRequired: '신청 이메일과 조회 비밀번호를 모두 입력해주세요.',
+            manualLookupEmailOnly: '신청 조회는 신청 이메일과 조회 비밀번호로만 할 수 있습니다.',
             manualLookupError: '신청 조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-            manualLookupNotFound: '해당 이메일로 조회되는 신청을 찾지 못했습니다. 이메일 또는 조회 비밀번호를 다시 확인해주세요.',
+            manualLookupNotFound: '해당 이메일로 조회되는 신청을 찾지 못했습니다. 신청 이메일 또는 조회 비밀번호를 다시 확인해주세요.',
             manualLookupDecryptError: '조회 비밀번호가 일치하지 않거나 요청을 복호화하지 못했습니다.'
         }
+    };
+
+    const LEGACY_SITE_TEXT_DEFAULTS = {
+        'toolbar.popupButton': ['화면 더 줄이기'],
+        'helpModal.sidebarFeatureHtml': ['<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📖 <strong>GUIDE</strong> — 업데이트 공지, 사용 예시, 기능 설명 확인</p>\n<p>📝 <strong>연습용 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 가이드 시간, 화면 비율 조정</p>\n<p>↗ <strong>화면 더 줄이기</strong> — 팝업으로 더 좁은 실전 화면 구성</p>\n<p>🛡️ <strong>무적모드(테스트)</strong> — 링커리어 화면 가림막 대응 확장 설치</p>\n<p>🔥 <strong>접속자 수</strong> — 실시간 현황과 최근 7일 그래프</p>\n<p>💬 <strong>게시판</strong> — 공지, Q&A, Tip, 후기, 개선요청, FAQ</p>\n<p>☕ <strong>커피후원</strong> — 운영 후원과 문의 링크</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>'],
+        'advancedGuide.title': ['🔒 고급 이용 안내'],
+        'advancedGuide.loginTitle': ['1. 승인된 신청으로 고급 모드 열기'],
+        'advancedGuide.loginBody': [
+            '승인된 신청에 쓴 <strong>이메일</strong> 또는 관리자가 발급한 <strong>ID</strong>와 <strong>비밀번호</strong>를 입력하면 이 브라우저에 라이선스를 저장하고 바로 고급 모드로 들어갈 수 있습니다.',
+            '승인 후에는 신청 이메일 또는 관리자가 발급한 ID와 비밀번호로 라이선스를 확인하고, 바로 고급 모드로 들어갈 수 있습니다.'
+        ],
+        'advancedGuide.accessIdPlaceholder': ['승인 이메일 또는 발급 ID'],
+        'advancedGuide.featureTitle': ['2. 고급 모드에서 달라지는 점'],
+        'advancedGuide.featureCard1Html': ['<strong style="display:block; color:#0f172a; margin-bottom:4px;">실전형 도구</strong>\n계산기 동작, 우측 버튼 열, 도구 설정을 더 실제 환경에 가깝게 쓸 수 있습니다.'],
+        'advancedGuide.featureCard2Html': ['<strong style="display:block; color:#0f172a; margin-bottom:4px;">빠른 복기</strong>\n정오표 일괄입력과 문항별 상세 통계 저장으로 복기 시간이 줄어듭니다.'],
+        'advancedGuide.featureCard3Html': ['<strong style="display:block; color:#0f172a; margin-bottom:4px;">반복 연습</strong>\n과목/전체 타이머 재시작으로 같은 세트를 여러 번 실전처럼 연습할 수 있습니다.'],
+        'advancedGuide.featureCard4Html': ['<strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 감각 훈련</strong>\n문항별 시간 가이드를 보며 실제 시험 페이스를 더 세밀하게 익힐 수 있습니다.'],
+        'advancedGuide.planTitle': ['3. 이용권 선택'],
+        'advancedGuide.planIntro': ['현재는 <strong>7일권</strong>과 <strong>14일권</strong>을 이용할 수 있습니다. 필요한 기간을 선택해 신청하면 됩니다.'],
+        'advancedGuide.donateButton': ['후원 페이지 열기'],
+        'advancedGuide.flowHtml': ['<strong>신청 흐름</strong><br>\n1. 후원 페이지에서 금액을 확인하고 후원을 진행합니다.<br>\n2. 아래 신청서에 정보와 이용 시작 희망일을 입력합니다.<br>\n3. 신청 이메일과 조회 비밀번호를 입력해 저장합니다.<br>\n4. 신청 조회에서 승인 상태를 확인하고, 승인되면 서명된 라이선스를 이 브라우저에 적용합니다.'],
+        'advancedGuide.formTitle': ['4. 이용권 신청서'],
+        'advancedGuide.formDescription': [
+            '후원 후 아래 정보를 작성해 주세요. 승인되면 이 창에서 바로 라이선스를 확인하고 적용할 수 있습니다.',
+            '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 희망 ID, 조회 비밀번호만 입력하면 됩니다.',
+            '후원 뒤에는 사용 시작일, 표시 닉네임, 이메일, 로그인 ID, 조회 비밀번호만 입력하면 됩니다.'
+        ],
+        'advancedGuide.passwordHint': [
+            '여기서 입력하는 비밀번호는 <strong>신청 조회 및 라이선스 확인용</strong>입니다. 신청 이메일과 함께 기억해 주세요.',
+            '비밀번호는 <strong>신청 상태 확인</strong>과 <strong>고급 모드 로그인</strong>에 모두 같은 값을 씁니다. 신청 이메일과 함께 기억해 주세요.'
+        ],
+        'advancedGuide.submitButton': ['신청서 저장'],
+        'advancedGuide.lookupTitle': ['5. 신청 조회'],
+        'advancedGuide.lookupDescription': [
+            '저장 후에는 <strong>신청 이메일</strong>과 직접 정한 <strong>조회 비밀번호</strong>를 입력하면 현재 상태를 확인하고, 승인된 경우 라이선스를 바로 적용할 수 있습니다.',
+            '신청 이메일과 조회 비밀번호로 현재 상태를 확인하고, 승인되면 바로 라이선스를 적용할 수 있습니다.'
+        ],
+        'advancedGuide.lookupButton': ['조회'],
+        'advancedFeature.title': ['🔒 고급 기능'],
+        'advancedFeature.introHtml': ['<div style="font-weight:800; margin-bottom:6px;">고급 모드 활용 가이드</div>\n대부분의 고급 기능은 <strong>OMR 탭</strong> 안에서 이어서 사용합니다. 이 창은 어디에서 무엇을 누르면 되는지만 빠르게 확인하는 용도로 보시면 됩니다.'],
+        'advancedFeature.summaryHtml': ['<strong>기본 흐름</strong><br>답안을 체크한 뒤 <strong>정답 입력 모드</strong>로 전환하고 정답을 넣은 다음, <strong>채점 및 통계 확인</strong>을 누르면 복기용 기능이 한 번에 열립니다.'],
+        'advancedFeature.planHtml': ['<strong>복기 기능 위치</strong><br><strong>과목별 상세 통계</strong>, <strong>문항별 상세 통계 TXT 다운로드</strong>, <strong>정오표 일괄입력</strong>은 모두 OMR 탭 아래 버튼 구역에 모여 있습니다.'],
+        'advancedFeature.feature1Html': ['<strong>1. 채점 결과 먼저 보기</strong><br>OMR 탭에서 <strong>채점 및 통계 확인</strong>을 누르면 맞은 수, 정답률, 건너뜀, 못 푼 문제를 바로 확인할 수 있습니다.'],
+        'advancedFeature.feature2Html': ['<strong>2. 과목별 상세 통계 열기</strong><br><strong>과목별 상세 통계</strong> 버튼으로 과목별 정오답 분포와 문항 상태를 더 자세히 확인합니다.'],
+        'advancedFeature.feature4Html': ['<strong>4. 반복 연습 이어가기</strong><br><strong>정오표 일괄입력</strong>, <strong>과목 초기화</strong>, <strong>전체 초기화</strong>, <strong>문항별 시간 가이드</strong>를 조합하면 같은 세트를 빠르게 다시 돌릴 수 있습니다.'],
+        'messages.advancedAvailable': ['신청 이메일 또는 승인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.'],
+        'messages.advancedCooldown': ['이메일/ID 또는 비밀번호를 여러 번 틀려 {seconds}초 동안 다시 시도할 수 없습니다.'],
+        'messages.advancedChecking': ['신청 이메일 또는 승인 ID와 비밀번호를 확인하고 있습니다...'],
+        'messages.advancedNeedRelogin': ['이 브라우저의 라이선스가 없거나 만료되었습니다. 신청 이메일 또는 승인 ID와 비밀번호로 다시 확인해주세요.'],
+        'messages.manualSubmitSuccess': ['신청서가 저장되었습니다. 신청 이메일과 비밀번호로 상태를 다시 확인할 수 있습니다.'],
+        'messages.manualLookupRequired': ['이메일과 조회 비밀번호를 모두 입력해주세요.'],
+        'messages.manualLookupNotFound': ['해당 이메일로 조회되는 신청을 찾지 못했습니다. 이메일 또는 조회 비밀번호를 다시 확인해주세요.']
     };
 
     const SITE_TEXT_CATALOG = [
@@ -142,6 +229,13 @@
         { key: 'meta.twitterDescription', label: '트위터 설명', category: '메타', selector: 'meta[name="twitter:description"]', prop: 'content', visual: false },
         { key: 'meta.srTitle', label: '숨김 H1 제목', category: '메타', selector: '#srMainTitle', prop: 'text' },
         { key: 'meta.srDescription', label: '숨김 설명문', category: '메타', selector: '#srMainDescription', prop: 'text' },
+        { key: 'sidebar.helpLabel', label: '사이드바: 도움말', category: '메인 진입', selector: '#sidebarHelpLabel', prop: 'text' },
+        { key: 'sidebar.omrLabelHtml', label: '사이드바: OMR', category: '메인 진입', selector: '#sidebarOmrLabel', prop: 'html', multiline: true },
+        { key: 'sidebar.settingsLabel', label: '사이드바: 설정', category: '메인 진입', selector: '#sidebarSettingsLabel', prop: 'text' },
+        { key: 'sidebar.advancedGuideLabelHtml', label: '사이드바: 고급 안내', category: '메인 진입', selector: '#sidebarAdvancedGuideLabel', prop: 'html', multiline: true },
+        { key: 'sidebar.advancedModeLabelHtml', label: '사이드바: 고급 기능', category: '메인 진입', selector: '#sidebarAdvancedModeLabel', prop: 'html', multiline: true },
+        { key: 'sidebar.popupLabel', label: '사이드바: 팝업', category: '메인 진입', selector: '#sidebarPopupLabel', prop: 'text' },
+        { key: 'sidebar.utilityLabel', label: '사이드바: 더보기', category: '메인 진입', selector: '#sidebarUtilityLabel', prop: 'text' },
         { key: 'toolbar.popupButton', label: '상단 팝업 버튼', category: '상단 도구', selector: '#popupBtn', prop: 'text' },
         { key: 'toolbar.totalTimeLabel', label: '전체 시간 라벨', category: '상단 도구', selector: '#displayTotalTimeLabel', prop: 'text' },
         { key: 'toolbar.defaultPhaseName', label: '기본 과목명', category: '상단 도구', selector: '#displayPhaseName', prop: 'text' },
@@ -172,6 +266,22 @@
         { key: 'breakOverlay.description', label: '쉬는 시간 설명', category: '쉬는 시간', selector: '#breakOverlayDescription', prop: 'text' },
         { key: 'breakOverlay.skipButton', label: '쉬는 시간 건너뛰기', category: '쉬는 시간', selector: '#breakSkipBtn', prop: 'text' },
         { key: 'breakOverlay.supportHint', label: '쉬는 시간 후원 안내', category: '쉬는 시간', selector: '#breakSupportHint', prop: 'html', multiline: true },
+        { key: 'utilityModal.title', label: '보조 기능 모달 제목', category: '보조 기능', selector: '#utilityModalTitle', prop: 'text' },
+        { key: 'utilityModal.descriptionHtml', label: '보조 기능 모달 설명', category: '보조 기능', selector: '#utilityModalDescription', prop: 'html', multiline: true },
+        { key: 'utilityModal.statsTitle', label: '보조 기능: 활성 세션 제목', category: '보조 기능', selector: '#utilityStatsTitle', prop: 'text' },
+        { key: 'utilityModal.statsDescription', label: '보조 기능: 활성 세션 설명', category: '보조 기능', selector: '#utilityStatsDescription', prop: 'text' },
+        { key: 'utilityModal.communityTitle', label: '보조 기능: 커뮤니티 제목', category: '보조 기능', selector: '#utilityCommunityTitle', prop: 'text' },
+        { key: 'utilityModal.communityDescription', label: '보조 기능: 커뮤니티 설명', category: '보조 기능', selector: '#utilityCommunityDescription', prop: 'text' },
+        { key: 'utilityModal.archiveTitle', label: '보조 기능: 자료 보관함 제목', category: '보조 기능', selector: '#utilityArchiveTitle', prop: 'text' },
+        { key: 'utilityModal.archiveDescription', label: '보조 기능: 자료 보관함 설명', category: '보조 기능', selector: '#utilityArchiveDescription', prop: 'text' },
+        { key: 'utilityModal.donateTitle', label: '보조 기능: 후원 제목', category: '보조 기능', selector: '#utilityDonateTitle', prop: 'text' },
+        { key: 'utilityModal.donateDescription', label: '보조 기능: 후원 설명', category: '보조 기능', selector: '#utilityDonateDescription', prop: 'text' },
+        { key: 'statsModal.title', label: '활성 세션 모달 제목', category: '활성 세션', selector: '#statsModalTitle', prop: 'text' },
+        { key: 'statsModal.activeTitle', label: '활성 세션: 현재 제목', category: '활성 세션', selector: '#statsActiveLabel', prop: 'text' },
+        { key: 'statsModal.activeHint', label: '활성 세션: 현재 설명', category: '활성 세션', selector: '#statsActiveHint', prop: 'text' },
+        { key: 'statsModal.trendTitle', label: '활성 세션: 추세 제목', category: '활성 세션', selector: '#statsTrendTitle', prop: 'text' },
+        { key: 'statsModal.totalTitle', label: '활성 세션: 누적 제목', category: '활성 세션', selector: '#statsTotalLabel', prop: 'text' },
+        { key: 'statsModal.totalHint', label: '활성 세션: 누적 설명', category: '활성 세션', selector: '#statsTotalHint', prop: 'text' },
         { key: 'helpModal.title', label: '사용 가이드 제목', category: '가이드 모달', selector: '#helpModalTitle', prop: 'text' },
         { key: 'helpModal.exampleSectionTitle', label: '예시 섹션 제목', category: '가이드 모달', selector: '#helpExampleSectionTitle', prop: 'text' },
         { key: 'helpModal.pdfTitle', label: 'PDF 예시 제목', category: '가이드 모달', selector: '#helpPdfExampleTitle', prop: 'text' },
@@ -196,6 +306,9 @@
         { key: 'advancedGuide.title', label: '고급 안내 제목', category: '고급 안내', selector: '#advancedGuideModalTitle', prop: 'text' },
         { key: 'advancedGuide.loginTitle', label: '고급 안내: 로그인 제목', category: '고급 안내', selector: '#advancedGuideLoginTitle', prop: 'text' },
         { key: 'advancedGuide.loginBody', label: '고급 안내: 로그인 설명', category: '고급 안내', selector: '#advancedGuideLoginBody', prop: 'html', multiline: true },
+        { key: 'advancedGuide.accessIdPlaceholder', label: '고급 안내: 로그인 이메일/ID placeholder', category: '고급 안내', selector: '#advancedAccessIdInput', prop: 'placeholder', visual: false },
+        { key: 'advancedGuide.accessPasswordPlaceholder', label: '고급 안내: 로그인 비밀번호 placeholder', category: '고급 안내', selector: '#advancedAccessPasswordInput', prop: 'placeholder', visual: false },
+        { key: 'advancedGuide.accessButton', label: '고급 안내: 로그인 버튼', category: '고급 안내', selector: '#advancedAccessSubmitBtn', prop: 'text' },
         { key: 'advancedGuide.featureTitle', label: '고급 안내: 차이점 제목', category: '고급 안내', selector: '#advancedGuideFeatureTitle', prop: 'text' },
         { key: 'advancedGuide.featureCard1Html', label: '고급 안내 카드 1', category: '고급 안내', selector: '#advancedGuideFeatureCard1', prop: 'html', multiline: true },
         { key: 'advancedGuide.featureCard2Html', label: '고급 안내 카드 2', category: '고급 안내', selector: '#advancedGuideFeatureCard2', prop: 'html', multiline: true },
@@ -211,6 +324,8 @@
         { key: 'advancedGuide.submitButton', label: '고급 안내: 신청 저장 버튼', category: '고급 안내', selector: '#manualSubscriptionSubmitBtn', prop: 'text' },
         { key: 'advancedGuide.lookupTitle', label: '고급 안내: 신청 조회 제목', category: '고급 안내', selector: '#advancedGuideLookupTitle', prop: 'text' },
         { key: 'advancedGuide.lookupDescription', label: '고급 안내: 신청 조회 설명', category: '고급 안내', selector: '#advancedGuideLookupDescription', prop: 'html', multiline: true },
+        { key: 'advancedGuide.lookupIdPlaceholder', label: '고급 안내: 조회 이메일 placeholder', category: '고급 안내', selector: '#manualSubscriptionLookupIdInput', prop: 'placeholder', visual: false },
+        { key: 'advancedGuide.lookupPasswordPlaceholder', label: '고급 안내: 조회 비밀번호 placeholder', category: '고급 안내', selector: '#manualSubscriptionLookupPasswordInput', prop: 'placeholder', visual: false },
         { key: 'advancedGuide.lookupButton', label: '고급 안내: 조회 버튼', category: '고급 안내', selector: '#manualSubscriptionLookupBtn', prop: 'text' },
         { key: 'advancedGuide.contactHtml', label: '고급 안내: 문의 문구', category: '고급 안내', selector: '#advancedGuideContact', prop: 'html', multiline: true },
         { key: 'advancedFeature.title', label: '고급 기능 모달 제목', category: '고급 기능', selector: '#advancedFeatureModalTitle', prop: 'text' },
@@ -244,6 +359,7 @@
         { key: 'messages.manualSubmitSuccess', label: '상태 메시지: 신청 저장 성공', category: '상태 메시지', visual: false },
         { key: 'messages.manualSubmitError', label: '상태 메시지: 신청 저장 실패', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupRequired', label: '상태 메시지: 조회 필수값', category: '상태 메시지', visual: false },
+        { key: 'messages.manualLookupEmailOnly', label: '상태 메시지: 조회 이메일 전용 안내', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupError', label: '상태 메시지: 조회 오류', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupNotFound', label: '상태 메시지: 신청 조회 없음', category: '상태 메시지', visual: false },
         { key: 'messages.manualLookupDecryptError', label: '상태 메시지: 조회 복호화 실패', category: '상태 메시지', visual: false }
@@ -303,8 +419,22 @@
         return target;
     }
 
+    function applyLegacyValueMigrations(config, rawConfig) {
+        Object.entries(LEGACY_SITE_TEXT_DEFAULTS).forEach(([path, legacyValues]) => {
+            const rawValue = getValueByPath(rawConfig, path);
+            if (rawValue == null) return;
+            if (legacyValues.includes(rawValue)) {
+                const nextValue = getValueByPath(DEFAULT_SITE_TEXT_CONFIG, path);
+                if (nextValue != null) {
+                    setValueByPath(config, path, nextValue);
+                }
+            }
+        });
+        return config;
+    }
+
     function normalizeSiteTextConfig(rawConfig) {
-        return deepMerge(DEFAULT_SITE_TEXT_CONFIG, rawConfig || {});
+        return applyLegacyValueMigrations(deepMerge(DEFAULT_SITE_TEXT_CONFIG, rawConfig || {}), rawConfig || {});
     }
 
     function sanitizeHtml(value, options = {}) {

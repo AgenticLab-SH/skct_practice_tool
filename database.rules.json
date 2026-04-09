@@ -106,6 +106,18 @@
         ".write": "auth != null"
       }
     },
+    "userStudyLibrary": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "items": {
+          "$itemId": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        }
+      }
+    },
     "posts": {
       ".read": true,
       ".write": true
@@ -192,6 +204,18 @@
         },
         "$key": {
           ".write": "auth != null"
+        }
+      },
+      "userStudyLibrary": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          "items": {
+            "$itemId": {
+              ".read": "auth != null && auth.uid === $uid",
+              ".write": "auth != null && auth.uid === $uid"
+            }
+          }
         }
       }
     }
