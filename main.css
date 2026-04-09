@@ -465,86 +465,6 @@ body.advanced-mode .advanced-calc-slot {
     flex-shrink: 0;
 }
 
-.advanced-status-bar {
-    margin: 8px 8px 0;
-    padding: 12px 14px;
-    border: 1px solid #bfdbfe;
-    border-radius: 10px;
-    background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%);
-    color: #1e3a8a;
-    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.08);
-}
-
-.advanced-status-main {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.advanced-status-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: #1d4ed8;
-}
-
-.advanced-status-lead,
-.advanced-status-footnote {
-    font-size: 12px;
-    line-height: 1.65;
-    color: #334155;
-}
-
-.advanced-status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.advanced-status-chip {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(191, 219, 254, 0.9);
-}
-
-.advanced-status-label {
-    font-size: 11px;
-    color: #64748b;
-}
-
-.advanced-status-value {
-    font-size: 13px;
-    color: #0f172a;
-}
-
-.advanced-status-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.advanced-status-action-btn {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 999px;
-    background: #2563eb;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.advanced-status-action-btn.secondary {
-    background: #fff;
-    color: #1d4ed8;
-    border: 1px solid #93c5fd;
-}
-
 .advanced-coach-panel {
     display: flex;
     flex-direction: column;
@@ -862,9 +782,6 @@ body.advanced-mode .popup-btn {
         min-width: 86px;
     }
 
-    .advanced-status-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
 }
 
 .mode-btn { background: #f59e0b; }
