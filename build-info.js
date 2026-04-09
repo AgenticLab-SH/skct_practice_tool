@@ -1,5 +1,5 @@
 window.SKCTBuildInfo = Object.freeze({
-    updatedAt: '2026-04-09 19:48:35 +09:00',
-    version: 'v2026.04.09.1948',
-    assetVersion: '202604091948'
+    updatedAt: '2026-04-10 10:45:00 +09:00',
+    version: 'v2026.04.10.1045',
+    assetVersion: '202604101045'
 });
