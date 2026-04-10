@@ -479,10 +479,36 @@ body.advanced-mode .advanced-calc-slot {
 }
 
 .advanced-coach-panel-compact {
-    align-items: flex-end;
+    align-items: stretch;
     padding: 0;
     background: transparent;
     border: none;
+}
+
+.advanced-coach-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #f8fbff 0%, #f1f5f9 100%);
+    border: 1px solid #cfe0ff;
+}
+
+.advanced-coach-inline-copy {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.advanced-coach-inline-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .context-help-source {
@@ -618,9 +644,14 @@ body.popup-mode.advanced-mode .advanced-coach-panel {
     gap: 4px;
 }
 
+body.popup-mode.advanced-mode .advanced-coach-inline {
+    gap: 6px;
+    padding: 7px 8px;
+}
+
 body.popup-mode.advanced-mode .advanced-coach-lead,
 body.popup-mode.advanced-mode .advanced-coach-hint {
-    display: none;
+    display: block;
 }
 
 body.popup-mode.advanced-mode .advanced-coach-title {
@@ -1325,6 +1356,103 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     margin-bottom: 10px;
 }
 
+.guide-flow-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 11px 13px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.guide-flow-strip strong {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1;
+}
+
+.guide-flow-strip-general {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e3a8a;
+}
+
+.guide-flow-strip-general strong {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.guide-flow-strip-warm {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+}
+
+.guide-flow-strip-warm strong {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.guide-flow-strip-advanced {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+}
+
+.guide-flow-strip-advanced strong {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.guide-fold {
+    margin: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.guide-fold summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.guide-fold summary::-webkit-details-marker {
+    display: none;
+}
+
+.guide-fold summary::after {
+    content: '열기';
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.guide-fold[open] summary::after {
+    content: '접기';
+}
+
+.guide-fold-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 14px 14px;
+}
+
 .help-example-section {
     margin-bottom: 6px;
 }
@@ -1357,6 +1485,10 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     color: #334155;
     margin-bottom: 18px;
     line-height: 1.6;
+}
+
+.guide-fold .help-reference-block {
+    margin-bottom: 0;
 }
 
 .help-feature-diagram {
@@ -2436,6 +2568,9 @@ body.popup-editor-mode .layout-resizer.horizontal.active {
     overflow-y: auto;
     padding: 20px;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
 }
 
 .utility-modal-content {

@@ -29,7 +29,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604101124">
+    <link rel="stylesheet" href="main.css?v=202604101313">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -106,15 +106,21 @@
                         <div class="stat-line"><span id="statUnansweredLabel">못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
                     </div>
                     <div id="advancedCoachPanel" class="advanced-panel-only advanced-coach-panel advanced-coach-panel-compact">
-                        <button id="advancedCoachHelpBtn" type="button" class="context-help-btn context-help-btn-omr" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
+                        <div class="advanced-coach-inline">
+                            <div class="advanced-coach-inline-copy">
+                                <div id="advancedCoachTitle" class="advanced-coach-title">고급 복기</div>
+                                <div id="advancedCoachLead" class="advanced-coach-lead">정답 입력 → 채점 → 복기 버튼</div>
+                            </div>
+                            <div class="advanced-coach-inline-actions">
+                                <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">전체 안내</button>
+                                <button id="advancedCoachHelpBtn" type="button" class="context-help-btn context-help-btn-omr" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
+                            </div>
+                        </div>
                         <div class="context-help-source" hidden aria-hidden="true">
-                            <div id="advancedCoachTitle" class="advanced-coach-title">고급 복기 순서</div>
-                            <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">전체 안내</button>
-                            <div id="advancedCoachLead" class="advanced-coach-lead">처음에는 아래 세 줄만 기억하면 됩니다.</div>
-                            <div id="advancedCoachStep1" class="advanced-coach-step"><strong>1. 정답 입력</strong><br>답안 체크 뒤 실제 정답만 넣습니다.</div>
-                            <div id="advancedCoachStep2" class="advanced-coach-step"><strong>2. 채점 확인</strong><br>맞은 수와 정답률을 먼저 봅니다.</div>
-                            <div id="advancedCoachStep3" class="advanced-coach-step"><strong>3. 복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.</div>
-                            <div id="advancedCoachHint" class="advanced-coach-hint"><strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.</div>
+                            <div id="advancedCoachStep1" class="advanced-coach-step"><strong>정답 입력</strong><br>실제 정답만 넣습니다.</div>
+                            <div id="advancedCoachStep2" class="advanced-coach-step"><strong>채점</strong><br>점수와 건너뜀을 먼저 봅니다.</div>
+                            <div id="advancedCoachStep3" class="advanced-coach-step"><strong>복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.</div>
+                            <div id="advancedCoachHint" class="advanced-coach-hint"><strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체를 다시 시작합니다.</div>
                         </div>
                     </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
@@ -282,72 +288,80 @@
                 <button class="close-modal btn-close">×</button>
             </div>
             <div class="help-modal-body">
-                <!-- 개발자 공지 (JS에서 주입) -->
                 <div id="devNotice"></div>
 
-                <!-- 사용 예시 사진 섹션 -->
-                <div class="help-example-section">
-                    <div id="helpExampleSectionTitle" class="help-section-title">📷 실제 툴 사용 권장 예시</div>
-                    <div class="help-example-grid">
-                        <div class="help-example-card">
-                            <div id="helpPdfExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ PDF 활용 예시</div>
-                            <img src="images/real_non_omr_image.png" alt="PDF 및 연습 도구 분할 화면" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div id="helpPdfExampleCaption" class="help-example-caption">좌측에 PDF나 e-book을 띄워두고 이 예시 사진과 동일한 비율로 맞춰서 화면을 구성하시고 연습하시면 됩니다.</div>
-                        </div>
-                        <div class="help-example-card">
-                            <div id="helpOmrExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 연습용 모드 (OMR 사용)</div>
-                            <img src="images/omr_using_image.png" alt="OMR 보조 모드" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                            <div id="helpOmrExampleCaption" class="help-example-caption">정답 마킹 및 채점을 위해 OMR을 펼쳐두고 연습할 수 있습니다.</div>
-                        </div>
-                    </div>
+                <div class="guide-flow-strip guide-flow-strip-general">
+                    <strong>일반 흐름</strong>
+                    <span>연습 OMR → 답 체크 → 정답 입력 모드 → 채점 및 통계</span>
                 </div>
 
                 <div class="help-advanced-section">
-                    <div id="helpAdvancedSectionTitle" class="help-advanced-section-title">🔒 고급 안내는 별도로 봅니다</div>
+                    <div id="helpAdvancedSectionTitle" class="help-advanced-section-title">🔒 고급 설명은 따로 봅니다</div>
                     <div id="helpAdvancedSectionLead" class="help-advanced-section-lead">
-                        이 창은 <strong>일반 모드</strong>와 기본 연습 흐름만 설명합니다. 신청, 승인 확인, 추가 버튼, 자료 보관함, 우측 실제환경 여백은 <strong>고급 안내</strong>와 <strong>고급 활용</strong>에서 따로 확인해 주세요.
+                        이 창은 <strong>일반 모드</strong>만 설명합니다. 신청, 승인, 복기 추가 버튼, 자료 보관함은 <strong>고급 안내</strong>에서 확인하세요.
                     </div>
                     <button id="helpAdvancedLinkBtn" type="button" class="help-advanced-link-btn">고급 안내 열기</button>
                 </div>
 
-                <div id="helpReferenceBlock" class="help-reference-block">
-                    <strong style="color:#1e293b;">[핵심 참고]</strong><br>
-                    1. <strong>실제 시험장 병행 사용 불가</strong>: 본 도구는 연습용이며 실제 온라인 SKCT 시험 창과 함께 띄워 쓸 수 없습니다.<br>
-                    2. <strong>실전 감각용 모의 환경</strong>: 타이머, 메모장, 계산기, 화면 비율을 실제 흐름에 가깝게 맞춘 연습 도구입니다.<br>
-                    3. <strong>OMR은 채점 편의 기능</strong>: 실제 시험에는 OMR이 없고, 문제 화면에서 바로 답을 체크합니다.
-                </div>
+                <details class="guide-fold">
+                    <summary><span id="helpExampleSectionTitle">📷 화면 배치 예시</span></summary>
+                    <div class="guide-fold-body">
+                        <div class="help-example-grid">
+                            <div class="help-example-card">
+                                <div id="helpPdfExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ PDF 활용 예시</div>
+                                <img src="images/real_non_omr_image.png" alt="PDF 및 연습 도구 분할 화면" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div id="helpPdfExampleCaption" class="help-example-caption">좌측에 PDF나 e-book을 두고 비율만 맞춰 연습하면 됩니다.</div>
+                            </div>
+                            <div class="help-example-card">
+                                <div id="helpOmrExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 연습용 모드 (OMR 사용)</div>
+                                <img src="images/omr_using_image.png" alt="OMR 보조 모드" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div id="helpOmrExampleCaption" class="help-example-caption">정답 체크와 채점이 필요할 때만 OMR을 펼쳐 사용합니다.</div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
 
-                <!-- 기능 안내 -->
+                <details class="guide-fold">
+                    <summary>시험과 다른 점 보기</summary>
+                    <div class="guide-fold-body">
+                        <div id="helpReferenceBlock" class="help-reference-block">
+                            <strong style="color:#1e293b;">[핵심 참고]</strong><br>
+                            1. <strong>실제 시험장 병행 사용 불가</strong>: 본 도구는 연습용이며 실제 온라인 SKCT 시험 창과 함께 띄워 쓸 수 없습니다.<br>
+                            2. <strong>실전 감각용 모의 환경</strong>: 타이머, 메모장, 계산기, 화면 비율을 실제 흐름에 가깝게 맞춘 연습 도구입니다.<br>
+                            3. <strong>OMR은 채점 편의 기능</strong>: 실제 시험에는 OMR이 없고, 문제 화면에서 바로 답을 체크합니다.
+                        </div>
+                    </div>
+                </details>
+
                 <div id="helpFeatureSectionTitle" class="help-section-title">🗺️ 일반 모드 핵심 흐름</div>
                 <div class="guide-diagram help-feature-diagram">
                     <div id="helpSidebarFeatureBlock" class="help-feature-panel help-feature-panel-sidebar">
-                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>
-                        <p>📘 <strong>가이드</strong> — 일반 모드 기준과 기본 흐름 확인</p>
-                        <p>📝 <strong>연습 OMR</strong> — 답안 체크, 채점, 결과 확인</p>
-                        <p>⚙ <strong>설정</strong> — 모드, 시간, 화면 비율 조정</p>
-                        <p>🔒 <strong>고급 안내</strong> — 신청, 승인, 추가 기능 확인</p>
-                        <p>↗ <strong>팝업</strong> — 더 좁은 실전 폭으로 열기</p>
-                        <p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 문서, 후원</p>
+                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">왼쪽에서 여는 것</div>
+                        <p>📘 <strong>가이드</strong> — 일반 기준 확인</p>
+                        <p>📝 <strong>연습 OMR</strong> — 답 체크와 채점</p>
+                        <p>⚙ <strong>설정</strong> — 시간과 비율 조정</p>
+                        <p>🔒 <strong>고급 안내</strong> — 신청과 진입</p>
+                        <p>↗ <strong>팝업</strong> — 더 좁은 실전 폭</p>
+                        <p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 문서</p>
                         <hr style="border-color:#334155; margin: 8px 0;">
-                        <p style="color:#93c5fd;"><strong>기본 순서</strong>: 답안 체크 → 정답 입력 모드 → 채점 및 통계</p>
-                        <p style="color:#93c5fd;">OMR 마킹 후에는 <strong>자동으로 다음 문항</strong>으로 이동합니다.</p>
-                        <p style="color:#93c5fd;">고급 전용 버튼과 자료 보관함은 이 창이 아니라 <strong>고급 안내</strong>에서 봅니다.</p>
+                        <p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 모드 → 채점</p>
+                        <p style="color:#93c5fd;">상세 설명은 각 창의 <strong>?</strong>에서 바로 확인합니다.</p>
                     </div>
                     <div class="help-feature-stack">
                         <div id="helpTimerFeatureBlock" class="help-feature-panel help-feature-panel-timer">
                             <strong>🕒 다중 페이즈 타이머</strong><br>
-                            전체 시간, 과목 시간, 가이드 시간을 <strong>한 화면에서 동시 확인</strong><br>
-                            <span style="color:#c4b5fd;">과목 → 쉬는시간 자동 전환, 설정에서 시간 조절 가능</span>
+                            전체 시간과 과목 시간을 함께 확인합니다.<br>
+                            <span style="color:#c4b5fd;">과목 전환과 쉬는 시간은 자동으로 이어집니다.</span>
                         </div>
                         <div id="helpPracticeFeatureBlock" class="help-feature-panel help-feature-panel-practice">
                             <strong>✏️ 연습장 (메모장 & 그림판)</strong><br>
-                            다음 문제 넘어가면 <strong>자동 초기화</strong><br>
-                            <span style="color:#fde68a;">문제 풀이 흔적이 남지 않도록 실제 흐름에 맞춰 동작</span>
+                            풀이 흔적은 문제 이동 시 정리됩니다.<br>
+                            <span style="color:#fde68a;">실전처럼 짧게 메모하고 바로 넘어가는 흐름입니다.</span>
                         </div>
                         <div id="helpCalculatorFeatureBlock" class="help-feature-panel help-feature-panel-calc">
-                            <strong>🧮 키보드 사용 가능한 계산기</strong><br>
-                            숫자/연산 입력과 버튼 조작 지원<br>
-                            <span style="color:#86efac;">복잡한 공학 기능 없이 실전형 제한 계산기</span>
+                            <strong>🧮 실전형 계산기</strong><br>
+                            키보드 입력과 기본 연산만 지원합니다.<br>
+                            <span style="color:#86efac;">복잡한 기능 없이 빠르게 계산하는 용도입니다.</span>
                         </div>
                     </div>
                 </div>
@@ -487,6 +501,9 @@
                 </div>
             </div>
             <div class="modal-body advanced-guide-modal-body">
+                <div id="advancedGuideFlow" class="guide-flow-strip guide-flow-strip-warm">
+                    후원 확인 → 신청 저장 → 상태 확인 → 승인 후 고급 진입
+                </div>
                 <div class="advanced-guide-section advanced-guide-section-login">
                     <div id="advancedGuideLoginTitle" class="advanced-guide-section-title advanced-guide-section-title-blue">1. 승인된 경우 바로 열기</div>
                     <div id="advancedGuideLoginBody" class="advanced-guide-info advanced-guide-info-blue">
@@ -500,35 +517,46 @@
                     <div id="advancedAccessStatus" style="min-height:18px; font-size:12px; color:#64748b; line-height:1.5;"></div>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-neutral">
-                    <div id="advancedGuideFeatureTitle" class="advanced-guide-section-title">2. 고급에서 추가되는 것</div>
-                    <div class="advanced-guide-card-grid">
-                        <div id="advancedGuideFeatureCard1" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">실전 제어 확장</strong>
-                            과목 건너뛰기, 과목 초기화, 전체 초기화처럼 반복 연습과 실전 전환에 필요한 제어가 추가됩니다.
-                        </div>
-                        <div id="advancedGuideFeatureCard2" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">상세 복기 정리</strong>
-                            과목별 상세 통계, 문항별 상세 통계 TXT 다운로드, 정오표 일괄입력으로 복기 흐름을 짧게 만듭니다.
-                        </div>
-                        <div id="advancedGuideFeatureCard3" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 감각 훈련</strong>
-                            문항별 시간 가이드와 기록으로 어디에서 시간을 잃는지 더 세밀하게 확인할 수 있습니다.
-                        </div>
-                        <div id="advancedGuideFeatureCard4" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
-                            <strong style="display:block; color:#0f172a; margin-bottom:4px;">개인 자료 보관함</strong>
-                            자료 보관함은 고급 모드에서만 보이며, 페이지 안에서 다시 로그인한 계정만 자기 자료를 읽고 수정할 수 있습니다.
-                        </div>
+                    <div class="advanced-guide-section-head">
+                        <div id="advancedGuideFeatureTitle" class="advanced-guide-section-title">2. 고급에서 추가되는 것</div>
+                        <div class="advanced-guide-section-kicker">세부 설명은 접어서 확인</div>
                     </div>
                     <div id="advancedGuideFeatureAccess" class="advanced-guide-note">
-                        신청, 승인 확인, 첫 진입만 여기서 보면 됩니다.
+                        이 창은 신청과 진입만 설명합니다. 버튼 사용 흐름은 고급 활용에서 다시 보면 됩니다.
                     </div>
+                    <details class="guide-fold">
+                        <summary>추가 기능 자세히 보기</summary>
+                        <div class="guide-fold-body">
+                            <div class="advanced-guide-card-grid">
+                                <div id="advancedGuideFeatureCard1" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
+                                    <strong style="display:block; color:#0f172a; margin-bottom:4px;">실전 제어</strong>
+                                    과목 건너뛰기, 과목 초기화, 전체 초기화가 추가됩니다.
+                                </div>
+                                <div id="advancedGuideFeatureCard2" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
+                                    <strong style="display:block; color:#0f172a; margin-bottom:4px;">상세 복기</strong>
+                                    상세 통계, TXT, 정오표로 복기 흐름을 짧게 만듭니다.
+                                </div>
+                                <div id="advancedGuideFeatureCard3" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
+                                    <strong style="display:block; color:#0f172a; margin-bottom:4px;">시간 가이드</strong>
+                                    문항별 시간 감각을 더 세밀하게 확인할 수 있습니다.
+                                </div>
+                                <div id="advancedGuideFeatureCard4" style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #e2e8f0; font-size:12px; color:#334155; line-height:1.7;">
+                                    <strong style="display:block; color:#0f172a; margin-bottom:4px;">자료 보관함</strong>
+                                    고급 모드에서만 열리고, 보관함 로그인으로 다시 확인합니다.
+                                </div>
+                            </div>
+                        </div>
+                    </details>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-warm">
-                    <div id="advancedGuidePlanTitle" class="advanced-guide-section-title advanced-guide-section-title-warm">3. 처음 신청하기</div>
+                    <div class="advanced-guide-section-head">
+                        <div id="advancedGuidePlanTitle" class="advanced-guide-section-title advanced-guide-section-title-warm">3. 처음 신청하기</div>
+                        <div class="advanced-guide-section-kicker">후원 확인 뒤 신청서를 저장합니다.</div>
+                    </div>
                     <div class="advanced-guide-plan-head">
                         <div class="advanced-guide-plan-copy">
                             <div id="advancedGuidePlanIntro" class="advanced-guide-plan-intro">
-                                후원 확인 -> 신청 저장 -> 상태 확인 -> 고급 진입 순서입니다.
+                                후원 확인 뒤 신청서를 저장하면 됩니다.
                             </div>
                         </div>
                         <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" class="advanced-guide-donate-link">1. 후원 페이지 열기</a>
@@ -545,9 +573,6 @@
                             <div style="font-size:11px; color:#9a3412; line-height:1.6; margin-top:6px;">가장 추천하는 주력 이용권</div>
                         </div>
                     </div>
-                    <div id="advancedGuideFlow" class="advanced-guide-flow">
-                        후원 확인 -> 신청 저장 -> 신청 이메일로 상태 확인 -> 승인 후 고급 진입
-                    </div>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-neutral">
                     <div class="advanced-guide-section-head">
@@ -555,7 +580,7 @@
                         <div class="advanced-guide-section-kicker">필수값만 입력하면 됩니다.</div>
                     </div>
                     <div id="advancedGuideFormDescription" class="advanced-guide-description">
-                        시작일, 닉네임, 이메일, 로그인 ID, 비밀번호만 입력하면 됩니다.
+                        시작일, 닉네임, 이메일, 로그인 ID, 비밀번호만 입력합니다.
                     </div>
                     <div class="advanced-guide-form-grid">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
@@ -596,16 +621,21 @@
                             <input id="manualSubscriptionPasswordConfirmInput" type="password" autocomplete="new-password" placeholder="비밀번호 확인" style="min-width:0; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px;">
                         </label>
                     </div>
-                    <div id="advancedGuidePasswordHint" class="advanced-guide-hint">
-                        같은 비밀번호를 <strong>신청 조회</strong>와 <strong>고급 로그인</strong>에 함께 씁니다. 신청번호를 기억할 필요는 없습니다.
-                    </div>
+                    <details class="guide-fold">
+                        <summary>비밀번호 규칙 보기</summary>
+                        <div class="guide-fold-body">
+                            <div id="advancedGuidePasswordHint" class="advanced-guide-hint">
+                                같은 비밀번호를 <strong>신청 조회</strong>와 <strong>고급 로그인</strong>에 함께 씁니다. 신청번호를 기억할 필요는 없습니다.
+                            </div>
+                        </div>
+                    </details>
                     <button id="manualSubscriptionSubmitBtn" type="button" class="advanced-guide-submit">2. 신청 저장</button>
                     <div id="manualSubscriptionSubmitStatus" style="min-height:20px; font-size:12px; color:#64748b; line-height:1.6;"></div>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-login">
                     <div id="advancedGuideLookupTitle" class="advanced-guide-section-title advanced-guide-section-title-small advanced-guide-section-title-blue">5. 신청 상태 확인</div>
                     <div id="advancedGuideLookupDescription" class="advanced-guide-description advanced-guide-description-blue">
-                        조회는 신청 이메일만 씁니다. 승인 뒤 로그인은 이메일 또는 로그인 ID를 씁니다.
+                        조회는 신청 이메일만, 로그인은 이메일 또는 로그인 ID를 씁니다.
                     </div>
                     <div class="advanced-guide-lookup-grid">
                         <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청 이메일" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
@@ -631,51 +661,12 @@
                 </div>
             </div>
             <div class="modal-body advanced-feature-modal-body">
-                <div id="advancedFeatureIntro" class="help-advanced-banner help-advanced-banner-info">
-                    <div style="font-weight:800; margin-bottom:6px;">이미 들어온 뒤 버튼 위치만 다시 찾는 창입니다.</div>
-                    핵심은 <strong>상단 상태 바</strong>, <strong>OMR 아래 복기 버튼</strong>, <strong>더보기 안 자료 보관함</strong>입니다.
-                </div>
-                <div id="advancedFeatureSummary" class="help-advanced-banner help-advanced-banner-flow">
+                <div id="advancedFeatureSummary" class="guide-flow-strip guide-flow-strip-advanced">
                     <strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>
                 </div>
-                <div class="help-advanced-gallery">
-                    <div class="help-advanced-card">
-                        <div id="advancedFeatureImage1Title" class="help-advanced-card-title">1. 상단 상태와 우측 여백 확인</div>
-                        <div class="help-advanced-schematic help-advanced-schematic-status" aria-hidden="true">
-                            <div class="help-advanced-mini-bar">
-                                <span class="help-advanced-pill help-advanced-pill-active">고급 활성</span>
-                                <span class="help-advanced-pill">로그인</span>
-                                <span class="help-advanced-pill">만료</span>
-                            </div>
-                            <div class="help-advanced-mini-stage">
-                                <div class="help-advanced-mini-screen"></div>
-                                <div class="help-advanced-mini-rail"></div>
-                            </div>
-                            <div class="help-advanced-mini-label help-advanced-mini-label-top">상단 상태 바</div>
-                            <div class="help-advanced-mini-label help-advanced-mini-label-bottom">우측 실제환경 여백</div>
-                        </div>
-                        <div id="advancedFeatureImage1Caption" class="help-advanced-card-caption">지금 열린 권한, 로그인 ID, 만료 시각은 상단에서 바로 확인합니다. 우측 여백은 실제 환경 감각을 맞추는 용도입니다.</div>
-                    </div>
-                    <div class="help-advanced-card">
-                        <div id="advancedFeatureImage2Title" class="help-advanced-card-title">2. OMR 아래 복기 버튼 익히기</div>
-                        <div class="help-advanced-schematic help-advanced-schematic-omr" aria-hidden="true">
-                            <div class="help-advanced-omr-sheet">
-                                <span class="help-advanced-omr-dot"></span>
-                                <span class="help-advanced-omr-dot"></span>
-                                <span class="help-advanced-omr-dot"></span>
-                                <span class="help-advanced-omr-dot"></span>
-                                <span class="help-advanced-omr-dot"></span>
-                            </div>
-                            <div class="help-advanced-omr-action-stack">
-                                <div class="help-advanced-omr-action help-advanced-omr-action-primary">정답 입력</div>
-                                <div class="help-advanced-omr-action help-advanced-omr-action-secondary">채점</div>
-                                <div class="help-advanced-omr-action help-advanced-omr-action-accent">복기 버튼</div>
-                            </div>
-                            <div class="help-advanced-mini-label help-advanced-mini-label-top">OMR 입력칸</div>
-                            <div class="help-advanced-mini-label help-advanced-mini-label-bottom">아래 복기 버튼 구역</div>
-                        </div>
-                        <div id="advancedFeatureImage2Caption" class="help-advanced-card-caption">정답 입력, 채점, 상세 통계, TXT 다운로드, 정오표 일괄입력은 모두 OMR 아래에 모여 있습니다. 이 구역만 익히면 복기 속도가 빨라집니다.</div>
-                    </div>
+                <div id="advancedFeatureIntro" class="help-advanced-banner help-advanced-banner-info">
+                    <div style="font-weight:800; margin-bottom:6px;">고급에서 가장 많이 쓰는 버튼만 다시 확인하는 창입니다.</div>
+                    상단 상태, OMR 아래 복기 버튼, 더보기 안 자료 보관함만 기억하면 됩니다.
                 </div>
                 <div id="advancedFeaturePlanInfo" class="help-advanced-banner help-advanced-banner-note">
                     자료 보관함은 <strong>더보기</strong>에서 따로 엽니다.
@@ -686,6 +677,50 @@
                     <div id="advancedFeatureItem3" class="help-advanced-check-item"><strong>3. TXT로 기록 남기기</strong><br>문항별 상세 통계를 파일로 저장합니다.</div>
                     <div id="advancedFeatureItem4" class="help-advanced-check-item"><strong>4. 반복 연습 준비</strong><br>정오표, 과↺, 전↺, 시간 가이드로 다시 풉니다.</div>
                 </div>
+                <details class="guide-fold">
+                    <summary>버튼 위치 그림 보기</summary>
+                    <div class="guide-fold-body">
+                        <div class="help-advanced-gallery">
+                            <div class="help-advanced-card">
+                                <div id="advancedFeatureImage1Title" class="help-advanced-card-title">1. 상단 상태와 우측 여백 확인</div>
+                                <div class="help-advanced-schematic help-advanced-schematic-status" aria-hidden="true">
+                                    <div class="help-advanced-mini-bar">
+                                        <span class="help-advanced-pill help-advanced-pill-active">고급 활성</span>
+                                        <span class="help-advanced-pill">로그인</span>
+                                        <span class="help-advanced-pill">만료</span>
+                                    </div>
+                                    <div class="help-advanced-mini-stage">
+                                        <div class="help-advanced-mini-screen"></div>
+                                        <div class="help-advanced-mini-rail"></div>
+                                    </div>
+                                    <div class="help-advanced-mini-label help-advanced-mini-label-top">상단 상태 바</div>
+                                    <div class="help-advanced-mini-label help-advanced-mini-label-bottom">우측 실제환경 여백</div>
+                                </div>
+                                <div id="advancedFeatureImage1Caption" class="help-advanced-card-caption">지금 열린 권한, 로그인 ID, 만료 시각은 상단에서 바로 확인합니다. 우측 여백은 실제 환경 감각을 맞추는 용도입니다.</div>
+                            </div>
+                            <div class="help-advanced-card">
+                                <div id="advancedFeatureImage2Title" class="help-advanced-card-title">2. OMR 아래 복기 버튼 익히기</div>
+                                <div class="help-advanced-schematic help-advanced-schematic-omr" aria-hidden="true">
+                                    <div class="help-advanced-omr-sheet">
+                                        <span class="help-advanced-omr-dot"></span>
+                                        <span class="help-advanced-omr-dot"></span>
+                                        <span class="help-advanced-omr-dot"></span>
+                                        <span class="help-advanced-omr-dot"></span>
+                                        <span class="help-advanced-omr-dot"></span>
+                                    </div>
+                                    <div class="help-advanced-omr-action-stack">
+                                        <div class="help-advanced-omr-action help-advanced-omr-action-primary">정답 입력</div>
+                                        <div class="help-advanced-omr-action help-advanced-omr-action-secondary">채점</div>
+                                        <div class="help-advanced-omr-action help-advanced-omr-action-accent">복기 버튼</div>
+                                    </div>
+                                    <div class="help-advanced-mini-label help-advanced-mini-label-top">OMR 입력칸</div>
+                                    <div class="help-advanced-mini-label help-advanced-mini-label-bottom">아래 복기 버튼 구역</div>
+                                </div>
+                                <div id="advancedFeatureImage2Caption" class="help-advanced-card-caption">정답 입력, 채점, 상세 통계, TXT 다운로드, 정오표 일괄입력은 모두 OMR 아래에 모여 있습니다. 이 구역만 익히면 복기 속도가 빨라집니다.</div>
+                            </div>
+                        </div>
+                    </div>
+                </details>
                 <div class="advanced-feature-actions">
                     <button id="advancedFeatureManualFlowBtn" type="button" style="padding:8px 12px; background:#fff; color:#c2410c; border:1px solid #fdba74; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer;">신청 안내 보기</button>
                     <a id="advancedFeatureDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" style="padding:8px 12px; background:#fff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:999px; font-size:12px; font-weight:800; text-decoration:none;">후원 페이지</a>
@@ -946,9 +981,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="build-info.js?v=202604101124"></script>
-    <script src="site-text-config.js?v=202604101124"></script>
-    <script src="main.js?v=202604101124"></script>
+    <script src="build-info.js?v=202604101313"></script>
+    <script src="site-text-config.js?v=202604101313"></script>
+    <script src="main.js?v=202604101313"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
