@@ -1,7 +1,16 @@
 # SKCT Tool 최근 운영 반영 리포트
-작성일시: 2026-04-10 11:16:32 +09:00
+작성일시: 2026-04-10 11:30:12 +09:00
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
+
+## 2026-04-10 운영 반영 완료: 메모장 클릭 전체선택 오동작 복구
+- 공개 배포 브랜치 `public-clean`은 `92f31d1` 기준으로 다시 반영됐습니다.
+- 일반 모드와 고급 모드는 같은 `#notepad` 입력창 로직을 공유하고 있었고, 이번 수정도 공통 경로에 반영했습니다.
+- 원인은 메모장 drag auto-scroll 보조가 `pointerdown` 즉시 drag selection 상태를 켜고, native caret 이동과 충돌하던 구조였습니다.
+- 메모장 선택 보조는 이제 실제 드래그 이동이 threshold를 넘겼을 때만 켜지고, 단순 클릭은 일반 textarea처럼 caret만 이동하게 정리했습니다.
+- pointer 이벤트와 mouse 이벤트를 동시에 중복으로 걸던 구조도 pointer 우선 / mouse fallback 구조로 줄였습니다.
+- 로컬 검증에서 `전체 선택 상태에서 클릭 -> selectedLength 0`, `실제 드래그 -> selectedLength 608, scrollTop 378`을 확인했습니다.
+- 라이브 검증에서 `build-info.js`는 `v2026.04.10.1124`, `assetVersion 202604101124`, 메모장 클릭 테스트는 `selectedLength 0`을 반환했습니다.
 
 ## 2026-04-10 로컬 관리자 실행 개선: Python 런처 기준으로 정리
 - 로컬 관리자 진입 기본 명령을 `py scripts/open_local_admin.py`로 바꿨습니다.
