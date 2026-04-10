@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-        updatedAt: '2026-04-10 02:19:08 +09:00',
-        version: 'v2026.04.10.0219',
-        assetVersion: '202604100219'
+        updatedAt: '2026-04-10 09:32:07 +09:00',
+        version: 'v2026.04.10.0932',
+        assetVersion: '202604100932'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -1284,6 +1284,13 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(() => {
             syncToolsRightRail();
         });
+        window.setTimeout(() => {
+            try {
+                updateTimerActionButtons();
+            } catch (error) {
+                // 타이머 버튼은 뒤에서 초기화되므로, 아직 준비 전이면 다음 UI 갱신에서 다시 맞춘다.
+            }
+        }, 0);
     }
 
     async function syncStoredAdvancedLicenseState(options = {}) {
@@ -4487,9 +4494,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const archiveUrl = 'study-archive.html';
-        const popup = window.open(archiveUrl, '_blank', 'noopener');
+        const popup = window.open(archiveUrl, '_blank');
         if (!popup) {
             window.location.assign(archiveUrl);
+            return;
+        }
+        try {
+            popup.opener = null;
+        } catch (error) {
+            // 일부 브라우저는 opener 재할당을 막을 수 있다.
         }
     };
     if (utilityToggle && utilityModal) {
@@ -4535,6 +4548,9 @@ document.addEventListener('DOMContentLoaded', () => {
             openAdvancedFeatureGuide();
         });
     }
+    document.getElementById('mockChatBtn')?.addEventListener('click', () => {
+        openAdvancedFeatureGuide();
+    });
 
     const helpToggle = document.getElementById('helpToggle');
     const helpModal = document.getElementById('helpModal');
@@ -4707,10 +4723,6 @@ document.addEventListener('DOMContentLoaded', () => {
             requestAnimationFrame(focusCalculatorSurface);
         });
     }
-
-    document.getElementById('mockChatBtn')?.addEventListener('click', () => {
-        alert('skct와 동일한 위치에 존재하는 기능 없는 버튼입니다');
-    });
 
     /* --- Window Popup Mode Logic --- */
     function launchPopupMode() {
