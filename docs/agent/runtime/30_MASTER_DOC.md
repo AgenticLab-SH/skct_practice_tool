@@ -6,7 +6,7 @@
 ## 1. 현재 운영 경계
 
 - 현재 GitHub Pages 운영 반영 기준 브랜치는 `public-clean`입니다.
-- 최근 운영 공개 반영은 `public-clean` 커밋 `33f85d5` 기준으로 끝났습니다.
+- 최근 운영 공개 반영은 `public-clean` 커밋 `488e025` 기준으로 끝났습니다.
 - 사용자의 명시적 승인 전에는 `public-clean` push, GitHub Pages 운영 반영, 운영 Firebase RTDB 기본값 변경을 하지 않습니다.
 - 현재 남은 민감 흐름 전환 작업은 아직 운영 Firebase를 직접 건드리지 않은 상태입니다.
 - 현재 로컬 안전 백업 기준:
