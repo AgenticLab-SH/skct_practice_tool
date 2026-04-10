@@ -1,5 +1,5 @@
 # SKCT Tool 학습 메모
-작성일시: 2026-04-10 02:43:10 +09:00
+작성일시: 2026-04-10 09:32:07 +09:00
 
 이 문서는 같은 실수를 반복하지 않기 위한 짧은 재발 방지 메모입니다.
 
@@ -79,3 +79,15 @@
 - 스크립트가 있어도 매번 탐색기에서 더블클릭하거나 경로를 치는 건 다시 귀찮아집니다.
 - 이번에는 `.vscode/tasks.json`에 `로컬 관리자 페이지 열기/종료` 작업을 추가해 `Tasks: Run Task`만으로 실행되게 묶었습니다.
 - 반복 실행이 필요한 운영 보조 도구는 스크립트만 만들지 말고, 자주 쓰는 편집기 진입점까지 같이 두는 편이 좋습니다.
+
+## 14. VS Code PowerShell shell task는 .cmd 실행에서 `-Command` 오류를 만들 수 있다
+
+- 이번에는 `.cmd` 파일을 shell task로 바로 물리면 VS Code가 PowerShell `-Command` 경로로 감싸면서 `-Command: The term '-Command' is not recognized` 오류가 났습니다.
+- Windows에서 `.cmd`를 안정적으로 띄우려면 shell task보다 `type: process`와 `cmd.exe /d /c` 조합이 훨씬 안전합니다.
+- 다음부터는 VS Code에서 배치 파일을 실행할 때 `shell`보다 `process`를 먼저 검토하는 편이 낫습니다.
+
+## 15. `window.open(..., 'noopener')`는 성공해도 반환값이 `null`일 수 있다
+
+- 이번에는 자료 보관함을 새 탭으로 열 때 `window.open(url, '_blank', 'noopener')` 뒤에 `if (!popup) location.assign(url)` fallback을 붙여 두었습니다.
+- 문제는 일부 브라우저에서 `noopener`를 쓰면 새 탭을 열어도 반환값이 `null`일 수 있어, 결과적으로 `새 탭도 열리고 현재 페이지도 같이 이동`하는 이중 이동이 생길 수 있다는 점입니다.
+- 다음부터는 `noopener`가 필요한 새 탭 열기에서 반환값을 실패 여부로 바로 해석하지 말고, `window.open(url, '_blank')` 후 `opener = null` 처리나 앵커 기반 열기처럼 반환값 의미가 더 분명한 방식을 쓰는 편이 안전합니다.

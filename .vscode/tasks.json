@@ -3,11 +3,13 @@
   "tasks": [
     {
       "label": "SKCT: 로컬 관리자 페이지 열기",
-      "type": "shell",
-      "command": "${workspaceFolder}\\scripts\\open_local_admin.cmd",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "type": "process",
+      "command": "cmd.exe",
+      "args": [
+        "/d",
+        "/c",
+        "\"${workspaceFolder}\\scripts\\open_local_admin.cmd\""
+      ],
       "presentation": {
         "reveal": "always",
         "panel": "shared",
@@ -17,11 +19,13 @@
     },
     {
       "label": "SKCT: 로컬 관리자 페이지 종료",
-      "type": "shell",
-      "command": "${workspaceFolder}\\scripts\\stop_local_admin.cmd",
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
+      "type": "process",
+      "command": "cmd.exe",
+      "args": [
+        "/d",
+        "/c",
+        "\"${workspaceFolder}\\scripts\\stop_local_admin.cmd\""
+      ],
       "presentation": {
         "reveal": "always",
         "panel": "shared",
