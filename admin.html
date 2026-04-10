@@ -16,9 +16,11 @@
     <div class="login-card">
         <h1>🔐 SKCT Tool Admin</h1>
         <p class="subtitle">Firebase Auth 관리자 계정으로 로그인</p>
-        <input type="email" id="loginEmail" placeholder="관리자 이메일 입력" autocomplete="username">
-        <input type="password" id="loginPw" placeholder="관리자 비밀번호 입력" autocomplete="current-password">
-        <button id="loginBtn">로그인</button>
+        <form id="loginForm" class="login-form">
+            <input type="email" id="loginEmail" placeholder="관리자 이메일 입력" autocomplete="username">
+            <input type="password" id="loginPw" placeholder="관리자 비밀번호 입력" autocomplete="current-password">
+            <button id="loginBtn" type="submit">로그인</button>
+        </form>
         <div id="loginError" class="login-error">이메일 또는 비밀번호가 올바르지 않습니다.</div>
     </div>
 </div>
@@ -27,7 +29,13 @@
 <div id="dashboard" class="dashboard">
     <!-- Top Nav -->
     <nav class="top-nav">
-        <h1>🛡️ SKCT Tool Admin</h1>
+        <div class="top-nav-brand">
+            <h1>🛡️ SKCT Tool Admin</h1>
+            <div class="admin-live-status">
+                <div id="adminSessionStatus" class="admin-status-pill pending">로그인 확인 중...</div>
+                <div id="adminSaveStatus" class="admin-status-text">아직 저장 작업 없음</div>
+            </div>
+        </div>
         <div class="top-nav-actions">
             <a href="index.html?dev=1&preview=1" target="_blank" id="sitePreviewLink">🔗 사이트 보기</a>
             <a href="staging/site/index.html?stage=1&preview=1" target="_blank" id="stagingPreviewLink">🧪 테스트 사이트</a>
@@ -704,8 +712,31 @@
     const buildInfo = window.SKCTBuildInfo || {};
     const adminBuildUpdatedAt = document.getElementById('adminBuildUpdatedAt');
     const adminBuildVersion = document.getElementById('adminBuildVersion');
+    const adminSessionStatusEl = document.getElementById('adminSessionStatus');
+    const adminSaveStatusEl = document.getElementById('adminSaveStatus');
     if (adminBuildUpdatedAt) adminBuildUpdatedAt.textContent = buildInfo.updatedAt || '-';
     if (adminBuildVersion) adminBuildVersion.textContent = buildInfo.version || '-';
+
+    function formatAdminStatusTime(date = new Date()) {
+        return date.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    }
+
+    function setAdminSessionStatus(message, tone = 'pending') {
+        if (!adminSessionStatusEl) return;
+        adminSessionStatusEl.textContent = message;
+        adminSessionStatusEl.className = `admin-status-pill ${tone}`;
+    }
+
+    function setAdminSaveStatus(message, tone = '') {
+        if (!adminSaveStatusEl) return;
+        adminSaveStatusEl.textContent = message;
+        adminSaveStatusEl.className = tone ? `admin-status-text ${tone}` : 'admin-status-text';
+    }
 
     function countFreshVisitors(raw) {
         const now = Date.now();
@@ -784,9 +815,11 @@
         }
         try {
             await user.getIdToken(forceRefresh);
+            setAdminSessionStatus('관리자 세션 확인됨', 'success');
             return user;
         } catch (error) {
             console.error('Admin token verification failed:', error);
+            setAdminSessionStatus('관리자 세션 확인 실패', 'error');
             const tokenError = new Error('관리자 인증 토큰을 확인하지 못했습니다. 다시 로그인해주세요.');
             tokenError.code = error?.code || 'auth/admin-token-check-failed';
             throw tokenError;
@@ -797,12 +830,18 @@
         const { forceRefresh = false, reconnectDatabase = false, expectedUser = null } = options;
         const user = await ensureAdminWriteSession({ forceRefresh, expectedUser });
         if (reconnectDatabase) {
+            setAdminSessionStatus('RTDB 쓰기 연결 재동기화 중...', 'pending');
             goOffline(db);
             await sleep(120);
             goOnline(db);
-            await waitForDatabaseReconnect();
+            const reconnected = await waitForDatabaseReconnect();
+            setAdminSessionStatus(
+                reconnected ? 'RTDB 쓰기 연결 확인됨' : 'RTDB 재연결은 완료됐지만 응답이 느립니다',
+                reconnected ? 'success' : 'pending'
+            );
             await sleep(180);
         } else if (forceRefresh) {
+            setAdminSessionStatus('관리자 세션 다시 확인 중...', 'pending');
             await sleep(180);
         }
         return user;
@@ -1554,7 +1593,10 @@
     const BASE_YESTERDAY_VISITS = 380;
 
     // ── Login ──
-    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginForm').addEventListener('submit', (event) => {
+        event.preventDefault();
+        doLogin();
+    });
     document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
     document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
@@ -1562,16 +1604,19 @@
         const email = document.getElementById('loginEmail').value.trim();
         const pw = document.getElementById('loginPw').value.trim();
         if (!email || !pw) {
+            setAdminSessionStatus('로그인 정보 입력 필요', 'pending');
             document.getElementById('loginError').textContent = '이메일과 비밀번호를 모두 입력해주세요.';
             document.getElementById('loginError').style.display = 'block';
             return;
         }
         try {
+            setAdminSessionStatus('로그인 확인 중...', 'pending');
             await setPersistence(auth, browserSessionPersistence);
             await signInWithEmailAndPassword(auth, email, pw);
             currentAdminPassword = pw;
         } catch (error) {
             console.error('Admin auth failed:', error);
+            setAdminSessionStatus('로그인 실패', 'error');
             document.getElementById('loginError').textContent = '이메일 또는 비밀번호가 올바르지 않거나 Firebase Auth 설정이 준비되지 않았습니다.';
             document.getElementById('loginError').style.display = 'block';
             setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
@@ -1595,6 +1640,8 @@
         document.getElementById('loginScreen').style.display = 'flex';
         document.getElementById('loginEmail').value = '';
         document.getElementById('loginPw').value = '';
+        setAdminSessionStatus('로그인 필요', 'pending');
+        setAdminSaveStatus('아직 저장 작업 없음');
     }
 
     document.getElementById('logoutBtn').addEventListener('click', async () => {
@@ -1614,6 +1661,7 @@
                 console.error('Admin session bootstrap failed:', error);
                 document.getElementById('loginError').textContent = '로그인 상태를 복원하지 못했습니다. 다시 로그인해주세요.';
                 document.getElementById('loginError').style.display = 'block';
+                setAdminSessionStatus('세션 복원 실패', 'error');
                 await signOut(auth).catch(() => {});
             }
         }
@@ -1684,9 +1732,11 @@
                 await adminSetValue('config/toolUiConfig', loadedConfig.toolUiConfig);
 
                 renderPopupLayoutSummary();
+                setAdminSaveStatus(`테스트 기본값 실제 서버 반영 완료 · ${formatAdminStatusTime()}`, 'success');
                 toast('✅ 테스트 기본값을 실제 서버에 반영했습니다.');
             } catch (error) {
                 console.error(error);
+                setAdminSaveStatus(`테스트 기본값 실제 서버 반영 실패 · ${error.message || '오류'}`, 'error');
                 toast('실제 서버 반영 실패', true);
             }
         });
@@ -1716,6 +1766,7 @@
                 await adminSetValue('staging_hidden_v1/config/toolUiConfig', stagingLoadedConfig.toolUiConfig);
 
                 renderStagingPopupLayoutSummary();
+                setAdminSaveStatus(`테스트 기본값 저장 완료 · ${formatAdminStatusTime()}`, 'success');
                 toast('✅ 테스트 기본값 저장 완료');
                 event.source?.postMessage({
                     type: 'stg-skct-popup-save-result',
@@ -1728,6 +1779,7 @@
                 }, event.origin);
             } catch (error) {
                 console.error(error);
+                setAdminSaveStatus(`테스트 기본값 저장 실패 · ${error.message || '오류'}`, 'error');
                 toast('테스트 기본값 저장 실패', true);
                 event.source?.postMessage({
                     type: 'stg-skct-popup-save-result',
@@ -2187,14 +2239,21 @@
         if (!currentReplyPid) return;
         const content = document.getElementById('adminReplyInput').value.trim();
         if (!content) { toast('내용을 입력하세요', true); return; }
-        await set(push(ref(db, `replies/${currentReplyPid}`)), {
-            nickname: '🛡️ 관리자', passwordHash: '', content,
-            timestamp: Date.now(), isAdmin: true, pinned: true, deleted: false
-        });
-        await adminRunTransactionValue(`posts/${currentReplyPid}/replyCount`, c => (c || 0) + 1);
-        document.getElementById('adminReplyInput').value = '';
-        toast('✅ 관리자 답글 등록');
-        openReplyModal(currentReplyPid);
+        try {
+            await set(push(ref(db, `replies/${currentReplyPid}`)), {
+                nickname: '🛡️ 관리자', passwordHash: '', content,
+                timestamp: Date.now(), isAdmin: true, pinned: true, deleted: false
+            });
+            await adminRunTransactionValue(`posts/${currentReplyPid}/replyCount`, c => (c || 0) + 1);
+            document.getElementById('adminReplyInput').value = '';
+            setAdminSaveStatus(`관리자 답글 등록 완료 · ${formatAdminStatusTime()}`, 'success');
+            toast('✅ 관리자 답글 등록');
+            openReplyModal(currentReplyPid);
+        } catch (error) {
+            console.error('Admin reply submit failed:', error);
+            setAdminSaveStatus(`관리자 답글 등록 실패 · ${error.message || '오류'}`, 'error');
+            toast(`❌ 관리자 답글 등록 실패: ${error.message || '오류'}`, true);
+        }
     });
 
     // ── Global Tools ──
@@ -2564,13 +2623,21 @@
     async function promoteCodeDefaultsToAdminBaseline() {
         const confirmed = window.confirm('현재 코드 기본 문구 전체를 관리자 기준값(Firebase config/siteTextConfig)으로 저장합니다. 기존 운영 텍스트 기준값이 있으면 이 값으로 덮어씁니다. 계속할까요?');
         if (!confirmed) return;
-        loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(window.SKCTSiteTextConfig.DEFAULT_SITE_TEXT_CONFIG);
-        hasRemoteSiteTextConfig = true;
-        renderSiteTextEditor();
-        syncSiteTextPreview();
-        await saveSiteTextSettings(true);
-        renderSiteTextEditorStatus('코드 기본 문구 전체를 관리자 기준값으로 저장했습니다. 이제 운영 우선순위는 Firebase config/siteTextConfig입니다.');
-        toast('✅ 코드 기본값을 관리자 기준값으로 저장 완료');
+        try {
+            loadedConfig.siteTextConfig = window.SKCTSiteTextConfig.normalizeSiteTextConfig(window.SKCTSiteTextConfig.DEFAULT_SITE_TEXT_CONFIG);
+            hasRemoteSiteTextConfig = true;
+            renderSiteTextEditor();
+            syncSiteTextPreview();
+            await saveSiteTextSettings(true);
+            renderSiteTextEditorStatus('코드 기본 문구 전체를 관리자 기준값으로 저장했습니다. 이제 운영 우선순위는 Firebase config/siteTextConfig입니다.');
+            setAdminSaveStatus(`코드 기본값 관리자 기준 저장 완료 · ${formatAdminStatusTime()}`, 'success');
+            toast('✅ 코드 기본값을 관리자 기준값으로 저장 완료');
+        } catch (error) {
+            console.error('Promote code defaults failed:', error);
+            renderSiteTextEditorStatus(error?.message || '코드 기본값을 관리자 기준값으로 저장하지 못했습니다.', true);
+            setAdminSaveStatus(`코드 기본값 관리자 기준 저장 실패 · ${error?.message || '오류'}`, 'error');
+            toast(`❌ 코드 기본값 저장 실패: ${error?.message || '오류'}`, true);
+        }
     }
 
     window.__skctPromoteSiteTextDefaults = promoteCodeDefaultsToAdminBaseline;
@@ -2984,7 +3051,21 @@
         await loadPostsOnce();
         await loadSubscriptionRequests();
         listenConfig();
+        setAdminSaveStatus(`백업 복원 완료 · ${formatAdminStatusTime()}`, 'success');
         toast('✅ 백업 복원 완료');
+    }
+
+    async function runManualSubscriptionRequestAction(label, action) {
+        try {
+            await action();
+            setAdminSaveStatus(`${label} 완료 · ${formatAdminStatusTime()}`, 'success');
+        } catch (error) {
+            console.error(`${label} failed:`, error);
+            const message = error?.message || `${label} 중 오류가 발생했습니다.`;
+            renderManualSubscriptionAdminForm(message, true);
+            setAdminSaveStatus(`${label} 실패 · ${message}`, 'error');
+            toast(`❌ ${label} 실패: ${message}`, true);
+        }
     }
 
     async function loadSubscriptionRequests() {
@@ -3095,25 +3176,37 @@
 
         container.querySelectorAll('[data-request-act="approve"]').forEach((button) => {
             button.addEventListener('click', async () => {
-                await approveSubscriptionRequest(button.dataset.requestId, button.closest('[data-request-card]'));
+                await runManualSubscriptionRequestAction(
+                    '신청 승인 및 라이선스 발급',
+                    () => approveSubscriptionRequest(button.dataset.requestId, button.closest('[data-request-card]'))
+                );
             });
         });
 
         container.querySelectorAll('[data-request-act="reject"]').forEach((button) => {
             button.addEventListener('click', async () => {
-                await rejectSubscriptionRequest(button.dataset.requestId, button.closest('[data-request-card]'));
+                await runManualSubscriptionRequestAction(
+                    '신청 반려',
+                    () => rejectSubscriptionRequest(button.dataset.requestId, button.closest('[data-request-card]'))
+                );
             });
         });
 
         container.querySelectorAll('[data-request-act="toggle-block"]').forEach((button) => {
             button.addEventListener('click', async () => {
-                await toggleBlockSubscriptionRequest(button.dataset.requestId, button.closest('[data-request-card]'));
+                await runManualSubscriptionRequestAction(
+                    '신청 차단 상태 변경',
+                    () => toggleBlockSubscriptionRequest(button.dataset.requestId, button.closest('[data-request-card]'))
+                );
             });
         });
 
         container.querySelectorAll('[data-request-act="delete"]').forEach((button) => {
             button.addEventListener('click', async () => {
-                await deleteSubscriptionRequest(button.dataset.requestId);
+                await runManualSubscriptionRequestAction(
+                    '신청 삭제',
+                    () => deleteSubscriptionRequest(button.dataset.requestId)
+                );
             });
         });
     }
@@ -3123,15 +3216,13 @@
         const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
         const signingPrivateKeyPem = (document.getElementById('manualSubscriptionLicensePrivateKeyArea').value || '').trim();
         if (!record || !privateKeyPem || !signingPrivateKeyPem || !cardEl) {
-            renderManualSubscriptionAdminForm('승인 처리에 필요한 신청 정보, 복호화 키, 서명 키가 모두 준비되어야 합니다.', true);
-            return;
+            throw new Error('승인 처리에 필요한 신청 정보, 복호화 키, 서명 키가 모두 준비되어야 합니다.');
         }
         const payload = record._payload || await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
         const expiresAt = cardEl.querySelector('[data-field="expiresAt"]').value.trim();
         const statusMessage = cardEl.querySelector('[data-field="statusMessage"]').value.trim() || '투네이션 확인 후 승인되었습니다.';
         if (!expiresAt) {
-            renderManualSubscriptionAdminForm('만료일을 입력해야 라이선스를 발급할 수 있습니다.', true);
-            return;
+            throw new Error('만료일을 입력해야 라이선스를 발급할 수 있습니다.');
         }
         const expiresAtIso = `${expiresAt}T12:00:00+09:00`;
         const licenseBundle = await window.SKCTSubscriptionCrypto.signLicensePayload({
@@ -3189,8 +3280,7 @@
         const record = subscriptionRequestCache[requestId];
         const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
         if (!record || !privateKeyPem || !cardEl) {
-            renderManualSubscriptionAdminForm('반려 처리에 필요한 신청 정보 또는 개인키가 없습니다.', true);
-            return;
+            throw new Error('반려 처리에 필요한 신청 정보 또는 개인키가 없습니다.');
         }
         const payload = record._payload || await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
         const statusMessage = cardEl.querySelector('[data-field="statusMessage"]').value.trim() || '후원 내역 또는 신청 정보 확인이 필요해 반려되었습니다.';
@@ -3225,8 +3315,7 @@
         const record = subscriptionRequestCache[requestId];
         const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
         if (!record || !privateKeyPem || !cardEl) {
-            renderManualSubscriptionAdminForm('차단 처리에 필요한 신청 정보 또는 복호화 개인키가 없습니다.', true);
-            return;
+            throw new Error('차단 처리에 필요한 신청 정보 또는 복호화 개인키가 없습니다.');
         }
         const isBlocked = record.status === 'blocked';
         const payload = record._payload || await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
@@ -3267,8 +3356,7 @@
     async function deleteSubscriptionRequest(requestId) {
         const record = subscriptionRequestCache[requestId];
         if (!record) {
-            renderManualSubscriptionAdminForm('삭제할 신청을 다시 불러와주세요.', true);
-            return;
+            throw new Error('삭제할 신청을 다시 불러와주세요.');
         }
         const confirmed = confirm(`신청 ${requestId}를 Firebase에서 완전히 삭제할까요?\n삭제 후에는 목록과 암호화 본문이 함께 사라집니다.`);
         if (!confirmed) return;
@@ -3821,11 +3909,13 @@
                             : '✅ 고급 구독 저장 완료'
                 );
             }
+            setAdminSaveStatus(`고급 구독 저장 완료 · ${formatAdminStatusTime()}`, persistResult.warnings.length || advancedSubscriptionsSavedWithoutRecoverableCipher ? 'error' : 'success');
         } catch (error) {
             if (statusEl) {
                 statusEl.textContent = error.message || '고급 구독 저장 중 오류가 발생했습니다.';
                 statusEl.style.color = '#b91c1c';
             }
+            setAdminSaveStatus(`고급 구독 저장 실패 · ${error.message || '오류'}`, 'error');
             if (!silent) toast(`❌ 고급 구독 저장 실패: ${error.message || '오류'}`, true);
             if (rethrow) throw error;
         }
@@ -3850,8 +3940,10 @@
     async function runAdminSaveAction(action, label) {
         try {
             await action();
+            setAdminSaveStatus(`${label} 완료 · ${formatAdminStatusTime()}`, 'success');
         } catch (error) {
             console.error(`${label} failed:`, error);
+            setAdminSaveStatus(`${label} 실패 · ${formatAdminSaveError(error)}`, 'error');
             toast(`❌ ${label} 실패: ${formatAdminSaveError(error)}`, true);
         }
     }
@@ -3871,7 +3963,16 @@
         await handleBackupUpload(event.target.files?.[0]);
         event.target.value = '';
     });
-    document.getElementById('manualSubscriptionBackupRestoreBtn').addEventListener('click', restorePendingBackupToDatabase);
+    document.getElementById('manualSubscriptionBackupRestoreBtn').addEventListener('click', async () => {
+        try {
+            await restorePendingBackupToDatabase();
+        } catch (error) {
+            console.error('Backup restore failed:', error);
+            renderManualSubscriptionAdminForm(error.message || '백업 복원 중 오류가 발생했습니다.', true);
+            setAdminSaveStatus(`백업 복원 실패 · ${error.message || '오류'}`, 'error');
+            toast(`❌ 백업 복원 실패: ${error.message || '오류'}`, true);
+        }
+    });
     document.getElementById('manualSubscriptionRequestRefreshBtn').addEventListener('click', loadSubscriptionRequests);
     document.getElementById('manualSubscriptionLinkLocalKeyDirBtn').addEventListener('click', connectLocalAdminKeyDirectory);
     document.getElementById('manualSubscriptionForgetLocalKeyDirBtn').addEventListener('click', forgetLocalAdminKeyDirectory);
@@ -3882,9 +3983,11 @@
             await ensureManualSubscriptionEncryptionKeys({ forceRegenerate: true });
             await saveManualSubscriptionSettings(true);
             renderManualSubscriptionAdminForm('새 신청 암호화 키를 생성하고 저장했습니다. 개인키는 반드시 안전한 곳에 별도 보관하세요.');
+            setAdminSaveStatus(`신청 암호화 키 생성 완료 · ${formatAdminStatusTime()}`, 'success');
             toast('✅ 신청 암호화 키 생성 완료');
         } catch (error) {
             renderManualSubscriptionAdminForm(error.message || '신청 암호화 키 생성 중 오류가 발생했습니다.', true);
+            setAdminSaveStatus(`신청 암호화 키 생성 실패 · ${error.message || '오류'}`, 'error');
         }
     });
     document.getElementById('manualSubscriptionDownloadLicensePrivateKeyBtn').addEventListener('click', downloadManualSubscriptionLicensePrivateKey);
@@ -3893,9 +3996,11 @@
             await ensureManualSubscriptionLicenseKeys({ forceRegenerate: true });
             await saveManualSubscriptionSettings(true);
             renderManualSubscriptionAdminForm('새 라이선스 서명키를 생성하고 저장했습니다. 서명 개인키는 반드시 안전한 곳에 별도 보관하세요.');
+            setAdminSaveStatus(`라이선스 서명키 생성 완료 · ${formatAdminStatusTime()}`, 'success');
             toast('✅ 라이선스 서명키 생성 완료');
         } catch (error) {
             renderManualSubscriptionAdminForm(error.message || '라이선스 서명키 생성 중 오류가 발생했습니다.', true);
+            setAdminSaveStatus(`라이선스 서명키 생성 실패 · ${error.message || '오류'}`, 'error');
         }
     });
     document.getElementById('siteTextSearchInput').addEventListener('input', renderSiteTextList);
@@ -3937,8 +4042,10 @@
             await saveSiteTextSettings(true);
             await saveSponsors(true);
             await saveManualSubscriptionSettings(true);
+            setAdminSaveStatus(`화면 전체 저장 완료 · ${formatAdminStatusTime()}`, 'success');
             toast('✅ 화면 전체 저장 완료');
         } catch (error) {
+            setAdminSaveStatus(`화면 전체 저장 실패 · ${error.message || '저장 실패'}`, 'error');
             toast(`❌ 화면 전체 저장 중단: ${error.message || '저장 실패'}`, true);
         }
     });

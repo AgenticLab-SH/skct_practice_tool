@@ -62,6 +62,11 @@ body {
     margin-bottom: 30px;
 }
 
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
 .login-card input {
     width: 100%;
     padding: 12px 16px;
@@ -127,12 +132,78 @@ body {
     z-index: 100;
 }
 
+.top-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
 .top-nav h1 {
     font-size: 16px;
     color: var(--adm-primary-hover);
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.admin-live-status {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.admin-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    max-width: 100%;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--adm-border);
+    background: rgba(51, 65, 85, 0.7);
+    color: var(--adm-text);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.admin-status-pill.success {
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.4);
+    color: #bbf7d0;
+}
+
+.admin-status-pill.pending {
+    background: rgba(59, 130, 246, 0.14);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #bfdbfe;
+}
+
+.admin-status-pill.error {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fecaca;
+}
+
+.admin-status-text {
+    color: var(--adm-text-muted);
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 420px;
+}
+
+.admin-status-text.success {
+    color: #bbf7d0;
+}
+
+.admin-status-text.error {
+    color: #fecaca;
 }
 
 .top-nav-actions {
@@ -169,6 +240,25 @@ body {
 
 .btn-logout:hover {
     background: #dc2626;
+}
+
+@media (max-width: 980px) {
+    .top-nav {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .top-nav-brand {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .admin-status-text {
+        max-width: 100%;
+        white-space: normal;
+    }
 }
 
 /* Stats Row */
