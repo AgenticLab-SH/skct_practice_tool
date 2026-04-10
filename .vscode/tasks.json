@@ -4,11 +4,9 @@
     {
       "label": "SKCT: 로컬 관리자 페이지 열기",
       "type": "process",
-      "command": "cmd.exe",
+      "command": "py",
       "args": [
-        "/d",
-        "/c",
-        "\"${workspaceFolder}\\scripts\\open_local_admin.cmd\""
+        "${workspaceFolder}\\scripts\\open_local_admin.py"
       ],
       "presentation": {
         "reveal": "always",
@@ -20,11 +18,9 @@
     {
       "label": "SKCT: 로컬 관리자 페이지 종료",
       "type": "process",
-      "command": "cmd.exe",
+      "command": "py",
       "args": [
-        "/d",
-        "/c",
-        "\"${workspaceFolder}\\scripts\\stop_local_admin.cmd\""
+        "${workspaceFolder}\\scripts\\stop_local_admin.py"
       ],
       "presentation": {
         "reveal": "always",

@@ -1,7 +1,15 @@
 # SKCT Tool 최근 운영 반영 리포트
-작성일시: 2026-04-10 10:38:13 +09:00
+작성일시: 2026-04-10 11:16:32 +09:00
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
+
+## 2026-04-10 로컬 관리자 실행 개선: Python 런처 기준으로 정리
+- 로컬 관리자 진입 기본 명령을 `py scripts/open_local_admin.py`로 바꿨습니다.
+- 종료도 `py scripts/stop_local_admin.py`로 맞췄습니다.
+- `open_local_admin.cmd`, `stop_local_admin.cmd`는 이제 같은 Python 스크립트를 호출하는 호환용 래퍼입니다.
+- VS Code `SKCT: 로컬 관리자 페이지 열기/종료` 작업도 `py` process task로 바꿔 같은 Python 런처를 직접 실행합니다.
+- 실제 확인에서 `py scripts/open_local_admin.py --no-browser`가 `http://127.0.0.1:8135/admin.html`을 정상으로 열고, 관리자 URL `200 OK` 응답을 확인했습니다.
+- 이 변경은 로컬 운영 편의 개선이며, 공개 GitHub Pages 재배포는 포함하지 않습니다.
 
 ## 2026-04-10 운영 반영 완료: 관리자 `config` 저장 권한 복구 및 상태 배너 보강
 - 운영 RTDB rules에 `config/.write = auth != null`를 실제 반영해, 로그인된 관리자 기준의 `공지`, `기본 설정`, `후원/운영 문구`, `사이트 텍스트`, `수동 구독 설정` 저장이 다시 정상 동작하도록 복구했습니다.
