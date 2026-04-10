@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
         updatedAt: '2026-04-10 13:13:18 +09:00',
-        version: 'v2026.04.10.1645',
-        assetVersion: '202604101645'
+        version: 'v2026.04.10.2048',
+        assetVersion: '202604102048'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -2998,6 +2998,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const NOTEPAD_DRAG_SCROLL_EDGE_PX = 34;
     const NOTEPAD_DRAG_SCROLL_MAX_STEP = 30;
     const NOTEPAD_DRAG_START_THRESHOLD_PX = 4;
+    const NOTEPAD_SELECTION_STALL_FRAME_LIMIT = 2;
     let isNotepadDragSelecting = false;
     let isNotepadPointerDown = false;
     let notepadDragPointerY = 0;
@@ -3008,6 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let activeNotepadPointerId = null;
     let lastNotepadSelectionStart = 0;
     let lastNotepadSelectionEnd = 0;
+    let notepadSelectionStallFrames = 0;
     let suppressCalculatorFocusUntil = 0;
 
     function stopNotepadDragSelection(options = {}) {
@@ -3024,11 +3026,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         lastNotepadSelectionStart = notepad?.selectionStart ?? 0;
         lastNotepadSelectionEnd = notepad?.selectionEnd ?? 0;
+        notepadSelectionStallFrames = 0;
+    }
+
+    function isPointerNearNotepadDragEdge() {
+        if (!notepad || notepadWrapper?.classList.contains('hidden')) return false;
+        const rect = notepad.getBoundingClientRect();
+        return (
+            notepadDragPointerY < rect.top + NOTEPAD_DRAG_SCROLL_EDGE_PX
+            || notepadDragPointerY > rect.bottom - NOTEPAD_DRAG_SCROLL_EDGE_PX
+        );
     }
 
     function updateNotepadDragSelectionPointer(clientY) {
         notepadDragPointerY = clientY;
-        if (isNotepadDragSelecting && !notepadDragScrollFrame) {
+        if (isNotepadDragSelecting && isPointerNearNotepadDragEdge() && !notepadDragScrollFrame) {
             notepadDragScrollFrame = requestAnimationFrame(runNotepadDragAutoScroll);
         }
     }
@@ -3049,9 +3061,19 @@ document.addEventListener('DOMContentLoaded', () => {
             notepad.scrollTop += delta;
             extendNotepadSelectionForAutoScroll(delta);
         }
-        lastNotepadSelectionStart = notepad.selectionStart;
-        lastNotepadSelectionEnd = notepad.selectionEnd;
-        if (isNotepadDragSelecting) {
+        const currentSelectionStart = notepad.selectionStart;
+        const currentSelectionEnd = notepad.selectionEnd;
+        if (
+            currentSelectionStart === lastNotepadSelectionStart
+            && currentSelectionEnd === lastNotepadSelectionEnd
+        ) {
+            notepadSelectionStallFrames += 1;
+        } else {
+            notepadSelectionStallFrames = 0;
+        }
+        lastNotepadSelectionStart = currentSelectionStart;
+        lastNotepadSelectionEnd = currentSelectionEnd;
+        if (isNotepadDragSelecting && isPointerNearNotepadDragEdge()) {
             notepadDragScrollFrame = requestAnimationFrame(runNotepadDragAutoScroll);
         }
     }
@@ -3061,18 +3083,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const value = notepad.value || '';
         const selectionStart = notepad.selectionStart;
         const selectionEnd = notepad.selectionEnd;
-        if (delta > 0 && selectionEnd === lastNotepadSelectionEnd) {
+        if (
+            delta > 0
+            && selectionEnd === lastNotepadSelectionEnd
+            && notepadSelectionStallFrames >= NOTEPAD_SELECTION_STALL_FRAME_LIMIT
+        ) {
             const nextBreakIndex = value.indexOf('\n', selectionEnd);
             const nextTarget = nextBreakIndex === -1 ? Math.min(value.length, selectionEnd + 24) : Math.min(value.length, nextBreakIndex + 1);
             if (nextTarget > selectionEnd) {
                 notepad.setSelectionRange(Math.min(notepadDragAnchor, nextTarget), Math.max(notepadDragAnchor, nextTarget), 'forward');
+                notepadSelectionStallFrames = 0;
             }
-        } else if (delta < 0 && selectionStart === lastNotepadSelectionStart) {
+        } else if (
+            delta < 0
+            && selectionStart === lastNotepadSelectionStart
+            && notepadSelectionStallFrames >= NOTEPAD_SELECTION_STALL_FRAME_LIMIT
+        ) {
             const previousSlice = value.slice(0, selectionStart - 1);
             const previousBreakIndex = previousSlice.lastIndexOf('\n');
             const previousTarget = previousBreakIndex === -1 ? Math.max(0, selectionStart - 24) : Math.max(0, previousBreakIndex + 1);
             if (previousTarget < selectionStart) {
                 notepad.setSelectionRange(Math.min(notepadDragAnchor, previousTarget), Math.max(notepadDragAnchor, previousTarget), 'backward');
+                notepadSelectionStallFrames = 0;
             }
         }
     }
@@ -3118,14 +3150,10 @@ document.addEventListener('DOMContentLoaded', () => {
             notepadDragStartX = event.clientX;
             notepadDragStartY = event.clientY;
             notepadDragPointerY = event.clientY;
+            notepadDragAnchor = notepad.selectionStart;
             lastNotepadSelectionStart = notepad.selectionStart;
             lastNotepadSelectionEnd = notepad.selectionEnd;
-            requestAnimationFrame(() => {
-                if (!isNotepadPointerDown || isNotepadDragSelecting) return;
-                notepadDragAnchor = notepad.selectionStart;
-                lastNotepadSelectionStart = notepad.selectionStart;
-                lastNotepadSelectionEnd = notepad.selectionEnd;
-            });
+            notepadSelectionStallFrames = 0;
         };
         const handleNotepadDragMove = (event) => {
             if (!isNotepadPointerDown) return;
