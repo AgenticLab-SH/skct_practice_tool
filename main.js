@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
         updatedAt: '2026-04-10 13:13:18 +09:00',
-        version: 'v2026.04.10.2048',
-        assetVersion: '202604102048'
+        version: 'v2026.04.10.2104',
+        assetVersion: '202604102104'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -2995,119 +2995,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasWrapper = document.getElementById('canvasWrapper');
     const notepad = document.getElementById('notepad');
     const canvasCursorIndicator = document.getElementById('canvasCursorIndicator');
-    const NOTEPAD_DRAG_SCROLL_EDGE_PX = 34;
-    const NOTEPAD_DRAG_SCROLL_MAX_STEP = 30;
-    const NOTEPAD_DRAG_START_THRESHOLD_PX = 4;
-    const NOTEPAD_SELECTION_STALL_FRAME_LIMIT = 2;
-    let isNotepadDragSelecting = false;
-    let isNotepadPointerDown = false;
-    let notepadDragPointerY = 0;
-    let notepadDragScrollFrame = 0;
-    let notepadDragAnchor = 0;
-    let notepadDragStartX = 0;
-    let notepadDragStartY = 0;
-    let activeNotepadPointerId = null;
-    let lastNotepadSelectionStart = 0;
-    let lastNotepadSelectionEnd = 0;
-    let notepadSelectionStallFrames = 0;
     let suppressCalculatorFocusUntil = 0;
-
-    function stopNotepadDragSelection(options = {}) {
-        const { preserveSuppression = false } = options;
-        if (isNotepadDragSelecting && !preserveSuppression) {
-            suppressCalculatorFocusUntil = Date.now() + 220;
-        }
-        isNotepadDragSelecting = false;
-        isNotepadPointerDown = false;
-        activeNotepadPointerId = null;
-        if (notepadDragScrollFrame) {
-            cancelAnimationFrame(notepadDragScrollFrame);
-            notepadDragScrollFrame = 0;
-        }
-        lastNotepadSelectionStart = notepad?.selectionStart ?? 0;
-        lastNotepadSelectionEnd = notepad?.selectionEnd ?? 0;
-        notepadSelectionStallFrames = 0;
-    }
-
-    function isPointerNearNotepadDragEdge() {
-        if (!notepad || notepadWrapper?.classList.contains('hidden')) return false;
-        const rect = notepad.getBoundingClientRect();
-        return (
-            notepadDragPointerY < rect.top + NOTEPAD_DRAG_SCROLL_EDGE_PX
-            || notepadDragPointerY > rect.bottom - NOTEPAD_DRAG_SCROLL_EDGE_PX
-        );
-    }
-
-    function updateNotepadDragSelectionPointer(clientY) {
-        notepadDragPointerY = clientY;
-        if (isNotepadDragSelecting && isPointerNearNotepadDragEdge() && !notepadDragScrollFrame) {
-            notepadDragScrollFrame = requestAnimationFrame(runNotepadDragAutoScroll);
-        }
-    }
-
-    function runNotepadDragAutoScroll() {
-        notepadDragScrollFrame = 0;
-        if (!isNotepadDragSelecting || !notepad || notepadWrapper?.classList.contains('hidden')) return;
-        const rect = notepad.getBoundingClientRect();
-        let delta = 0;
-        if (notepadDragPointerY < rect.top + NOTEPAD_DRAG_SCROLL_EDGE_PX) {
-            const ratio = Math.min(1.8, (rect.top + NOTEPAD_DRAG_SCROLL_EDGE_PX - notepadDragPointerY) / NOTEPAD_DRAG_SCROLL_EDGE_PX);
-            delta = -Math.ceil(NOTEPAD_DRAG_SCROLL_MAX_STEP * ratio);
-        } else if (notepadDragPointerY > rect.bottom - NOTEPAD_DRAG_SCROLL_EDGE_PX) {
-            const ratio = Math.min(1.8, (notepadDragPointerY - (rect.bottom - NOTEPAD_DRAG_SCROLL_EDGE_PX)) / NOTEPAD_DRAG_SCROLL_EDGE_PX);
-            delta = Math.ceil(NOTEPAD_DRAG_SCROLL_MAX_STEP * ratio);
-        }
-        if (delta !== 0) {
-            notepad.scrollTop += delta;
-            extendNotepadSelectionForAutoScroll(delta);
-        }
-        const currentSelectionStart = notepad.selectionStart;
-        const currentSelectionEnd = notepad.selectionEnd;
-        if (
-            currentSelectionStart === lastNotepadSelectionStart
-            && currentSelectionEnd === lastNotepadSelectionEnd
-        ) {
-            notepadSelectionStallFrames += 1;
-        } else {
-            notepadSelectionStallFrames = 0;
-        }
-        lastNotepadSelectionStart = currentSelectionStart;
-        lastNotepadSelectionEnd = currentSelectionEnd;
-        if (isNotepadDragSelecting && isPointerNearNotepadDragEdge()) {
-            notepadDragScrollFrame = requestAnimationFrame(runNotepadDragAutoScroll);
-        }
-    }
-
-    function extendNotepadSelectionForAutoScroll(delta) {
-        if (!notepad) return;
-        const value = notepad.value || '';
-        const selectionStart = notepad.selectionStart;
-        const selectionEnd = notepad.selectionEnd;
-        if (
-            delta > 0
-            && selectionEnd === lastNotepadSelectionEnd
-            && notepadSelectionStallFrames >= NOTEPAD_SELECTION_STALL_FRAME_LIMIT
-        ) {
-            const nextBreakIndex = value.indexOf('\n', selectionEnd);
-            const nextTarget = nextBreakIndex === -1 ? Math.min(value.length, selectionEnd + 24) : Math.min(value.length, nextBreakIndex + 1);
-            if (nextTarget > selectionEnd) {
-                notepad.setSelectionRange(Math.min(notepadDragAnchor, nextTarget), Math.max(notepadDragAnchor, nextTarget), 'forward');
-                notepadSelectionStallFrames = 0;
-            }
-        } else if (
-            delta < 0
-            && selectionStart === lastNotepadSelectionStart
-            && notepadSelectionStallFrames >= NOTEPAD_SELECTION_STALL_FRAME_LIMIT
-        ) {
-            const previousSlice = value.slice(0, selectionStart - 1);
-            const previousBreakIndex = previousSlice.lastIndexOf('\n');
-            const previousTarget = previousBreakIndex === -1 ? Math.max(0, selectionStart - 24) : Math.max(0, previousBreakIndex + 1);
-            if (previousTarget < selectionStart) {
-                notepad.setSelectionRange(Math.min(notepadDragAnchor, previousTarget), Math.max(notepadDragAnchor, previousTarget), 'backward');
-                notepadSelectionStallFrames = 0;
-            }
-        }
-    }
 
     function setCanvasCursorVisibility(visible) {
         if (!canvasCursorIndicator) return;
@@ -3137,60 +3025,17 @@ document.addEventListener('DOMContentLoaded', () => {
         tabNotepad.classList.remove('active');
         canvasWrapper.classList.remove('hidden');
         notepadWrapper.classList.add('hidden');
-        stopNotepadDragSelection({ preserveSuppression: true });
         resizeCanvas(); // Ensure canvas fits when revealed
     });
 
     if (notepad) {
-        const notepadDragCaptureOptions = { capture: true };
-        const handleNotepadDragStart = (event) => {
-            if (event.button !== 0) return;
-            isNotepadPointerDown = true;
-            activeNotepadPointerId = typeof event.pointerId === 'number' ? event.pointerId : null;
-            notepadDragStartX = event.clientX;
-            notepadDragStartY = event.clientY;
-            notepadDragPointerY = event.clientY;
-            notepadDragAnchor = notepad.selectionStart;
-            lastNotepadSelectionStart = notepad.selectionStart;
-            lastNotepadSelectionEnd = notepad.selectionEnd;
-            notepadSelectionStallFrames = 0;
+        const markRecentNotepadInteraction = () => {
+            suppressCalculatorFocusUntil = Date.now() + 180;
         };
-        const handleNotepadDragMove = (event) => {
-            if (!isNotepadPointerDown) return;
-            if (activeNotepadPointerId !== null && typeof event.pointerId === 'number' && event.pointerId !== activeNotepadPointerId) return;
-            if (typeof event.buttons === 'number' && (event.buttons & 1) !== 1) {
-                stopNotepadDragSelection({ preserveSuppression: true });
-                return;
-            }
-            if (!isNotepadDragSelecting) {
-                const moveDistance = Math.hypot(event.clientX - notepadDragStartX, event.clientY - notepadDragStartY);
-                if (moveDistance < NOTEPAD_DRAG_START_THRESHOLD_PX) return;
-                isNotepadDragSelecting = true;
-            }
-            lastNotepadSelectionStart = notepad.selectionStart;
-            lastNotepadSelectionEnd = notepad.selectionEnd;
-            updateNotepadDragSelectionPointer(event.clientY);
-        };
-        const handleNotepadDragEnd = () => {
-            stopNotepadDragSelection();
-        };
-
-        if (window.PointerEvent) {
-            notepad.addEventListener('pointerdown', handleNotepadDragStart, notepadDragCaptureOptions);
-            document.addEventListener('pointermove', handleNotepadDragMove, notepadDragCaptureOptions);
-            document.addEventListener('pointerup', handleNotepadDragEnd, notepadDragCaptureOptions);
-            document.addEventListener('pointercancel', handleNotepadDragEnd, notepadDragCaptureOptions);
-        } else {
-            notepad.addEventListener('mousedown', handleNotepadDragStart, notepadDragCaptureOptions);
-            document.addEventListener('mousemove', handleNotepadDragMove, notepadDragCaptureOptions);
-            document.addEventListener('mouseup', handleNotepadDragEnd, notepadDragCaptureOptions);
-        }
-        notepad.addEventListener('blur', () => {
-            stopNotepadDragSelection({ preserveSuppression: true });
-        });
-        window.addEventListener('blur', () => {
-            stopNotepadDragSelection({ preserveSuppression: true });
-        });
+        notepad.addEventListener('pointerdown', markRecentNotepadInteraction);
+        notepad.addEventListener('pointerup', markRecentNotepadInteraction);
+        notepad.addEventListener('mouseup', markRecentNotepadInteraction);
+        notepad.addEventListener('touchend', markRecentNotepadInteraction, { passive: true });
     }
 
     /* --- Drawing Board (Canvas) Logic --- */

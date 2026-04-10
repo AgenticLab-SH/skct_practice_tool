@@ -1,16 +1,15 @@
 # SKCT Tool 최근 운영 반영 리포트
-작성일시: 2026-04-10 20:48:28 +09:00
+작성일시: 2026-04-10 21:04:27 +09:00
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
-## 2026-04-10 운영 반영 완료: 메모장 drag 깜박임 및 끊김 완화
-- 공개 배포 브랜치 `public-clean`은 `c605166` 기준으로 다시 반영됐습니다.
-- 메모장 drag 보조 로직에서 전 구간 `requestAnimationFrame` 루프를 돌리던 구조를 줄이고, pointer가 edge 근처일 때만 auto-scroll 루프가 돌게 정리했습니다.
-- selection 보조 확장은 매 프레임 강제로 넣지 않고, selection이 실제로 멈춘 프레임이 쌓였을 때만 넣도록 바꿔 깜박임을 줄였습니다.
-- drag 시작 anchor는 `requestAnimationFrame` 뒤에 늦게 잡지 않고 `pointerdown` 시점에 바로 고정해, 짧거나 빠른 drag에서도 선택 시작점이 흔들리지 않게 맞췄습니다.
-- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604102048`, `v2026.04.10.2048`로 올렸습니다.
-- 로컬 검증에서 메모장 drag는 `selectedLength 3589 / scrollTop 1520`, `selectedLength 5309 / scrollTop 2240`, 클릭 회귀는 `selectedLength 0`을 확인했습니다.
-- 라이브 `build-info.js`는 `v2026.04.10.2048`, 공개 `admin.html`은 차단 페이지 기준 `200 OK`, 라이브 메모장 클릭 회귀는 `selectedLength 0`을 반환했습니다.
+## 2026-04-10 운영 반영 완료: 메모장 drag native selection 복귀
+- 공개 배포 브랜치 `public-clean`은 `415950f` 기준으로 다시 반영됐습니다.
+- 메모장 custom drag 보조 로직을 제거하고, 브라우저 기본 textarea selection으로 다시 돌렸습니다.
+- 대신 계산기 표면이 drag 직후 포커스를 가져가며 끊겨 보이지 않도록, 메모장 상호작용 직후에만 짧은 suppression을 유지했습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604102104`, `v2026.04.10.2104`로 올렸습니다.
+- 로컬 검증에서 메모장 drag는 `selectedLength 4536 / scrollTop 1880`, 클릭 회귀는 `selectedLength 0`을 확인했습니다.
+- 라이브 `build-info.js`는 `v2026.04.10.2104`, 공개 `admin.html`은 차단 페이지 기준 `200 OK`, 라이브 메모장 drag는 `selectedLength 4894 / scrollTop 1880`, 클릭 회귀는 `selectedLength 0`을 반환했습니다.
 
 ## 2026-04-10 운영 반영 완료: TODO1 문구 정리 및 재배포
 - 공개 배포 브랜치 `public-clean`은 `b7f8bca` 기준으로 다시 반영됐습니다.
