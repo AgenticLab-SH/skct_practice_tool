@@ -1,5 +1,5 @@
 # SKCT Tool 기능 카탈로그
-작성일시: 2026-04-10 02:39:56 +09:00
+작성일시: 2026-04-10 02:43:10 +09:00
 
 이 문서는 지금 기준으로 사용자가 실제로 쓸 수 있는 기능과 운영자가 관리할 수 있는 기능을 짧고 안정적으로 설명하는 기준서입니다. 날짜별 작업 과정은 `docs/agent/worklog/`에 남기고, 이 문서는 현재 기능의 기준 상태만 유지합니다.
 
@@ -57,6 +57,7 @@
 ## 4. 관리자와 운영 기능
 - 관리자 페이지에서 사이트 문구, 기본값, 후원/공지, 구독/라이선스 관련 값을 관리합니다.
 - 관리자 페이지는 공개 배포 주소가 아니라 로컬 [admin.html](/C:/dev/01_career/_assets/tools/skct_tool/admin.html)로 열어야 하며, Windows에서는 [open_local_admin.cmd](/C:/dev/01_career/_assets/tools/skct_tool/scripts/open_local_admin.cmd) 또는 [open_local_admin.ps1](/C:/dev/01_career/_assets/tools/skct_tool/scripts/open_local_admin.ps1)로 한 번에 열 수 있습니다.
+- VS Code에서는 `.vscode/tasks.json`의 `SKCT: 로컬 관리자 페이지 열기`, `SKCT: 로컬 관리자 페이지 종료` 작업으로 바로 실행할 수 있습니다.
 - 수동 이용권 설정 안에서 `보안 API 기본 URL`을 저장해, 신청 저장/조회/고급 라이선스 확인을 나중에 서버 경유로 전환할 준비를 해둘 수 있습니다.
 - `공지 관리`에서 저장한 Help/사이드바 공지는 이미 열려 있는 메인 페이지에도 새로고침 없이 다시 반영됩니다.
 - 관리자 저장이 권한 또는 네트워크 문제로 실패하면, 관리자 화면에서 실패 이유를 바로 토스트로 안내합니다.

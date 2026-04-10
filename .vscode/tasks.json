@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SKCT: 로컬 관리자 페이지 열기",
+      "type": "shell",
+      "command": "${workspaceFolder}\\scripts\\open_local_admin.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "SKCT: 로컬 관리자 페이지 종료",
+      "type": "shell",
+      "command": "${workspaceFolder}\\scripts\\stop_local_admin.cmd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}
