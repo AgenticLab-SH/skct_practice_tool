@@ -1,7 +1,15 @@
 # SKCT Tool 최근 운영 반영 리포트
-작성일시: 2026-04-10 13:16:34 +09:00
+작성일시: 2026-04-10 16:45:13 +09:00
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
+
+## 2026-04-10 운영 반영 완료: TODO1 문구 정리 및 재배포
+- 공개 배포 브랜치 `public-clean`은 `b7f8bca` 기준으로 다시 반영됐습니다.
+- `index.html`, `main.js`, `site-text-config.js`에 남아 있던 일반/고급 안내 문구와 버튼 라벨 정리를 묶어 다시 배포했습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604101645`, `v2026.04.10.1645`로 올렸습니다.
+- 로컬 검증에서 메모장 `전체 선택 후 클릭 -> selectedLength 0`, `긴 드래그 -> selectedLength 4309, scrollTop 1880`을 다시 확인했습니다.
+- GitHub Pages builds API에서 최신 빌드가 `b7f8bca` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.10.1645`를 반환했습니다.
+- 라이브 `admin.html`은 차단 페이지 기준 `200 OK`, 라이브 메모장 클릭 테스트는 `selectedLength 0`을 반환했습니다.
 
 ## 2026-04-10 운영 반영 완료: 일반·고급 안내 흐름 통합 정리
 - 공개 배포 브랜치 `public-clean`은 `1a039d9` 기준으로 다시 반영됐습니다.

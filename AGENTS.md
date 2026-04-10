@@ -1,5 +1,5 @@
 # AGENTS.md
-작성일시: 2026-04-10 00:03:31 +09:00
+작성일시: 2026-04-10 16:45:13 +09:00
 
 이 문서는 `C:\dev\01_career\_assets\tools\skct_tool` 프로젝트의 작업/검증/배포 프로세스를 고정하기 위한 로컬 운영 규칙입니다.
 
@@ -14,7 +14,7 @@
 - 사용자의 요청과 실제 수행 내용은 `docs/agent/worklog/`에 기록합니다.
 
 ## 2. 현재 운영 기준 저장
-- 최근 운영 반영 기준은 `50_AGENT_LAST_WORK_REPORT.md`와 `origin/public-clean` 최신 커밋 `0321e08`을 함께 확인합니다.
+- 최근 운영 반영 기준은 `50_AGENT_LAST_WORK_REPORT.md`와 `origin/public-clean` 최신 커밋 `b7f8bca`를 함께 확인합니다.
 - 현재 운영 기본 타이머 기준값: `75 / 15 / 1`
 - 현재 운영 텍스트 기준 저장 위치: Firebase RTDB `config/siteTextConfig`
 - 현재 운영 팝업 기본값:
