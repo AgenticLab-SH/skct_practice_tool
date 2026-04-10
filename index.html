@@ -29,7 +29,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604101313">
+    <link rel="stylesheet" href="main.css?v=202604101645">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -44,9 +44,9 @@
         <!-- OMR Sidebar (Left) -->
         <aside class="omr-sidebar collapsed" id="omrSidebar">
             <div class="sidebar-controls compact-sidebar-controls">
-                <div class="help-toggle sidebar-shortcut" id="helpToggle" title="기본 사용 가이드 열기">
+                <div class="help-toggle sidebar-shortcut" id="helpToggle" title="사용 안내 열기">
                     <span class="sidebar-shortcut-icon">📘</span>
-                    <span class="sidebar-shortcut-label compact" id="sidebarHelpLabel">가이드</span>
+                    <span class="sidebar-shortcut-label compact" id="sidebarHelpLabel">안내</span>
                 </div>
                 <div class="notice-toggle sidebar-shortcut" id="noticeToggle" title="공지사항 열기">
                     <span class="sidebar-shortcut-icon notice-shortcut-icon" aria-hidden="true">!</span>
@@ -60,22 +60,22 @@
                     <span class="sidebar-shortcut-icon">⚙</span>
                     <span class="sidebar-shortcut-label compact" id="sidebarSettingsLabel">설정</span>
                 </div>
-                <div class="advanced-guide-toggle normal-only sidebar-shortcut" id="advancedGuideToggle" title="고급 기능 보기">
+                <div class="advanced-guide-toggle normal-only sidebar-shortcut" id="advancedGuideToggle" title="고급 안내 보기">
                     <span class="sidebar-shortcut-icon">🔒</span>
-                    <span class="sidebar-shortcut-label compact" id="sidebarAdvancedGuideLabel">고급<br>기능</span>
+                    <span class="sidebar-shortcut-label compact" id="sidebarAdvancedGuideLabel">고급<br>모드</span>
                 </div>
                 <div class="advanced-only sidebar-divider"></div>
-                <div class="advanced-toggle advanced-only sidebar-shortcut" id="advancedToggle" title="고급 기능 열기">
+                <div class="advanced-toggle advanced-only sidebar-shortcut" id="advancedToggle" title="고급 활용 열기">
                     <span class="sidebar-shortcut-icon">✨</span>
                     <span class="sidebar-shortcut-label compact" id="sidebarAdvancedModeLabel">고급<br>활용</span>
                 </div>
                 <div class="advanced-only sidebar-divider"></div>
-                <div class="popup-toggle sidebar-shortcut" id="popupToggle" title="팝업 연습 화면 열기">
+                <div class="popup-toggle sidebar-shortcut" id="popupToggle" title="팝업으로 열기">
                     <span class="sidebar-shortcut-icon">↗</span>
                     <span class="sidebar-shortcut-label compact" id="sidebarPopupLabel">팝업</span>
                 </div>
                 <div class="sidebar-divider"></div>
-                <div class="utility-toggle sidebar-shortcut" id="utilityToggle" title="보조 기능 더보기">
+                <div class="utility-toggle sidebar-shortcut" id="utilityToggle" title="더보기">
                     <span class="sidebar-shortcut-icon">⋯</span>
                     <span class="sidebar-shortcut-label compact" id="sidebarUtilityLabel">더보기</span>
                 </div>
@@ -83,8 +83,8 @@
             <div class="omr-content hidden" id="omrContent">
                 <!-- 탭 접기 (최상단) -->
                 <div class="omr-top-bar">
-                    <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 탭 접기</button>
-                    <span id="omrModeLabel" class="omr-mode-label">응시 모드</span>
+                    <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 접기</button>
+                    <span id="omrModeLabel" class="omr-mode-label">답안 마킹</span>
                 </div>
                 <div id="omrModeHint" class="omr-mode-hint hidden"></div>
 
@@ -95,24 +95,24 @@
 
                 <!-- 하단 세로 배열 버튼 -->
                 <div class="omr-actions">
-                    <button id="globalClearBtn" class="omr-action-btn skip-btn">문항 건너뛰기</button>
-                    <button id="modeToggleBtn" class="omr-action-btn mode-btn">📝 정답 입력 모드로 전환</button>
-                    <button id="scoreBtn" class="omr-action-btn grade-btn">📊 채점 및 통계 확인</button>
+                    <button id="globalClearBtn" class="omr-action-btn skip-btn">건너뛰기</button>
+                    <button id="modeToggleBtn" class="omr-action-btn mode-btn">📝 정답 입력</button>
+                    <button id="scoreBtn" class="omr-action-btn grade-btn">📊 채점</button>
                     <div id="scoreResult" class="score-result hidden">
-                        <div class="stat-line"><span id="statSummaryLabel">맞은 / 푼 / 전체</span> <strong id="statSummary">0 / 0 / 100</strong></div>
-                        <div class="stat-line"><span id="statRateAttemptedLabel">정답률(푼 문제 대비)</span> <strong id="statRateAttempted">0%</strong></div>
-                        <div class="stat-line"><span id="statRateOverallLabel">정답률(전체 문제 대비)</span> <strong id="statRateOverall">0%</strong></div>
-                        <div class="stat-line"><span id="statSkippedLabel">건너뛴 문제</span> <strong id="statSkipped">0</strong></div>
-                        <div class="stat-line"><span id="statUnansweredLabel">못 푼 문제</span> <strong id="statUnanswered">0</strong></div>
+                        <div class="stat-line"><span id="statSummaryLabel">맞힘 / 응답 / 전체</span> <strong id="statSummary">0 / 0 / 100</strong></div>
+                        <div class="stat-line"><span id="statRateAttemptedLabel">정답률 (응답 기준)</span> <strong id="statRateAttempted">0%</strong></div>
+                        <div class="stat-line"><span id="statRateOverallLabel">정답률 (전체 기준)</span> <strong id="statRateOverall">0%</strong></div>
+                        <div class="stat-line"><span id="statSkippedLabel">건너뜀</span> <strong id="statSkipped">0</strong></div>
+                        <div class="stat-line"><span id="statUnansweredLabel">미응답</span> <strong id="statUnanswered">0</strong></div>
                     </div>
                     <div id="advancedCoachPanel" class="advanced-panel-only advanced-coach-panel advanced-coach-panel-compact">
                         <div class="advanced-coach-inline">
                             <div class="advanced-coach-inline-copy">
-                                <div id="advancedCoachTitle" class="advanced-coach-title">고급 복기</div>
-                                <div id="advancedCoachLead" class="advanced-coach-lead">정답 입력 → 채점 → 복기 버튼</div>
+                                <div id="advancedCoachTitle" class="advanced-coach-title">복기 순서</div>
+                                <div id="advancedCoachLead" class="advanced-coach-lead">정답 입력 → 채점 → 상세 통계·TXT·정오표</div>
                             </div>
                             <div class="advanced-coach-inline-actions">
-                                <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">전체 안내</button>
+                                <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">자세히 보기</button>
                                 <button id="advancedCoachHelpBtn" type="button" class="context-help-btn context-help-btn-omr" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
                             </div>
                         </div>
@@ -123,11 +123,11 @@
                             <div id="advancedCoachHint" class="advanced-coach-hint"><strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체를 다시 시작합니다.</div>
                         </div>
                     </div>
-                    <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 상세 통계</button>
+                    <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 통계</button>
                     <button id="advancedStatsDownloadBtn" class="omr-action-btn detail-btn hidden advanced-action-only" type="button">문항별 상세 통계 TXT 다운로드</button>
                     <div id="advancedToolsStatus" class="hidden advanced-action-only" style="font-size:11px; color:#94a3b8; line-height:1.5; padding:0 2px 4px;"></div>
-                    <button id="bulkCorrectImportBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📥 정오표 일괄입력</button>
-                    <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 RESET</button>
+                    <button id="bulkCorrectImportBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📥 정오표 입력</button>
+                    <button id="omrResetBtn" class="omr-action-btn reset-action-btn">🔄 초기화</button>
                 </div>
             </div>
             
@@ -140,10 +140,10 @@
 
             <!-- Top / Timer Bar -->
             <header class="top-bar">
-                <button id="popupBtn" class="popup-btn" title="가로폭을 더 얇게 줄일 수 있는 팝업 모드로 열기">팝업 연습</button>
+                <button id="popupBtn" class="popup-btn" title="가로폭을 더 얇게 줄일 수 있는 팝업 모드로 열기">팝업으로 열기</button>
                 <div class="timer-wrapper advanced-timer-shell">
                     <div class="timer-summary-block timer-total-block">
-                        <span id="displayTotalTimeLabel" class="timer-summary-label">전체 남은 시간</span>
+                        <span id="displayTotalTimeLabel" class="timer-summary-label">전체 시간</span>
                         <span id="displayTotalTime" class="timer-summary-value total">75:00</span>
                     </div>
                     <div class="timer-divider" aria-hidden="true"></div>
@@ -157,7 +157,7 @@
                         </div>
                     </div>
                     <div class="timer-controls advanced-timer-controls">
-                        <button id="timerPlayBtn" class="timer-play-btn" aria-label="타이머 시작" title="타이머 시작">▶</button>
+                        <button id="timerPlayBtn" class="timer-play-btn" aria-label="시작 / 일시정지" title="시작 / 일시정지">▶</button>
                         <button id="subjectSkipBtn" class="advanced-action-only timer-skip-btn timer-next-btn" type="button" title="현재 과목을 종료하고 다음 과목으로 바로 이동">다음</button>
                         <button id="subjectResetBtn" class="advanced-action-only timer-skip-btn timer-reset-btn" type="button" title="현재 과목 타이머를 처음부터 다시 시작">과↺</button>
                         <button id="fullResetBtn" class="advanced-action-only timer-skip-btn timer-full-reset-btn" type="button" title="전체 타이머를 처음 상태로 다시 세팅">전↺</button>
@@ -172,13 +172,11 @@
                 <!-- Break Time Overlay (Moved from sidebar) -->
                 <div id="omrBreakOverlay" class="omr-break-overlay hidden">
                     <span style="font-size:32px;">☕</span>
-                    <div id="breakOverlayTitle" style="font-weight:bold; font-size:16px; color:#f97316; margin-top:10px;">쉬는 시간입니다</div>
-                    <div id="breakOverlayDescription" style="font-size:12px; color:#64748b; margin-top:5px; padding:0 10px;">다음 과목이 시작될 때까지 통제됩니다.</div>
-                    <button id="breakSkipBtn" type="button" style="margin-top:14px; padding:10px 14px; border:none; border-radius:8px; background:#2563eb; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">
-                        쉬는 시간 건너뛰기
-                    </button>
+                    <div id="breakOverlayTitle" style="font-weight:bold; font-size:16px; color:#f97316; margin-top:10px;">⏸ 쉬는 시간</div>
+                    <div id="breakOverlayDescription" style="font-size:12px; color:#64748b; margin-top:5px; padding:0 10px;">다음 과목이 시작되면 자동으로 넘어갑니다.</div>
+                    <button id="breakSkipBtn" type="button" style="margin-top:14px; padding:10px 14px; border:none; border-radius:8px; background:#2563eb; color:#fff; font-size:12px; font-weight:700; cursor:pointer;">건너뛰기</button>
                     <div style="margin-top:20px; font-size:11px; color:#94a3b8; padding-top:10px; border-top:1px dashed rgba(0,0,0,0.1);">
-                        <span id="breakSupportHint">개발에 큰 힘이 됩니다. 좌측 <span style="color:#f59e0b;">☕</span> 아이콘을 통해 후원 부탁드립니다.</span>
+                        <span id="breakSupportHint">이 도구가 도움이 되셨다면 ☕ 후원으로 응원해 주세요!</span>
                     </div>
                 </div>
 
@@ -189,13 +187,13 @@
                             <button id="tabNotepad" class="tab-btn active">메모장</button>
                             <button id="tabCanvas" class="tab-btn">그림판</button>
                         </div>
-                        <button id="clearCurrentToolBtn" class="tool-delete-btn" type="button">삭제</button>
+                        <button id="clearCurrentToolBtn" class="tool-delete-btn" type="button">지우기</button>
                     </div>
 
                     <div class="tool-body">
                         <!-- Notepad -->
                         <div id="notepadWrapper" class="tool-wrapper">
-                            <textarea id="notepad" placeholder="이곳에 텍스트를 입력하거나 붙여넣기(Ctrl+V) 하세요..."></textarea>
+                            <textarea id="notepad" placeholder="메모를 입력하세요…"></textarea>
                         </div>
 
                         <!-- Drawing Board -->
@@ -284,7 +282,7 @@
     <div id="helpModal" class="modal-overlay hidden">
         <div class="modal-content help-modal-content">
             <div class="modal-header help-modal-header">
-                <h3 id="helpModalTitle">📘 기본 사용 가이드</h3>
+                <h3 id="helpModalTitle">📘 사용 안내</h3>
                 <button class="close-modal btn-close">×</button>
             </div>
             <div class="help-modal-body">
@@ -292,30 +290,30 @@
 
                 <div class="guide-flow-strip guide-flow-strip-general">
                     <strong>일반 흐름</strong>
-                    <span>연습 OMR → 답 체크 → 정답 입력 모드 → 채점 및 통계</span>
+                    <span>연습 OMR → 답 체크 → 정답 입력 → 채점 및 통계</span>
                 </div>
 
                 <div class="help-advanced-section">
-                    <div id="helpAdvancedSectionTitle" class="help-advanced-section-title">🔒 고급 설명은 따로 봅니다</div>
+                    <div id="helpAdvancedSectionTitle" class="help-advanced-section-title">🔒 고급 모드 안내</div>
                     <div id="helpAdvancedSectionLead" class="help-advanced-section-lead">
-                        이 창은 <strong>일반 모드</strong>만 설명합니다. 신청, 승인, 복기 추가 버튼, 자료 보관함은 <strong>고급 안내</strong>에서 확인하세요.
+                        이 안내는 <strong>일반 모드</strong> 기준입니다. 고급 모드(신청·복기·보관함)는 아래 버튼에서 확인하세요.
                     </div>
-                    <button id="helpAdvancedLinkBtn" type="button" class="help-advanced-link-btn">고급 안내 열기</button>
+                    <button id="helpAdvancedLinkBtn" type="button" class="help-advanced-link-btn">고급 모드 안내 보기</button>
                 </div>
 
                 <details class="guide-fold">
-                    <summary><span id="helpExampleSectionTitle">📷 화면 배치 예시</span></summary>
+                    <summary><span id="helpExampleSectionTitle">📷 추천 화면 배치</span></summary>
                     <div class="guide-fold-body">
                         <div class="help-example-grid">
                             <div class="help-example-card">
-                                <div id="helpPdfExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ PDF 활용 예시</div>
+                                <div id="helpPdfExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">PDF와 함께 쓰기</div>
                                 <img src="images/real_non_omr_image.png" alt="PDF 및 연습 도구 분할 화면" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                <div id="helpPdfExampleCaption" class="help-example-caption">좌측에 PDF나 e-book을 두고 비율만 맞춰 연습하면 됩니다.</div>
+                                <div id="helpPdfExampleCaption" class="help-example-caption">왼쪽에 PDF나 e-book을 띄우고 오른쪽에서 연습하세요.</div>
                             </div>
                             <div class="help-example-card">
-                                <div id="helpOmrExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">▶ 연습용 모드 (OMR 사용)</div>
+                                <div id="helpOmrExampleTitle" style="font-size: 12px; color: #64748b; margin-bottom: 5px; text-align:center; font-weight:600;">OMR과 함께 쓰기</div>
                                 <img src="images/omr_using_image.png" alt="OMR 보조 모드" style="width: 100%; border-radius: 6px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                <div id="helpOmrExampleCaption" class="help-example-caption">정답 체크와 채점이 필요할 때만 OMR을 펼쳐 사용합니다.</div>
+                                <div id="helpOmrExampleCaption" class="help-example-caption">답 체크와 채점이 필요할 때 OMR을 열어 쓰세요.</div>
                             </div>
                         </div>
                     </div>
@@ -333,19 +331,19 @@
                     </div>
                 </details>
 
-                <div id="helpFeatureSectionTitle" class="help-section-title">🗺️ 일반 모드 핵심 흐름</div>
+                <div id="helpFeatureSectionTitle" class="help-section-title">🗺️ 주요 기능</div>
                 <div class="guide-diagram help-feature-diagram">
                     <div id="helpSidebarFeatureBlock" class="help-feature-panel help-feature-panel-sidebar">
-                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">왼쪽에서 여는 것</div>
-                        <p>📘 <strong>가이드</strong> — 일반 기준 확인</p>
+                        <div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">왼쪽 메뉴</div>
+                        <p>📘 <strong>안내</strong> — 사용법과 기본 안내</p>
                         <p>📝 <strong>연습 OMR</strong> — 답 체크와 채점</p>
-                        <p>⚙ <strong>설정</strong> — 시간과 비율 조정</p>
-                        <p>🔒 <strong>고급 안내</strong> — 신청과 진입</p>
-                        <p>↗ <strong>팝업</strong> — 더 좁은 실전 폭</p>
-                        <p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 문서</p>
+                        <p>⚙ <strong>설정</strong> — 시간, 모드, 화면 비율 조정</p>
+                        <p>🔒 <strong>고급 모드</strong> — 신청과 진입</p>
+                        <p>↗ <strong>팝업</strong> — 실전 폭으로 열기</p>
+                        <p>⋯ <strong>더보기</strong> — 접속 현황, 커뮤니티, 후원</p>
                         <hr style="border-color:#334155; margin: 8px 0;">
-                        <p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 모드 → 채점</p>
-                        <p style="color:#93c5fd;">상세 설명은 각 창의 <strong>?</strong>에서 바로 확인합니다.</p>
+                        <p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 → 채점</p>
+                        <p style="color:#93c5fd;">각 창의 <strong>?</strong>에서 상세 설명을 확인할 수 있습니다.</p>
                     </div>
                     <div class="help-feature-stack">
                         <div id="helpTimerFeatureBlock" class="help-feature-panel help-feature-panel-timer">
@@ -386,7 +384,7 @@
     <div id="settingsModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 320px;">
             <div class="modal-header">
-                <h3 id="settingsTitleTrigger">⚙ 통합 설정</h3>
+                <h3 id="settingsTitleTrigger">⚙ 설정</h3>
                 <div class="modal-header-actions">
                     <button id="settingsHelpBtn" type="button" class="context-help-btn" data-context-help="settings" aria-label="설정 도움말" title="설정 도움말">?</button>
                     <button class="close-modal btn-close">×</button>
@@ -399,7 +397,7 @@
                 </div>
                 <!-- 모드 설정 -->
                 <div>
-                    <div id="settingsPracticeModeTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🎯 모드 설정</div>
+                    <div id="settingsPracticeModeTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🎯 모드</div>
                     <div style="display:flex; align-items:center; gap:8px; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;">
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155; margin:0; flex:1;">
                             <input type="checkbox" id="cfgPracticeMode" style="margin:0; width:16px; height:16px; accent-color:#3b82f6;">
@@ -412,7 +410,7 @@
                     </div>
                 </div>
                 <div>
-                    <div id="settingsScoringTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📊 채점 기준</div>
+                    <div id="settingsScoringTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📊 건너뛴 문항</div>
                     <div style="display:flex; flex-direction:column; gap:8px; padding:10px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0;">
                         <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:#334155; margin:0;">
                             <input type="checkbox" id="cfgSkippedAsWrong" style="margin:0; width:16px; height:16px; accent-color:#3b82f6;">
@@ -426,7 +424,7 @@
                 </div>
                 <!-- 타이머 설정 -->
                 <div>
-                    <div id="settingsTimerTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🕒 타이머 설정</div>
+                    <div id="settingsTimerTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🕒 타이머</div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">전체 제한 시간 (분)</label>
                         <input type="number" id="cfgTotal" value="75" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
@@ -443,7 +441,7 @@
                 <!-- 문항 가이드 설정 -->
                 <div class="advanced-panel-only">
                     <div id="settingsGuideTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-                        ⏱️ 문항별 시간 가이드
+                        ⏱️ 시간 가이드
                         <label style="font-size:11px; font-weight:normal; display:flex; align-items:center; gap:4px; margin:0;">
                             <input type="checkbox" id="cfgGuideEnabled" checked style="margin:0;"> 표시하기
                         </label>
@@ -455,7 +453,7 @@
                 </div>
                 <!-- 높이 비율 설정 -->
                 <div>
-                    <div id="settingsLayoutTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📐 높이 비율 설정 (우측 영역)</div>
+                    <div id="settingsLayoutTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">📐 화면 비율</div>
                     <div class="settings-row" style="margin-bottom:8px;">
                         <label style="color:#334155;">타이머 영역</label>
                         <input type="number" id="ratioTimer" value="8.6" min="0" step="0.1" style="background:white; color:black; border:1px solid #cbd5e1; width:60px;">
@@ -470,7 +468,7 @@
                     </div>
                 </div>
                 <div class="advanced-panel-only">
-                    <div id="settingsToolTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🧰 도구 설정</div>
+                    <div id="settingsToolTitle" style="font-weight:bold; color:#1e293b; margin-bottom:10px; font-size:13px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">🧰 도구</div>
                     <label class="settings-slider-row" for="noteFontSizeRange">
                         <span class="settings-slider-label">메모장 글씨 크기</span>
                         <div class="settings-slider-control" id="noteFontControl">
@@ -494,7 +492,7 @@
     <div id="advancedGuideModal" class="modal-overlay hidden">
         <div class="modal-content advanced-guide-modal-content">
             <div class="modal-header">
-                <h3 id="advancedGuideModalTitle">🔒 고급 모드 신청 · 진입 안내</h3>
+                <h3 id="advancedGuideModalTitle">🔒 고급 모드</h3>
                 <div class="modal-header-actions">
                     <button id="advancedGuideHelpBtn" type="button" class="context-help-btn" data-context-help="advanced-entry" aria-label="고급 신청 도움말" title="고급 신청 도움말">?</button>
                     <button class="close-modal btn-close">×</button>
@@ -502,12 +500,12 @@
             </div>
             <div class="modal-body advanced-guide-modal-body">
                 <div id="advancedGuideFlow" class="guide-flow-strip guide-flow-strip-warm">
-                    후원 확인 → 신청 저장 → 상태 확인 → 승인 후 고급 진입
+                    후원 → 신청서 저장 → 승인 확인 → 고급 모드 시작
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-login">
-                    <div id="advancedGuideLoginTitle" class="advanced-guide-section-title advanced-guide-section-title-blue">1. 승인된 경우 바로 열기</div>
+                    <div id="advancedGuideLoginTitle" class="advanced-guide-section-title advanced-guide-section-title-blue">1. 로그인</div>
                     <div id="advancedGuideLoginBody" class="advanced-guide-info advanced-guide-info-blue">
-                        승인 후 이메일 또는 로그인 ID와 비밀번호로 바로 들어갑니다.
+                        이메일 또는 ID와 비밀번호를 입력해 주세요.
                     </div>
                     <div class="advanced-guide-login-grid">
                         <input id="advancedAccessIdInput" type="text" autocomplete="off" placeholder="신청 이메일 또는 로그인 ID" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
@@ -518,11 +516,11 @@
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-neutral">
                     <div class="advanced-guide-section-head">
-                        <div id="advancedGuideFeatureTitle" class="advanced-guide-section-title">2. 고급에서 추가되는 것</div>
+                        <div id="advancedGuideFeatureTitle" class="advanced-guide-section-title">2. 고급 전용 기능</div>
                         <div class="advanced-guide-section-kicker">세부 설명은 접어서 확인</div>
                     </div>
                     <div id="advancedGuideFeatureAccess" class="advanced-guide-note">
-                        이 창은 신청과 진입만 설명합니다. 버튼 사용 흐름은 고급 활용에서 다시 보면 됩니다.
+                        이 창은 신청·로그인 안내입니다. 기능 사용법은 고급 활용에서 확인하세요.
                     </div>
                     <details class="guide-fold">
                         <summary>추가 기능 자세히 보기</summary>
@@ -550,16 +548,16 @@
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-warm">
                     <div class="advanced-guide-section-head">
-                        <div id="advancedGuidePlanTitle" class="advanced-guide-section-title advanced-guide-section-title-warm">3. 처음 신청하기</div>
-                        <div class="advanced-guide-section-kicker">후원 확인 뒤 신청서를 저장합니다.</div>
+                        <div id="advancedGuidePlanTitle" class="advanced-guide-section-title advanced-guide-section-title-warm">3. 신청 방법</div>
+                        <div class="advanced-guide-section-kicker">아래 순서대로 진행해 주세요.</div>
                     </div>
                     <div class="advanced-guide-plan-head">
                         <div class="advanced-guide-plan-copy">
                             <div id="advancedGuidePlanIntro" class="advanced-guide-plan-intro">
-                                후원 확인 뒤 신청서를 저장하면 됩니다.
+                                후원 후 신청서를 작성하면 승인을 기다리게 됩니다.
                             </div>
                         </div>
-                        <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" class="advanced-guide-donate-link">1. 후원 페이지 열기</a>
+                        <a id="manualSubscriptionDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" class="advanced-guide-donate-link">후원 페이지 열기</a>
                     </div>
                     <div id="manualSubscriptionPlanCards" class="advanced-guide-plan-cards">
                         <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #fdba74;">
@@ -576,11 +574,11 @@
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-neutral">
                     <div class="advanced-guide-section-head">
-                        <div id="advancedGuideFormTitle" class="advanced-guide-section-title advanced-guide-section-title-small">4. 신청서 저장</div>
-                        <div class="advanced-guide-section-kicker">필수값만 입력하면 됩니다.</div>
+                        <div id="advancedGuideFormTitle" class="advanced-guide-section-title advanced-guide-section-title-small">4. 신청서 작성</div>
+                        <div class="advanced-guide-section-kicker">아래 항목을 채워 주세요.</div>
                     </div>
                     <div id="advancedGuideFormDescription" class="advanced-guide-description">
-                        시작일, 닉네임, 이메일, 로그인 ID, 비밀번호만 입력합니다.
+                        아래 항목을 채워서 신청서를 저장해 주세요.
                     </div>
                     <div class="advanced-guide-form-grid">
                         <label style="display:flex; flex-direction:column; gap:5px; font-size:11px; color:#475569;">
@@ -625,22 +623,22 @@
                         <summary>비밀번호 규칙 보기</summary>
                         <div class="guide-fold-body">
                             <div id="advancedGuidePasswordHint" class="advanced-guide-hint">
-                                같은 비밀번호를 <strong>신청 조회</strong>와 <strong>고급 로그인</strong>에 함께 씁니다. 신청번호를 기억할 필요는 없습니다.
+                                이 비밀번호는 <strong>신청 조회</strong>와 <strong>고급 로그인</strong>에 함께 사용됩니다. 신청번호를 기억할 필요는 없습니다.
                             </div>
                         </div>
                     </details>
-                    <button id="manualSubscriptionSubmitBtn" type="button" class="advanced-guide-submit">2. 신청 저장</button>
+                    <button id="manualSubscriptionSubmitBtn" type="button" class="advanced-guide-submit">신청하기</button>
                     <div id="manualSubscriptionSubmitStatus" style="min-height:20px; font-size:12px; color:#64748b; line-height:1.6;"></div>
                 </div>
                 <div class="advanced-guide-section advanced-guide-section-login">
-                    <div id="advancedGuideLookupTitle" class="advanced-guide-section-title advanced-guide-section-title-small advanced-guide-section-title-blue">5. 신청 상태 확인</div>
+                    <div id="advancedGuideLookupTitle" class="advanced-guide-section-title advanced-guide-section-title-small advanced-guide-section-title-blue">5. 신청 조회</div>
                     <div id="advancedGuideLookupDescription" class="advanced-guide-description advanced-guide-description-blue">
-                        조회는 신청 이메일만, 로그인은 이메일 또는 로그인 ID를 씁니다.
+                        신청할 때 입력한 이메일과 비밀번호로 현재 상태를 확인합니다.
                     </div>
                     <div class="advanced-guide-lookup-grid">
                         <input id="manualSubscriptionLookupIdInput" type="text" autocomplete="off" placeholder="신청 이메일" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
                         <input id="manualSubscriptionLookupPasswordInput" type="password" autocomplete="off" placeholder="신청한 비밀번호" style="min-width:0; padding:10px 12px; border:1px solid #93c5fd; border-radius:8px; font-size:13px;">
-                        <button id="manualSubscriptionLookupBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">상태 확인</button>
+                        <button id="manualSubscriptionLookupBtn" type="button" style="padding:10px 14px; background:#2563eb; color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer; white-space:nowrap;">조회</button>
                     </div>
                     <div id="manualSubscriptionLookupResult" style="min-height:24px; font-size:12px; color:#334155; line-height:1.7;"></div>
                 </div>
@@ -654,7 +652,7 @@
     <div id="advancedFeatureModal" class="modal-overlay hidden">
         <div class="modal-content advanced-feature-modal-content">
             <div class="modal-header">
-                <h3 id="advancedFeatureModalTitle">✨ 고급 모드 빠른 사용</h3>
+                <h3 id="advancedFeatureModalTitle">✨ 고급 활용</h3>
                 <div class="modal-header-actions">
                     <button id="advancedFeatureHelpBtn" type="button" class="context-help-btn" data-context-help="advanced-tools" aria-label="고급 활용 도움말" title="고급 활용 도움말">?</button>
                     <button class="close-modal btn-close">×</button>
@@ -682,7 +680,7 @@
                     <div class="guide-fold-body">
                         <div class="help-advanced-gallery">
                             <div class="help-advanced-card">
-                                <div id="advancedFeatureImage1Title" class="help-advanced-card-title">1. 상단 상태와 우측 여백 확인</div>
+                                <div id="advancedFeatureImage1Title" class="help-advanced-card-title">1. 상단 상태 바 · 우측 여백</div>
                                 <div class="help-advanced-schematic help-advanced-schematic-status" aria-hidden="true">
                                     <div class="help-advanced-mini-bar">
                                         <span class="help-advanced-pill help-advanced-pill-active">고급 활성</span>
@@ -699,7 +697,7 @@
                                 <div id="advancedFeatureImage1Caption" class="help-advanced-card-caption">지금 열린 권한, 로그인 ID, 만료 시각은 상단에서 바로 확인합니다. 우측 여백은 실제 환경 감각을 맞추는 용도입니다.</div>
                             </div>
                             <div class="help-advanced-card">
-                                <div id="advancedFeatureImage2Title" class="help-advanced-card-title">2. OMR 아래 복기 버튼 익히기</div>
+                                <div id="advancedFeatureImage2Title" class="help-advanced-card-title">2. OMR 아래 복기 버튼</div>
                                 <div class="help-advanced-schematic help-advanced-schematic-omr" aria-hidden="true">
                                     <div class="help-advanced-omr-sheet">
                                         <span class="help-advanced-omr-dot"></span>
@@ -722,7 +720,7 @@
                     </div>
                 </details>
                 <div class="advanced-feature-actions">
-                    <button id="advancedFeatureManualFlowBtn" type="button" style="padding:8px 12px; background:#fff; color:#c2410c; border:1px solid #fdba74; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer;">신청 안내 보기</button>
+                    <button id="advancedFeatureManualFlowBtn" type="button" style="padding:8px 12px; background:#fff; color:#c2410c; border:1px solid #fdba74; border-radius:999px; font-size:12px; font-weight:800; cursor:pointer;">신청 안내</button>
                     <a id="advancedFeatureDonateLink" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer" style="padding:8px 12px; background:#fff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:999px; font-size:12px; font-weight:800; text-decoration:none;">후원 페이지</a>
                 </div>
             </div>
@@ -838,7 +836,7 @@
     <div id="utilityModal" class="modal-overlay hidden">
         <div class="modal-content utility-modal-content">
             <div class="modal-header">
-                <h3 id="utilityModalTitle">⋯ 보조 기능 모음</h3>
+                <h3 id="utilityModalTitle">⋯ 더보기</h3>
                 <div class="modal-header-actions">
                     <button id="utilityHelpBtn" type="button" class="context-help-btn" data-context-help="utility" aria-label="보조 기능 도움말" title="보조 기능 도움말">?</button>
                     <button class="close-modal btn-close">×</button>
@@ -846,33 +844,33 @@
             </div>
             <div class="modal-body utility-modal-body">
                 <p id="utilityModalDescription" class="utility-modal-description">
-                    핵심 연습 밖 기능만 모아 둔 공간입니다.
+                    연습 도구 외의 부가 기능을 모아 뒀습니다.
                 </p>
                 <div class="utility-card-grid">
                     <button type="button" class="utility-action-card close-utility-before-open" id="statsToggle">
                         <span class="utility-card-icon">🔥</span>
-                        <strong id="utilityStatsTitle">활성 세션 보기</strong>
-                        <small id="utilityStatsDescription">현재 열려 있는 세션과 최근 방문 기록을 확인합니다.</small>
+                        <strong id="utilityStatsTitle">접속 현황</strong>
+                        <small id="utilityStatsDescription">지금 접속 중인 수와 최근 방문 기록을 봅니다.</small>
                     </button>
                     <button type="button" class="utility-action-card close-utility-before-open" id="commentToggle">
                         <span class="utility-card-icon">💬</span>
                         <strong id="utilityCommunityTitle">커뮤니티</strong>
-                        <small id="utilityCommunityDescription">공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.</small>
+                        <small id="utilityCommunityDescription">질문, 후기, 개선 요청을 주고받는 게시판입니다.</small>
                     </button>
                     <button type="button" class="utility-action-card hidden" id="studyArchiveOpenBtn">
                         <span class="utility-card-icon">🗂</span>
                         <strong id="utilityArchiveTitle">자료 보관함</strong>
-                        <small id="utilityArchiveDescription">고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.</small>
+                        <small id="utilityArchiveDescription">고급 모드 전용이에요. 별도 로그인 후 자료를 저장·관리할 수 있습니다.</small>
                     </button>
                     <a href="extension-info.html" target="_blank" rel="noopener noreferrer nofollow" class="utility-action-card close-utility-before-open" id="extensionInfoLink">
                         <span class="utility-card-icon">🔗</span>
                         <strong id="utilityExtensionTitle">별도 테스트 자료</strong>
-                        <small id="utilityExtensionDescription">핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.</small>
+                        <small id="utilityExtensionDescription">연습 도구와 별개인 외부 테스트 자료 안내 페이지로 이동합니다.</small>
                     </a>
                     <button type="button" class="utility-action-card close-utility-before-open" id="donateToggle">
                         <span class="utility-card-icon">☕</span>
                         <strong id="utilityDonateTitle">운영 후원</strong>
-                        <small id="utilityDonateDescription">광고 없이 유지되는 연습 공간 운영을 응원할 수 있습니다.</small>
+                        <small id="utilityDonateDescription">광고 없는 이 공간을 함께 유지해 주세요.</small>
                     </button>
                 </div>
                 <div class="utility-doc-links">
@@ -890,7 +888,7 @@
     <div id="statsModal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h3 id="statsModalTitle">🔥 활성 세션 현황</h3>
+                <h3 id="statsModalTitle">🔥 접속 현황</h3>
                 <div class="modal-header-actions">
                     <button id="statsHelpBtn" type="button" class="context-help-btn" data-context-help="stats" aria-label="활성 세션 도움말" title="활성 세션 도움말">?</button>
                     <button class="close-modal btn-close">×</button>
@@ -901,15 +899,15 @@
                 <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; text-align: center;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;">
                         <span style="display: inline-block; width: 12px; height: 12px; background-color: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite;"></span>
-                        <span id="statsActiveLabel" style="font-size: 16px; color: #475569; font-weight: bold;">현재 활성 세션</span>
+                        <span id="statsActiveLabel" style="font-size: 16px; color: #475569; font-weight: bold;">지금 접속 중</span>
                     </div>
                     <div id="activeVisitorCount" style="font-size: 36px; font-weight: 900; color: #10b981; letter-spacing: -1px;">로딩 중...</div>
-                    <div id="statsActiveHint" style="font-size: 12px; color: #94a3b8; margin-top: 5px;">브라우저 탭 기준으로 실시간 반영됩니다.</div>
+                    <div id="statsActiveHint" style="font-size: 12px; color: #94a3b8; margin-top: 5px;">열려 있는 탭 수 기준으로 집계됩니다.</div>
                 </div>
 
                 <!-- 2. 최근 7일 접속자 그래프 -->
                 <div style="border-top: 1px dashed #cbd5e1; padding-top: 15px;">
-                    <div id="statsTrendTitle" style="font-weight: bold; color: #1e293b; margin-bottom: 10px; text-align: center;">📈 최근 7일 방문 기록</div>
+                    <div id="statsTrendTitle" style="font-weight: bold; color: #1e293b; margin-bottom: 10px; text-align: center;">📈 최근 7일 추이</div>
                     <div style="width: 100%; height: 200px; position: relative;">
                         <canvas id="visitorChart"></canvas>
                     </div>
@@ -917,9 +915,9 @@
 
                 <!-- 3. 총 누적 접속자 -->
                 <div style="border-top: 1px dashed #cbd5e1; padding-top: 15px; text-align: center;">
-                    <span id="statsTotalLabel" style="font-size: 13px; color: #64748b; margin-bottom: 5px; display: block;">🗓️ 누적 방문 기록</span>
+                    <span id="statsTotalLabel" style="font-size: 13px; color: #64748b; margin-bottom: 5px; display: block;">🗓️ 전체 누적 방문</span>
                     <div id="visitorCountDisplay" style="font-size: 18px; font-weight: bold; color: #3b82f6;">로딩 중...</div>
-                    <div id="statsTotalHint" style="font-size: 12px; color: #94a3b8; margin-top: 5px;">브라우저 기준 방문 기록으로 집계됩니다.</div>
+                    <div id="statsTotalHint" style="font-size: 12px; color: #94a3b8; margin-top: 5px;">하루에 한 번씩, 브라우저 단위로 집계됩니다.</div>
                 </div>
             </div>
         </div>
@@ -981,9 +979,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="build-info.js?v=202604101313"></script>
-    <script src="site-text-config.js?v=202604101313"></script>
-    <script src="main.js?v=202604101313"></script>
+    <script src="build-info.js?v=202604101645"></script>
+    <script src="site-text-config.js?v=202604101645"></script>
+    <script src="main.js?v=202604101645"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">

@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
         updatedAt: '2026-04-10 13:13:18 +09:00',
-        version: 'v2026.04.10.1313',
-        assetVersion: '202604101313'
+        version: 'v2026.04.10.1645',
+        assetVersion: '202604101645'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -2266,10 +2266,10 @@ document.addEventListener('DOMContentLoaded', () => {
             && !scoreResultEl.classList.contains('hidden')
         );
         if (omrState.mode === 'answer') {
-            modeToggleBtn.textContent = '📝 정답 입력 모드로 전환';
+            modeToggleBtn.textContent = window.siteText ? window.siteText('tools.modeToggleButton') : '📝 정답 입력';
             modeToggleBtn.classList.remove('active-score');
             if (omrModeLabel) {
-                omrModeLabel.textContent = '📝 답안 작성 중';
+                omrModeLabel.textContent = window.siteText ? window.siteText('tools.omrModeLabel') : '답안 마킹';
                 omrModeLabel.style.color = '';
             }
             if (omrModeHint) {
@@ -2277,12 +2277,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrModeHint.textContent = '';
             }
         } else {
-            modeToggleBtn.textContent = '✏️ 답안 작성 모드로 돌아가기';
+            modeToggleBtn.textContent = '✏️ 답안 마킹으로 돌아가기';
             modeToggleBtn.classList.add('active-score');
             if (omrModeLabel) omrModeLabel.textContent = '✅ 정답 입력 중';
             if (omrModeLabel) omrModeLabel.style.color = '#4ade80';
             if (omrModeHint) {
-                omrModeHint.textContent = '미응답(건너뛴) 문제도 번호를 바로 클릭해 정답을 입력할 수 있습니다.';
+                omrModeHint.textContent = '미응답 문항도 번호를 클릭해 정답을 입력할 수 있습니다.';
                 omrModeHint.classList.remove('hidden');
             }
         }
