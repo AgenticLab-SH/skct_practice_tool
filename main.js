@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-        updatedAt: '2026-04-10 11:24:28 +09:00',
-        version: 'v2026.04.10.1124',
-        assetVersion: '202604101124'
+        updatedAt: '2026-04-10 13:13:18 +09:00',
+        version: 'v2026.04.10.1313',
+        assetVersion: '202604101313'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -1000,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     title: '⚙ 설정 빠른 도움말',
                     body: [
-                        buildQuickInfoCard('이 창에서 바꾸는 것', '시간, 채점 기준, 화면 비율, 도구 기본값을 현재 브라우저에 적용합니다. 적용을 누르면 지금 화면에 바로 반영됩니다.'),
+                        buildQuickInfoCard('이 창의 역할', '시간, 채점 기준, 화면 비율, 도구 기본값을 현재 브라우저에 적용합니다. 적용하면 지금 화면에 바로 반영됩니다.'),
                         buildQuickInfoCard(
                             readSiteText('settingsModal.practiceModeTitle', '🎯 모드 설정'),
                             formatMultilineHtml(readSiteText('settingsModal.practiceModeHint', 'OFF = 실전 모드: 과목 시간 종료 시 자동 잠금 및 다음 과목 강제 전환\nON = 연습 모드: 시간 제한·강제 전환 없이 자유롭게 마킹'))
@@ -1021,8 +1021,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: '⋯ 보조 기능 도움말',
                     body: [
                         buildQuickInfoCard('이 창의 역할', isAdvancedMode
-                            ? '핵심 연습 밖 기능과 고급 전용 보관함을 한곳에서 엽니다.'
-                            : '핵심 연습 밖 기능만 한곳에서 여는 공간입니다.'),
+                            ? '연습 밖 기능과 고급 보관함을 한곳에서 엽니다.'
+                            : '연습 밖 기능만 한곳에서 엽니다.'),
                         buildQuickInfoCard(readSiteText('utilityModal.statsTitle', '활성 세션 보기'), escapeHtml(readSiteText('utilityModal.statsDescription', '현재 열려 있는 세션과 최근 방문 기록을 확인합니다.'))),
                         buildQuickInfoCard(readSiteText('utilityModal.communityTitle', '커뮤니티'), escapeHtml(readSiteText('utilityModal.communityDescription', '공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.'))),
                         isAdvancedMode
@@ -1036,19 +1036,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     title: '🔒 고급 신청 · 진입 도움말',
                     body: [
-                        buildQuickInfoCard(
-                            readSiteText('advancedGuide.loginTitle', '1. 승인된 경우 바로 열기'),
-                            readSiteText('advancedGuide.loginBody', '승인 후 이메일 또는 로그인 ID와 비밀번호로 바로 들어갑니다.')
-                        ),
-                        buildQuickInfoCard('이 창의 역할', '신청, 승인 확인, 첫 진입만 여기서 보면 됩니다.'),
-                        buildQuickInfoCard(
-                            readSiteText('advancedGuide.planTitle', '3. 처음 신청하기'),
-                            '후원 확인 -> 신청 저장 -> 신청 이메일로 상태 확인 -> 승인 후 고급 진입'
-                        ),
-                        buildQuickInfoCard(
-                            readSiteText('advancedGuide.lookupTitle', '5. 신청 상태 확인'),
-                            '조회는 신청 이메일만 씁니다. 승인 뒤 로그인은 이메일 또는 로그인 ID를 씁니다.'
-                        )
+                        buildQuickInfoCard('바로 열기', '승인 뒤에는 이메일 또는 로그인 ID와 비밀번호만 입력하면 됩니다.'),
+                        buildQuickInfoCard('신청 순서', '<strong>후원 확인</strong> -> <strong>신청 저장</strong> -> <strong>상태 확인</strong> -> <strong>승인 후 고급 열기</strong>'),
+                        buildQuickInfoCard('입력 기준', '조회는 <strong>신청 이메일</strong>만 쓰고, 로그인은 <strong>이메일 또는 로그인 ID</strong>를 씁니다.')
                     ].join('')
                 };
             case 'advanced-tools':
@@ -1056,7 +1046,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: '✨ 고급 활용 도움말',
                     body: [
                         buildQuickInfoCard('추천 흐름', '<strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>'),
-                        buildQuickInfoCard('자료 보관함 위치', '<strong>더보기</strong>에서 따로 엽니다.'),
+                        buildQuickInfoCard('버튼 위치', '<strong>상단 상태</strong>로 권한을 확인하고, <strong>OMR 아래</strong>에서 복기하며, <strong>자료 보관함</strong>은 더보기에서 엽니다.'),
                         `<div class="quick-info-flow">
                             ${buildQuickInfoStep(readSiteText('advancedFeature.feature1Html', '<strong>1. 결과부터 확인</strong><br>맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.'))}
                             ${buildQuickInfoStep(readSiteText('advancedFeature.feature2Html', '<strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 흔들린 영역을 바로 봅니다.'))}
@@ -1067,15 +1057,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             case 'advanced-omr':
                 return {
-                    title: readSiteText('advancedMode.coachTitle', '고급 복기 순서'),
+                    title: '❓ 고급 복기 도움말',
                     body: [
-                        buildQuickInfoCard('핵심 3단계', readSiteText('advancedMode.coachLeadHtml', '처음에는 아래 세 줄만 기억하면 됩니다.')),
+                        buildQuickInfoCard('기본 흐름', '정답 입력 -> 채점 -> 상세 통계/TXT/정오표 순서로 보면 됩니다.'),
                         `<div class="quick-info-flow">
-                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력</strong><br>답안 체크 뒤 실제 정답만 넣습니다.'))}
-                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 확인</strong><br>맞은 수와 정답률을 먼저 봅니다.'))}
-                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep3Html', '<strong>3. 복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep1Html', '<strong>정답 입력</strong><br>실제 정답만 넣습니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep2Html', '<strong>채점</strong><br>점수와 건너뜀을 먼저 봅니다.'))}
+                            ${buildQuickInfoStep(readSiteText('advancedMode.coachStep3Html', '<strong>복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.'))}
                         </div>`,
-                        buildQuickInfoCard('추가 팁', readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.'))
+                        buildQuickInfoCard('reset과 보관함', '<strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체를 다시 시작합니다. 자료 보관함은 <strong>더보기</strong>에서 엽니다.')
                     ].join('')
                 };
             case 'stats':
@@ -1421,7 +1411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 expiry: formatAdvancedLicenseExpiry(verifiedAdvancedLicenseBundle)
             });
         } else {
-            advancedAccessSummary.textContent = readSiteText('messages.advancedAvailable', '신청 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 팝업이 열립니다.');
+            advancedAccessSummary.textContent = readSiteText('messages.advancedAvailable', '승인된 이메일 또는 로그인 ID와 비밀번호를 입력하면 바로 고급 모드가 열립니다.');
         }
         if (advancedAccessSubmitBtn) advancedAccessSubmitBtn.disabled = cooldownRemainingMs > 0;
         updateAdvancedModeStatusBar();
@@ -1433,11 +1423,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (utilityModalDescription) {
             utilityModalDescription.innerHTML = isAdvancedMode
-                ? readSiteText('utilityModal.descriptionAdvancedHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.')
-                : readSiteText('utilityModal.descriptionHtml', '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.');
+                ? readSiteText('utilityModal.descriptionAdvancedHtml', '연습 밖 기능과 고급 보관함을 모아 둔 공간입니다. 자세한 기준은 ?에서 확인하세요.')
+                : readSiteText('utilityModal.descriptionHtml', '연습 밖 기능만 모아 둔 공간입니다. 자세한 기준은 ?에서 확인하세요.');
         }
         if (utilityArchiveDescription) {
-            utilityArchiveDescription.textContent = readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.');
+            utilityArchiveDescription.textContent = readSiteText('utilityModal.archiveDescription', '고급 모드 전용입니다. 자료를 저장하려면 보관함 로그인으로 다시 확인합니다.');
         }
     };
 
@@ -1455,21 +1445,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateAdvancedModeStatusBar() {
         if (advancedModeStatusTitle) advancedModeStatusTitle.textContent = readSiteText('advancedMode.statusTitle', '고급 모드 상태');
-        if (advancedModeStatusLead) advancedModeStatusLead.innerHTML = readSiteText('advancedMode.statusLeadHtml', '이 브라우저에서 현재 어떤 고급 기능이 열려 있는지 바로 확인할 수 있습니다.');
+        if (advancedModeStatusLead) advancedModeStatusLead.innerHTML = readSiteText('advancedMode.statusLeadHtml', '이 브라우저에 열려 있는 고급 상태를 바로 확인합니다.');
         if (advancedModeLabelState) advancedModeLabelState.textContent = readSiteText('advancedMode.labelState', '상태');
         if (advancedModeLabelLogin) advancedModeLabelLogin.textContent = readSiteText('advancedMode.labelLogin', '로그인');
         if (advancedModeLabelExpiry) advancedModeLabelExpiry.textContent = readSiteText('advancedMode.labelExpiry', '만료');
         if (advancedModeLabelArchive) advancedModeLabelArchive.textContent = readSiteText('advancedMode.labelArchive', '자료 보관함');
         if (advancedModeLabelRail) advancedModeLabelRail.textContent = readSiteText('advancedMode.labelRail', '우측 실제환경 여백');
-        if (advancedModeStatusFootnote) advancedModeStatusFootnote.innerHTML = readSiteText('advancedMode.footnoteHtml', '자료 보관함은 고급 모드가 열린 브라우저에서만 더보기에 나타나며, 들어간 뒤에도 자료보관함 로그인으로 한 번 더 본인 확인을 합니다.');
-        if (advancedModeGuideBtn) advancedModeGuideBtn.textContent = readSiteText('advancedMode.guideButton', '고급 활용 보기');
+        if (advancedModeStatusFootnote) advancedModeStatusFootnote.innerHTML = readSiteText('advancedMode.footnoteHtml', '자료 보관함은 더보기에서 열고, 들어간 뒤에는 보관함 로그인으로 다시 확인합니다.');
+        if (advancedModeGuideBtn) advancedModeGuideBtn.textContent = readSiteText('advancedMode.guideButton', '고급 활용');
         if (advancedModeArchiveBtn) advancedModeArchiveBtn.textContent = readSiteText('advancedMode.archiveButton', '자료 보관함 열기');
-        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 복기 순서');
-        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '처음에는 아래 세 줄만 기억하면 됩니다.');
-        if (advancedCoachStep1) advancedCoachStep1.innerHTML = readSiteText('advancedMode.coachStep1Html', '<strong>1. 정답 입력</strong><br>답안 체크 뒤 실제 정답만 넣습니다.');
-        if (advancedCoachStep2) advancedCoachStep2.innerHTML = readSiteText('advancedMode.coachStep2Html', '<strong>2. 채점 확인</strong><br>맞은 수와 정답률을 먼저 봅니다.');
-        if (advancedCoachStep3) advancedCoachStep3.innerHTML = readSiteText('advancedMode.coachStep3Html', '<strong>3. 복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.');
-        if (advancedCoachHint) advancedCoachHint.innerHTML = readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체 시험을 다시 시작합니다. 자료 보관함은 더보기에서 엽니다.');
+        if (advancedCoachTitle) advancedCoachTitle.textContent = readSiteText('advancedMode.coachTitle', '고급 복기');
+        if (advancedCoachLead) advancedCoachLead.innerHTML = readSiteText('advancedMode.coachLeadHtml', '정답 입력 → 채점 → 복기 버튼');
+        if (advancedCoachStep1) advancedCoachStep1.innerHTML = readSiteText('advancedMode.coachStep1Html', '<strong>정답 입력</strong><br>실제 정답만 넣습니다.');
+        if (advancedCoachStep2) advancedCoachStep2.innerHTML = readSiteText('advancedMode.coachStep2Html', '<strong>채점</strong><br>점수와 건너뜀을 먼저 봅니다.');
+        if (advancedCoachStep3) advancedCoachStep3.innerHTML = readSiteText('advancedMode.coachStep3Html', '<strong>복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.');
+        if (advancedCoachHint) advancedCoachHint.innerHTML = readSiteText('advancedMode.coachHintHtml', '<strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체를 다시 시작합니다.');
         if (advancedCoachGuideBtn) advancedCoachGuideBtn.textContent = readSiteText('advancedMode.coachGuideButton', '전체 안내');
         if (helpAdvancedLinkBtn) helpAdvancedLinkBtn.textContent = readSiteText('helpModal.advancedLinkButton', '고급 기능 보기');
 
