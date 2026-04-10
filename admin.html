@@ -680,7 +680,7 @@
 <script src="subscription-crypto.js?v=202604081955"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-    import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction
+    import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction, goOffline, goOnline
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 
@@ -700,6 +700,7 @@
     const auth = getAuth(app);
     const activeVisitorsRef = ref(db, 'active_visitors');
     const PRESENCE_STALE_MS = 150000;
+    const ADMIN_DB_RECONNECT_TIMEOUT_MS = 2500;
     const buildInfo = window.SKCTBuildInfo || {};
     const adminBuildUpdatedAt = document.getElementById('adminBuildUpdatedAt');
     const adminBuildVersion = document.getElementById('adminBuildVersion');
@@ -748,6 +749,28 @@
         return path ? ref(db, path) : ref(db);
     }
 
+    function waitForDatabaseReconnect(timeoutMs = ADMIN_DB_RECONNECT_TIMEOUT_MS) {
+        return new Promise((resolve) => {
+            const connectedRef = ref(db, '.info/connected');
+            let settled = false;
+            let unsubscribe = null;
+            let timerId = null;
+            const finish = (connected) => {
+                if (settled) return;
+                settled = true;
+                if (timerId) clearTimeout(timerId);
+                if (typeof unsubscribe === 'function') unsubscribe();
+                resolve(Boolean(connected));
+            };
+            timerId = setTimeout(() => finish(false), timeoutMs);
+            unsubscribe = onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    finish(true);
+                }
+            });
+        });
+    }
+
     async function ensureAdminWriteSession(options = {}) {
         const { forceRefresh = false, expectedUser = null } = options;
         if (typeof auth.authStateReady === 'function') {
@@ -770,16 +793,31 @@
         }
     }
 
+    async function syncAdminDatabaseAuth(options = {}) {
+        const { forceRefresh = false, reconnectDatabase = false, expectedUser = null } = options;
+        const user = await ensureAdminWriteSession({ forceRefresh, expectedUser });
+        if (reconnectDatabase) {
+            goOffline(db);
+            await sleep(120);
+            goOnline(db);
+            await waitForDatabaseReconnect();
+            await sleep(180);
+        } else if (forceRefresh) {
+            await sleep(180);
+        }
+        return user;
+    }
+
     async function runAdminDatabaseWrite(operation, options = {}) {
         const { retryOnPermissionDenied = true } = options;
-        await ensureAdminWriteSession();
+        await syncAdminDatabaseAuth();
         try {
             return await operation();
         } catch (error) {
             if (retryOnPermissionDenied && isPermissionDeniedError(error)) {
-                await ensureAdminWriteSession({ forceRefresh: true });
-                await sleep(150);
-                return operation();
+                console.warn('Admin write permission denied. Refreshing auth token and reconnecting RTDB.', error);
+                await syncAdminDatabaseAuth({ forceRefresh: true, reconnectDatabase: true });
+                return await operation();
             }
             throw error;
         }
@@ -1567,7 +1605,7 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
-                await ensureAdminWriteSession({ expectedUser: user });
+                await syncAdminDatabaseAuth({ expectedUser: user, reconnectDatabase: true });
                 document.getElementById('loginError').style.display = 'none';
                 document.getElementById('loginEmail').value = user.email || '';
                 enterDashboard();
@@ -3797,8 +3835,11 @@
         const code = String(error?.code || '');
         const message = String(error?.message || '');
         const combined = `${code} ${message}`.toLowerCase();
+        if (combined.includes('admin-session-missing') || combined.includes('admin-token-check-failed')) {
+            return '관리자 세션을 다시 확인하지 못했습니다. 새로고침한 뒤 다시 로그인해 주세요.';
+        }
         if (combined.includes('permission-denied') || combined.includes('permission denied')) {
-            return '로그인 세션이 만료되었거나 쓰기 권한이 없습니다. 페이지를 새로고침한 뒤 다시 로그인해서 저장해 주세요.';
+            return '관리자 세션을 자동으로 다시 연결했지만 쓰기 권한이 확인되지 않았습니다. 새로고침 후 다시 로그인해 주세요. 계속 실패하면 관리자 계정 권한을 확인해야 합니다.';
         }
         if (combined.includes('network')) {
             return '네트워크 문제로 저장하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.';
