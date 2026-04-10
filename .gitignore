@@ -10,3 +10,4 @@ firebase-debug.log
 ui-debug.log
 __pycache__/
 *.pyc
+private/
