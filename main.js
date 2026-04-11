@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
     updatedAt: '2026-04-11 20:05:00 +09:00',
-        version: 'v2026.04.11.2035',
-        assetVersion: '202604112035'
+        version: 'v2026.04.11.2045',
+        assetVersion: '202604112045'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -2969,11 +2969,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const bindClickById = (id, handler) => {
-        document.addEventListener('click', (event) => {
-            const trigger = event.target.closest(`#${id}`);
+        const wrappedHandler = (event) => {
+            let trigger = null;
+            if (event.currentTarget && event.currentTarget.id === id) {
+                trigger = event.currentTarget;
+            } else if (event.target instanceof Element) {
+                trigger = event.target.closest(`#${id}`);
+            }
             if (!trigger) return;
+            if (!event.__skctHandledClickIds) {
+                event.__skctHandledClickIds = new Set();
+            }
+            if (event.__skctHandledClickIds.has(id)) return;
+            event.__skctHandledClickIds.add(id);
             handler(event);
-        });
+        };
+        document.addEventListener('click', wrappedHandler, true);
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', wrappedHandler);
+        }
     };
 
     if (detailScoreBtn) {
