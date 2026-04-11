@@ -3,6 +3,16 @@
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
+## 2026-04-11 운영 반영 완료: 좌측 후원 버튼 상시 노출 및 자연스러운 깜빡임 유도
+- 공개 배포 브랜치 `public-clean`은 `781c1cb` 기준으로 다시 반영됐습니다.
+- 후원 버튼은 더 이상 `더보기` 안에 있지 않고, 좌측 버튼란에 항상 보이도록 옮겼습니다.
+- 페이지에 들어오면 좌측 `☕ 후원` 버튼이 가끔 연한 갈색으로 여러 번 깜빡였다가 돌아오도록 조정해, 과하지 않게 시선을 주는 방식으로 바꿨습니다.
+- 후원 모달 기본 문구와 CTA는 `부담 없는 응원` 톤으로 다시 정리했고, 운영 RTDB `config/supportConfig`도 같은 기준으로 동기화했습니다.
+- 운영 RTDB `config/siteTextConfig`는 `sidebar.supportLabel`, `breakOverlay.supportHint`, `utilityModal.descriptionHtml`, `utilityModal.descriptionAdvancedHtml`, `helpModal.sidebarFeatureHtml`를 이번 구조에 맞게 직접 동기화했습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604112208`, `v2026.04.11.2208`로 올렸습니다.
+- GitHub Pages builds API에서 최신 빌드가 `781c1cb` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.11.2208`를 반환했습니다.
+- 라이브 메인 HTML은 `sidebarDonateLabel`과 `main.css/site-text-config.js/main.js?v=202604112208`를 반환했고, 공개 `admin.html`은 차단 페이지 기준 `200 OK`를 유지했습니다.
+
 ## 2026-04-11 운영 반영 완료: OMR 하단 버튼 hover 흔들림 안정화
 - 공개 배포 브랜치 `public-clean`은 `c8a755b` 기준으로 다시 반영됐습니다.
 - 원인은 OMR 하단 버튼 hover에 걸려 있던 `transform: scale(1.02)`이었습니다.
