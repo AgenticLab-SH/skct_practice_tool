@@ -3,6 +3,13 @@
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
+## 2026-04-11 운영 반영 완료: OMR 하단 버튼 hover 흔들림 안정화
+- 공개 배포 브랜치 `public-clean`은 `c8a755b` 기준으로 다시 반영됐습니다.
+- 원인은 OMR 하단 버튼 hover에 걸려 있던 `transform: scale(1.02)`이었습니다.
+- 버튼 hover는 이제 크기를 바꾸지 않고, 밝기와 그림자만 바꾸도록 정리해 포인터 경계에서 위아래로 흔들리는 체감을 줄였습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604112121`, `v2026.04.11.2121`로 올렸습니다.
+- GitHub Pages builds API에서 최신 빌드가 `c8a755b` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.11.2121`를 반환했습니다.
+
 ## 2026-04-11 운영 반영 완료: 고급 OMR 안내 축소 및 정오표 일괄입력 채점 후 노출
 - 공개 배포 브랜치 `public-clean`은 `e70cae1` 기준으로 다시 반영됐습니다.
 - OMR 하단 중간 설명 박스는 제거했고, 이제 고급 복기 안내는 `접기` 버튼 오른쪽의 작은 `?` 버튼으로만 엽니다.
