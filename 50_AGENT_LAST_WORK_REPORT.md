@@ -3,6 +3,14 @@
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
+## 2026-04-11 운영 반영 완료: 정오표 일괄입력 라벨 siteText 동기화
+- 공개 배포 브랜치 `public-clean`은 `872ae95` 기준으로 다시 반영됐습니다.
+- 원인은 HTML이 아니라 `site-text-config.js` 기본값 `tools.bulkImportButton`이 여전히 `📥 정오표 입력`으로 남아 있던 것이었습니다.
+- `site-text-config.js` 기본값과 관련 안내 문구를 `정오표 일괄입력`으로 통일했고, legacy migration도 예전 문구 `📥 정오표 입력`을 새 기본값으로 승격하도록 보강했습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604112035`, `v2026.04.11.2035`로 올렸습니다.
+- GitHub Pages builds API에서 최신 빌드가 `872ae95` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.11.2035`를 반환했습니다.
+- 라이브 메인 HTML과 `site-text-config.js` 응답 모두 `📥 정오표 일괄입력` 기준으로 반영된 것을 확인했습니다.
+
 ## 2026-04-11 운영 반영 완료: 고급모드 정오표 일괄입력 클릭 보강
 - 공개 배포 브랜치 `public-clean`은 `31a4364` 기준으로 다시 반영됐습니다.
 - 고급모드 `정오표 일괄입력` 버튼과 `붙여넣기 분석`, `정답 일괄 반영`은 이제 직접 DOM 바인딩 대신 `id` 기준 위임 클릭으로 연결됩니다.
