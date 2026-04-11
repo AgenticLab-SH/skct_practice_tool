@@ -29,7 +29,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604112121">
+    <link rel="stylesheet" href="main.css?v=202604112208">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -73,6 +73,11 @@
                 <div class="popup-toggle sidebar-shortcut" id="popupToggle" title="팝업으로 열기">
                     <span class="sidebar-shortcut-icon">↗</span>
                     <span class="sidebar-shortcut-label compact" id="sidebarPopupLabel">팝업</span>
+                </div>
+                <div class="sidebar-divider"></div>
+                <div class="donate-toggle sidebar-shortcut" id="donateToggle" title="운영 응원 열기">
+                    <span class="sidebar-shortcut-icon">☕</span>
+                    <span class="sidebar-shortcut-label compact" id="sidebarDonateLabel">후원</span>
                 </div>
                 <div class="sidebar-divider"></div>
                 <div class="utility-toggle sidebar-shortcut" id="utilityToggle" title="더보기">
@@ -325,7 +330,8 @@
                         <p>⚙ <strong>설정</strong> — 시간, 모드, 화면 비율 조정</p>
                         <p>🔒 <strong>고급 모드</strong> — 신청과 진입</p>
                         <p>↗ <strong>팝업</strong> — 실전 폭으로 열기</p>
-                        <p>⋯ <strong>더보기</strong> — 접속 현황, 커뮤니티, 후원</p>
+                        <p>☕ <strong>후원</strong> — 부담 없이 운영 응원하기</p>
+                        <p>⋯ <strong>더보기</strong> — 접속 현황, 커뮤니티, 외부 자료</p>
                         <hr style="border-color:#334155; margin: 8px 0;">
                         <p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 → 채점</p>
                         <p style="color:#93c5fd;">각 창의 <strong>?</strong>에서 상세 설명을 확인할 수 있습니다.</p>
@@ -852,11 +858,6 @@
                         <strong id="utilityExtensionTitle">별도 테스트 자료</strong>
                         <small id="utilityExtensionDescription">연습 도구와 별개인 외부 테스트 자료 안내 페이지로 이동합니다.</small>
                     </a>
-                    <button type="button" class="utility-action-card close-utility-before-open" id="donateToggle">
-                        <span class="utility-card-icon">☕</span>
-                        <strong id="utilityDonateTitle">운영 후원</strong>
-                        <small id="utilityDonateDescription">광고 없는 이 공간을 함께 유지해 주세요.</small>
-                    </button>
                 </div>
                 <div class="utility-doc-links">
                     <a href="guide/" target="_blank" rel="noopener noreferrer">사용 가이드</a>
@@ -964,9 +965,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="build-info.js?v=202604112121"></script>
-    <script src="site-text-config.js?v=202604112121"></script>
-    <script src="main.js?v=202604112121"></script>
+    <script src="build-info.js?v=202604112208"></script>
+    <script src="site-text-config.js?v=202604112208"></script>
+    <script src="main.js?v=202604112208"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">

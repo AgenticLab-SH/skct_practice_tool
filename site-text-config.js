@@ -18,6 +18,7 @@
             advancedGuideLabelHtml: '고급<br>모드',
             advancedModeLabelHtml: '고급<br>활용',
             popupLabel: '팝업',
+            supportLabel: '후원',
             utilityLabel: '더보기'
         },
         toolbar: {
@@ -54,12 +55,12 @@
             title: '⏸ 쉬는 시간',
             description: '다음 과목 시작 시 자동 전환됩니다.',
             skipButton: '건너뛰기',
-            supportHint: '이 도구가 도움이 되셨다면 ☕ 후원으로 응원해 주세요!'
+            supportHint: '도움이 됐다면 좌측 ☕ 버튼으로 가볍게 응원해 주세요.'
         },
         utilityModal: {
             title: '⋯ 더보기',
-            descriptionHtml: '연습 외 부가 기능을 모았습니다.',
-            descriptionAdvancedHtml: '부가 기능과 자료 보관함을 한곳에서 확인합니다.',
+            descriptionHtml: '연습 밖 기능을 모아 두었습니다. 접속 현황, 커뮤니티, 별도 테스트 자료를 여기서 확인합니다.',
+            descriptionAdvancedHtml: '연습 밖 기능과 자료 보관함을 모아 두었습니다. 접속 현황, 커뮤니티, 자료 보관함, 별도 테스트 자료를 여기서 확인합니다.',
             statsTitle: '접속 현황',
             statsDescription: '현재 접속 수와 최근 방문 기록을 확인합니다.',
             communityTitle: '커뮤니티',
@@ -67,9 +68,7 @@
             archiveTitle: '자료 보관함',
             archiveDescription: '고급 모드 전용. 로그인 후 자료를 저장·관리합니다.',
             extensionTitle: '외부 테스트 자료',
-            extensionDescription: '외부 테스트 자료 안내 페이지로 이동합니다.',
-            donateTitle: '후원',
-            donateDescription: '광고 없는 연습 공간을 함께 유지해 주세요.'
+            extensionDescription: '외부 테스트 자료 안내 페이지로 이동합니다.'
         },
         statsModal: {
             title: '🔥 접속 현황',
@@ -96,7 +95,7 @@
             advancedLinkButton: '고급 모드 안내 보기',
             referenceBlockHtml: '<strong style="color:#1e293b;">[핵심 참고]</strong><br>\n1. <strong>실제 시험장 병행 사용 불가</strong>: 본 도구는 연습용이며 실제 온라인 SKCT 시험 창과 함께 띄워 쓸 수 없습니다.<br>\n2. <strong>실전 감각용 모의 환경</strong>: 타이머, 메모장, 계산기, 화면 비율을 실제 흐름에 가깝게 맞춘 연습 도구입니다.<br>\n3. <strong>OMR은 채점 편의 기능</strong>: 실제 시험에는 OMR이 없고, 문제 화면에서 바로 답을 체크합니다.',
             featureSectionTitle: '🗺️ 주요 기능',
-            sidebarFeatureHtml: '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>안내</strong> — 사용법과 기본 안내</p>\n<p>📝 <strong>연습 OMR</strong> — 답 체크와 채점</p>\n<p>⚙ <strong>설정</strong> — 시간, 모드, 화면 비율 조정</p>\n<p>🔒 <strong>고급 모드</strong> — 신청과 진입</p>\n<p>↗ <strong>팝업</strong> — 실전 폭으로 열기</p>\n<p>⋯ <strong>더보기</strong> — 접속 현황, 커뮤니티, 후원</p>\n<hr style="border-color:#334155; margin: 8px 0;"/>\n<p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 → 채점</p>\n<p style="color:#93c5fd;">각 창의 <strong>?</strong>에서 상세 설명을 확인할 수 있습니다.</p>',
+            sidebarFeatureHtml: '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>안내</strong> — 사용법과 기본 안내</p>\n<p>📝 <strong>연습 OMR</strong> — 답 체크와 채점</p>\n<p>⚙ <strong>설정</strong> — 시간, 모드, 화면 비율 조정</p>\n<p>🔒 <strong>고급 모드</strong> — 신청과 진입</p>\n<p>↗ <strong>팝업</strong> — 실전 폭으로 열기</p>\n<p>☕ <strong>후원</strong> — 부담 없이 운영 응원하기</p>\n<p>⋯ <strong>더보기</strong> — 접속 현황, 커뮤니티, 외부 자료</p>\n<hr style="border-color:#334155; margin: 8px 0;"/>\n<p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 → 채점</p>\n<p style="color:#93c5fd;">각 창의 <strong>?</strong>에서 상세 설명을 확인할 수 있습니다.</p>',
             timerFeatureHtml: '<strong>🕒 다중 페이즈 타이머</strong><br>\n전체·과목 시간을 동시에 확인합니다.<br>\n<span style="color:#c4b5fd;">과목 전환과 쉬는 시간은 자동입니다.</span>',
             practiceFeatureHtml: '<strong>✏️ 연습장 (메모장 & 그림판)</strong><br>\n문항 이동 시 자동 초기화됩니다.<br>\n<span style="color:#fde68a;">실전처럼 짧게 메모하세요.</span>',
             calculatorFeatureHtml: '<strong>🧮 실전형 계산기</strong><br>\n기본 연산과 키보드 입력을 지원합니다.<br>\n<span style="color:#86efac;">실전형 제한 계산기입니다.</span>'
@@ -268,7 +267,8 @@
         'helpModal.sidebarFeatureHtml': [
             '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📖 <strong>GUIDE</strong> — 업데이트 공지, 사용 예시, 기능 설명 확인</p>\n<p>📝 <strong>연습용 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 가이드 시간, 화면 비율 조정</p>\n<p>↗ <strong>화면 더 줄이기</strong> — 팝업으로 더 좁은 실전 화면 구성</p>\n<p>🛡️ <strong>무적모드(테스트)</strong> — 링커리어 화면 가림막 대응 확장 설치</p>\n<p>🔥 <strong>접속자 수</strong> — 실시간 현황과 최근 7일 그래프</p>\n<p>💬 <strong>게시판</strong> — 공지, Q&A, Tip, 후기, 개선요청, FAQ</p>\n<p>☕ <strong>커피후원</strong> — 운영 후원과 문의 링크</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>',
             '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>도움말</strong> — 사용 예시, 공지, 핵심 기능 설명 확인</p>\n<p>📝 <strong>연습 OMR</strong> — 답안 마킹, 채점, 통계 확인</p>\n<p>⚙ <strong>설정</strong> — 실전/연습 모드, 타이머, 화면 비율 조정</p>\n<p>🔒 <strong>고급 안내</strong> — 신청, 승인 확인, 고급 기능 흐름 확인</p>\n<p>↗ <strong>팝업</strong> — 더 좁은 실전 화면으로 연습</p>\n<p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 운영 후원 열기</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;">고급 모드에서는 <strong>자료 보관함</strong>이 더보기 안에 추가됩니다.</p>\n<p style="color:#93c5fd;">OMR에서 답 마킹 → <strong>자동 다음 문제 이동</strong></p>\n<p style="color:#93c5fd;">[문항 건너뛰기] = 현재 문항을 미응답 상태로 넘김</p>\n<p style="color:#93c5fd;">[정답 입력 모드] = 채점용 정답 입력 모드 전환, 타이머 자동 정지</p>\n<p style="color:#93c5fd;">[채점 및 통계 확인] = 과목별 오답, 미응답, 소요 시간 확인</p>',
-            '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>가이드</strong> — 일반 모드 기준과 기본 흐름 확인</p>\n<p>📝 <strong>연습 OMR</strong> — 답안 체크, 채점, 결과 확인</p>\n<p>⚙ <strong>설정</strong> — 모드, 시간, 화면 비율 조정</p>\n<p>🔒 <strong>고급 안내</strong> — 신청, 승인, 추가 기능 확인</p>\n<p>↗ <strong>팝업</strong> — 더 좁은 실전 폭으로 열기</p>\n<p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 문서, 후원</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;"><strong>기본 순서</strong>: 답안 체크 → 정답 입력 모드 → 채점 및 통계</p>\n<p style="color:#93c5fd;">OMR 마킹 후에는 <strong>자동으로 다음 문항</strong>으로 이동합니다.</p>\n<p style="color:#93c5fd;">고급 전용 버튼과 자료 보관함은 이 창이 아니라 <strong>고급 안내</strong>에서 봅니다.</p>'
+            '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>가이드</strong> — 일반 모드 기준과 기본 흐름 확인</p>\n<p>📝 <strong>연습 OMR</strong> — 답안 체크, 채점, 결과 확인</p>\n<p>⚙ <strong>설정</strong> — 모드, 시간, 화면 비율 조정</p>\n<p>🔒 <strong>고급 안내</strong> — 신청, 승인, 추가 기능 확인</p>\n<p>↗ <strong>팝업</strong> — 더 좁은 실전 폭으로 열기</p>\n<p>⋯ <strong>더보기</strong> — 활성 세션, 커뮤니티, 문서, 후원</p>\n<hr style="border-color:#334155; margin: 8px 0;">\n<p style="color:#93c5fd;"><strong>기본 순서</strong>: 답안 체크 → 정답 입력 모드 → 채점 및 통계</p>\n<p style="color:#93c5fd;">OMR 마킹 후에는 <strong>자동으로 다음 문항</strong>으로 이동합니다.</p>\n<p style="color:#93c5fd;">고급 전용 버튼과 자료 보관함은 이 창이 아니라 <strong>고급 안내</strong>에서 봅니다.</p>',
+            '<div style="position:absolute; top:-10px; left:10px; background:#1e293b; padding:0 5px; color:#3b82f6; font-weight:bold;">좌측 사이드바</div>\n<p>📘 <strong>안내</strong> — 사용법과 기본 안내</p>\n<p>📝 <strong>연습 OMR</strong> — 답 체크와 채점</p>\n<p>⚙ <strong>설정</strong> — 시간, 모드, 화면 비율 조정</p>\n<p>🔒 <strong>고급 모드</strong> — 신청과 진입</p>\n<p>↗ <strong>팝업</strong> — 실전 폭으로 열기</p>\n<p>⋯ <strong>더보기</strong> — 접속 현황, 커뮤니티, 후원</p>\n<hr style="border-color:#334155; margin: 8px 0;"/>\n<p style="color:#93c5fd;"><strong>핵심</strong>: 답 체크 → 정답 입력 → 채점</p>\n<p style="color:#93c5fd;">각 창의 <strong>?</strong>에서 상세 설명을 확인할 수 있습니다.</p>'
         ],
         'helpModal.advancedSectionTitle': ['🔒 고급 기능은 별도 버튼에서 확인', '🧭 고급 모드 활용 가이드', '🔒 고급 안내는 별도로 봅니다', '🔒 고급 설명은 따로 봅니다'],
         'helpModal.advancedSectionLeadHtml': [
@@ -463,15 +463,13 @@
         'breakOverlay.title': ['쉬는 시간입니다'],
         'breakOverlay.description': ['다음 과목이 시작될 때까지 통제됩니다.', '다음 과목이 시작되면 자동으로 넘어갑니다.'],
         'breakOverlay.skipButton': ['쉬는 시간 건너뛰기'],
-        'breakOverlay.supportHint': ['개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다.', '이 도구가 도움이 되셨다면, 좌측 ☕로 응원해 주세요!'],
+        'breakOverlay.supportHint': ['개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다.', '이 도구가 도움이 되셨다면, 좌측 ☕로 응원해 주세요!', '이 도구가 도움이 되셨다면 ☕ 후원으로 응원해 주세요!'],
         'utilityModal.title': ['⋯ 보조 기능 모음'],
         'utilityModal.statsTitle': ['활성 세션 보기'],
         'utilityModal.statsDescription': ['현재 열려 있는 세션과 최근 방문 기록을 확인합니다.', '지금 접속 중인 수와 최근 방문 기록을 봅니다.'],
         'utilityModal.communityDescription': ['공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.', '질문, 후기, 개선 요청을 주고받는 게시판입니다.'],
         'utilityModal.extensionTitle': ['별도 테스트 자료'],
         'utilityModal.extensionDescription': ['핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.', '연습 도구와 별개인 외부 테스트 자료 안내 페이지로 이동합니다.'],
-        'utilityModal.donateTitle': ['운영 후원'],
-        'utilityModal.donateDescription': ['광고 없이 유지되는 연습 공간 운영을 응원할 수 있습니다.', '광고 없는 이 공간을 함께 유지해 주세요.'],
         'statsModal.title': ['🔥 활성 세션 현황'],
         'statsModal.activeTitle': ['현재 활성 세션', '지금 접속 중'],
         'statsModal.activeHint': ['브라우저 탭 기준으로 실시간 반영됩니다.', '열려 있는 탭 수 기준으로 집계됩니다.'],
@@ -514,6 +512,7 @@
         { key: 'sidebar.advancedGuideLabelHtml', label: '사이드바: 고급 기능', category: '메인 진입', selector: '#sidebarAdvancedGuideLabel', prop: 'html', multiline: true },
         { key: 'sidebar.advancedModeLabelHtml', label: '사이드바: 고급 활용', category: '메인 진입', selector: '#sidebarAdvancedModeLabel', prop: 'html', multiline: true },
         { key: 'sidebar.popupLabel', label: '사이드바: 팝업', category: '메인 진입', selector: '#sidebarPopupLabel', prop: 'text' },
+        { key: 'sidebar.supportLabel', label: '사이드바: 후원', category: '메인 진입', selector: '#sidebarDonateLabel', prop: 'text' },
         { key: 'sidebar.utilityLabel', label: '사이드바: 더보기', category: '메인 진입', selector: '#sidebarUtilityLabel', prop: 'text' },
         { key: 'toolbar.popupButton', label: '상단 팝업 버튼', category: '상단 도구', selector: '#popupBtn', prop: 'text' },
         { key: 'toolbar.totalTimeLabel', label: '전체 시간 라벨', category: '상단 도구', selector: '#displayTotalTimeLabel', prop: 'text' },
@@ -556,8 +555,6 @@
         { key: 'utilityModal.archiveDescription', label: '보조 기능: 자료 보관함 설명', category: '보조 기능', selector: '#utilityArchiveDescription', prop: 'text' },
         { key: 'utilityModal.extensionTitle', label: '보조 기능: 별도 테스트 자료 제목', category: '보조 기능', selector: '#utilityExtensionTitle', prop: 'text' },
         { key: 'utilityModal.extensionDescription', label: '보조 기능: 별도 테스트 자료 설명', category: '보조 기능', selector: '#utilityExtensionDescription', prop: 'text' },
-        { key: 'utilityModal.donateTitle', label: '보조 기능: 후원 제목', category: '보조 기능', selector: '#utilityDonateTitle', prop: 'text' },
-        { key: 'utilityModal.donateDescription', label: '보조 기능: 후원 설명', category: '보조 기능', selector: '#utilityDonateDescription', prop: 'text' },
         { key: 'statsModal.title', label: '활성 세션 모달 제목', category: '활성 세션', selector: '#statsModalTitle', prop: 'text' },
         { key: 'statsModal.activeTitle', label: '활성 세션: 현재 제목', category: '활성 세션', selector: '#statsActiveLabel', prop: 'text' },
         { key: 'statsModal.activeHint', label: '활성 세션: 현재 설명', category: '활성 세션', selector: '#statsActiveHint', prop: 'text' },
