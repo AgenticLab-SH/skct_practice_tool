@@ -3,6 +3,14 @@
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
+## 2026-04-11 운영 반영 완료: 고급 OMR 안내 축소 및 정오표 일괄입력 채점 후 노출
+- 공개 배포 브랜치 `public-clean`은 `e70cae1` 기준으로 다시 반영됐습니다.
+- OMR 하단 중간 설명 박스는 제거했고, 이제 고급 복기 안내는 `접기` 버튼 오른쪽의 작은 `?` 버튼으로만 엽니다.
+- `정오표 일괄입력`은 더 이상 `정답 입력` 상태에 들어가기만 해도 보이지 않고, `채점` 버튼을 실제로 누른 뒤에만 복기 버튼 구역에서 나타나게 바뀌었습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604112107`, `v2026.04.11.2107`로 올렸습니다.
+- GitHub Pages builds API에서 최신 빌드가 `e70cae1` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.11.2107`를 반환했습니다.
+- 라이브 응답 기준으로 `advancedCoachHelpBtn`, `advancedScoringActionsUnlocked`, `bulkCorrectImportBtn.classList.toggle('hidden', !showAdvancedScoringActions)`가 모두 반영된 것을 확인했습니다.
+
 ## 2026-04-11 운영 반영 완료: 정오표 일괄입력 클릭 capture 보강
 - 공개 배포 브랜치 `public-clean`은 `5b956ba` 기준으로 다시 반영됐습니다.
 - 사용자 참고 이미지 기준으로 재검증한 결과, 기능은 살아 있었지만 기존 구현이 문서 버블링 단계 click 위임에만 기대고 있어 특정 팝업/세션에서는 무반응처럼 보일 여지가 있었습니다.
