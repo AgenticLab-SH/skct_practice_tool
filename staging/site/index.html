@@ -87,7 +87,10 @@
             <div class="omr-content hidden" id="omrContent">
                 <!-- 탭 접기 (최상단) -->
                 <div class="omr-top-bar">
-                    <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 탭 접기</button>
+                    <div class="omr-top-bar-actions">
+                        <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 탭 접기</button>
+                        <button id="advancedCoachHelpBtn" type="button" class="advanced-panel-only context-help-btn context-help-btn-omr omr-top-help-btn" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
+                    </div>
                     <span id="omrModeLabel" class="omr-mode-label">응시 모드</span>
                 </div>
                 <div id="omrModeHint" class="omr-mode-hint hidden"></div>
@@ -711,7 +714,7 @@
             }
         })();
     </script>
-    <script src="../../site-text-config.js?v=202604112045"></script>
+    <script src="../../site-text-config.js?v=202604112102"></script>
     <script type="module" src="assets/scripts/app.bundle.js?v=202604081710"></script>
 
     <!-- Firebase SDK (ES Module) -->

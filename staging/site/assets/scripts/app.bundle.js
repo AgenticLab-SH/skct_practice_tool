@@ -1176,16 +1176,17 @@ document.addEventListener('DOMContentLoaded', () => {
             advancedStatsDownloadBtn.classList.toggle('hidden', !showAdvancedScoringActions);
         }
         if (bulkCorrectImportBtn) {
-            bulkCorrectImportBtn.classList.toggle('hidden', !(isAdvancedMode && omrState.mode === 'score'));
+            bulkCorrectImportBtn.classList.toggle('hidden', !showAdvancedScoringActions);
         }
         if (advancedToolsStatus) {
-            advancedToolsStatus.classList.toggle('hidden', !showAdvancedScoringActions && !advancedToolsStatus.textContent.trim());
-            if (!showAdvancedScoringActions && omrState.mode !== 'score') {
+            if (!showAdvancedScoringActions) {
                 advancedToolsStatus.textContent = '';
                 advancedToolsStatus.classList.add('hidden');
+            } else {
+                advancedToolsStatus.classList.toggle('hidden', !advancedToolsStatus.textContent.trim());
             }
         }
-        if (omrState.mode !== 'score' && bulkCorrectImportModal) {
+        if (!showAdvancedScoringActions && bulkCorrectImportModal) {
             bulkCorrectImportModal.classList.add('hidden');
         }
     };

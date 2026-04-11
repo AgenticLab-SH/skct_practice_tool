@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
     updatedAt: '2026-04-11 20:05:00 +09:00',
-        version: 'v2026.04.11.2045',
-        assetVersion: '202604112045'
+        version: 'v2026.04.11.2102',
+        assetVersion: '202604112102'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -2293,16 +2293,17 @@ document.addEventListener('DOMContentLoaded', () => {
             advancedStatsDownloadBtn.classList.toggle('hidden', !showAdvancedScoringActions);
         }
         if (bulkCorrectImportBtn) {
-            bulkCorrectImportBtn.classList.toggle('hidden', !(isAdvancedMode && omrState.mode === 'score'));
+            bulkCorrectImportBtn.classList.toggle('hidden', !showAdvancedScoringActions);
         }
         if (advancedToolsStatus) {
-            advancedToolsStatus.classList.toggle('hidden', !showAdvancedScoringActions && !advancedToolsStatus.textContent.trim());
-            if (!showAdvancedScoringActions && omrState.mode !== 'score') {
+            if (!showAdvancedScoringActions) {
                 advancedToolsStatus.textContent = '';
                 advancedToolsStatus.classList.add('hidden');
+            } else {
+                advancedToolsStatus.classList.toggle('hidden', !advancedToolsStatus.textContent.trim());
             }
         }
-        if (omrState.mode !== 'score' && bulkCorrectImportModal) {
+        if (!showAdvancedScoringActions && bulkCorrectImportModal) {
             bulkCorrectImportModal.classList.add('hidden');
         }
     };
