@@ -3,6 +3,14 @@
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
+## 2026-04-11 운영 반영 완료: 고급모드 정오표 일괄입력 클릭 보강
+- 공개 배포 브랜치 `public-clean`은 `31a4364` 기준으로 다시 반영됐습니다.
+- 고급모드 `정오표 일괄입력` 버튼과 `붙여넣기 분석`, `정답 일괄 반영`은 이제 직접 DOM 바인딩 대신 `id` 기준 위임 클릭으로 연결됩니다.
+- 버튼 문구를 `📥 정오표 일괄입력`으로 통일했고 `type="button"`을 명시해 재렌더/캐시 혼선 환경에서도 동작이 끊기지 않게 보강했습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604112005`, `v2026.04.11.2005`로 올렸습니다.
+- GitHub Pages builds API에서 최신 빌드가 `31a4364` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.11.2005`를 반환했습니다.
+- 라이브 메인 HTML은 `main.css/site-text-config.js/main.js?v=202604112005`, 공개 `admin.html`은 차단 페이지 기준 `200 OK`를 확인했습니다.
+
 ## 2026-04-10 운영 반영 완료: 메모장 drag native selection 복귀
 - 공개 배포 브랜치 `public-clean`은 `415950f` 기준으로 다시 반영됐습니다.
 - 메모장 custom drag 보조 로직을 제거하고, 브라우저 기본 textarea selection으로 다시 돌렸습니다.
