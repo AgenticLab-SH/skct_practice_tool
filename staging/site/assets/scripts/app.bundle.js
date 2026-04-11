@@ -1843,11 +1843,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const bindClickById = (id, handler) => {
-        document.addEventListener('click', (event) => {
-            const trigger = event.target.closest(`#${id}`);
+        const wrappedHandler = (event) => {
+            let trigger = null;
+            if (event.currentTarget && event.currentTarget.id === id) {
+                trigger = event.currentTarget;
+            } else if (event.target instanceof Element) {
+                trigger = event.target.closest(`#${id}`);
+            }
             if (!trigger) return;
+            if (!event.__skctHandledClickIds) {
+                event.__skctHandledClickIds = new Set();
+            }
+            if (event.__skctHandledClickIds.has(id)) return;
+            event.__skctHandledClickIds.add(id);
             handler(event);
-        });
+        };
+        document.addEventListener('click', wrappedHandler, true);
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', wrappedHandler);
+        }
     };
 
     if (detailScoreBtn) {
