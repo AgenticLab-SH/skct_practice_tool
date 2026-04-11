@@ -1139,14 +1139,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const omrModeLabel = document.getElementById('omrModeLabel');
     const omrModeHint = document.getElementById('omrModeHint');
     const bulkCorrectImportBtn = document.getElementById('bulkCorrectImportBtn');
+    let advancedScoringActionsUnlocked = false;
 
     const updateModeUI = () => {
-        const scoreResultEl = document.getElementById('scoreResult');
         const showAdvancedScoringActions = Boolean(
             isAdvancedMode
             && omrState.mode === 'score'
-            && scoreResultEl
-            && !scoreResultEl.classList.contains('hidden')
+            && advancedScoringActionsUnlocked
         );
         if (omrState.mode === 'answer') {
             modeToggleBtn.textContent = '📝 정답 입력 모드로 전환';
@@ -1215,6 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 enterScoreMode();
             } else {
                 omrState.mode = 'answer';
+                advancedScoringActionsUnlocked = false;
                 updateModeUI();
                 renderOMR();
             }
@@ -1666,6 +1666,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     document.getElementById('scoreBtn').addEventListener('click', () => {
+        advancedScoringActionsUnlocked = true;
         const hasCorrectAnswers = Object.values(omrState.correctAnswers).some((v) => v != null);
         if (!hasCorrectAnswers) {
             enterScoreMode();
@@ -2023,6 +2024,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrState.correctAnswers = {};
                 omrState.currentGlobalIndex = 0;
                 omrState.mode = 'answer';
+                advancedScoringActionsUnlocked = false;
                 questionTimings = {};
                 questionSpentSec = 0;
                 lockedSubjectIndices.clear(); // 잠금 해제
