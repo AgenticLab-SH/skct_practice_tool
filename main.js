@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-    updatedAt: '2026-04-11 20:05:00 +09:00',
-        version: 'v2026.04.11.2121',
-        assetVersion: '202604112121'
+        updatedAt: '2026-04-11 22:08:00 +09:00',
+        version: 'v2026.04.11.2208',
+        assetVersion: '202604112208'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
@@ -1028,8 +1028,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         isAdvancedMode
                             ? buildQuickInfoCard(readSiteText('utilityModal.archiveTitle', '자료 보관함'), escapeHtml(readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.')))
                             : '',
-                        buildQuickInfoCard(readSiteText('utilityModal.extensionTitle', '별도 테스트 자료'), escapeHtml(readSiteText('utilityModal.extensionDescription', '핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.'))),
-                        buildQuickInfoCard(readSiteText('utilityModal.donateTitle', '운영 후원'), escapeHtml(readSiteText('utilityModal.donateDescription', '광고 없이 유지되는 연습 공간 운영을 응원할 수 있습니다.')))
+                        buildQuickInfoCard(readSiteText('utilityModal.extensionTitle', '별도 테스트 자료'), escapeHtml(readSiteText('utilityModal.extensionDescription', '핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.')))
                     ].filter(Boolean).join('')
                 };
             case 'advanced-entry':
@@ -1111,25 +1110,26 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSettingsBuildInfo();
 
     const DEFAULT_SUPPORT_CONFIG = {
-        modalTitle: "☕ 광고 없이 운영되는 SKCT 연습 공간",
-        modalLead: "이 공간은 결제 유도와 배너 광고 없이, 공부 흐름을 해치지 않는 방향으로 유지하고 있습니다.",
-        modalBody: "운영 비용은 개인 부담으로 먼저 감당하고 있고, 필요한 분들이 바로 연습할 수 있도록 무료 공개를 유지하고 있습니다.\n가능한 한 오래 안정적으로 유지하려면 이용자분들의 자발적인 응원이 큰 도움이 됩니다.",
-        modalPromise: "후원 여부와 관계없이 핵심 기능은 계속 사용할 수 있습니다.\n다만 운영 여력을 안정적으로 확보해야 업데이트, 오류 대응, 서버 비용을 꾸준히 감당할 수 있습니다.",
-        modalHighlight: "연습에 실제로 도움이 되었다면, 부담 없는 범위에서 '커피 한 잔 ☕' 정도의 후원으로 운영을 응원해 주세요.\n보내주신 후원은 서버 운영과 유지보수 비용에만 사용됩니다.",
-        breakFooter: "개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다.",
+        modalTitle: "☕ 광고 없이 이어가는 SKCT 연습 공간",
+        modalLead: "이 공간은 공부 흐름을 해치지 않도록 배너 광고와 과한 결제 유도 없이 운영하고 있습니다.",
+        modalBody: "서버 비용과 관리 시간은 먼저 개인이 감당하고 있습니다.\n도움이 되셨다면 가볍게 응원해 주시는 마음이 이 공간을 오래 유지하는 데 큰 힘이 됩니다.",
+        modalPromise: "후원 여부와 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 응원은 서버비와 유지보수에만 사용합니다.",
+        modalHighlight: "실전 연습에 도움이 되었다면, 부담 없는 범위에서 커피 한 잔 정도만 보태 주세요.\n필요할 때 다시 와도 편한 도구로 계속 유지해 보겠습니다.",
+        breakFooter: "도움이 됐다면 좌측 ☕ 버튼으로 가볍게 응원해 주세요.",
         contactText: "",
         contactUrl: "",
-        buttonLabel: "☕ 운영 응원하기",
+        buttonLabel: "☕ 커피 한 잔 보태기",
         buttonUrl: "https://toon.at/donate/foreveryonehappy",
         sponsorTickerSeconds: 4
     };
     const LEGACY_SUPPORT_DEFAULTS = {
-        modalTitle: ["☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!"],
-        modalLead: ["결제와 광고 없는 쾌적한 환경은 여러분의 소중한 참여로 유지됩니다."],
-        modalBody: ["안녕하세요! 저 역시 여러분과 함께 합격을 목표로 달리는 취준생입니다.\n이곳은 오직 공부에만 집중할 수 있도록 광고나 결제 유도 없이, 제가 직접 사비로 운영 중인 100% 무료 공간입니다."],
-        modalPromise: ["최근 방문자가 늘어나면서 서버 유지 비용에 대한 부담이 커지고 있습니다.\n'광고 없는 무료 개방' 원칙을 다음 달에도 변함없이 지켜나가기 위해, 이용자분들의 따뜻한 응원이 필요합니다."],
-        modalHighlight: ["이 공간이 준비에 도움이 되셨다면, 투네이션을 통해 '커피 한 잔 ☕' 정도의 마음을 나누어 주세요.\n보내주신 정성은 서버 운영 및 관리 비용으로만 사용됩니다."],
-        buttonLabel: ["☕ 쿨하게 지원하기"]
+        modalTitle: ["☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!", "☕ 광고 없이 운영되는 SKCT 연습 공간"],
+        modalLead: ["결제와 광고 없는 쾌적한 환경은 여러분의 소중한 참여로 유지됩니다.", "이 공간은 결제 유도와 배너 광고 없이, 공부 흐름을 해치지 않는 방향으로 유지하고 있습니다."],
+        modalBody: ["안녕하세요! 저 역시 여러분과 함께 합격을 목표로 달리는 취준생입니다.\n이곳은 오직 공부에만 집중할 수 있도록 광고나 결제 유도 없이, 제가 직접 사비로 운영 중인 100% 무료 공간입니다.", "운영 비용은 개인 부담으로 먼저 감당하고 있고, 필요한 분들이 바로 연습할 수 있도록 무료 공개를 유지하고 있습니다.\n가능한 한 오래 안정적으로 유지하려면 이용자분들의 자발적인 응원이 큰 도움이 됩니다."],
+        modalPromise: ["최근 방문자가 늘어나면서 서버 유지 비용에 대한 부담이 커지고 있습니다.\n'광고 없는 무료 개방' 원칙을 다음 달에도 변함없이 지켜나가기 위해, 이용자분들의 따뜻한 응원이 필요합니다.", "후원 여부와 관계없이 핵심 기능은 계속 사용할 수 있습니다.\n다만 운영 여력을 안정적으로 확보해야 업데이트, 오류 대응, 서버 비용을 꾸준히 감당할 수 있습니다."],
+        modalHighlight: ["이 공간이 준비에 도움이 되셨다면, 투네이션을 통해 '커피 한 잔 ☕' 정도의 마음을 나누어 주세요.\n보내주신 정성은 서버 운영 및 관리 비용으로만 사용됩니다.", "연습에 실제로 도움이 되었다면, 부담 없는 범위에서 '커피 한 잔 ☕' 정도의 후원으로 운영을 응원해 주세요.\n보내주신 후원은 서버 운영과 유지보수 비용에만 사용됩니다."],
+        breakFooter: ["개발에 큰 힘이 됩니다. 좌측 ☕ 아이콘을 통해 후원 부탁드립니다."],
+        buttonLabel: ["☕ 쿨하게 지원하기", "☕ 운영 응원하기", "투네이션 후원하기"]
     };
 
     function migrateLegacySupportConfig(config) {

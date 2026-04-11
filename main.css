@@ -145,12 +145,13 @@ body {
 
 .omr-toggle,
 .help-toggle,
+.donate-toggle,
 .utility-toggle {
     font-size: 13px;
     color: white;
     cursor: pointer;
     gap: 2px;
-    transition: transform 0.2s, background-color 0.2s;
+    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s, filter 0.2s;
 }
 
 .omr-toggle {
@@ -211,15 +212,33 @@ body {
     margin: 1px 0;
 }
 
-.donate-toggle {
-    font-size: 16px;
-    background-color: #f59e0b; /* yellow-amber for coffee */
-    color: white;
-    cursor: pointer;
-    transition: transform 0.2s;
+@keyframes donate-burst-attention {
+    0%, 1.1%, 2.5%, 3.9%, 5.3%, 6.7%, 100% {
+        background-color: #c76710;
+        box-shadow: 0 6px 14px rgba(146, 64, 14, 0.26);
+        filter: brightness(1);
+    }
+    1.6%, 2.0%, 3.0%, 3.4%, 4.4%, 4.8%, 5.8%, 6.2% {
+        background-color: #c7a07b;
+        box-shadow: 0 8px 18px rgba(191, 147, 108, 0.36);
+        filter: brightness(1.05);
+    }
 }
+
+.donate-toggle {
+    background-color: #c76710;
+    box-shadow: 0 6px 14px rgba(146, 64, 14, 0.26);
+    animation: donate-burst-attention 24s ease-in-out 1.2s infinite;
+}
+
+.donate-toggle .sidebar-shortcut-label {
+    font-weight: 700;
+}
+
 .donate-toggle:hover {
+    animation-play-state: paused;
     background-color: #d97706;
+    box-shadow: 0 9px 18px rgba(194, 94, 9, 0.32);
     transform: scale(1.1);
 }
 
