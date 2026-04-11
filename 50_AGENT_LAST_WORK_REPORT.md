@@ -3,6 +3,14 @@
 
 이 문서는 최근 운영 반영 기준을 빠르게 이어보기 위한 요약 기록입니다.
 
+## 2026-04-11 운영 반영 완료: 정오표 일괄입력 클릭 capture 보강
+- 공개 배포 브랜치 `public-clean`은 `5b956ba` 기준으로 다시 반영됐습니다.
+- 사용자 참고 이미지 기준으로 재검증한 결과, 기능은 살아 있었지만 기존 구현이 문서 버블링 단계 click 위임에만 기대고 있어 특정 팝업/세션에서는 무반응처럼 보일 여지가 있었습니다.
+- `bulkCorrectImportBtn`, `bulkCorrectImportParseBtn`, `bulkCorrectImportApplyBtn`는 이제 capture 단계 위임과 버튼 직접 바인딩을 함께 사용하고, 같은 클릭에서 중복 실행은 막도록 보강했습니다.
+- 캐시 잔존을 막기 위해 `build-info.js`, `main.js` fallback, `index.html`, `admin.html`, `study-archive.html`, `extension-info.html`, `staging/site/index.html`의 자산 버전을 `202604112045`, `v2026.04.11.2045`로 올렸습니다.
+- GitHub Pages builds API에서 최신 빌드가 `5b956ba` 기준 `built` 상태인 것을 확인했고, 라이브 `build-info.js`도 `v2026.04.11.2045`를 반환했습니다.
+- 라이브 팝업 유사 뷰포트에서도 `정오표 일괄입력` 클릭 후 모달이 실제로 열리는 것을 확인했습니다.
+
 ## 2026-04-11 운영 반영 완료: 정오표 일괄입력 라벨 siteText 동기화
 - 공개 배포 브랜치 `public-clean`은 `872ae95` 기준으로 다시 반영됐습니다.
 - 원인은 HTML이 아니라 `site-text-config.js` 기본값 `tools.bulkImportButton`이 여전히 `📥 정오표 입력`으로 남아 있던 것이었습니다.
