@@ -1842,25 +1842,27 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('statModal').classList.remove('hidden');
     };
 
+    const bindClickById = (id, handler) => {
+        document.addEventListener('click', (event) => {
+            const trigger = event.target.closest(`#${id}`);
+            if (!trigger) return;
+            handler(event);
+        });
+    };
+
     if (detailScoreBtn) {
         detailScoreBtn.addEventListener('click', openDetailedStatsModal);
     }
 
-    if (bulkCorrectImportBtn) {
-        bulkCorrectImportBtn.addEventListener('click', openBulkCorrectImportModal);
-    }
-    if (bulkCorrectImportParseBtn) {
-        bulkCorrectImportParseBtn.addEventListener('click', parseBulkCorrectImport);
-    }
+    bindClickById('bulkCorrectImportBtn', openBulkCorrectImportModal);
+    bindClickById('bulkCorrectImportParseBtn', parseBulkCorrectImport);
     if (bulkCorrectQuestionCol) {
         bulkCorrectQuestionCol.addEventListener('change', renderBulkCorrectPreview);
     }
     if (bulkCorrectAnswerCol) {
         bulkCorrectAnswerCol.addEventListener('change', renderBulkCorrectPreview);
     }
-    if (bulkCorrectImportApplyBtn) {
-        bulkCorrectImportApplyBtn.addEventListener('click', applyBulkCorrectImport);
-    }
+    bindClickById('bulkCorrectImportApplyBtn', applyBulkCorrectImport);
 
 
     /* --- Notepad / Canvas Toggle --- */
