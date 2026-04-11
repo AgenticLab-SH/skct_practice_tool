@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const DEFAULT_TOOL_UI_CONFIG = { bottomPaddingRatio: 0.11, sideButtonColumnRatio: 0.09, noteFontSize: 12, canvasLineWidth: 2 };
     const BUILD_INFO = window.SKCTBuildInfo || {
-        updatedAt: '2026-04-11 20:05:00 +09:00',
-        version: 'v2026.04.11.2005',
-        assetVersion: '202604112005'
+    updatedAt: '2026-04-11 20:05:00 +09:00',
+        version: 'v2026.04.11.2035',
+        assetVersion: '202604112035'
     };
     const ADVANCED_SUBSCRIPTION_PLAN_OPTIONS = ['3일 이용권', '7일 이용권', '14일 이용권', '1달 이용권', '1년 이용권', '영구이용권'];
     const DEFAULT_ADVANCED_PLAN_TYPE = '1달 이용권';
