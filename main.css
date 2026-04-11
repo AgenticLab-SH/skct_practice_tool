@@ -408,6 +408,12 @@ body.advanced-mode .advanced-calc-slot {
     margin-bottom: 4px;
 }
 
+.omr-top-bar-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .omr-mode-label {
     font-size: 11px;
     color: #93c5fd;
@@ -620,6 +626,13 @@ body.advanced-mode .advanced-calc-slot {
     height: 28px;
     background: rgba(239, 246, 255, 0.96);
     box-shadow: 0 6px 14px rgba(37, 99, 235, 0.16);
+}
+
+.omr-top-help-btn {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    box-shadow: none;
 }
 
 body.popup-mode .omr-body {

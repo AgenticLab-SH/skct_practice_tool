@@ -29,7 +29,7 @@
       gtag('js', new Date());
       gtag('config', 'G-ZLHB1RM91X');
     </script>
-    <link rel="stylesheet" href="main.css?v=202604112045">
+    <link rel="stylesheet" href="main.css?v=202604112102">
     <!-- Google Fonts & Pretendard -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="icon" href="images/sk_ci.png">
@@ -83,7 +83,10 @@
             <div class="omr-content hidden" id="omrContent">
                 <!-- 탭 접기 (최상단) -->
                 <div class="omr-top-bar">
-                    <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 접기</button>
+                    <div class="omr-top-bar-actions">
+                        <button id="omrCollapseBtn" class="omr-collapse-btn">◀ 접기</button>
+                        <button id="advancedCoachHelpBtn" type="button" class="advanced-panel-only context-help-btn context-help-btn-omr omr-top-help-btn" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
+                    </div>
                     <span id="omrModeLabel" class="omr-mode-label">답안 마킹</span>
                 </div>
                 <div id="omrModeHint" class="omr-mode-hint hidden"></div>
@@ -104,24 +107,6 @@
                         <div class="stat-line"><span id="statRateOverallLabel">정답률 (전체 기준)</span> <strong id="statRateOverall">0%</strong></div>
                         <div class="stat-line"><span id="statSkippedLabel">건너뜀</span> <strong id="statSkipped">0</strong></div>
                         <div class="stat-line"><span id="statUnansweredLabel">미응답</span> <strong id="statUnanswered">0</strong></div>
-                    </div>
-                    <div id="advancedCoachPanel" class="advanced-panel-only advanced-coach-panel advanced-coach-panel-compact">
-                        <div class="advanced-coach-inline">
-                            <div class="advanced-coach-inline-copy">
-                                <div id="advancedCoachTitle" class="advanced-coach-title">복기 순서</div>
-                                <div id="advancedCoachLead" class="advanced-coach-lead">정답 입력 → 채점 → 상세 통계·TXT·정오표</div>
-                            </div>
-                            <div class="advanced-coach-inline-actions">
-                                <button id="advancedCoachGuideBtn" type="button" class="advanced-coach-guide-btn">자세히 보기</button>
-                                <button id="advancedCoachHelpBtn" type="button" class="context-help-btn context-help-btn-omr" data-context-help="advanced-omr" aria-label="고급 복기 도움말" title="고급 복기 도움말">?</button>
-                            </div>
-                        </div>
-                        <div class="context-help-source" hidden aria-hidden="true">
-                            <div id="advancedCoachStep1" class="advanced-coach-step"><strong>정답 입력</strong><br>실제 정답만 넣습니다.</div>
-                            <div id="advancedCoachStep2" class="advanced-coach-step"><strong>채점</strong><br>점수와 건너뜀을 먼저 봅니다.</div>
-                            <div id="advancedCoachStep3" class="advanced-coach-step"><strong>복기 버튼</strong><br>상세 통계, TXT, 정오표로 이어갑니다.</div>
-                            <div id="advancedCoachHint" class="advanced-coach-hint"><strong>과↺</strong>는 현재 과목만, <strong>전↺</strong>는 전체를 다시 시작합니다.</div>
-                        </div>
                     </div>
                     <button id="detailScoreBtn" class="omr-action-btn detail-btn hidden advanced-action-only">📋 과목별 통계</button>
                     <button id="advancedStatsDownloadBtn" class="omr-action-btn detail-btn hidden advanced-action-only" type="button">문항별 상세 통계 TXT 다운로드</button>
@@ -979,9 +964,9 @@
         })();
     </script>
     <script src="subscription-crypto.js?v=202604081955"></script>
-    <script src="build-info.js?v=202604112045"></script>
-    <script src="site-text-config.js?v=202604112045"></script>
-    <script src="main.js?v=202604112045"></script>
+    <script src="build-info.js?v=202604112102"></script>
+    <script src="site-text-config.js?v=202604112102"></script>
+    <script src="main.js?v=202604112102"></script>
 
     <!-- Firebase SDK (ES Module) -->
     <script type="module">
