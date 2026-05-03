@@ -14,7 +14,7 @@
 - 사용자의 요청과 실제 수행 내용은 `docs/agent/worklog/`에 기록합니다.
 
 ## 2. 현재 운영 기준 저장
-- 최근 운영 반영 기준은 `50_AGENT_LAST_WORK_REPORT.md`와 `origin/public-clean` 최신 커밋 `c8a755b`을 함께 확인합니다.
+- 최근 운영 반영 기준은 `docs/agent/runtime/50_AGENT_LAST_WORK_REPORT.md`와 `origin/public-clean` 최신 커밋 `c8a755b`을 함께 확인합니다.
 - 현재 운영 기본 타이머 기준값: `75 / 15 / 1`
 - 현재 운영 텍스트 기준 저장 위치: Firebase RTDB `config/siteTextConfig`
 - 현재 운영 팝업 기본값:
@@ -108,5 +108,5 @@
 
 ## 10. 문서화 규칙
 - 사용자 요청과 수행 내용은 `docs/agent/worklog/`에 기록합니다.
-- 운영 기준이 바뀌면 `50_AGENT_LAST_WORK_REPORT.md`에도 함께 남깁니다.
+- 운영 기준이 바뀌면 `docs/agent/runtime/50_AGENT_LAST_WORK_REPORT.md`에도 함께 남깁니다.
 - 초보자도 이해할 수 있게, “왜 문제였는지 / 어디서 꼬였는지 / 다시 안 터지게 무엇을 묶어서 확인해야 하는지”를 설명 위주로 기록합니다.
