@@ -2,7 +2,7 @@
 작성일시: 2026-04-10 00:15:50 +09:00
 
 이 문서는 현재 기준으로 실제 남은 일만 모은 단일 TODO입니다.  
-이전에 완료된 항목과 공개 노출 정리 결과는 [2026-04-10_todo_consolidation.md](/C:/dev/01_career/_assets/tools/skct_tool/docs/agent/worklog/2026-04-10_todo_consolidation.md)에 기록했습니다.
+이전에 완료된 항목과 공개 노출 정리 결과는 [2026-04-10_todo_consolidation.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog/2026-04-10_todo_consolidation.md)에 기록했습니다.
 
 ## 1. 최우선: 민감 흐름 서버 전환 마무리
 

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>별도 테스트 자료 안내 | SKCT Tool</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="stylesheet" href="main.css?v=202604112208">
+    <link rel="icon" href="images/sk_ci.png">
+    <style>
+        body {
+            margin: 0;
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 32%),
+                linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+            color: #0f172a;
+            font-family: "Pretendard", sans-serif;
+        }
+        .extension-info-shell {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 40px 20px 64px;
+        }
+        .extension-info-hero {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(14px);
+        }
+        .extension-info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #9a3412;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+        .extension-info-title {
+            margin: 16px 0 10px;
+            font-size: clamp(28px, 4vw, 44px);
+            line-height: 1.12;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+        }
+        .extension-info-lead {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #334155;
+        }
+        .extension-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .extension-info-card {
+            background: rgba(248, 250, 252, 0.92);
+            border: 1px solid #dbe4f0;
+            border-radius: 18px;
+            padding: 18px;
+        }
+        .extension-info-card h2 {
+            margin: 0 0 10px;
+            font-size: 17px;
+            font-weight: 800;
+        }
+        .extension-info-card p,
+        .extension-info-card li {
+            margin: 0;
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .extension-info-card ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .extension-info-warning {
+            margin-top: 22px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #9f1239;
+        }
+        .extension-info-warning strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+        .extension-info-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+        .extension-info-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 20px;
+            border-radius: 999px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 800;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .extension-info-button:hover {
+            transform: translateY(-1px);
+        }
+        .extension-info-button.primary {
+            background: linear-gradient(135deg, #0f766e, #0891b2);
+            color: #ffffff;
+            box-shadow: 0 16px 30px rgba(8, 145, 178, 0.22);
+        }
+        .extension-info-button.secondary {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+        }
+        .extension-info-footnote {
+            margin-top: 18px;
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+    </style>
+</head>
+<body>
+    <main class="extension-info-shell">
+        <section class="extension-info-hero">
+            <div class="extension-info-badge">별도 테스트 자료 안내</div>
+            <h1 class="extension-info-title">핵심 연습 도구와 분리된<br>외부성 테스트 자료 안내</h1>
+            <p class="extension-info-lead">
+                이 페이지는 SKCT Tool의 핵심 연습 기능과 분리된 별도 안내 페이지입니다.
+                아래 ZIP은 브라우저 환경에서만 시험적으로 사용하는 부가 자료이며, 호환성이나 동작 결과를 운영자가 보증하지 않습니다.
+            </p>
+
+            <div class="extension-info-grid">
+                <article class="extension-info-card">
+                    <h2>무엇인가요?</h2>
+                    <p>특정 CBT 사이트의 화면 차단 동작을 브라우저에서 시험적으로 우회하는 별도 크롬 확장 ZIP입니다. 메인 연습 툴의 필수 기능은 아닙니다.</p>
+                </article>
+                <article class="extension-info-card">
+                    <h2>무엇이 다른가요?</h2>
+                    <p>메인 사이트는 연습 도구 제공이 목적이고, 이 자료는 부가 테스트 자료입니다. 설치 여부와 사용 판단은 사용자 본인이 직접 결정해야 합니다.</p>
+                </article>
+                <article class="extension-info-card">
+                    <h2>설치 요약</h2>
+                    <ul>
+                        <li>ZIP 파일을 내려받습니다.</li>
+                        <li>크롬 `chrome://extensions`에서 개발자 모드를 켭니다.</li>
+                        <li>ZIP 또는 압축 해제 폴더를 브라우저에 불러옵니다.</li>
+                    </ul>
+                </article>
+            </div>
+
+            <div class="extension-info-warning">
+                <strong>사용 전 꼭 확인하세요</strong>
+                실제 시험 환경, 회사 보안 정책, 외부 서비스 약관, 브라우저 정책과 충돌할 수 있습니다.
+                이 자료는 연습용 보조 테스트 자료이며, 설치/사용/충돌/차단/오작동에 대한 최종 책임은 사용자에게 있습니다.
+            </div>
+
+            <div class="extension-info-actions">
+                <a class="extension-info-button primary" href="skct_extension.zip" download>ZIP 다운로드</a>
+                <a class="extension-info-button secondary" href="index.html">메인 연습 도구로 돌아가기</a>
+            </div>
+
+            <p class="extension-info-footnote">
+                권장 순서는 먼저 메인 연습 도구만으로 필요한 기능을 확인하고, 별도 테스트가 정말 필요한 경우에만 이 페이지의 자료를 판단해서 사용하는 것입니다.
+            </p>
+        </section>
+    </main>
+</body>
+</html>

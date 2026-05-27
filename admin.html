@@ -398,7 +398,7 @@
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
                         <div id="localAdminKeyBridgeStatus" style="font-size:11px; color:#475569; line-height:1.7;">
-                            권장 경로는 <strong>`C:\Users\kshcg\.codex\private\skct_tool`</strong> 입니다. 먼저 <strong>키 폴더 연결</strong>을 한 번 해두면 다음부터 이 폴더에서 자동으로 읽습니다.
+                            권장 경로는 <strong>`<프로젝트>\apps\skct_practice_tool\private\keys`</strong> (이 PC 기준 <code>C:\dev\projects\00_career\_assets\_tools\apps\skct_practice_tool\private\keys</code>) 입니다. 프로젝트 내부에 두면 외부 에이전트 폴더 재설치에 영향받지 않고, <code>.gitignore</code>로 GitHub 푸시도 차단됩니다. 먼저 <strong>키 폴더 연결</strong>을 한 번 해두면 다음부터 자동으로 읽습니다.
                         </div>
                         <div style="display:flex; gap:8px; flex-wrap:wrap;">
                             <button class="btn btn-ghost btn-sm" id="manualSubscriptionLinkLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">키 폴더 연결</button>
@@ -444,7 +444,7 @@
                         <strong style="display:block; color:#0f172a; margin-bottom:4px;">어떤 키를 넣어야 하는지</strong>
                         <strong>신청 복호화 키</strong>: 사용자가 보낸 신청 본문을 읽을 때 쓰는 개인키입니다. 기존 신청을 계속 열려면 예전 키를 유지해야 합니다.<br>
                         <strong>라이선스 서명 키</strong>: 승인 순간 고급 라이선스에 전자서명을 넣는 개인키입니다. 공개 페이지에는 이 키의 <strong>검증용 공개키</strong>만 저장됩니다.<br>
-                        현재 이 PC의 표준 저장 위치는 <strong>`C:\Users\kshcg\.codex\private\skct_tool\manual_subscription_request_private.pem`</strong> 과 <strong>`C:\Users\kshcg\.codex\private\skct_tool\manual_subscription_license_private.pem`</strong> 입니다.<br>
+                        현재 이 PC의 표준 저장 위치는 <strong>`<프로젝트>\apps\skct_practice_tool\private\keys\skct-manual-subscription-private-key.pem`</strong> 과 <strong>`<프로젝트>\apps\skct_practice_tool\private\keys\skct-manual-license-signing-private-key.pem`</strong> 입니다 (절대경로: <code>C:\dev\projects\00_career\_assets\_tools\apps\skct_practice_tool\private\keys\</code>). 프로젝트 내부 + <code>.gitignore</code> 보호.<br>
                         <strong>새 키 생성</strong>은 앞으로 들어올 신청/새 승인부터 새 키 체계를 쓰겠다는 뜻입니다. 예전 신청이나 예전 승인과는 바로 이어지지 않으니, 특별한 이유가 없으면 기존 키를 유지하는 편이 안전합니다.
                     </div>
                     <div style="padding:12px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; margin-bottom:12px;">
@@ -502,7 +502,7 @@
                         <div class="form-row">
                             <div>
                                 <span style="font-size:11px; color:var(--adm-text-muted);">후원 버튼 문구</span>
-                                <input type="text" id="supportButtonLabel" class="form-input" placeholder="☕ 쿨하게 지원하기">
+                                <input type="text" id="supportButtonLabel" class="form-input" placeholder="☕ 운영 응원하기">
                             </div>
                             <div>
                                 <span style="font-size:11px; color:var(--adm-text-muted);">후원 링크</span>
@@ -984,8 +984,21 @@
         return String(value || '').trim();
     }
 
+    function encodeAdvancedLoginIdKey(value) {
+        const normalized = normalizeAdvancedLoginId(value).toLowerCase();
+        if (!normalized) return '';
+        if (/^[a-z0-9_-]+$/.test(normalized)) {
+            return normalized;
+        }
+        return `e~${Array.from(normalized).map((char) => (
+            /[a-z0-9_-]/.test(char)
+                ? char
+                : `_${char.codePointAt(0).toString(16)}_`
+        )).join('')}`;
+    }
+
     function getAdvancedLoginIdKey(value) {
-        return normalizeAdvancedLoginId(value).toLowerCase();
+        return encodeAdvancedLoginIdKey(value);
     }
 
     function normalizeAdvancedExpiresAt(value) {
@@ -1099,8 +1112,15 @@
 
     function normalizeAdvancedSubscription(raw, index = 0) {
         const fallback = DEFAULT_ADVANCED_FEATURE_CONFIG.subscriptions[0];
-        const status = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
+        const rawStatus = ['active', 'paused', 'expired'].includes(raw?.status) ? raw.status : 'active';
         const persistence = normalizeAdvancedPersistenceFields(raw?.planType || raw?.planName || fallback.planType, raw?.expiresAt);
+        let status = rawStatus;
+        if (status === 'active' && persistence.expiresAt) {
+            const expiryTime = getSubscriptionExpiryTime(persistence.expiresAt);
+            if (Number.isFinite(expiryTime) && expiryTime < Date.now()) {
+                status = 'expired';
+            }
+        }
         return {
             id: String(raw?.id || `subscription-${index + 1}`),
             planType: persistence.planType,
@@ -2298,7 +2318,7 @@
     let advancedSubscriptionsSavedWithoutRecoverableCipher = false;
     let localAdminKeyBridgeState = {
         connected: false,
-        lastMessage: '권장 경로는 `C:\\Users\\kshcg\\.codex\\private\\skct_tool` 입니다. 먼저 `키 폴더 연결`을 한 번 해두면 다음부터 이 폴더에서 자동으로 읽습니다.'
+        lastMessage: '권장 경로는 `<프로젝트>\\apps\\skct_practice_tool\\private\\keys` (이 PC: C:\\dev\\projects\\00_career\\_assets\\_tools\\apps\\skct_practice_tool\\private\\keys) 입니다. 프로젝트 내부 + .gitignore 보호. 먼저 `키 폴더 연결`을 한 번 해두면 다음부터 자동으로 읽습니다.'
     };
 
     function readStoredAdminTab() {
@@ -2386,14 +2406,14 @@
 
     const DEFAULT_SUPPORT_CONFIG = {
         modalTitle: "☕ 광고 없이 이어가는 SKCT 연습 공간",
-        modalLead: "이 공간은 공부 흐름을 해치지 않도록 배너 광고와 과한 결제 유도 없이 운영하고 있습니다.",
-        modalBody: "서버 비용과 관리 시간은 먼저 개인이 감당하고 있습니다.\n도움이 되셨다면 가볍게 응원해 주시는 마음이 이 공간을 오래 유지하는 데 큰 힘이 됩니다.",
-        modalPromise: "후원 여부와 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 응원은 서버비와 유지보수에만 사용합니다.",
-        modalHighlight: "실전 연습에 도움이 되었다면, 부담 없는 범위에서 커피 한 잔 정도만 보태 주세요.\n필요할 때 다시 와도 편한 도구로 계속 유지해 보겠습니다.",
-        breakFooter: "도움이 됐다면 좌측 ☕ 버튼으로 가볍게 응원해 주세요.",
+        modalLead: "이 공간은 공부 흐름을 해치지 않도록 배너 광고나 과한 유도 없이 운영하고 있습니다.",
+        modalBody: "서버비와 관리 시간은 개인이 먼저 부담하고 있습니다.\n연습에 도움이 됐다면 남겨 주시는 한 번의 응원이 오래 운영하는 데 큰 힘이 됩니다.",
+        modalPromise: "후원과 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 금액은 서버비와 유지보수에만 사용합니다.",
+        modalHighlight: "이 도구가 실전 연습에 도움이 됐다면, 편하실 때 한 번 응원해 주세요.\n오래 두고 다시 찾을 수 있는 도구로 꾸준히 관리하겠습니다.",
+        breakFooter: "도움이 됐다면 좌측 ☕ 버튼에서 운영 응원을 남길 수 있습니다.",
         contactText: "",
         contactUrl: "",
-        buttonLabel: "☕ 커피 한 잔 보태기",
+        buttonLabel: "☕ 운영 응원하기",
         buttonUrl: "https://toon.at/donate/foreveryonehappy",
         sponsorTickerSeconds: 4
     };

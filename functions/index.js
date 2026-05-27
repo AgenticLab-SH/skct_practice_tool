@@ -77,6 +77,19 @@ function isShortString(value, maxLength = 256) {
     return normalized.length > 0 && normalized.length <= maxLength;
 }
 
+function toAdvancedLoginIdKey(value) {
+    const normalized = String(value || "").trim().toLowerCase();
+    if (!normalized) return "";
+    if (/^[a-z0-9_-]+$/.test(normalized)) {
+        return normalized;
+    }
+    return `e~${Array.from(normalized).map((char) => (
+        /[a-z0-9_-]/.test(char)
+            ? char
+            : `_${char.codePointAt(0).toString(16)}_`
+    )).join("")}`;
+}
+
 function readJsonBody(req) {
     if (isPlainObject(req.body)) return req.body;
     if (typeof req.body === "string") {
@@ -235,8 +248,8 @@ exports.skctSecureApi = onRequest(async (req, res) => {
                 sendJson(res, 429, { ok: false, errorMessage: "조회 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
                 return;
             }
-            const loginIdKey = String(body.loginIdKey || "").trim().toLowerCase();
-            if (!isShortString(loginIdKey, 120)) {
+            const loginIdKey = toAdvancedLoginIdKey(body.loginIdKey || body.loginId || "");
+            if (!isShortString(loginIdKey, 240)) {
                 sendJson(res, 400, { ok: false, errorMessage: "loginIdKey 형식이 올바르지 않습니다." });
                 return;
             }

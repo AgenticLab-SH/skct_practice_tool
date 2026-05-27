@@ -31,15 +31,31 @@ def first_existing_path(candidates):
 
 def resolve_key_paths():
     home = str(Path.home())
+    project_root = Path(__file__).resolve().parents[1]
+    project_private = str(project_root / "private" / "keys")
+    tools_docs = str(Path(__file__).resolve().parents[3] / "docs")
     request_path = first_existing_path([
         os.getenv("SKCT_ADMIN_REQUEST_PRIVATE_KEY_PATH", ""),
+        os.path.join(project_private, "skct-manual-subscription-private-key.pem"),
+        newest_matching_path(os.path.join(project_private, "skct-manual-subscription-private-key-*.pem")),
+        os.path.join(home, ".codex", "private", "skct_practice_tool", "manual_subscription_request_private.pem"),
         os.path.join(home, ".codex", "private", "skct_tool", "manual_subscription_request_private.pem"),
+        os.path.join(tools_docs, "skct-manual-subscription-private-key.pem"),
+        newest_matching_path(os.path.join(tools_docs, "skct-manual-subscription-private-key-*.pem")),
         newest_matching_path(os.path.join(home, "Downloads", "skct-manual-subscription-private-key-*.pem")),
     ])
     license_path = first_existing_path([
         os.getenv("SKCT_ADMIN_LICENSE_PRIVATE_KEY_PATH", ""),
+        os.path.join(project_private, "skct-manual-license-signing-private-key.pem"),
+        newest_matching_path(os.path.join(project_private, "skct-manual-license-signing-private-key-*.pem")),
+        os.path.join(home, ".codex", "private", "skct_practice_tool", "manual_subscription_license_private.pem"),
         os.path.join(home, ".codex", "private", "skct_tool", "manual_subscription_license_private.pem"),
+        newest_matching_path(os.path.join(home, ".codex", "private", "skct_practice_tool", "manual_subscription_license_private_*.pem")),
         newest_matching_path(os.path.join(home, ".codex", "private", "skct_tool", "manual_subscription_license_private_*.pem")),
+        os.path.join(tools_docs, "skct-manual-license-signing-private-key.pem"),
+        newest_matching_path(os.path.join(tools_docs, "skct-manual-license-signing-private-key-*.pem")),
+        os.path.join(tools_docs, "skct-manual-subscription-license-private-key.pem"),
+        newest_matching_path(os.path.join(tools_docs, "skct-manual-subscription-license-private-key-*.pem")),
     ])
     return request_path, license_path
 

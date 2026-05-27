@@ -1317,7 +1317,7 @@
             if (cfg.popupLayout && window.applyRemotePopupLayout) {
                 window.applyRemotePopupLayout(cfg.popupLayout);
             }
-            if (cfg.toolUiConfig && (window.SKCT_FLAGS?.adminPreview || window.name === 'skct_popup_mode' || !(localStorage.getItem('skct_practice_tool_ui') || localStorage.getItem('SKCT_PRACTICE_TOOL_ui')))) {
+            if (cfg.toolUiConfig && (window.SKCT_FLAGS?.adminPreview || window.name === 'skct_popup_mode' || !localStorage.getItem('skct_practice_tool_ui'))) {
                 if (window.applyRemoteToolUiConfig) {
                     window.applyRemoteToolUiConfig(cfg.toolUiConfig);
                 }

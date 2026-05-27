@@ -2,7 +2,7 @@
 
 > SK그룹 SKCT(인적성 검사) 실전 환경을 완벽 재현한 무료 온라인 연습 도구
 
-🔗 **[바로 사용하기 →](https://agenticlab-sh.github.io/skct_tool/)**
+🔗 **[바로 사용하기 →](https://agenticlab-sh.github.io/skct_practice_tool/)**
 
 ![OG Image](images/og-image.png)
 
@@ -42,7 +42,7 @@
 ## 🗂️ 프로젝트 구조
 
 ```
-skct_tool/
+skct_practice_tool/
 ├── index.html              # 메인 페이지 (SPA)
 ├── docs-pages.css          # guide/faq/pricing/privacy/terms 공통 스타일
 ├── guide/                  # 사용 가이드 페이지

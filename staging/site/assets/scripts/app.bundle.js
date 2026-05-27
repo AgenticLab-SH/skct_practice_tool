@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let remoteToolUiConfig = normalizeToolUiConfig();
     let remoteAdvancedFeatureConfig = normalizeAdvancedFeatureConfig();
     let currentToolUiConfig = normalizeToolUiConfig(
-        isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('stg_skct_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
+        isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('stg_skct_practice_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
     );
 
     function syncToolsBottomPadding() {
@@ -383,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncToolsBottomPadding();
         syncToolsRightRail();
         if (persist) {
-            localStorage.setItem('stg_skct_tool_ui', JSON.stringify(currentToolUiConfig));
+            localStorage.setItem('stg_skct_practice_tool_ui', JSON.stringify(currentToolUiConfig));
         }
         if (notifyPopupEditor) {
             schedulePopupEditorSync();

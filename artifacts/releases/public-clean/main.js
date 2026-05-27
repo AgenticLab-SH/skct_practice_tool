@@ -21,25 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
     };
-    const TOOL_UI_STORAGE_KEY = 'skct_practice_tool_ui';
-    const LEGACY_TOOL_UI_STORAGE_KEYS = ['skct_tool_ui'];
-    const readToolUiConfigFromStorage = () => {
-        try {
-            let raw = localStorage.getItem(TOOL_UI_STORAGE_KEY);
-            if (!raw) {
-                for (const legacyKey of LEGACY_TOOL_UI_STORAGE_KEYS) {
-                    raw = localStorage.getItem(legacyKey);
-                    if (raw) {
-                        localStorage.setItem(TOOL_UI_STORAGE_KEY, raw);
-                        break;
-                    }
-                }
-            }
-            return raw ? JSON.parse(raw) : null;
-        } catch (error) {
-            return null;
-        }
-    };
     const writeJsonStorage = (storage, key, value) => {
         storage.setItem(key, JSON.stringify(value));
     };
@@ -623,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPopupLayout = normalizePopupLayout();
     let remoteToolUiConfig = normalizeToolUiConfig();
     let currentToolUiConfig = normalizeToolUiConfig(
-        isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (readToolUiConfigFromStorage() || DEFAULT_TOOL_UI_CONFIG)
+        isAdminPreviewMode ? DEFAULT_TOOL_UI_CONFIG : (JSON.parse(localStorage.getItem('skct_practice_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
     );
 
     function buildPopupWindowMetrics(windowConfig = currentPopupLayout.window) {
@@ -779,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncToolsRightRail();
 
         if (persist) {
-            localStorage.setItem(TOOL_UI_STORAGE_KEY, JSON.stringify(currentToolUiConfig));
+            localStorage.setItem('skct_practice_tool_ui', JSON.stringify(currentToolUiConfig));
         }
 
         if (notifyPopupEditor) {
@@ -860,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ? (JSON.parse(localStorage.getItem('skct_layout_ratios')) || DEFAULT_LAYOUT_RATIOS)
         : DEFAULT_LAYOUT_RATIOS;
     const savedToolUiConfig = (!isAdminPreviewMode && !isPopupMode)
-        ? (readToolUiConfigFromStorage() || DEFAULT_TOOL_UI_CONFIG)
+        ? (JSON.parse(localStorage.getItem('skct_practice_tool_ui')) || DEFAULT_TOOL_UI_CONFIG)
         : DEFAULT_TOOL_UI_CONFIG;
     setLayoutRatios(savedRatios.timer, savedRatios.utils, savedRatios.calc, {
         persist: false,
