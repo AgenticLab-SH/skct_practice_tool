@@ -685,25 +685,16 @@
 <!-- Firebase SDK -->
 <script src="build-info.js?v=202604112208"></script>
 <script src="site-text-config.js?v=202604112208"></script>
+<script src="config/firebase-web-config.js"></script>
 <script src="subscription-crypto.js?v=202604081955"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction, goOffline, goOnline
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getFirebaseWebConfig } from "./config/firebase-config.mjs";
 
-    const firebaseConfig = {
-        apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
-        authDomain: "skct-tool.firebaseapp.com",
-        databaseURL: "https://skct-tool-default-rtdb.firebaseio.com",
-        projectId: "skct-tool",
-        storageBucket: "skct-tool.firebasestorage.app",
-        messagingSenderId: "1098212167923",
-        appId: "1:1098212167923:web:cfe9f159f5f8820e84e786",
-        measurementId: "G-F00PXNPBJ5"
-    };
-
-    const app = initializeApp(firebaseConfig);
+    const app = initializeApp(getFirebaseWebConfig());
     const db = getDatabase(app);
     const auth = getAuth(app);
     const activeVisitorsRef = ref(db, 'active_visitors');

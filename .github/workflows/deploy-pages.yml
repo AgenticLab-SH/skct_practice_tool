@@ -1,0 +1,53 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write Firebase web config (from secret)
+        env:
+          FIREBASE_WEB_CONFIG_JSON: ${{ secrets.FIREBASE_WEB_CONFIG_JSON }}
+        run: |
+          if [ -z "$FIREBASE_WEB_CONFIG_JSON" ]; then
+            echo "FIREBASE_WEB_CONFIG_JSON secret is required" >&2
+            exit 1
+          fi
+          node <<'NODE'
+          const fs = require('fs');
+          const raw = process.env.FIREBASE_WEB_CONFIG_JSON.trim();
+          JSON.parse(raw);
+          fs.mkdirSync('config', { recursive: true });
+          fs.writeFileSync(
+            'config/firebase-web-config.js',
+            `window.FIREBASE_WEB_CONFIG = ${raw};\n`,
+            'utf8'
+          );
+          NODE
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

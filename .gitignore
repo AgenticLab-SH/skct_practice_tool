@@ -11,3 +11,5 @@ ui-debug.log
 __pycache__/
 *.pyc
 private/
+config/firebase-web-config.js
+staging/

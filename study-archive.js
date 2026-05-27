@@ -9,18 +9,9 @@ import {
     browserSessionPersistence
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+import { getFirebaseWebConfig } from "./config/firebase-config.mjs";
 
-const firebaseConfig = {
-    apiKey: "REDACTED_FIREBASE_WEB_API_KEY",
-    authDomain: "skct-tool.firebaseapp.com",
-    databaseURL: "https://skct-tool-default-rtdb.firebaseio.com",
-    projectId: "skct-tool",
-    storageBucket: "skct-tool.firebasestorage.app",
-    messagingSenderId: "1098212167923",
-    appId: "1:1098212167923:web:cfe9f159f5f8820e84e786",
-    measurementId: "G-F00PXNPBJ5"
-};
-
+const firebaseConfig = getFirebaseWebConfig();
 const FIREBASE_RTDB_BASE_URL = firebaseConfig.databaseURL;
 const ADVANCED_LICENSE_STORAGE_KEY = 'skct_advanced_license_bundle';
 const DEFAULT_MANUAL_SUBSCRIPTION_CONFIG = {
