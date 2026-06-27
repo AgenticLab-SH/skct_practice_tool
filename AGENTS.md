@@ -1,7 +1,7 @@
 # AGENTS.md
 작성일시: 2026-04-10 21:04:27 +09:00
 
-이 문서는 `C:\Users\kshcg\dev\projects\00_career\_assets\_tools\apps\skct_practice_tool` 프로젝트의 작업/검증/배포 프로세스를 고정하기 위한 로컬 운영 규칙입니다.
+이 문서는 `C:\Users\kshcg\dev\projects\03_commercialization_products\11_skct_practice_tool` 프로젝트의 작업/검증/배포 프로세스를 고정하기 위한 로컬 운영 규칙입니다.
 
 ## 1. 최우선 원칙
 - 운영 서버(`public-clean` 브랜치, GitHub Pages 실주소)는 테스트용으로 쓰지 않습니다.

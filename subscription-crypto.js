@@ -318,7 +318,7 @@
         };
     }
 
-    window.SKCTSubscriptionCrypto = {
+    const SKCTSubscriptionCrypto = {
         bytesToBase64,
         base64ToBytes,
         generateAdminKeyPairPem,
@@ -332,4 +332,13 @@
         signLicensePayload,
         verifyLicenseBundle
     };
+
+    // Browser: expose on window. Node (auto-issuer/tests): expose via module.exports.
+    // Both environments provide Web Crypto (crypto.subtle), TextEncoder/TextDecoder, btoa/atob globally.
+    if (typeof window !== 'undefined') {
+        window.SKCTSubscriptionCrypto = SKCTSubscriptionCrypto;
+    }
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = SKCTSubscriptionCrypto;
+    }
 })();

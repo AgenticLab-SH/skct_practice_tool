@@ -10,7 +10,7 @@
 - 스테이징을 별도 경로로 분리하고, 운영 반영 전에 먼저 원격 확인하는 흐름을 만들었습니다.
 
 관련 로그:
-- [2026-04-05_release_process_design.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog/2026-04-05_release_process_design.md)
+- [2026-04-05_release_process_design.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/worklog/2026-04-05_release_process_design.md)
 
 ## 2. 스테이징 읽기 전용 구조 도입
 
@@ -18,7 +18,7 @@
 - 관리자 게이트를 통과해야만 스테이징 테스트 페이지에 들어가도록 바꿨습니다.
 
 관련 로그:
-- [2026-04-05_staging_readonly_and_exam_mode_updates.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog/2026-04-05_staging_readonly_and_exam_mode_updates.md)
+- [2026-04-05_staging_readonly_and_exam_mode_updates.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/worklog/2026-04-05_staging_readonly_and_exam_mode_updates.md)
 
 ## 3. 팝업 기본값 편집기와 비율 기반 저장
 
@@ -27,8 +27,8 @@
 - 테스트 저장과 운영 반영을 3단계 흐름으로 나눴습니다.
 
 관련 로그:
-- [2026-04-05_popup_layout_editor_defaults.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog/2026-04-05_popup_layout_editor_defaults.md)
-- [2026-04-05_staging_popup_ui_and_calc_alignment.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog/2026-04-05_staging_popup_ui_and_calc_alignment.md)
+- [2026-04-05_popup_layout_editor_defaults.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/worklog/2026-04-05_popup_layout_editor_defaults.md)
+- [2026-04-05_staging_popup_ui_and_calc_alignment.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/worklog/2026-04-05_staging_popup_ui_and_calc_alignment.md)
 
 ## 4. 팝업 UI 실전 유사화
 
@@ -75,7 +75,7 @@
 - 일반모드에는 안내만, 고급모드에는 실제 확장 기능이 보이도록 정리했습니다.
 
 관련 문서:
-- [36_HIDDEN_ADVANCED_FEATURES.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/36_HIDDEN_ADVANCED_FEATURES.md)
+- [36_HIDDEN_ADVANCED_FEATURES.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/36_HIDDEN_ADVANCED_FEATURES.md)
 
 ## 10. 고급 구독 관리 방향 전환
 
@@ -90,7 +90,7 @@
 - 아직 구현은 하지 않았고, 구조/보안/데이터 모델만 정리된 상태입니다.
 
 관련 문서:
-- [2026-04-06_토스_고급구독_분리프로젝트_설계서.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/2026-04-06_토스_고급구독_분리프로젝트_설계서.md)
+- [2026-04-06_토스_고급구독_분리프로젝트_설계서.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/2026-04-06_토스_고급구독_분리프로젝트_설계서.md)
 
 ## 12. 지금 기준으로 중요한 상태
 
@@ -102,10 +102,10 @@
 ## 13. 다음에 문서를 볼 때 빠른 기준
 
 - 구조를 이해하고 싶다:
-  [SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md)
+  [SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md)
 
 - 어떤 순서로 바뀌었는지 보고 싶다:
   이 문서
 
 - 아주 자세한 작업 맥락이 필요하다:
-  [docs/agent/worklog](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog)
+  [docs/agent/worklog](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/worklog)

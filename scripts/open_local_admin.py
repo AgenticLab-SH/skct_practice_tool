@@ -53,6 +53,8 @@ def is_process_alive(pid: int | None) -> bool:
                 ["tasklist", "/FI", f"PID eq {pid}"],
                 capture_output=True,
                 text=True,
+                encoding="mbcs",
+                errors="ignore",
                 check=False,
             )
             return str(pid) in result.stdout

@@ -32,6 +32,8 @@ def stop_if_alive(pid: int | None) -> bool:
                 ["taskkill", "/PID", str(pid), "/F", "/T"],
                 capture_output=True,
                 text=True,
+                encoding="mbcs",
+                errors="ignore",
                 check=False,
             )
             return result.returncode == 0

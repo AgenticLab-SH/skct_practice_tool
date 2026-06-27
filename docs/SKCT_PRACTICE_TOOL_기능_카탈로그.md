@@ -65,7 +65,7 @@
 
 ## 4. 관리자와 운영 기능
 - 관리자 페이지에서 사이트 문구, 기본값, 후원/공지, 구독/라이선스 관련 값을 관리합니다.
-- 관리자 페이지는 공개 배포 주소가 아니라 로컬 [admin.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/admin.html)로 열어야 하며, Windows에서는 `py scripts/open_local_admin.py`로 한 번에 열 수 있습니다.
+- 관리자 페이지는 공개 배포 주소가 아니라 로컬 [admin.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/admin.html)로 열어야 하며, Windows에서는 `py scripts/open_local_admin.py`로 한 번에 열 수 있습니다.
 - 종료는 `py scripts/stop_local_admin.py`로 정리할 수 있습니다.
 - VS Code에서는 `.vscode/tasks.json`의 `SKCT: 로컬 관리자 페이지 열기`, `SKCT: 로컬 관리자 페이지 종료` 작업이 같은 Python 스크립트를 바로 실행합니다.
 - VS Code 작업은 PowerShell shell task가 아니라 `py`를 직접 호출하는 process task라서 추가 셸 래핑 없이 바로 실행됩니다.
@@ -86,7 +86,7 @@
 - 운영 반영 전에는 항상 로컬 또는 스테이징 기준으로 먼저 검증합니다.
 
 ## 6. 기능 변경 시 함께 볼 문서
-- 구조와 파일 역할까지 같이 봐야 할 때: [SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md)
-- 작업 시작 전 에이전트 기준이 필요할 때: [30_MASTER_DOC.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/runtime/30_MASTER_DOC.md)
-- 고급 모드 경계를 볼 때: [36_HIDDEN_ADVANCED_FEATURES.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/36_HIDDEN_ADVANCED_FEATURES.md)
-- 날짜별 상세 변경 이력을 볼 때: [SKCT_PRACTICE_TOOL_기능_변경이력_요약.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/SKCT_PRACTICE_TOOL_기능_변경이력_요약.md)
+- 구조와 파일 역할까지 같이 봐야 할 때: [SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md)
+- 작업 시작 전 에이전트 기준이 필요할 때: [30_MASTER_DOC.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/runtime/30_MASTER_DOC.md)
+- 고급 모드 경계를 볼 때: [36_HIDDEN_ADVANCED_FEATURES.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/36_HIDDEN_ADVANCED_FEATURES.md)
+- 날짜별 상세 변경 이력을 볼 때: [SKCT_PRACTICE_TOOL_기능_변경이력_요약.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/SKCT_PRACTICE_TOOL_기능_변경이력_요약.md)

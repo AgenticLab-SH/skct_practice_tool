@@ -53,39 +53,39 @@
 ## 4. 주요 파일 역할
 
 ### 운영 사용자 화면
-- [index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/index.html)
-- [main.js](/C:/dev/01_career/_assets/tools/skct_practice_tool/main.js)
-- [main.css](/C:/dev/01_career/_assets/tools/skct_practice_tool/main.css)
-- [docs-pages.css](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs-pages.css)
-- [guide/index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/guide/index.html)
-- [faq/index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/faq/index.html)
-- [pricing/index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/pricing/index.html)
-- [privacy/index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/privacy/index.html)
-- [terms/index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/terms/index.html)
-- [extension-info.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/extension-info.html)
+- [index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/index.html)
+- [main.js](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/main.js)
+- [main.css](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/main.css)
+- [docs-pages.css](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs-pages.css)
+- [guide/index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/guide/index.html)
+- [faq/index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/faq/index.html)
+- [pricing/index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/pricing/index.html)
+- [privacy/index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/privacy/index.html)
+- [terms/index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/terms/index.html)
+- [extension-info.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/extension-info.html)
 
 ### 운영 관리자 화면
-- [admin.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/admin.html)
+- [admin.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/admin.html)
 
 ### 민감 흐름 서버 분리 준비
-- [functions/index.js](/C:/dev/01_career/_assets/tools/skct_practice_tool/functions/index.js)
-- [functions/README.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/functions/README.md)
+- [functions/index.js](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/functions/index.js)
+- [functions/README.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/functions/README.md)
 
 ### 공개 배포 추출 준비
-- [scripts/export_public_clean.ps1](/C:/dev/01_career/_assets/tools/skct_practice_tool/scripts/export_public_clean.ps1)
-- [scripts/public-clean-admin-stub.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/scripts/public-clean-admin-stub.html)
+- [scripts/export_public_clean.ps1](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/scripts/export_public_clean.ps1)
+- [scripts/public-clean-admin-stub.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/scripts/public-clean-admin-stub.html)
 
 ### 스테이징 사용자 화면
-- [staging/site/index.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/staging/site/index.html)
-- [staging/site/assets/scripts/app.bundle.js](/C:/dev/01_career/_assets/tools/skct_practice_tool/staging/site/assets/scripts/app.bundle.js)
-- [staging/site/assets/styles/main.css](/C:/dev/01_career/_assets/tools/skct_practice_tool/staging/site/assets/styles/main.css)
+- [staging/site/index.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/staging/site/index.html)
+- [staging/site/assets/scripts/app.bundle.js](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/staging/site/assets/scripts/app.bundle.js)
+- [staging/site/assets/styles/main.css](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/staging/site/assets/styles/main.css)
 
 ### 스테이징 관리자 화면
-- [staging/site/admin.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/staging/site/admin.html)
+- [staging/site/admin.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/staging/site/admin.html)
 
 ### 고급 기능 인증 팝업
-- [advanced-tools.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/advanced-tools.html)
-- [staging/site/advanced-tools.html](/C:/dev/01_career/_assets/tools/skct_practice_tool/staging/site/advanced-tools.html)
+- [advanced-tools.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/advanced-tools.html)
+- [staging/site/advanced-tools.html](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/staging/site/advanced-tools.html)
 
 ## 5. Firebase 설정 구조
 
@@ -174,11 +174,11 @@
 
 ## 8. 문서 읽는 순서 추천
 
-1. [README.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/README.md)
-2. [SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md)
-3. [SKCT_PRACTICE_TOOL_기능_변경이력_요약.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/SKCT_PRACTICE_TOOL_기능_변경이력_요약.md)
-4. [SKCT_PRACTICE_TOOL_지시_용어집.md](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/SKCT_PRACTICE_TOOL_지시_용어집.md)
-5. 세부 작업은 [docs/agent/worklog](/C:/dev/01_career/_assets/tools/skct_practice_tool/docs/agent/worklog)에서 추적
+1. [README.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/README.md)
+2. [SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/SKCT_PRACTICE_TOOL_전체구조_및_운영기준.md)
+3. [SKCT_PRACTICE_TOOL_기능_변경이력_요약.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/SKCT_PRACTICE_TOOL_기능_변경이력_요약.md)
+4. [SKCT_PRACTICE_TOOL_지시_용어집.md](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/SKCT_PRACTICE_TOOL_지시_용어집.md)
+5. 세부 작업은 [docs/agent/worklog](/C:/Users/kshcg/dev/projects/03_commercialization_products/11_skct_practice_tool/docs/agent/worklog)에서 추적
 
 ## 9. 작업 원칙 요약
 

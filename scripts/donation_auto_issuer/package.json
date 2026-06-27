@@ -1,0 +1,13 @@
+{
+  "name": "skct-donation-auto-issuer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "후원(투네이션) 자동 검증 후 SKCT 고급 사용권을 발급하는 로컬 서비스. 개인키는 로컬에만 둔다.",
+  "main": "run.js",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node test/interop.test.js && node test/pipeline.test.js && node test/webhook.smoke.js",
+    "webhook": "node run.js --webhook",
+    "once": "node run.js --once"
+  }
+}
