@@ -48,3 +48,22 @@
 - `node --check`: main.js / run.js / toonation-bridge.js / notify.js / expire-licenses.js / ecosystem.config.js 통과.
 - `npm test`(donation_auto_issuer): 35 checks 통과(6+6+3+8+6+6).
 - 배포 워크플로 YAML: `yaml.safe_load` 통과.
+
+---
+
+## 추가 작업 (2026-06-28, 사용자 승인 운영 반영)
+
+요청: 최신 main 운영 배포 + 신규 고급신청 텔레그램 알림 + 최신 6900원 14일 신청을 요청일+17일(14+3)로 수동 승인·검증 + 실제 요금제 가격 동기화.
+
+1. **요금제 가격 동기화:** Firebase `config/manualSubscriptionConfig` 실제값 확인 → 7일=3900원, 14일=6900원.
+   (기존 코드값 4900/7900은 둘 다 틀렸음) → `issue-pipeline.js DEFAULT_PLANS`, `config.example.json`, 운영 private config planMap 모두 3900/6900으로 수정.
+2. **수동 승인 + 검증 (운영 DB 쓰기):** `REQ-MQVYF5UR-29GU`(14일권, rsef4292@gmail.com) 복호화 → 요청시작일 2026-06-27 + 17일 = **만료 2026-07-14** 로 발급.
+   `advancedAccountLicenses/e~rsef4292_40_gmail_2e_com` 기록, 신청 fulfilled 처리. 검증: 비번 복호화 OK + ECDSA 서명검증 true + active + 미만료 → 고급 로그인 가능 판정 ✅.
+   (같은 신청자 중복건 REQ-MQVY9IU2-E8P2 는 pending 으로 남김 — 동일 loginId 라 이미 커버됨.)
+3. **신규 고급신청 텔레그램 알림:** `functions/index.js` 에 `notifyNewSubscriptionRequest`(RTDB `onValueCreated` `/subscriptionRequests/{id}`) 추가.
+   민감정보 제외 마스크 필드만 전송. 토큰/chatId 는 Functions secret(`TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHAT_ID`). 텔레그램 전달 채널은 실제 메시지로 검증됨(chatId 5235839333 수신 확인).
+   **배포 대기(사용자 단계):** firebase CLI 미설치 + 토큰 시크릿 설정 필요 → `firebase functions:secrets:set TELEGRAM_BOT_TOKEN`, `... TELEGRAM_CHAT_ID`(=5235839333), `firebase deploy --only functions`.
+4. **운영 배포:** 커밋 `64700bc` → `origin/main` push → GitHub Actions "Deploy GitHub Pages" **success**. 라이브 검증: `/`,`main.js`,`main.css`,`config/firebase-web-config.js`,`.nojekyll`,`guide/` 모두 200,
+   main.js 에 `copyTextToClipboard`/`manualDonationMemoGuide`, index.html 에 `statsPresenceObserver` 반영 확인. (deploy-pages.yml `_site` 필터 정상 동작 — 파일 누락 없음.)
+
+> 본 세션은 사용자 명시 승인 하에 운영 Firebase 쓰기(라이선스 발급)와 main 배포를 수행함. private 설정/키는 깃 미포함(gitignore) 유지.
