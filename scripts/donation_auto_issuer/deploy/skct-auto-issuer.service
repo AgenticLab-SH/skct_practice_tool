@@ -1,0 +1,28 @@
+[Unit]
+Description=SKCT donation auto-issuer (webhook receiver)
+Documentation=https://github.com/AgenticLab-SH/skct_practice_tool
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=skct
+Group=skct
+WorkingDirectory=/opt/skct/scripts/donation_auto_issuer
+ExecStart=/usr/bin/node run.js --webhook
+Environment=NODE_ENV=production
+Environment=SKCT_ISSUER_CONFIG=/opt/skct/private/donation-auto-issuer.config.json
+Restart=always
+RestartSec=5
+
+# --- 보안 하드닝 (개인키가 서버에 존재하므로 최소권한 유지) -----------------
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+# 상태 파일(tmp) 만 쓰기 허용. private/keys 는 읽기 전용으로 접근.
+ReadWritePaths=/opt/skct/tmp
+# 127.0.0.1 로만 바인딩되지만 추가로 외부 노출 방지를 권장(방화벽/SG 에서 8137 차단)
+
+[Install]
+WantedBy=multi-user.target

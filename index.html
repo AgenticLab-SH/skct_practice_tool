@@ -1157,6 +1157,16 @@
                     });
                 } catch (err) { console.error("차트 렌더링 실패:", err); }
             });
+
+            // active_visitors 라이브 구독은 통계 모달이 열려 있는 동안만 유지한다.
+            // 모달이 닫히면(닫기 버튼/오버레이/ESC 등 어떤 경로든) 구독을 해제해
+            // 불필요한 RTDB 읽기(모든 방문자 하트비트마다 전체 노드 다운로드)를 막는다.
+            const statsPresenceObserver = new MutationObserver(() => {
+                if (statsModal.classList.contains('hidden')) {
+                    if (typeof window.stopPresencePolling === 'function') window.stopPresencePolling();
+                }
+            });
+            statsPresenceObserver.observe(statsModal, { attributes: true, attributeFilter: ['class'] });
         }
 
         // ============================================

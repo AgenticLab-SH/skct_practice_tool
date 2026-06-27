@@ -1,4 +1,6 @@
 const { onRequest } = require("firebase-functions/v2/https");
+const { onValueCreated } = require("firebase-functions/v2/database");
+const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
 
@@ -268,3 +270,60 @@ exports.skctSecureApi = onRequest(async (req, res) => {
         sendJson(res, 500, { ok: false, errorMessage: "보안 API 처리 중 오류가 발생했습니다." });
     }
 });
+
+// =============================================================================
+// 신규 고급 구독 신청 알림 (운영자 텔레그램)
+// =============================================================================
+// subscriptionRequests/<id> 가 새로 생성되면 운영자 폰으로 텔레그램 알림을 보낸다.
+// 24/7 서버리스(Google 인프라)에서 동작하므로 로컬 PC/GitHub Pages 와 무관하게 항상 작동.
+// 민감정보는 보내지 않는다(마스크 필드만). 신청 본문 복호화는 하지 않음(개인키 미보유).
+//
+// 배포 전 시크릿 설정 필요:
+//   firebase functions:secrets:set TELEGRAM_BOT_TOKEN
+//   firebase functions:secrets:set TELEGRAM_CHAT_ID
+//   firebase deploy --only functions
+const TELEGRAM_BOT_TOKEN = defineSecret("TELEGRAM_BOT_TOKEN");
+const TELEGRAM_CHAT_ID = defineSecret("TELEGRAM_CHAT_ID");
+
+exports.notifyNewSubscriptionRequest = onValueCreated(
+    {
+        ref: "/subscriptionRequests/{requestId}",
+        instance: "skct-tool-default-rtdb",
+        secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]
+    },
+    async (event) => {
+        try {
+            const token = TELEGRAM_BOT_TOKEN.value();
+            const chatId = TELEGRAM_CHAT_ID.value();
+            if (!token || !chatId) {
+                console.warn("[notifyNewSubscriptionRequest] 텔레그램 시크릿 미설정 - 알림 건너뜀");
+                return;
+            }
+            const r = (event.data && event.data.val()) || {};
+            const requestId = event.params.requestId;
+            const created = r.createdAt ? new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16) + " UTC" : "-";
+            const text = [
+                "🔔 새 고급 구독 신청이 들어왔습니다",
+                `신청번호: ${requestId}`,
+                `플랜: ${r.planLabel || r.planCode || "?"}`,
+                `신청자(마스크): ${r.requesterMask || "?"} / ${r.emailMask || "?"}`,
+                `시각: ${created}`,
+                "",
+                "관리자 페이지에서 승인하세요."
+            ].join("\n");
+            const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true })
+            });
+            if (!resp.ok) {
+                const body = await resp.text().catch(() => "");
+                console.error("[notifyNewSubscriptionRequest] 텔레그램 전송 실패:", resp.status, body);
+            } else {
+                console.log("[notifyNewSubscriptionRequest] 알림 전송 완료:", requestId);
+            }
+        } catch (error) {
+            console.error("[notifyNewSubscriptionRequest] 오류:", error.message);
+        }
+    }
+);

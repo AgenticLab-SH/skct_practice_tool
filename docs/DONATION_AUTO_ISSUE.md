@@ -38,11 +38,36 @@
 { "id": "고유ID", "donorName": "후원자명", "amount": 10000, "message": "후원합니다 REQ-AB12CD34" }
 ```
 
-### 투네이션 연결 방법
+### 투네이션 연결 방법 (실시간 자동 수신)
 
-투네이션 알림창 소켓을 직접 수신하려면 `toonation-bridge.example.js` 템플릿을 사용하세요.
-알림창 위젯 KEY 와 현재 메시지 포맷 확인이 필요합니다(파일 상단 주석의 커뮤니티 리퍼런스 참고).
-확인 후 `parseToonationMessage()` 만 맞추면 나머지는 그대로 동작합니다.
+투네이션은 공식 웹훅이 없고 **알림창(AlertBox) 위젯 KEY 기반 실시간 WebSocket** 만 제공합니다.
+이를 받아 자동발급 수신기로 중계하는 상시 리스너가 `toonation-bridge.js` 입니다.
+
+검증된 연결 방식 (2026-06-28 실연결로 확인):
+
+1. `https://toon.at/widget/alertbox/<KEY>` HTML 을 가져온다.
+2. 인라인 `<script>` 의 `window.payload = JSON.parse("...")` 를 해제해 그 객체의 `.payload`(base64url 토큰)를 얻는다.
+   (구 포맷 `"payload":"..."` 직접 노출도 폴백 지원)
+3. **raw WebSocket** 으로 `wss://ws.toon.at/<payload>` 에 연결한다. (socket.io 아님 → 추가 의존성 불필요.)
+   연결 후 **12초마다 `#ping`** 을 보낸다(서버가 `#pong` 응답, 미응답 누적 시 끊김). `#pong`/`#block` 제어프레임은 무시.
+4. 수신 JSON 의 `content` 에서 후원 정보를 꺼낸다: `name→후원자명`, `amount→금액(원)`, `message→메시지`.
+   (설정 메시지 `{"type":0,"conf":{...}}` 처럼 `content` 가 없는 것은 자동 무시)
+
+> 실연결 검증 완료: 위젯 fetch → payload 추출 → `wss://ws.toon.at` 연결 → 설정 메시지 수신 → 30초 연결 유지(핑) 확인.
+> 남은 1회: 실제 소액 후원으로 후원 메시지 원문(`content` 필드) 최종 확인.
+
+실행:
+
+```bash
+# 환경변수 또는 private/donation-auto-issuer.config.json 의 toonationAlertboxKey/webhookSecret 사용
+node scripts/donation_auto_issuer/run.js --webhook      # (1) 자동발급 수신기 먼저 기동
+node scripts/donation_auto_issuer/toonation-bridge.js   # (2) 투네이션 브리지 기동
+```
+
+- 첫 실연결 시 `DONATION_BRIDGE_DEBUG=1` 로 실제 후원 1건의 원문을 확인하고, 포맷이 다르면
+  `parseToonationMessage()` 만 보정하면 됩니다(나머지는 그대로 동작).
+- 브리지는 연결 끊김 시 지수 백오프로 자동 재연결하고, 12초마다 `#ping` 으로 연결을 유지합니다.
+- 순수 함수(payload 추출/메시지 정규화)는 `test/bridge.test.js` 로 검증됩니다(`npm test`).
 
 ## 4. 설치/설정
 

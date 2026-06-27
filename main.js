@@ -995,6 +995,31 @@ document.addEventListener('DOMContentLoaded', () => {
         return div.innerHTML;
     };
 
+    const copyTextToClipboard = async (text) => {
+        const value = String(text ?? '');
+        if (!value) return false;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(value);
+                return true;
+            }
+        } catch (err) { /* 보안 컨텍스트가 아니거나 권한 거부 -> 폴백 */ }
+        try {
+            const temp = document.createElement('textarea');
+            temp.value = value;
+            temp.setAttribute('readonly', '');
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(temp);
+            return ok;
+        } catch (err) {
+            return false;
+        }
+    };
+
     const sanitizeConfiguredHtml = (value, options = {}) => {
         if (window.SKCTSiteTextConfig?.sanitizeHtml) {
             return window.SKCTSiteTextConfig.sanitizeHtml(value || '', options);
@@ -1846,7 +1871,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (manualSubscriptionLookupPasswordInput) manualSubscriptionLookupPasswordInput.value = requestPassword;
             if (advancedAccessIdInput) advancedAccessIdInput.value = normalizeLookupEmail(email);
             manualSubscriptionSubmitStatus.style.color = '#0f766e';
-            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. 먼저 <strong>이메일 ${escapeHtml(normalizeLookupEmail(email))}</strong>와 조회 비밀번호로 상태를 확인할 수 있고, 승인 후에는 같은 이메일 또는 로그인 ID로 고급 모드에 들어갈 수 있습니다.`;
+            const donationMemoGuide = readSiteText(
+                'messages.manualDonationMemoGuide',
+                '투네이션으로 후원하실 때 <strong>후원 메시지(메모)란에 위 신청번호를 그대로 붙여넣어</strong> 주세요. 신청번호가 포함되면 후원 확인 후 자동으로 즉시 발급됩니다.'
+            );
+            manualSubscriptionSubmitStatus.innerHTML = `신청이 저장되었습니다. 먼저 <strong>이메일 ${escapeHtml(normalizeLookupEmail(email))}</strong>와 조회 비밀번호로 상태를 확인할 수 있고, 승인 후에는 같은 이메일 또는 로그인 ID로 고급 모드에 들어갈 수 있습니다.`
+                + `<span style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding:8px 10px;border:1px dashed #0f766e;border-radius:8px;background:#f0fdfa;">`
+                + `<span style="font-weight:600;color:#0f766e;">신청번호</span>`
+                + `<code id="manualSubscriptionRequestIdValue" style="font-size:1.05em;font-weight:700;letter-spacing:0.5px;color:#0f766e;">${escapeHtml(requestId)}</code>`
+                + `<button type="button" id="manualSubscriptionRequestIdCopyBtn" style="cursor:pointer;border:1px solid #0f766e;background:#0f766e;color:#fff;border-radius:6px;padding:4px 10px;font-size:0.85em;">복사</button>`
+                + `</span>`
+                + `<span style="display:block;margin-top:8px;color:#334155;line-height:1.5;">${donationMemoGuide}</span>`;
+            const requestIdCopyBtn = document.getElementById('manualSubscriptionRequestIdCopyBtn');
+            if (requestIdCopyBtn) {
+                requestIdCopyBtn.addEventListener('click', async () => {
+                    const copied = await copyTextToClipboard(requestId);
+                    requestIdCopyBtn.textContent = copied ? '복사됨!' : '복사 실패';
+                    setTimeout(() => { requestIdCopyBtn.textContent = '복사'; }, 1600);
+                });
+            }
         } catch (error) {
             manualSubscriptionSubmitStatus.style.color = '#b91c1c';
             manualSubscriptionSubmitStatus.textContent = error.message || readSiteText('messages.manualSubmitError', '신청 저장 중 오류가 발생했습니다.');

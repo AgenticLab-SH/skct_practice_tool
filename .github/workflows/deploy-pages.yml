@@ -45,9 +45,33 @@ jobs:
 
       - uses: actions/configure-pages@v5
 
+      - name: Stage public site (exclude dev/internal/heavy files)
+        run: |
+          mkdir -p _site
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_site' \
+            --exclude='functions' \
+            --exclude='scripts' \
+            --exclude='docs' \
+            --exclude='staging' \
+            --exclude='artifacts' \
+            --exclude='node_modules' \
+            --exclude='private' \
+            --exclude='tmp' \
+            --exclude='logs' \
+            --exclude='.vscode' \
+            --exclude='*.ps1' \
+            --exclude='*.md' \
+            --exclude='.gitignore' \
+            --exclude='.gitattributes' \
+            ./ _site/
+          echo "Staged public site contents:" && ls -la _site
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - id: deployment
         uses: actions/deploy-pages@v4

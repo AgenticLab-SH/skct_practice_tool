@@ -19,6 +19,7 @@ const nodeCrypto = require("crypto");
 
 const { FirebaseRestClient } = require("./firebase-rest.js");
 const { processDonation } = require("./issue-pipeline.js");
+const { notifyResult } = require("./notify.js");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 
@@ -107,6 +108,11 @@ async function main() {
         // issued/insufficient/no-request/already 모두 재시도 무한루프를 막기 위해 기록.
         // (insufficient/no-request 는 추가 후원/수동 처리 후 신청 상태로 재판단되므로 안전)
         state.mark(donation.id, { status: res.status, requestId: res.requestId, loginId: res.loginId });
+        // 운영자 알림 (선택, best-effort - 실패해도 본 흐름 영향 없음)
+        if (config.notify) {
+            const note = await notifyResult(config.notify, donation, res);
+            if (note && note.ok) console.log(`[notify] 운영자 알림 전송(${note.channels}채널)`);
+        }
         return res;
     };
 

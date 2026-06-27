@@ -1,0 +1,26 @@
+[Unit]
+Description=SKCT Toonation alertbox bridge (forwards donations to local auto-issuer)
+Documentation=https://github.com/AgenticLab-SH/skct_practice_tool
+After=network-online.target skct-auto-issuer.service
+Wants=network-online.target
+Requires=skct-auto-issuer.service
+
+[Service]
+Type=simple
+User=skct
+Group=skct
+WorkingDirectory=/opt/skct/scripts/donation_auto_issuer
+ExecStart=/usr/bin/node toonation-bridge.js
+Environment=NODE_ENV=production
+Environment=SKCT_ISSUER_CONFIG=/opt/skct/private/donation-auto-issuer.config.json
+Restart=always
+RestartSec=5
+
+# --- 보안 하드닝 -------------------------------------------------------------
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

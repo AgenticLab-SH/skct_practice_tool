@@ -6,7 +6,9 @@
   "main": "run.js",
   "engines": { "node": ">=18" },
   "scripts": {
-    "test": "node test/interop.test.js && node test/pipeline.test.js && node test/webhook.smoke.js",
+    "test": "node test/interop.test.js && node test/pipeline.test.js && node test/webhook.smoke.js && node test/bridge.test.js && node test/notify.test.js && node test/expire.test.js",
+    "bridge": "node toonation-bridge.js",
+    "expire-licenses": "node expire-licenses.js",
     "webhook": "node run.js --webhook",
     "once": "node run.js --once"
   }
