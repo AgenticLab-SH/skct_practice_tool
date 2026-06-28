@@ -13,6 +13,7 @@ const db = getDatabase();
 const rateLimitStore = new Map();
 const ALLOWED_ORIGIN_PATTERNS = [
     /^https:\/\/agenticlab-sh\.github\.io$/i,
+    /^https:\/\/([a-z0-9-]+\.)*agenticfabworks\.com$/i,
     /^https?:\/\/localhost(?::\d+)?$/i,
     /^https?:\/\/127\.0\.0\.1(?::\d+)?$/i
 ];

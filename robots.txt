@@ -7,4 +7,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /admin.css
-Sitemap: https://agenticlab-sh.github.io/skct_practice_tool/sitemap.xml
+Sitemap: https://skct.agenticfabworks.com/sitemap.xml

@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://agenticlab-sh.github.io/skct_practice_tool/</loc>
+    <loc>https://skct.agenticfabworks.com/</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://agenticlab-sh.github.io/skct_practice_tool/guide/</loc>
+    <loc>https://skct.agenticfabworks.com/guide/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agenticlab-sh.github.io/skct_practice_tool/faq/</loc>
+    <loc>https://skct.agenticfabworks.com/faq/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://agenticlab-sh.github.io/skct_practice_tool/pricing/</loc>
+    <loc>https://skct.agenticfabworks.com/pricing/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://agenticlab-sh.github.io/skct_practice_tool/privacy/</loc>
+    <loc>https://skct.agenticfabworks.com/privacy/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://agenticlab-sh.github.io/skct_practice_tool/terms/</loc>
+    <loc>https://skct.agenticfabworks.com/terms/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

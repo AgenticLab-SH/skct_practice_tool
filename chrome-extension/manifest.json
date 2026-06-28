@@ -12,7 +12,7 @@
     {
       "matches": [
         "https://cbt.linkareer.com/*",
-        "https://agenticlab-sh.github.io/skct_practice_tool/*",
+        "https://skct.agenticfabworks.com/*",
         "http://127.0.0.1:*/*",
         "http://localhost:*/*"
       ],
