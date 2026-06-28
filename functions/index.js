@@ -3,6 +3,7 @@ const { onValueCreated } = require("firebase-functions/v2/database");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
+const issuerCore = require("./issuer-core.js");
 
 initializeApp();
 
@@ -284,6 +285,34 @@ exports.skctSecureApi = onRequest(async (req, res) => {
 //   firebase deploy --only functions
 const TELEGRAM_BOT_TOKEN = defineSecret("TELEGRAM_BOT_TOKEN");
 const TELEGRAM_CHAT_ID = defineSecret("TELEGRAM_CHAT_ID");
+const TELEGRAM_WEBHOOK_SECRET = defineSecret("TELEGRAM_WEBHOOK_SECRET");
+const ADMIN_RSA_PRIVATE_KEY = defineSecret("ADMIN_RSA_PRIVATE_KEY");
+const LICENSE_SIGNING_PRIVATE_KEY = defineSecret("LICENSE_SIGNING_PRIVATE_KEY");
+
+// --- Telegram API helpers ---------------------------------------------------
+async function tg(token, method, payload) {
+    const resp = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!data.ok) console.error(`[tg:${method}]`, resp.status, data.description || "");
+    return data;
+}
+
+function buildRequestNotifyText(requestId, r) {
+    const created = r.createdAt ? new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16) + " UTC" : "-";
+    return [
+        "🔔 새 고급 구독 신청이 들어왔습니다",
+        `신청번호: ${requestId}`,
+        `플랜: ${r.planLabel || r.planCode || "?"}`,
+        `신청자(마스크): ${r.requesterMask || "?"} / ${r.emailMask || "?"}`,
+        `시각: ${created}`,
+        "",
+        "아래 버튼으로 승인/거절하세요. (후원 확인 후 승인)"
+    ].join("\n");
+}
 
 exports.notifyNewSubscriptionRequest = onValueCreated(
     {
@@ -301,29 +330,117 @@ exports.notifyNewSubscriptionRequest = onValueCreated(
             }
             const r = (event.data && event.data.val()) || {};
             const requestId = event.params.requestId;
-            const created = r.createdAt ? new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16) + " UTC" : "-";
-            const text = [
-                "🔔 새 고급 구독 신청이 들어왔습니다",
-                `신청번호: ${requestId}`,
-                `플랜: ${r.planLabel || r.planCode || "?"}`,
-                `신청자(마스크): ${r.requesterMask || "?"} / ${r.emailMask || "?"}`,
-                `시각: ${created}`,
-                "",
-                "관리자 페이지에서 승인하세요."
-            ].join("\n");
-            const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ chat_id: chatId, text, disable_web_page_preview: true })
+            // 자동 생성된 테스트/내부 항목이 아닌 실제 pending 신청만 알림
+            if (String(r.status || "") !== "pending") return;
+            await tg(token, "sendMessage", {
+                chat_id: chatId,
+                text: buildRequestNotifyText(requestId, r),
+                disable_web_page_preview: true,
+                reply_markup: {
+                    inline_keyboard: [[
+                        { text: "✅ 승인", callback_data: `approve:${requestId}` },
+                        { text: "❌ 거절", callback_data: `reject:${requestId}` }
+                    ]]
+                }
             });
-            if (!resp.ok) {
-                const body = await resp.text().catch(() => "");
-                console.error("[notifyNewSubscriptionRequest] 텔레그램 전송 실패:", resp.status, body);
-            } else {
-                console.log("[notifyNewSubscriptionRequest] 알림 전송 완료:", requestId);
-            }
+            console.log("[notifyNewSubscriptionRequest] 알림 전송 완료:", requestId);
         } catch (error) {
             console.error("[notifyNewSubscriptionRequest] 오류:", error.message);
+        }
+    }
+);
+
+// --- 승인/거절 처리(공용) ---------------------------------------------------
+async function approveRequest(requestId) {
+    const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
+    const signPem = LICENSE_SIGNING_PRIVATE_KEY.value();
+    if (!rsaPem || !signPem) throw new Error("개인키 시크릿 미설정");
+    const reqRef = db.ref(`subscriptionRequests/${requestId}`);
+    const record = (await reqRef.get()).val();
+    if (!record) return { ok: false, msg: "신청을 찾지 못했습니다." };
+    if (String(record.status || "") === "fulfilled") return { ok: false, msg: "이미 승인된 신청입니다." };
+
+    const payload = await issuerCore.crypto.decryptRequestPayloadForAdmin(record, rsaPem);
+    const loginId = String(payload.desiredLoginId || "").trim();
+    const pw = String(payload.requestPassword || "").trim();
+    if (!loginId || !pw) return { ok: false, msg: "신청 본문에 ID/비밀번호가 없습니다." };
+
+    // 요금제 일수
+    const msc = (await db.ref("config/manualSubscriptionConfig").get()).val() || {};
+    const plansRaw = msc.plans || [];
+    const plans = Array.isArray(plansRaw) ? plansRaw : Object.values(plansRaw);
+    const plan = plans.find((p) => p && p.code === record.planCode);
+    const days = plan ? Number(plan.days) : 14;
+    const planLabel = record.planLabel || (plan && plan.label) || "14일 이용권";
+    const expiresAt = issuerCore.computeExpiresAtDate(payload.requestedStartDate || "", days);
+
+    // 경로 A
+    const subscription = { loginId, userIdentity: payload.siteNickname || payload.donationName || "", planType: planLabel, status: "active", expiresAt };
+    const licenseRecord = await issuerCore.buildAdvancedAccountLicenseRecord(subscription, pw, signPem);
+    const loginIdKey = issuerCore.encodeAdvancedLoginIdKey(loginId);
+    await db.ref(`advancedAccountLicenses/${loginIdKey}`).set(licenseRecord);
+
+    // 경로 B
+    const enc = await issuerCore.buildApprovedRequestPayloadCipher({
+        record, payload, expiresAtDate: expiresAt, signingPrivateKeyPem: signPem, adminPrivateKeyPem: rsaPem, statusMessage: "승인되었습니다."
+    });
+    await reqRef.update({ status: "fulfilled", updatedAt: Date.now(), tgApprovedAt: Date.now(), manualIssuedExpiresAt: expiresAt, payloadCipher: enc.payloadCipher, payloadIv: enc.payloadIv });
+    return { ok: true, msg: `승인 완료: ${loginId} / 만료 ${expiresAt}`, loginId, expiresAt };
+}
+
+async function rejectRequest(requestId) {
+    const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
+    if (!rsaPem) throw new Error("개인키 시크릿 미설정");
+    const reqRef = db.ref(`subscriptionRequests/${requestId}`);
+    const record = (await reqRef.get()).val();
+    if (!record) return { ok: false, msg: "신청을 찾지 못했습니다." };
+    const payload = await issuerCore.crypto.decryptRequestPayloadForAdmin(record, rsaPem);
+    const nextPayload = { ...payload, adminResponse: { ...(payload.adminResponse || {}), statusMessage: "후원 확인이 필요해 거절되었습니다.", rejectedAt: Date.now() } };
+    const enc = await issuerCore.crypto.reencryptRequestPayloadForAdmin(record, nextPayload, rsaPem);
+    await reqRef.update({ status: "rejected", updatedAt: Date.now(), payloadCipher: enc.payloadCipher, payloadIv: enc.payloadIv });
+    return { ok: true, msg: "거절 처리 완료" };
+}
+
+// --- 텔레그램 콜백 웹훅 (승인/거절 버튼) ------------------------------------
+exports.telegramApprovalWebhook = onRequest(
+    { secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_WEBHOOK_SECRET, ADMIN_RSA_PRIVATE_KEY, LICENSE_SIGNING_PRIVATE_KEY] },
+    async (req, res) => {
+        try {
+            if (req.get("X-Telegram-Bot-Api-Secret-Token") !== TELEGRAM_WEBHOOK_SECRET.value()) {
+                res.status(403).send("forbidden");
+                return;
+            }
+            const token = TELEGRAM_BOT_TOKEN.value();
+            const cq = req.body && req.body.callback_query;
+            if (!cq) { res.status(200).send("ok"); return; }
+
+            // 소유자(허용된 chatId)만 승인 가능
+            if (String(cq.from && cq.from.id) !== String(TELEGRAM_CHAT_ID.value())) {
+                await tg(token, "answerCallbackQuery", { callback_query_id: cq.id, text: "권한이 없습니다.", show_alert: true });
+                res.status(200).send("ok");
+                return;
+            }
+
+            const [action, requestId] = String(cq.data || "").split(":");
+            let result;
+            if (action === "approve") result = await approveRequest(requestId);
+            else if (action === "reject") result = await rejectRequest(requestId);
+            else result = { ok: false, msg: "알 수 없는 동작" };
+
+            await tg(token, "answerCallbackQuery", { callback_query_id: cq.id, text: result.msg.slice(0, 190), show_alert: true });
+            if (cq.message) {
+                const base = (cq.message.text || "").split("\n\n")[0];
+                const stamp = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
+                await tg(token, "editMessageText", {
+                    chat_id: cq.message.chat.id,
+                    message_id: cq.message.message_id,
+                    text: `${base}\n\n${result.ok ? "✅" : "⚠️"} ${result.msg}\n(${stamp})`
+                });
+            }
+            res.status(200).send("ok");
+        } catch (error) {
+            console.error("[telegramApprovalWebhook] 오류:", error.message);
+            res.status(200).send("ok"); // 텔레그램 재시도 폭주 방지
         }
     }
 );
