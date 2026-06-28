@@ -22,11 +22,13 @@ check("과거 만료일은 만료", () => {
     assert.strictEqual(isLicenseExpired({ expiresAt: "2026-06-20" }, NOW), true);
 });
 
-check("만료일 당일 정오 경계", () => {
-    // 임계 = 2026-06-28T12:00:00+09:00, NOW=03:00 KST -> 아직 만료 아님
+check("만료일 당일 자정 경계(종료일 23:59:59까지 유효)", () => {
+    // 임계 = 2026-06-28T23:59:59+09:00. 종료일 당일은 자정 직전까지 유효.
     assert.strictEqual(isLicenseExpired({ expiresAt: "2026-06-28" }, NOW), false);
-    const afterNoon = new Date("2026-06-28T12:30:00+09:00");
-    assert.strictEqual(isLicenseExpired({ expiresAt: "2026-06-28" }, afterNoon), true);
+    const lateNight = new Date("2026-06-28T23:00:00+09:00");
+    assert.strictEqual(isLicenseExpired({ expiresAt: "2026-06-28" }, lateNight), false);
+    const nextDay = new Date("2026-06-29T00:30:00+09:00");
+    assert.strictEqual(isLicenseExpired({ expiresAt: "2026-06-28" }, nextDay), true);
 });
 
 check("형식 불명 expiresAt 은 건드리지 않음", () => {

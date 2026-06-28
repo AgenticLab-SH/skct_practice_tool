@@ -14,7 +14,7 @@
 //   node expire-licenses.js --config <경로>
 //
 // 안전: 영구 라이선스(expiresAt 빈 값/영구 플랜)는 절대 만료 처리하지 않는다.
-//       로그인 검증과 동일한 임계(expiresAt T12:00:00+09:00)를 사용한다.
+//       로그인 검증과 동일한 임계(expiresAt T23:59:59+09:00, 종료일 자정 직전)를 사용한다.
 
 const fs = require("fs");
 const path = require("path");
@@ -23,7 +23,7 @@ const { FirebaseRestClient } = require("./firebase-rest.js");
 const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 const PERMANENT_PLAN = "영구 이용권";
 
-// 로그인 검증과 동일한 만료 임계: expiresAt(YYYY-MM-DD) 의 KST 정오.
+// 로그인 검증과 동일한 만료 임계: expiresAt(YYYY-MM-DD) 의 KST 종료일 끝(자정 직전 23:59:59).
 // 반환: 만료되었으면 true (순수 함수, 테스트 대상)
 function isLicenseExpired(record, now = new Date()) {
     if (!record || typeof record !== "object") return false;
@@ -31,7 +31,7 @@ function isLicenseExpired(record, now = new Date()) {
     const planType = String(record.planType || "").trim();
     if (!expiresAt || planType === PERMANENT_PLAN) return false; // 영구
     if (!/^\d{4}-\d{2}-\d{2}$/.test(expiresAt)) return false;     // 형식 불명 -> 건드리지 않음
-    const threshold = Date.parse(`${expiresAt}T12:00:00+09:00`);
+    const threshold = Date.parse(`${expiresAt}T23:59:59+09:00`);
     if (!Number.isFinite(threshold)) return false;
     return now.getTime() >= threshold;
 }

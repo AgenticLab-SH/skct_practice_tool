@@ -1297,7 +1297,7 @@
             issuedAt: Date.now()
         };
         if (subscription.expiresAt) {
-            payload.expiresAt = `${subscription.expiresAt}T12:00:00+09:00`;
+            payload.expiresAt = `${subscription.expiresAt}T23:59:59+09:00`;
         }
         return payload;
     }
@@ -1479,7 +1479,7 @@
     function getSubscriptionExpiryTime(value) {
         const trimmed = String(value || '').trim();
         if (!trimmed) return Number.POSITIVE_INFINITY;
-        const parsed = Date.parse(`${trimmed}T12:00:00+09:00`);
+        const parsed = Date.parse(`${trimmed}T23:59:59+09:00`);
         return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
     }
 
@@ -3235,7 +3235,7 @@
         if (!expiresAt) {
             throw new Error('만료일을 입력해야 라이선스를 발급할 수 있습니다.');
         }
-        const expiresAtIso = `${expiresAt}T12:00:00+09:00`;
+        const expiresAtIso = `${expiresAt}T23:59:59+09:00`;
         const licenseBundle = await window.SKCTSubscriptionCrypto.signLicensePayload({
             licenseId: crypto.randomUUID ? crypto.randomUUID() : `license-${Date.now()}`,
             requestId,

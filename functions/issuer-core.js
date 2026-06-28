@@ -84,7 +84,7 @@ function buildAdvancedLicensePayload(subscription) {
         issuedAt: Date.now()
     };
     if (subscription.expiresAt) {
-        payload.expiresAt = `${subscription.expiresAt}T12:00:00+09:00`;
+        payload.expiresAt = `${subscription.expiresAt}T23:59:59+09:00`;
     }
     return payload;
 }
@@ -120,7 +120,7 @@ async function buildAdvancedAccountLicenseRecord(subscription, plainPassword, si
 // 반환: { payloadCipher, payloadIv } (subscriptionRequests update 에 머지)
 async function buildApprovedRequestPayloadCipher(options) {
     const { record, payload, expiresAtDate, signingPrivateKeyPem, adminPrivateKeyPem, statusMessage } = options;
-    const expiresAtIso = expiresAtDate ? `${expiresAtDate}T12:00:00+09:00` : "";
+    const expiresAtIso = expiresAtDate ? `${expiresAtDate}T23:59:59+09:00` : "";
     const licenseBundle = await SKCTSubscriptionCrypto.signLicensePayload({
         licenseId: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `license-${Date.now()}`,
         requestId: record.requestId || "",
