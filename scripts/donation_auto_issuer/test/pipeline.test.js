@@ -94,6 +94,14 @@ async function main() {
     assert.strictEqual(bundle.payload.loginId, "buyer_김철수", "payload.loginId 일치");
     ok("발급 레코드가 브라우저 검증 경로 통과");
 
+    // 3b) 경로 B: 신청서 payload 재암호화에 adminResponse.licenseBundle 포함 (이메일/신청조회 로그인 지원)
+    const reqAfter = client.store.subscriptionRequests[requestId];
+    const userPayload = await cryptoApi.decryptRequestPayloadForUser(reqAfter, requestPassword);
+    assert.ok(userPayload.adminResponse && userPayload.adminResponse.licenseBundle, "adminResponse.licenseBundle 존재(경로 B)");
+    const verifiedB = await cryptoApi.verifyLicenseBundle(userPayload.adminResponse.licenseBundle, licenseKeys.publicKeyPem);
+    assert.strictEqual(verifiedB, true, "경로 B 라이선스 서명 검증");
+    ok("이메일/신청조회 로그인 경로 B 도 발급됨");
+
     // 4) 같은 후원 재처리 -> already (멱등 방어, 신청이 이미 fulfilled)
     const resAgain = await processDonation({
         donation: { id: "don-1b", donorName: "익명", amount: 10000, message: `후원합니다 ${requestId}` },

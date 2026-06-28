@@ -115,6 +115,35 @@ async function buildAdvancedAccountLicenseRecord(subscription, plainPassword, si
     };
 }
 
+// 경로 B: 신청서 payload 에 adminResponse.licenseBundle 를 넣어 재암호화.
+// (admin.html approveSubscriptionRequest 와 동일 형태 — 이메일/신청조회 로그인 경로 지원)
+// 반환: { payloadCipher, payloadIv } (subscriptionRequests update 에 머지)
+async function buildApprovedRequestPayloadCipher(options) {
+    const { record, payload, expiresAtDate, signingPrivateKeyPem, adminPrivateKeyPem, statusMessage } = options;
+    const expiresAtIso = expiresAtDate ? `${expiresAtDate}T12:00:00+09:00` : "";
+    const licenseBundle = await SKCTSubscriptionCrypto.signLicensePayload({
+        licenseId: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `license-${Date.now()}`,
+        requestId: record.requestId || "",
+        planCode: record.planCode || "",
+        planLabel: record.planLabel || "",
+        desiredLoginId: payload.desiredLoginId || "",
+        siteNickname: payload.siteNickname || "",
+        email: payload.email || "",
+        issuedAt: Date.now(),
+        expiresAt: expiresAtIso
+    }, signingPrivateKeyPem);
+    const nextPayload = {
+        ...payload,
+        adminResponse: {
+            expiresAt: expiresAtDate || "",
+            licenseBundle,
+            statusMessage: statusMessage || "자동 발급되었습니다.",
+            approvedAt: Date.now()
+        }
+    };
+    return SKCTSubscriptionCrypto.reencryptRequestPayloadForAdmin(record, nextPayload, adminPrivateKeyPem);
+}
+
 module.exports = {
     DEFAULT_ADVANCED_PLAN_TYPE,
     PERMANENT_ADVANCED_PLAN_TYPE,
@@ -124,5 +153,6 @@ module.exports = {
     donationCoversPlan,
     computeExpiresAtDate,
     buildAdvancedLicensePayload,
-    buildAdvancedAccountLicenseRecord
+    buildAdvancedAccountLicenseRecord,
+    buildApprovedRequestPayloadCipher
 };

@@ -93,13 +93,26 @@ async function processDonation(options) {
     }
 
     const loginIdKey = core.encodeAdvancedLoginIdKey(loginId);
+    // 경로 B: 신청서에 adminResponse.licenseBundle 를 심어 재암호화.
+    // (이메일/신청조회 로그인 경로 지원 — 없으면 이메일 loginId 사용자가 'pending' 에 막힘)
+    let payloadCipherUpdate = {};
+    try {
+        payloadCipherUpdate = await core.buildApprovedRequestPayloadCipher({
+            record, payload, expiresAtDate: expiresAt, signingPrivateKeyPem, adminPrivateKeyPem
+        });
+    } catch (err) {
+        // 경로 B 실패해도 경로 A(advancedAccountLicenses)는 유효하므로 발급은 진행하되 경고.
+        payloadCipherUpdate = {};
+    }
+
     try {
         await client.writePath(`advancedAccountLicenses/${loginIdKey}`, licenseRecord);
         await client.updatePath(`subscriptionRequests/${requestId}`, {
             status: "fulfilled",
             updatedAt: Date.now(),
             autoIssuedAt: Date.now(),
-            autoIssuedExpiresAt: expiresAt
+            autoIssuedExpiresAt: expiresAt,
+            ...payloadCipherUpdate
         });
     } catch (err) {
         return result("error", `발급 기록 저장 실패: ${err.message}`, { requestId, loginIdKey });
