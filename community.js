@@ -40,7 +40,41 @@ function getSavedNick() { return localStorage.getItem('skct_cm_nick') || ''; }
 function saveNick(n) { localStorage.setItem('skct_cm_nick', n); }
 
 // ── Firebase Config (One-shot fetch) ──
-const COMMUNITY_PUBLIC_CONFIG_KEYS = ['notice', 'notice_community', 'popularConfig'];
+const COMMUNITY_PUBLIC_CONFIG_KEYS = ['notice', 'notice_community', 'popularConfig', 'manualSubscriptionConfig'];
+
+// 보안 API(서버측 비밀번호 검증) base URL. config/manualSubscriptionConfig 에서 읽는다.
+let secureApiBaseUrl = '';
+
+function buildCommunityApiUrl(path) {
+    const base = String(secureApiBaseUrl || '').trim().replace(/\/+$/, '');
+    if (!base) return '';
+    const normalized = String(path || '').startsWith('/') ? path : `/${path}`;
+    return `${base}${normalized}`;
+}
+
+// 익명 글/댓글 수정·삭제는 서버가 비밀번호를 검증한 뒤에만 반영한다.
+async function postToCommunityApi(path, payload) {
+    const url = buildCommunityApiUrl(path);
+    if (!url) {
+        return { ok: false, errorMessage: '보안 서버 설정이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.' };
+    }
+    let response = null;
+    try {
+        response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload || {})
+        });
+    } catch (error) {
+        return { ok: false, errorMessage: '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.' };
+    }
+    let data = null;
+    try { data = await response.json(); } catch (error) { data = null; }
+    if (!response.ok || !data || data.ok !== true) {
+        return { ok: false, errorMessage: String(data?.errorMessage || '처리에 실패했습니다.') };
+    }
+    return { ok: true, data };
+}
 
 async function listenConfig() {
     try {
@@ -53,6 +87,9 @@ async function listenConfig() {
         if (noticeData) renderNotice(noticeData);
         else { const el = document.getElementById('cmNotice'); if (el) el.innerHTML = ''; }
         if (cfg.popularConfig) popularConfig = cfg.popularConfig;
+        if (cfg.manualSubscriptionConfig) {
+            secureApiBaseUrl = String(cfg.manualSubscriptionConfig.secureApiBaseUrl || '').trim().replace(/\/+$/, '');
+        }
         // re-render if popular tab is active
         if (currentTab === 'popular') renderTab();
     } catch(e) { console.error("Config load error:", e); }
@@ -120,21 +157,35 @@ async function editPost(pid, newContent, password) {
     const p = allPosts[pid]; if (!p) return false;
     if (!newContent || !newContent.trim()) { alert('내용을 입력해주세요.'); return false; }
     if (newContent.length > 1000) { alert('1000자 이내로 작성해주세요.'); return false; }
-    if (!isAdmin && (await sha256(password)) !== p.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return false; }
-    try {
-        await update(ref(db, `posts/${pid}`), { content: newContent.trim(), editedAt: Date.now() });
-        await loadPostsOnce();
-        return true;
-    } catch (e) { alert('수정에 실패했습니다. 잠시 후 다시 시도해주세요.'); return false; }
+    if (isAdmin) {
+        try {
+            await update(ref(db, `posts/${pid}`), { content: newContent.trim(), editedAt: Date.now() });
+            await loadPostsOnce();
+            return true;
+        } catch (e) { alert('수정에 실패했습니다. 잠시 후 다시 시도해주세요.'); return false; }
+    }
+    // 익명 수정: 서버가 비밀번호를 검증한 뒤에만 반영한다.
+    const result = await postToCommunityApi('/community/post/edit', {
+        postId: pid, password, content: newContent.trim()
+    });
+    if (!result.ok) { alert(result.errorMessage); return false; }
+    await loadPostsOnce();
+    return true;
 }
 
 async function softDeletePost(pid, password) {
     const p = allPosts[pid]; if (!p) return;
-    if (!isAdmin && (await sha256(password)) !== p.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
-    try {
-        await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
-        await loadPostsOnce();
-    } catch (e) { alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'); }
+    if (isAdmin) {
+        try {
+            await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
+            await loadPostsOnce();
+        } catch (e) { alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'); }
+        return;
+    }
+    // 익명 삭제: 서버가 비밀번호를 검증한 뒤에만 반영한다.
+    const result = await postToCommunityApi('/community/post/delete', { postId: pid, password });
+    if (!result.ok) { alert(result.errorMessage); return; }
+    await loadPostsOnce();
 }
 
 async function toggleLike(pid) {
@@ -183,21 +234,34 @@ async function editReply(pid, rid, newContent, password) {
     const s = await get(ref(db, `replies/${pid}/${rid}`)); if (!s.exists()) return false;
     if (!newContent || !newContent.trim()) { alert('내용을 입력해주세요.'); return false; }
     if (newContent.length > 1000) { alert('1000자 이내로 작성해주세요.'); return false; }
-    if (!isAdmin && (await sha256(password)) !== s.val().passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return false; }
-    try {
-        await update(ref(db, `replies/${pid}/${rid}`), { content: newContent.trim(), editedAt: Date.now() });
-        delete replyCache[pid]; return true;
-    } catch (e) { alert('수정에 실패했습니다.'); return false; }
+    if (isAdmin) {
+        try {
+            await update(ref(db, `replies/${pid}/${rid}`), { content: newContent.trim(), editedAt: Date.now() });
+            delete replyCache[pid]; return true;
+        } catch (e) { alert('수정에 실패했습니다.'); return false; }
+    }
+    // 익명 댓글 수정: 서버가 비밀번호를 검증한 뒤에만 반영한다.
+    const result = await postToCommunityApi('/community/reply/edit', {
+        postId: pid, replyId: rid, password, content: newContent.trim()
+    });
+    if (!result.ok) { alert(result.errorMessage); return false; }
+    delete replyCache[pid]; return true;
 }
 
 async function softDeleteReply(pid, rid, password) {
     const s = await get(ref(db, `replies/${pid}/${rid}`)); if (!s.exists()) return;
-    if (!isAdmin && (await sha256(password)) !== s.val().passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
-    try {
-        await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
-        await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c||0)-1, 0));
-        delete replyCache[pid];
-    } catch (e) { alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'); }
+    if (isAdmin) {
+        try {
+            await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
+            await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c||0)-1, 0));
+            delete replyCache[pid];
+        } catch (e) { alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'); }
+        return;
+    }
+    // 익명 댓글 삭제: 서버가 비밀번호를 검증한 뒤 replyCount 까지 함께 정리한다.
+    const result = await postToCommunityApi('/community/reply/delete', { postId: pid, replyId: rid, password });
+    if (!result.ok) { alert(result.errorMessage); return; }
+    delete replyCache[pid];
 }
 
 async function adminMoveToFaq(pid) { if (!isAdmin) return; await update(ref(db, `posts/${pid}`), { category: 'faq' }); }

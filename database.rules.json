@@ -150,7 +150,7 @@
           ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/) && (!data.exists() || auth != null || newData.val() == data.val())"
         },
         "content": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000"
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000 && (!data.exists() || auth != null || newData.val() == data.val())"
         },
         "timestamp": {
           ".validate": "newData.isNumber() && (!data.exists() || auth != null || newData.val() == data.val())"
@@ -162,7 +162,7 @@
           ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() ? newData.val() == 0 : (auth != null || (data.isNumber() && newData.val() >= data.val() - 1 && newData.val() <= data.val() + 1)))"
         },
         "deleted": {
-          ".validate": "newData.isBoolean()"
+          ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null || newData.val() == data.val()))"
         },
         "pinned": {
           ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null || newData.val() == data.val()))"
@@ -191,7 +191,7 @@
             ".validate": "newData.isString() && (auth != null ? newData.val().length <= 64 : newData.val().matches(/^[a-f0-9]{64}$/)) && (!data.exists() || auth != null || newData.val() == data.val())"
           },
           "content": {
-            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000"
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000 && (!data.exists() || auth != null || newData.val() == data.val())"
           },
           "timestamp": {
             ".validate": "newData.isNumber() && (!data.exists() || auth != null || newData.val() == data.val())"
@@ -203,7 +203,7 @@
             ".validate": "newData.isBoolean() && (!data.exists() ? (auth != null || newData.val() == false) : (auth != null || newData.val() == data.val()))"
           },
           "deleted": {
-            ".validate": "newData.isBoolean()"
+            ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null || newData.val() == data.val()))"
           },
           "editedAt": {
             ".validate": "!newData.exists() || newData.isNumber()"

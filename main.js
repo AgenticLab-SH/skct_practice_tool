@@ -204,6 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const advancedToggle = document.getElementById('advancedToggle');
     const advancedFeatureModal = document.getElementById('advancedFeatureModal');
     const advancedStatsDownloadBtn = document.getElementById('advancedStatsDownloadBtn');
+    const advancedStatsCsvBtn = document.getElementById('advancedStatsCsvBtn');
+    const advancedStatsCsvImportBtn = document.getElementById('advancedStatsCsvImportBtn');
+    const advancedStatsCsvFileInput = document.getElementById('advancedStatsCsvFileInput');
     const advancedToolsStatus = document.getElementById('advancedToolsStatus');
     const advancedFeatureManualFlowBtn = document.getElementById('advancedFeatureManualFlowBtn');
     const advancedFeatureDonateLink = document.getElementById('advancedFeatureDonateLink');
@@ -2380,6 +2383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const omrModeHint = document.getElementById('omrModeHint');
     const bulkCorrectImportBtn = document.getElementById('bulkCorrectImportBtn');
     let advancedScoringActionsUnlocked = false;
+    let currentStatRoundId = null;
 
     const updateModeUI = () => {
         const showAdvancedScoringActions = Boolean(
@@ -2413,6 +2417,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (advancedStatsDownloadBtn) {
             advancedStatsDownloadBtn.classList.toggle('hidden', !showAdvancedScoringActions);
+        }
+        if (advancedStatsCsvBtn) {
+            advancedStatsCsvBtn.classList.toggle('hidden', !showAdvancedScoringActions);
+        }
+        if (advancedStatsCsvImportBtn) {
+            advancedStatsCsvImportBtn.classList.toggle('hidden', !showAdvancedScoringActions);
         }
         if (bulkCorrectImportBtn) {
             bulkCorrectImportBtn.classList.toggle('hidden', !showAdvancedScoringActions);
@@ -2455,6 +2465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 omrState.mode = 'answer';
                 advancedScoringActionsUnlocked = false;
+                currentStatRoundId = null;
                 updateModeUI();
                 renderOMR();
             }
@@ -2916,6 +2927,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const model = updateScoreSummaryPanel();
+        recordCurrentStatRound(model);
         trackAnalyticsEvent('result_view', {
             practice_mode: isPracticeMode ? 'practice' : 'exam',
             advanced_mode: isAdvancedMode ? 'yes' : 'no',
@@ -2988,6 +3000,267 @@ document.addEventListener('DOMContentLoaded', () => {
         anchor.click();
         anchor.remove();
         setTimeout(() => URL.revokeObjectURL(url), 0);
+    };
+
+    // ===== 회차 누적 통계 + CSV 내보내기/불러오기 =====
+    const STAT_ROUNDS_STORAGE_KEY = 'skct_stat_rounds';
+    const STAT_ROUNDS_MAX = 200;
+    const CSV_DETAIL_HEADER = ['회차ID', '채점시각', '모드', '영역', '문항번호', '입력답', '정답', '결과', '소요시간(초)', '정답여부'];
+
+    const readStatRounds = () => {
+        const stored = readJsonStorage(localStorage, STAT_ROUNDS_STORAGE_KEY);
+        return Array.isArray(stored) ? stored : [];
+    };
+    const writeStatRounds = (rounds) => {
+        try {
+            const trimmed = rounds.slice(-STAT_ROUNDS_MAX);
+            writeJsonStorage(localStorage, STAT_ROUNDS_STORAGE_KEY, trimmed);
+        } catch (error) {
+            /* 저장 용량 초과 등은 조용히 무시 (통계는 보조 기능) */
+        }
+    };
+
+    const buildStatRoundRecord = (model) => {
+        const id = currentStatRoundId || `R-${Date.now().toString(36).toUpperCase()}`;
+        currentStatRoundId = id;
+        return {
+            id,
+            ts: new Date().toISOString(),
+            mode: isPracticeMode ? 'practice' : 'exam',
+            treatSkippedAsWrong: model.treatSkippedAsWrong,
+            overall: { ...model.overall },
+            subjects: model.subjectRows.map((row) => ({
+                id: row.id,
+                name: row.name,
+                ...row.summary
+            })),
+            items: model.questionItems.map((item) => ({
+                subjId: item.subjId,
+                subjName: item.subjName,
+                num: item.num,
+                myAnswer: item.myAnswer,
+                correctAnswer: item.correctAnswer,
+                resultKey: item.resultKey,
+                resultLabel: item.resultLabel,
+                spent: item.spent,
+                correct: item.correct
+            }))
+        };
+    };
+
+    // 채점할 때마다 현재 세션의 회차 기록을 저장/갱신한다.
+    // 같은 미채점 세션 안에서 재채점하면 같은 회차ID로 덮어쓰고,
+    // 답안 마킹으로 돌아가면(currentStatRoundId 초기화) 다음 채점은 새 회차가 된다.
+    const recordCurrentStatRound = (model) => {
+        const usableModel = model || collectDetailedStatsModel();
+        if (!usableModel.overall || usableModel.overall.attempted <= 0) return;
+        const record = buildStatRoundRecord(usableModel);
+        const rounds = readStatRounds();
+        const existingIdx = rounds.findIndex((r) => r && r.id === record.id);
+        if (existingIdx >= 0) {
+            rounds[existingIdx] = record;
+        } else {
+            rounds.push(record);
+        }
+        writeStatRounds(rounds);
+    };
+
+    const csvEscape = (value) => {
+        const text = value == null ? '' : String(value);
+        return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const csvRow = (cells) => cells.map(csvEscape).join(',');
+
+    const buildStatRoundsCsv = (rounds) => {
+        const lines = [];
+        // 사람이 읽는 영역별 누적 요약 (파서는 #로 시작하는 행을 건너뜀)
+        lines.push('# SKCT 연습 통계 누적 (영역별 정답률 요약)');
+        lines.push(`# 생성: ${new Date().toLocaleString('ko-KR')} / 총 ${rounds.length}회차`);
+        const subjAgg = {};
+        rounds.forEach((round) => {
+            (round.subjects || []).forEach((subj) => {
+                if (!subjAgg[subj.id]) {
+                    subjAgg[subj.id] = { name: subj.name, correct: 0, attempted: 0, total: 0 };
+                }
+                subjAgg[subj.id].correct += Number(subj.correct) || 0;
+                subjAgg[subj.id].attempted += Number(subj.attempted) || 0;
+                subjAgg[subj.id].total += Number(subj.total) || 0;
+            });
+        });
+        lines.push('# 영역,누적정답,누적응답,누적전체,정답률(응답대비%),정답률(전체대비%)');
+        Object.values(subjAgg).forEach((agg) => {
+            const aRate = agg.attempted > 0 ? ((agg.correct / agg.attempted) * 100).toFixed(1) : '0';
+            const oRate = agg.total > 0 ? ((agg.correct / agg.total) * 100).toFixed(1) : '0';
+            lines.push(`# ${agg.name},${agg.correct},${agg.attempted},${agg.total},${aRate},${oRate}`);
+        });
+        lines.push('#');
+        // 기계 판독용 문항 단위 상세 (재업로드 시 이 테이블만 파싱)
+        lines.push(csvRow(CSV_DETAIL_HEADER));
+        rounds.forEach((round) => {
+            (round.items || []).forEach((item) => {
+                lines.push(csvRow([
+                    round.id,
+                    round.ts,
+                    round.mode === 'practice' ? '연습' : '실전',
+                    item.subjName,
+                    item.num,
+                    item.myAnswer == null ? '' : item.myAnswer,
+                    item.correctAnswer == null ? '' : item.correctAnswer,
+                    item.resultLabel,
+                    item.spent > 0 ? item.spent : '',
+                    item.correct ? 1 : 0
+                ]));
+            });
+        });
+        return lines.join('\r\n');
+    };
+
+    const downloadStatRoundsCsv = () => {
+        recordCurrentStatRound();
+        const rounds = readStatRounds();
+        if (!rounds.length) {
+            return { ok: false, message: '아직 저장된 회차가 없습니다. 먼저 채점을 진행해주세요.' };
+        }
+        const csv = buildStatRoundsCsv(rounds);
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
+        anchor.href = url;
+        anchor.download = `skct-stats-rounds-${stamp}.csv`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+        return { ok: true, message: `누적 ${rounds.length}회차를 CSV로 내보냈습니다.` };
+    };
+
+    // CSV 한 줄을 셀 배열로 분해 (따옴표 이스케이프 처리)
+    const parseCsvLine = (line) => {
+        const cells = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (inQuotes) {
+                if (ch === '"') {
+                    if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; }
+                } else {
+                    cur += ch;
+                }
+            } else if (ch === '"') {
+                inQuotes = true;
+            } else if (ch === ',') {
+                cells.push(cur); cur = '';
+            } else {
+                cur += ch;
+            }
+        }
+        cells.push(cur);
+        return cells;
+    };
+
+    const subjectNameToId = (name) => {
+        const match = subjects.find((s) => s.name === String(name).trim());
+        return match ? match.id : null;
+    };
+
+    // 내보낸 CSV를 다시 읽어 회차 기록으로 복원 (재업로드 누적용)
+    const parseStatRoundsCsv = (text) => {
+        const clean = String(text || '').replace(/^\uFEFF/, '');
+        const rawLines = clean.split(/\r\n|\n|\r/);
+        const dataLines = rawLines.filter((l) => l.trim() && !l.startsWith('#'));
+        if (!dataLines.length) return [];
+        const header = parseCsvLine(dataLines[0]).map((c) => c.trim());
+        if (header[0] !== CSV_DETAIL_HEADER[0]) return [];
+        const idx = {
+            id: 0, ts: 1, mode: 2, subj: 3, num: 4,
+            my: 5, correct: 6, result: 7, spent: 8, isCorrect: 9
+        };
+        const roundsMap = new Map();
+        for (let i = 1; i < dataLines.length; i++) {
+            const cells = parseCsvLine(dataLines[i]);
+            if (cells.length < CSV_DETAIL_HEADER.length) continue;
+            const id = cells[idx.id].trim();
+            if (!id) continue;
+            if (!roundsMap.has(id)) {
+                roundsMap.set(id, {
+                    id,
+                    ts: cells[idx.ts].trim() || new Date().toISOString(),
+                    mode: cells[idx.mode].trim() === '실전' ? 'exam' : 'practice',
+                    treatSkippedAsWrong: false,
+                    items: []
+                });
+            }
+            const round = roundsMap.get(id);
+            const subjName = cells[idx.subj].trim();
+            round.items.push({
+                subjId: subjectNameToId(subjName),
+                subjName,
+                num: Number(cells[idx.num]) || 0,
+                myAnswer: cells[idx.my].trim() || null,
+                correctAnswer: cells[idx.correct].trim() || null,
+                resultKey: '',
+                resultLabel: cells[idx.result].trim(),
+                spent: Number(cells[idx.spent]) || 0,
+                correct: cells[idx.isCorrect].trim() === '1'
+            });
+        }
+        // 영역별/전체 요약을 항목에서 재계산
+        return Array.from(roundsMap.values()).map((round) => {
+            const subjMap = {};
+            let oc = 0, oa = 0, ot = 0;
+            round.items.forEach((it) => {
+                const sid = it.subjId || it.subjName;
+                if (!subjMap[sid]) subjMap[sid] = { id: it.subjId, name: it.subjName, correct: 0, attempted: 0, total: 0 };
+                subjMap[sid].total += 1; ot += 1;
+                if (it.myAnswer != null && it.myAnswer !== '') { subjMap[sid].attempted += 1; oa += 1; }
+                if (it.correct) { subjMap[sid].correct += 1; oc += 1; }
+            });
+            const subjectsArr = Object.values(subjMap).map((s) => ({
+                ...s,
+                attemptedRate: s.attempted > 0 ? (s.correct / s.attempted) * 100 : 0,
+                overallRate: s.total > 0 ? (s.correct / s.total) * 100 : 0
+            }));
+            return {
+                ...round,
+                subjects: subjectsArr,
+                overall: {
+                    total: ot, attempted: oa, correct: oc,
+                    skipped: 0, unanswered: 0, wrong: oa - oc,
+                    attemptedRate: oa > 0 ? (oc / oa) * 100 : 0,
+                    overallRate: ot > 0 ? (oc / ot) * 100 : 0
+                }
+            };
+        });
+    };
+
+    // 재업로드한 회차를 기존 기록에 병합 (같은 회차ID는 덮어쓰지 않고 보존)
+    const importStatRoundsCsv = (text) => {
+        const incoming = parseStatRoundsCsv(text);
+        if (!incoming.length) {
+            return { ok: false, added: 0, message: 'CSV에서 회차 데이터를 찾지 못했습니다. 이 도구가 내보낸 CSV인지 확인해주세요.' };
+        }
+        const existing = readStatRounds();
+        const existingIds = new Set(existing.map((r) => r && r.id));
+        let added = 0;
+        incoming.forEach((round) => {
+            if (!existingIds.has(round.id)) {
+                existing.push(round);
+                existingIds.add(round.id);
+                added += 1;
+            }
+        });
+        existing.sort((a, b) => String(a.ts).localeCompare(String(b.ts)));
+        writeStatRounds(existing);
+        return {
+            ok: true,
+            added,
+            total: existing.length,
+            message: added > 0
+                ? `${added}개 회차를 누적했습니다. (총 ${existing.length}회차)`
+                : `새로 추가된 회차가 없습니다. (이미 누적됨, 총 ${existing.length}회차)`
+        };
     };
 
     const openDetailedStatsModal = () => {
@@ -3343,6 +3616,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 omrState.mode = 'answer';
                 advancedScoringActionsUnlocked = false;
                 questionTimings = {};
+                currentStatRoundId = null;
                 questionSpentSec = 0;
                 lockedSubjectIndices.clear(); // 잠금 해제
                 updateModeUI();
@@ -4303,6 +4577,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+    const setAdvancedToolsStatus = (message) => {
+        if (!advancedToolsStatus) return;
+        advancedToolsStatus.textContent = message;
+        advancedToolsStatus.classList.toggle('hidden', !message);
+    };
+    if (advancedStatsCsvBtn) {
+        advancedStatsCsvBtn.addEventListener('click', () => {
+            const result = downloadStatRoundsCsv();
+            setAdvancedToolsStatus(result.message);
+        });
+    }
+    if (advancedStatsCsvImportBtn && advancedStatsCsvFileInput) {
+        advancedStatsCsvImportBtn.addEventListener('click', () => {
+            advancedStatsCsvFileInput.value = '';
+            advancedStatsCsvFileInput.click();
+        });
+        advancedStatsCsvFileInput.addEventListener('change', () => {
+            const file = advancedStatsCsvFileInput.files && advancedStatsCsvFileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const result = importStatRoundsCsv(String(reader.result || ''));
+                    setAdvancedToolsStatus(result.message);
+                } catch (error) {
+                    setAdvancedToolsStatus('CSV를 읽는 중 오류가 발생했습니다. 파일 형식을 확인해주세요.');
+                }
+            };
+            reader.onerror = () => setAdvancedToolsStatus('파일을 읽지 못했습니다. 다시 시도해주세요.');
+            reader.readAsText(file, 'utf-8');
+        });
+    }
     if (manualSubscriptionSubmitBtn) {
         manualSubscriptionSubmitBtn.addEventListener('click', submitManualSubscriptionRequest);
     }
@@ -4414,6 +4720,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         buildDetailedStatsText() {
             return buildDetailedStatsText();
+        }
+        ,
+        downloadStatRoundsCsv() {
+            return downloadStatRoundsCsv();
+        },
+        importStatRoundsCsv(text) {
+            return importStatRoundsCsv(text);
         }
     };
 

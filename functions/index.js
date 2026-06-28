@@ -1,9 +1,11 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const { onValueCreated } = require("firebase-functions/v2/database");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
 const issuerCore = require("./issuer-core.js");
+const crypto = require("crypto");
 
 initializeApp();
 
@@ -78,6 +80,32 @@ function isSafeNumber(value) {
 function isShortString(value, maxLength = 256) {
     const normalized = String(value || "");
     return normalized.length > 0 && normalized.length <= maxLength;
+}
+
+function sha256Hex(value) {
+    return crypto.createHash("sha256").update(String(value || ""), "utf8").digest("hex");
+}
+
+// 타이밍 공격 완화를 위한 상수시간 hex 비교
+function safeHexEqual(a, b) {
+    const bufA = Buffer.from(String(a || ""), "utf8");
+    const bufB = Buffer.from(String(b || ""), "utf8");
+    if (bufA.length !== bufB.length) return false;
+    try {
+        return crypto.timingSafeEqual(bufA, bufB);
+    } catch (error) {
+        return false;
+    }
+}
+
+function isPostId(value) {
+    // RTDB push 키(-로 시작, 20자) 또는 영숫자 키 허용
+    return /^[A-Za-z0-9_-]{1,64}$/.test(String(value || "").trim());
+}
+
+function isCommunityContent(value) {
+    const normalized = String(value || "");
+    return normalized.trim().length > 0 && normalized.length <= 1000;
 }
 
 function toAdvancedLoginIdKey(value) {
@@ -265,6 +293,86 @@ exports.skctSecureApi = onRequest(async (req, res) => {
             return;
         }
 
+        // =====================================================================
+        // 커뮤니티 익명 글/댓글 수정·삭제 (서버측 비밀번호 검증)
+        // 클라이언트에서만 비번을 보던 과거 구조는 우회 가능했음.
+        // 이제 평문 비번을 HTTPS로 받아 서버가 저장된 해시와 대조한 뒤에만 쓰기.
+        // =====================================================================
+        if (route === "/community/post/edit" || route === "/community/post/delete"
+            || route === "/community/reply/edit" || route === "/community/reply/delete") {
+            if (isRateLimited("community/mutate", clientAddress, 30, 10 * 60 * 1000)) {
+                sendJson(res, 429, { ok: false, errorMessage: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
+                return;
+            }
+
+            const postId = String(body.postId || "").trim();
+            const password = String(body.password || "");
+            if (!isPostId(postId)) {
+                sendJson(res, 400, { ok: false, errorMessage: "게시글 ID 형식이 올바르지 않습니다." });
+                return;
+            }
+            if (!password) {
+                sendJson(res, 400, { ok: false, errorMessage: "비밀번호가 필요합니다." });
+                return;
+            }
+
+            const isReply = route.startsWith("/community/reply/");
+            const isEdit = route.endsWith("/edit");
+
+            let targetPath;
+            if (isReply) {
+                const replyId = String(body.replyId || "").trim();
+                if (!isPostId(replyId)) {
+                    sendJson(res, 400, { ok: false, errorMessage: "댓글 ID 형식이 올바르지 않습니다." });
+                    return;
+                }
+                targetPath = `replies/${postId}/${replyId}`;
+            } else {
+                targetPath = `posts/${postId}`;
+            }
+
+            const targetRef = db.ref(targetPath);
+            const snap = await targetRef.get();
+            if (!snap.exists()) {
+                sendJson(res, 404, { ok: false, errorMessage: "대상을 찾지 못했습니다." });
+                return;
+            }
+            const current = snap.val() || {};
+            if (current.deleted === true) {
+                sendJson(res, 410, { ok: false, errorMessage: "이미 삭제된 글입니다." });
+                return;
+            }
+
+            // 관리자 답변/관리자 작성 글은 익명 비번 경로로 수정·삭제 불가
+            if (current.isAdmin === true || !isHex64(current.passwordHash)) {
+                sendJson(res, 403, { ok: false, errorMessage: "이 글은 비밀번호로 수정·삭제할 수 없습니다." });
+                return;
+            }
+            if (!safeHexEqual(sha256Hex(password), current.passwordHash)) {
+                sendJson(res, 403, { ok: false, errorMessage: "비밀번호가 일치하지 않습니다." });
+                return;
+            }
+
+            if (isEdit) {
+                const newContent = String(body.content || "");
+                if (!isCommunityContent(newContent)) {
+                    sendJson(res, 400, { ok: false, errorMessage: "내용은 1~1000자여야 합니다." });
+                    return;
+                }
+                await targetRef.update({ content: newContent.trim(), editedAt: Date.now() });
+                sendJson(res, 200, { ok: true, action: "edit" });
+                return;
+            }
+
+            // soft delete
+            await targetRef.update({ deleted: true, deletedAt: Date.now() });
+            if (isReply) {
+                await db.ref(`posts/${postId}/replyCount`).transaction((c) => Math.max((c || 0) - 1, 0));
+            }
+            sendJson(res, 200, { ok: true, action: "delete" });
+            return;
+        }
+
         sendJson(res, 404, { ok: false, errorMessage: "지원하지 않는 경로입니다." });
     } catch (error) {
         console.error("[skctSecureApi]", route, error);
@@ -442,5 +550,43 @@ exports.telegramApprovalWebhook = onRequest(
             console.error("[telegramApprovalWebhook] 오류:", error.message);
             res.status(200).send("ok"); // 텔레그램 재시도 폭주 방지
         }
+    }
+);
+
+// =============================================================================
+// stale active_visitors 세션 정리 (예약 함수)
+// =============================================================================
+// 비정상 종료(탭 강제 종료/네트워크 끊김) 시 onDisconnect 가 동작하지 못하면
+// active_visitors/<sessionId> 노드가 남는다. 표시 카운트는 클라이언트가
+// 150초 신선도로 거르므로 영향 없지만, 노드가 무한 누적되면 읽기 비용/DB 가
+// 커진다. 24시간(86400000ms)보다 오래된 하트비트를 주기적으로 제거한다.
+exports.cleanupStaleVisitors = onSchedule(
+    { schedule: "every 6 hours", timeZone: "Asia/Seoul", region: "us-central1" },
+    async () => {
+        const STALE_MS = 24 * 60 * 60 * 1000; // 24시간
+        const cutoff = Date.now() - STALE_MS;
+        const ref = db.ref("active_visitors");
+        const snap = await ref.get();
+        if (!snap.exists()) {
+            console.log("[cleanupStaleVisitors] active_visitors 비어 있음");
+            return;
+        }
+        const updates = {};
+        let removed = 0;
+        let kept = 0;
+        snap.forEach((child) => {
+            const value = child.val();
+            // 숫자(타임스탬프)가 아니거나 cutoff 보다 오래된 노드는 제거
+            if (typeof value !== "number" || value < cutoff) {
+                updates[child.key] = null;
+                removed += 1;
+            } else {
+                kept += 1;
+            }
+        });
+        if (removed > 0) {
+            await ref.update(updates);
+        }
+        console.log(`[cleanupStaleVisitors] 제거 ${removed}건 / 유지 ${kept}건`);
     }
 );
