@@ -1,0 +1,25 @@
+# SKCT 온라인 연습 도구
+
+> SK그룹 인적성검사(SKCT)를 실전 환경으로 연습하는 무료 웹 도구. 실전형 OMR 답안지, 다중 페이즈 타이머, 메모장, 그림판, 화면 계산기, 자동 채점/통계를 제공한다. 설치 없이 브라우저에서 바로 사용한다.
+
+## 개요
+
+- 사이트: https://skct.agenticfabworks.com
+- 대상: SKCT(SK그룹 종합역량검사) 응시 준비생
+- 핵심 기능: 연습용 OMR, 영역별·다중 페이즈 타이머, 문항별 시간 측정, 자동 채점, 과목별 상세 통계, 통계 CSV 내보내기/회차 누적, 메모장, 그림판, 화면 계산기
+- 평가 영역: 언어이해, 자료해석, 창의수리, 언어추리, 수열추리
+- 비용: 무료(일부 고급 기능은 별도)
+
+## 주요 페이지
+
+- [메인 연습 도구](https://skct.agenticfabworks.com/): OMR·타이머·채점·도구 통합 화면
+- [사용 가이드](https://skct.agenticfabworks.com/guide/): SKCT 인지영역별 연습법과 시간배분 전략
+- [자주 묻는 질문](https://skct.agenticfabworks.com/faq/): 사용법·기능 관련 FAQ
+- [요금 안내](https://skct.agenticfabworks.com/pricing/): 무료/고급 기능 안내
+- [개인정보 처리 안내](https://skct.agenticfabworks.com/privacy/)
+- [이용 약관](https://skct.agenticfabworks.com/terms/)
+
+## 참고
+
+- SKCT는 SK그룹 계열사 채용에서 쓰이는 인적성검사다.
+- 이 도구는 실제 시험 문항을 제공하지 않고, 시험과 동일한 응시 환경(답안 마킹·시간 제한·채점)을 연습용으로 재현한다.
