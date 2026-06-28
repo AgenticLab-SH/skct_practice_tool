@@ -1315,12 +1315,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let advancedUserMessageShown = false;
+    function showAdvancedUserMessageModal(text) {
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+        const box = document.createElement('div');
+        box.style.cssText = 'max-width:420px;width:100%;background:#fff;border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+        const title = document.createElement('div');
+        title.textContent = '📩 안내 메시지';
+        title.style.cssText = 'font-weight:800;font-size:16px;color:#0f172a;margin-bottom:10px;';
+        const body = document.createElement('div');
+        body.textContent = text;
+        body.style.cssText = 'white-space:pre-wrap;line-height:1.6;color:#334155;font-size:14px;';
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = '확인';
+        btn.style.cssText = 'margin-top:16px;width:100%;padding:10px;border:none;border-radius:8px;background:#0f766e;color:#fff;font-weight:700;cursor:pointer;';
+        btn.addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        box.appendChild(title); box.appendChild(body); box.appendChild(btn);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    }
+
+    // 고급 로그인 사용자에게 운영자가 보낸 개별 안내 메시지를 1회 표시(보조 기능, 실패해도 무시)
+    async function maybeShowAdvancedUserMessage() {
+        if (advancedUserMessageShown) return;
+        try {
+            const loginId = verifiedAdvancedLicenseBundle?.payload?.loginId || '';
+            const key = getAdvancedLoginIdKey(loginId);
+            if (!key) return;
+            const res = await fetch(`${FIREBASE_RTDB_BASE_URL}/advancedUserMessages/${encodeURIComponent(key)}.json`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data || !data.text) return;
+            const stamp = Number(data.updatedAt || data.createdAt || 0);
+            const seenKey = `skct_adv_msg_seen_${key}`;
+            const seen = Number(localStorage.getItem(seenKey) || 0);
+            if (stamp && stamp <= seen) return; // 이미 본 메시지
+            advancedUserMessageShown = true;
+            showAdvancedUserMessageModal(String(data.text));
+            try { localStorage.setItem(seenKey, String(stamp || Date.now())); } catch (e) { /* noop */ }
+        } catch (e) { /* 보조 기능 */ }
+    }
+
     function setAdvancedModeState(nextValue) {
         isAdvancedMode = nextValue === true;
         runtimeFlags.advanced = isAdvancedMode;
         document.body.classList.toggle('advanced-mode', isAdvancedMode);
         if (isAdvancedMode) {
             document.getElementById('donateToggle')?.classList.remove('attention-active');
+            maybeShowAdvancedUserMessage();
         }
         document.title = isAdvancedMode
             ? `${document.title.replace(' | 고급버전', '')} | 고급버전`

@@ -115,6 +115,14 @@
         ".write": "auth != null"
       }
     },
+    "advancedUserMessages": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$loginIdKey": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
     "userStudyLibrary": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",

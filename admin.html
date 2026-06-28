@@ -327,7 +327,7 @@
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
                             <strong style="display:block; color:#0f172a;">만료일</strong>
-                            선택한 날짜의 정오 12:00(KST)까지 사용할 수 있습니다. 비워두면 영구이용권으로 저장됩니다.
+                            선택한 날짜의 자정(밤 12시, 그날 끝)까지 사용할 수 있습니다. 비워두면 영구이용권으로 저장됩니다.
                         </div>
                     </div>
                     <div id="advancedSubscriptionSummary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:10px;">
@@ -352,6 +352,17 @@
                     </div>
                     <div id="advancedFeatureSaveStatus" style="margin-top:10px; min-height:18px; font-size:11px; color:var(--adm-text-muted); line-height:1.6;">
                         고급 구독 내역은 관리자만 보고 저장할 수 있습니다. 행을 수정한 뒤 저장 버튼을 누르면 Firebase에 반영됩니다.
+                    </div>
+                    <div style="margin-top:16px; padding:12px; border:1px solid #e2e8f0; border-radius:8px; background:#fff;">
+                        <div style="font-weight:700; color:#0f172a; margin-bottom:6px;">📩 개별 사용자 메시지 보내기</div>
+                        <div style="font-size:11px; color:#64748b; margin-bottom:8px; line-height:1.6;">로그인 ID(이메일 또는 ID)를 입력하면, 그 사용자가 고급 모드로 로그인할 때 안내 메시지를 1회 봅니다. 같은 사용자에게 다시 보내면 새 메시지로 갱신됩니다.</div>
+                        <input id="userMessageLoginId" class="form-input" placeholder="대상 로그인 ID (예: user@example.com)" style="margin-bottom:6px;">
+                        <textarea id="userMessageText" class="form-textarea" rows="4" placeholder="보낼 메시지 내용" style="margin-bottom:6px;"></textarea>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <button id="userMessageSendBtn" type="button" class="btn btn-primary btn-sm" style="padding:6px 12px; font-size:12px;">메시지 저장/발송</button>
+                            <button id="userMessageClearBtn" type="button" class="btn btn-ghost btn-sm" style="padding:6px 12px; font-size:12px;">메시지 삭제</button>
+                        </div>
+                        <div id="userMessageStatus" style="margin-top:8px; font-size:11px; min-height:16px; color:#64748b; line-height:1.6;"></div>
                     </div>
                 </div>
                 <div class="form-group" id="manualSubscriptionGroup" style="margin-bottom: 20px;">
@@ -863,6 +874,39 @@
 
     async function adminRemoveValue(path, options = {}) {
         return runAdminDatabaseWrite(() => remove(buildDbRef(path)), options);
+    }
+
+    async function sendUserMessage() {
+        const status = document.getElementById('userMessageStatus');
+        const loginId = (document.getElementById('userMessageLoginId').value || '').trim();
+        const text = (document.getElementById('userMessageText').value || '').trim();
+        const key = getAdvancedLoginIdKey(loginId);
+        if (!key) { status.style.color = '#b91c1c'; status.textContent = '대상 로그인 ID를 입력하세요.'; return; }
+        if (!text) { status.style.color = '#b91c1c'; status.textContent = '메시지 내용을 입력하세요.'; return; }
+        try {
+            const now = Date.now();
+            await adminSetValue(`advancedUserMessages/${key}`, { text, createdAt: now, updatedAt: now });
+            status.style.color = '#0f766e';
+            status.textContent = `저장 완료: ${loginId} 사용자가 다음 고급 로그인 시 메시지를 봅니다.`;
+        } catch (e) {
+            status.style.color = '#b91c1c';
+            status.textContent = '저장 실패: ' + (e.message || e);
+        }
+    }
+
+    async function clearUserMessage() {
+        const status = document.getElementById('userMessageStatus');
+        const loginId = (document.getElementById('userMessageLoginId').value || '').trim();
+        const key = getAdvancedLoginIdKey(loginId);
+        if (!key) { status.style.color = '#b91c1c'; status.textContent = '대상 로그인 ID를 입력하세요.'; return; }
+        try {
+            await adminRemoveValue(`advancedUserMessages/${key}`);
+            status.style.color = '#0f766e';
+            status.textContent = `삭제 완료: ${loginId} 의 메시지를 제거했습니다.`;
+        } catch (e) {
+            status.style.color = '#b91c1c';
+            status.textContent = '삭제 실패: ' + (e.message || e);
+        }
     }
 
     async function adminRunTransactionValue(path, updater, options = {}) {
@@ -3968,6 +4012,8 @@
     document.getElementById('siteTextPromoteDefaultsBtn').addEventListener('click', () => promoteCodeDefaultsToAdminBaseline());
     document.getElementById('sponsorsSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveSponsors(false), '후원 내역 저장'));
     document.getElementById('manualSubscriptionSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveManualSubscriptionSettings(false), '수동 구독 설정 저장'));
+    document.getElementById('userMessageSendBtn').addEventListener('click', sendUserMessage);
+    document.getElementById('userMessageClearBtn').addEventListener('click', clearUserMessage);
     document.getElementById('advancedFeatureSaveBtn').addEventListener('click', saveAdvancedSubscriptions);
     document.getElementById('manualSubscriptionBackupBtn').addEventListener('click', downloadManualSubscriptionBackup);
     document.getElementById('manualSubscriptionBackupUploadInput').addEventListener('change', async (event) => {
