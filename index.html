@@ -21,6 +21,21 @@
     <meta name="twitter:description" content="실전 SKCT 환경 완벽 구현! OMR, 타이머, 메모장, 계산기를 무료로 사용해보세요.">
     <meta name="twitter:image" content="https://agenticlab-sh.github.io/skct_practice_tool/images/og-image.png">
     <link rel="canonical" href="https://agenticlab-sh.github.io/skct_practice_tool/">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "SKCT 온라인 연습 도구",
+      "url": "https://agenticlab-sh.github.io/skct_practice_tool/",
+      "description": "SKCT(SK 인적성 검사) 실전 환경을 재현한 무료 온라인 연습 도구. 연습용 OMR, 다중 페이즈 타이머, 메모장, 그림판, 화면 계산기, 자동 채점/통계를 제공합니다.",
+      "applicationCategory": "EducationalApplication",
+      "operatingSystem": "Web",
+      "inLanguage": "ko",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "KRW" },
+      "publisher": { "@type": "Organization", "name": "AgenticLab" }
+    }
+    </script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZLHB1RM91X"></script>
     <script>
@@ -1019,10 +1034,10 @@
         onValue(connectedRef, (snap) => {
             if (snap.val() === true) {
                 onDisconnect(myConnectionsRef).remove().catch(e => {});
-                set(myConnectionsRef, serverTimestamp());
+                set(myConnectionsRef, serverTimestamp()).catch(e => {});
                 if (heartbeatInterval) clearInterval(heartbeatInterval);
                 heartbeatInterval = setInterval(() => {
-                    set(myConnectionsRef, serverTimestamp());
+                    set(myConnectionsRef, serverTimestamp()).catch(e => {});
                 }, 60000); // 60초마다 하트비트 전송
                 setTimeout(() => {
                     updateConcurrentPeakSnapshot();
@@ -1064,11 +1079,11 @@
 
             // daily_visits/{today} +1
             const dailyRef = ref(db, 'daily_visits/' + today);
-            runTransaction(dailyRef, (current) => (current || 0) + 1);
+            runTransaction(dailyRef, (current) => (current || 0) + 1).catch(e => {});
 
             // total_visits +1
             const totalRef = ref(db, 'total_visits');
-            runTransaction(totalRef, (current) => (current || 0) + 1);
+            runTransaction(totalRef, (current) => (current || 0) + 1).catch(e => {});
         })();
 
         // ============================================

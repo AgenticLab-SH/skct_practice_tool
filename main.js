@@ -857,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Layout Ratios Settings
     const savedRatios = (!isAdminPreviewMode && !isPopupMode)
-        ? (JSON.parse(localStorage.getItem('skct_layout_ratios')) || DEFAULT_LAYOUT_RATIOS)
+        ? (readJsonStorage(localStorage, 'skct_layout_ratios') || DEFAULT_LAYOUT_RATIOS)
         : DEFAULT_LAYOUT_RATIOS;
     const savedToolUiConfig = (!isAdminPreviewMode && !isPopupMode)
         ? (readToolUiConfigFromStorage() || DEFAULT_TOOL_UI_CONFIG)
@@ -3620,8 +3620,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Keyboard Support
     window.addEventListener('keydown', (e) => {
-        // Prevent if user is typing in notepad or timer
-        if (document.activeElement === notepad || document.activeElement.tagName === 'INPUT') {
+        // Prevent if user is typing in notepad or any input/textarea/select/editable
+        const ae = document.activeElement;
+        if (ae === notepad || ae?.tagName === 'INPUT' || ae?.tagName === 'TEXTAREA' || ae?.tagName === 'SELECT' || ae?.isContentEditable) {
             return;
         }
 
@@ -3687,7 +3688,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let savedTimerCfg = null;
     if (!isAdminPreviewMode) {
-        savedTimerCfg = JSON.parse(localStorage.getItem('skct_timer_cfg'));
+        savedTimerCfg = readJsonStorage(localStorage, 'skct_timer_cfg');
         if (isLegacyDefaultTimerConfig(savedTimerCfg)) {
             localStorage.removeItem('skct_timer_cfg');
             savedTimerCfg = null;

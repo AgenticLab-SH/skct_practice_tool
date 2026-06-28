@@ -1,3 +1,8 @@
+User-agent: Yeti
+Allow: /
+Disallow: /admin.html
+Disallow: /admin.css
+
 User-agent: *
 Allow: /
 Disallow: /admin.html

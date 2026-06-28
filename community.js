@@ -103,71 +103,101 @@ async function createPost(category, nickname, password, content) {
     const lastPost = parseInt(localStorage.getItem('skct_last_post') || '0');
     if (Date.now() - lastPost < 30000) { alert('30초 후에 다시 작성할 수 있습니다.'); return; }
     saveNick(nickname);
-    await set(push(ref(db, 'posts')), {
-        category, nickname, passwordHash: await sha256(password),
-        content: content.trim(), timestamp: Date.now(),
-        likes: 0, replyCount: 0, deleted: false, pinned: false
-    });
-    localStorage.setItem('skct_last_post', Date.now());
-    await loadPostsOnce();
+    try {
+        await set(push(ref(db, 'posts')), {
+            category, nickname, passwordHash: await sha256(password),
+            content: content.trim(), timestamp: Date.now(),
+            likes: 0, replyCount: 0, deleted: false, pinned: false
+        });
+        localStorage.setItem('skct_last_post', Date.now());
+        await loadPostsOnce();
+    } catch (e) {
+        alert('글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
 }
 
 async function editPost(pid, newContent, password) {
     const p = allPosts[pid]; if (!p) return false;
+    if (!newContent || !newContent.trim()) { alert('내용을 입력해주세요.'); return false; }
+    if (newContent.length > 1000) { alert('1000자 이내로 작성해주세요.'); return false; }
     if (!isAdmin && (await sha256(password)) !== p.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return false; }
-    await update(ref(db, `posts/${pid}`), { content: newContent.trim(), editedAt: Date.now() });
-    await loadPostsOnce();
-    return true;
+    try {
+        await update(ref(db, `posts/${pid}`), { content: newContent.trim(), editedAt: Date.now() });
+        await loadPostsOnce();
+        return true;
+    } catch (e) { alert('수정에 실패했습니다. 잠시 후 다시 시도해주세요.'); return false; }
 }
 
 async function softDeletePost(pid, password) {
     const p = allPosts[pid]; if (!p) return;
     if (!isAdmin && (await sha256(password)) !== p.passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
-    await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
-    await loadPostsOnce();
+    try {
+        await update(ref(db, `posts/${pid}`), { deleted: true, deletedAt: Date.now() });
+        await loadPostsOnce();
+    } catch (e) { alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'); }
 }
 
 async function toggleLike(pid) {
     const p = allPosts[pid]; if (!p) return;
     const likedRef = ref(db, `userLikes/${sessionId}/${pid}`);
     const likesRef = ref(db, `posts/${pid}/likes`);
-    
-    // Optistic update
-    if (p.likedByMe) {
-        p.likedByMe = false; p.likes = Math.max((p.likes||0)-1, 0);
-        await set(likedRef, null); await runTransaction(likesRef, c => Math.max((c||0)-1, 0));
-    } else {
-        p.likedByMe = true; p.likes = (p.likes||0)+1;
-        await set(likedRef, true); await runTransaction(likesRef, c => (c||0)+1);
-    }
+    const prevLiked = p.likedByMe, prevLikes = p.likes || 0;
+
+    // Optimistic update
+    if (prevLiked) { p.likedByMe = false; p.likes = Math.max(prevLikes - 1, 0); }
+    else { p.likedByMe = true; p.likes = prevLikes + 1; }
     renderTab();
+
+    try {
+        if (prevLiked) { await set(likedRef, null); await runTransaction(likesRef, c => Math.max((c||0)-1, 0)); }
+        else { await set(likedRef, true); await runTransaction(likesRef, c => (c||0)+1); }
+    } catch (e) {
+        // 실패 시 화면-DB 불일치 방지를 위해 롤백
+        p.likedByMe = prevLiked; p.likes = prevLikes;
+        renderTab();
+        alert('좋아요 처리에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
 }
 
 // ── Replies CRUD ──
 async function createReply(pid, nickname, password, content) {
     if (!nickname || !password || !content.trim()) { alert('닉네임, 비밀번호, 내용을 모두 입력해주세요.'); return; }
+    if (content.length > 1000) { alert('1000자 이내로 작성해주세요.'); return; }
+    const lastReply = parseInt(localStorage.getItem('skct_last_reply') || '0');
+    if (Date.now() - lastReply < 10000) { alert('10초 후에 다시 작성할 수 있습니다.'); return; }
     saveNick(nickname);
-    await set(push(ref(db, `replies/${pid}`)), {
-        nickname, passwordHash: await sha256(password), content: content.trim(),
-        timestamp: Date.now(), isAdmin: false, pinned: false, deleted: false
-    });
-    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c||0)+1);
-    delete replyCache[pid];
+    try {
+        await set(push(ref(db, `replies/${pid}`)), {
+            nickname, passwordHash: await sha256(password), content: content.trim(),
+            timestamp: Date.now(), isAdmin: false, pinned: false, deleted: false
+        });
+        await runTransaction(ref(db, `posts/${pid}/replyCount`), c => (c||0)+1);
+        localStorage.setItem('skct_last_reply', Date.now());
+        delete replyCache[pid];
+    } catch (e) {
+        alert('답글 작성에 실패했습니다. 잠시 후 다시 시도해주세요.');
+    }
 }
 
 async function editReply(pid, rid, newContent, password) {
     const s = await get(ref(db, `replies/${pid}/${rid}`)); if (!s.exists()) return false;
+    if (!newContent || !newContent.trim()) { alert('내용을 입력해주세요.'); return false; }
+    if (newContent.length > 1000) { alert('1000자 이내로 작성해주세요.'); return false; }
     if (!isAdmin && (await sha256(password)) !== s.val().passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return false; }
-    await update(ref(db, `replies/${pid}/${rid}`), { content: newContent.trim(), editedAt: Date.now() }); 
-    delete replyCache[pid]; return true;
+    try {
+        await update(ref(db, `replies/${pid}/${rid}`), { content: newContent.trim(), editedAt: Date.now() });
+        delete replyCache[pid]; return true;
+    } catch (e) { alert('수정에 실패했습니다.'); return false; }
 }
 
 async function softDeleteReply(pid, rid, password) {
     const s = await get(ref(db, `replies/${pid}/${rid}`)); if (!s.exists()) return;
     if (!isAdmin && (await sha256(password)) !== s.val().passwordHash) { alert('비밀번호가 일치하지 않습니다.'); return; }
-    await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
-    await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c||0)-1, 0));
-    delete replyCache[pid];
+    try {
+        await update(ref(db, `replies/${pid}/${rid}`), { deleted: true, deletedAt: Date.now() });
+        await runTransaction(ref(db, `posts/${pid}/replyCount`), c => Math.max((c||0)-1, 0));
+        delete replyCache[pid];
+    } catch (e) { alert('삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'); }
 }
 
 async function adminMoveToFaq(pid) { if (!isAdmin) return; await update(ref(db, `posts/${pid}`), { category: 'faq' }); }
