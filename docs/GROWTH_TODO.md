@@ -5,6 +5,25 @@
 
 > 구분: [나-코드]=코드/배포로 내가 처리 가능 / [너-계정]=네 계정·심사 필요 / [선택]=optional
 
+## 0. 신규 사이트 런칭 (2026-06-29 완료)
+
+- [x] [나-코드] 루트 허브 `agenticfabworks.com` 제작·배포 (repo: agenticfabworks_hub) — HTTPS 200, AdSense 스니펫+ads.txt+GA
+- [x] [나-코드] 도구 모음 `tools.agenticfabworks.com` 제작·배포 (repo: agenticfabworks_tools)
+- [x] [나-코드] 연봉 실수령액 계산기 `tools.../salary/` (Node 값검증 완료)
+- [x] [나-코드] D-Day 계산기 `tools.../dday/`
+- [x] [나-코드] 허브에 AdSense 루트 확인용 콘텐츠+스니펫 → AdSense "사이트 확인" 재시도 가능 상태
+- [ ] [너-계정] AdSense 사이트 확인 재요청(이제 루트 콘텐츠 있음) + 심사
+- [ ] [너-계정] Search Console: `agenticfabworks.com`·`tools.agenticfabworks.com` 속성 추가 + sitemap 제출
+      (도메인 속성이면 `agenticfabworks.com` 하나로 전부 커버. sitemap: 각 `/sitemap.xml`)
+- [ ] [너-계정] 네이버: 두 사이트 등록 + 소유확인(메타값 hub index에 포함) + sitemap 제출
+- [x] [나-스킬] 전 과정 자동화 스킬 `web-service-launch-monetize` 생성 (~/.codex/skills)
+
+## 0-1. SKCT 좌측 패널·고급기능 개선 (대형, 다음 작업)
+
+- [ ] [나-코드] 좌측 패널 정리: 미완성/중복/비일관 UI 점검 후 정돈 (디자인·형식 유지, 내부만)
+- [ ] [나-코드] 고급 구독 기능 미구현 항목 전수 점검·완성
+- 원칙: `backup-20260629-045539-pre-optimize` 태그 존재. 작업 전 새 백업 → 브랜치 → 로컬검증 → 승인 후 운영.
+
 ---
 
 ## 1. 광고 (AdSense)
