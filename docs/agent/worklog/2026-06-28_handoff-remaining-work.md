@@ -111,6 +111,61 @@ OUTPUT_FILE: C:\Users\kshcg\dev\projects\03_commercialization_products\11_skct_p
 
 ---
 
+## 추가 작업 (2026-06-29 세션4 — 커스텀 도메인 컷오버 + 광고 준비, 전 과정 위임 수행)
+
+요청: 도메인(agenticfabworks.com) 구매 완료. 서브도메인 방식 추천대로 진행 + 광고 등 원래 하기로 한 것 전부. 웹 조작으로 알아서. 사용자 필수 항목만 남기기.
+
+### 채택 구조
+- 우산 도메인 + 서브도메인: SKCT = `https://skct.agenticfabworks.com`. 루트 `agenticfabworks.com`은 향후 브랜드/다른 서비스용으로 보존.
+
+### 1) Cloudflare DNS (API MCP 사용)
+- 처음엔 CDP(Whale)로 DNS UI 자동조작 시도 → React 커스텀 select/input이라 값 주입 불안정.
+  사용자가 추가해준 **cloudflare-api MCP**로 전환 → 가장 안정적.
+- zone `agenticfabworks.com` = `1eaafbfb000b171f279eddd66fa56ee2` (기존 DNS 레코드 0개 확인).
+- CNAME 생성: `skct` → `agenticlab-sh.github.io`, **proxied=false(DNS only)**, ttl auto.
+  (GitHub Pages는 Cloudflare 프록시 켜면 깨지므로 DNS only 필수.) 생성 성공 검증.
+
+### 2) 코드 전수 URL 교체 (배포 대상만)
+- `agenticlab-sh.github.io/skct_practice_tool` → `https://skct.agenticfabworks.com` (하위경로 제거, 루트화):
+  index.html(canonical/og:url/og:image/twitter:image/JSON-LD), sitemap.xml(6곳), robots.txt(sitemap),
+  faq/guide/pricing/privacy/terms canonical, bypass.html iframe, chrome-extension manifest+popup.
+- **미배포 미러(artifacts/releases/public-clean/**), scripts, AGENTS.md, README/docs(.md)는 의도적으로 미변경**(배포 제외 + 일관성 영향 없음).
+- functions CORS `ALLOWED_ORIGIN_PATTERNS`에 `^https://([a-z0-9-]+\.)*agenticfabworks\.com$` 추가(기존 github.io도 전환기 동안 유지).
+- repo 루트 `CNAME` 파일 생성(`skct.agenticfabworks.com`) — deploy-pages.yml rsync가 *.md만 제외하므로 CNAME은 정상 배포됨.
+
+### 3) AdSense 준비 (privacy)
+- `privacy/index.html`에 "광고 및 쿠키" + "맞춤 광고 거부"(Google Ads Settings, aboutads.info, Google 광고정책 링크) 섹션 추가.
+- 집중화면(OMR/타이머/풀이) 광고 배제 원칙 명시 유지.
+
+### 4) 배포 (사용자 승인 위임 하에 운영 반영)
+- functions+database 배포: skctSecureApi/notify/telegramApproval/cleanupStaleVisitors 전부 update 성공, 규칙 release 성공.
+  (Cloud Scheduler/Run/Eventarc/Pubsub API 활성화 확인.)
+- 프론트 커밋 `4e30e5d` → main push → GitHub Actions success.
+- GitHub Pages 커스텀 도메인 설정(`gh api PUT .../pages cname=skct.agenticfabworks.com`) → cname 등록, 인증서 발급 후 `https_enforced=true`.
+
+### 5) 라이브 검증 (모두 통과)
+- DNS: `skct.agenticfabworks.com` CNAME → agenticlab-sh.github.io 정상 resolve.
+- HTTP 200, **HTTPS 200**(인증서 발급 완료), len ~89KB.
+- 라이브 canonical = 새 도메인 / 옛 하위경로 잔존 없음.
+- 보안 API health 200 + 새 오리진 CORS 허용(ACAO=`https://skct.agenticfabworks.com`).
+- Whale 실브라우저: 새 도메인 https 로드, 콘솔에러 0, 핵심 UI(scoreBtn/cmModal/CSV버튼) 정상.
+
+### ⚠️ 사용자 필수(내가 못 하는 것) — 남은 항목
+1. **AdSense 가입 + 구글 심사**: 게시자 ID(ca-pub-...)는 사용자 계정 심사로만 발급. 그게 있어야:
+   - 루트에 `ads.txt`(`google.com, pub-XXXX, DIRECT, f08c47fec0942fa0`) 추가
+   - 비집중 페이지(가이드/FAQ/결과/대기)에 `<ins class="adsbygoogle">` 슬롯 삽입
+   → ID 받으면 알려주면 내가 코드로 마무리. (가짜 ID로 미리 넣으면 정책위반/역효과라 의도적으로 보류.)
+2. **네이버 서치어드바이저**: 사이트 등록 → 소유확인 → sitemap(`https://skct.agenticfabworks.com/sitemap.xml`) 제출 → 수집요청.
+   index.html의 naver-site-verification 메타는 그대로 있음(소유확인에 사용). 로그인이 사용자 계정이라 위임 불가.
+
+### 참고
+- 기존 `agenticlab-sh.github.io/skct_practice_tool/`도 당분간 살아있음(점진 전환). 추후 안정화되면 옛 주소 정리/리다이렉트 고려 가능.
+- 옛 주소로 색인됐던 게 없으니(네이버 404 이슈가 원인) 중복색인 리스크는 낮음.
+
+OUTPUT_FILE: C:\Users\kshcg\dev\projects\03_commercialization_products\11_skct_practice_tool\docs\agent\worklog\2026-06-28_handoff-remaining-work.md
+
+---
+
 ## 추가 작업 (2026-06-29 세션3 — 보류항목 #2 커뮤니티 보호 + #5 세션 청소)
 
 요청: 보류 항목 중 #2(크더라도 제대로), #5(문제없게)를 구현. #1(타이머)·#3(자료실 서버검증)은 사용자 이해 보류, #4(OMR 렌더)는 효용 낮아 미착수.
