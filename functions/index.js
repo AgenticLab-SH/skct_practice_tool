@@ -6,6 +6,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
 const issuerCore = require("./issuer-core.js");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 initializeApp();
 
@@ -398,6 +399,16 @@ const TELEGRAM_WEBHOOK_SECRET = defineSecret("TELEGRAM_WEBHOOK_SECRET");
 const ADMIN_RSA_PRIVATE_KEY = defineSecret("ADMIN_RSA_PRIVATE_KEY");
 const LICENSE_SIGNING_PRIVATE_KEY = defineSecret("LICENSE_SIGNING_PRIVATE_KEY");
 
+// --- 이메일 알림 시크릿 ------------------------------------------------------
+// 구독 신청 시 텔레그램과 병행으로 운영자 메일함에도 알림을 보낸다.
+// Gmail SMTP + 앱 비밀번호 사용. 시크릿 미설정 시 메일은 조용히 건너뛴다.
+//   firebase functions:secrets:set EMAIL_USER          (보내는 Gmail 주소)
+//   firebase functions:secrets:set EMAIL_APP_PASSWORD  (Gmail 앱 비밀번호 16자)
+const EMAIL_USER = defineSecret("EMAIL_USER");
+const EMAIL_APP_PASSWORD = defineSecret("EMAIL_APP_PASSWORD");
+// 알림 수신 주소(운영자 메일함). 고정값.
+const NOTIFY_EMAIL_TO = "zhdlsqpdj@gmail.com";
+
 // --- Telegram API helpers ---------------------------------------------------
 async function tg(token, method, payload) {
     const resp = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
@@ -423,38 +434,85 @@ function buildRequestNotifyText(requestId, r) {
     ].join("\n");
 }
 
+// --- 이메일 알림 helper -----------------------------------------------------
+// 텔레그램과 병행으로 운영자 메일함에 신규 신청 알림을 보낸다.
+// 민감정보(실명/이메일 전체/ID/비밀번호)는 보내지 않고 마스크 필드만 담는다.
+async function sendSubscriptionEmail(requestId, r) {
+    const user = EMAIL_USER.value();
+    const pass = EMAIL_APP_PASSWORD.value();
+    if (!user || !pass) {
+        console.warn("[sendSubscriptionEmail] 이메일 시크릿 미설정 - 메일 건너뜀");
+        return;
+    }
+    const created = r.createdAt
+        ? new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16) + " UTC"
+        : "-";
+    const planText = r.planLabel || r.planCode || "?";
+    const requesterText = `${r.requesterMask || "?"} / ${r.emailMask || "?"}`;
+    const lines = [
+        "새 고급 구독 신청이 들어왔습니다.",
+        "",
+        `신청번호: ${requestId}`,
+        `플랜: ${planText}`,
+        `신청자(마스크): ${requesterText}`,
+        `시각: ${created}`,
+        "",
+        "승인/거절은 텔레그램 알림의 버튼으로 처리하세요. (후원 확인 후 승인)"
+    ];
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user, pass }
+    });
+    await transporter.sendMail({
+        from: `"SKCT 구독 알림" <${user}>`,
+        to: NOTIFY_EMAIL_TO,
+        subject: `[SKCT] 새 고급 구독 신청 (${planText})`,
+        text: lines.join("\n")
+    });
+    console.log("[sendSubscriptionEmail] 메일 전송 완료:", requestId);
+}
+
 exports.notifyNewSubscriptionRequest = onValueCreated(
     {
         ref: "/subscriptionRequests/{requestId}",
         instance: "skct-tool-default-rtdb",
-        secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID]
+        secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, EMAIL_USER, EMAIL_APP_PASSWORD]
     },
     async (event) => {
+        const r = (event.data && event.data.val()) || {};
+        const requestId = event.params.requestId;
+        // 자동 생성된 테스트/내부 항목이 아닌 실제 pending 신청만 알림
+        if (String(r.status || "") !== "pending") return;
+
+        // 텔레그램 알림 (승인/거절 버튼 포함)
         try {
             const token = TELEGRAM_BOT_TOKEN.value();
             const chatId = TELEGRAM_CHAT_ID.value();
             if (!token || !chatId) {
                 console.warn("[notifyNewSubscriptionRequest] 텔레그램 시크릿 미설정 - 알림 건너뜀");
-                return;
+            } else {
+                await tg(token, "sendMessage", {
+                    chat_id: chatId,
+                    text: buildRequestNotifyText(requestId, r),
+                    disable_web_page_preview: true,
+                    reply_markup: {
+                        inline_keyboard: [[
+                            { text: "✅ 승인", callback_data: `approve:${requestId}` },
+                            { text: "❌ 거절", callback_data: `reject:${requestId}` }
+                        ]]
+                    }
+                });
+                console.log("[notifyNewSubscriptionRequest] 텔레그램 알림 전송 완료:", requestId);
             }
-            const r = (event.data && event.data.val()) || {};
-            const requestId = event.params.requestId;
-            // 자동 생성된 테스트/내부 항목이 아닌 실제 pending 신청만 알림
-            if (String(r.status || "") !== "pending") return;
-            await tg(token, "sendMessage", {
-                chat_id: chatId,
-                text: buildRequestNotifyText(requestId, r),
-                disable_web_page_preview: true,
-                reply_markup: {
-                    inline_keyboard: [[
-                        { text: "✅ 승인", callback_data: `approve:${requestId}` },
-                        { text: "❌ 거절", callback_data: `reject:${requestId}` }
-                    ]]
-                }
-            });
-            console.log("[notifyNewSubscriptionRequest] 알림 전송 완료:", requestId);
         } catch (error) {
-            console.error("[notifyNewSubscriptionRequest] 오류:", error.message);
+            console.error("[notifyNewSubscriptionRequest] 텔레그램 오류:", error.message);
+        }
+
+        // 이메일 알림 (텔레그램과 독립적으로 시도)
+        try {
+            await sendSubscriptionEmail(requestId, r);
+        } catch (error) {
+            console.error("[notifyNewSubscriptionRequest] 이메일 오류:", error.message);
         }
     }
 );
