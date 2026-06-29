@@ -63,3 +63,21 @@ AGENTS.md에 따라 운영 반영(Functions 배포)은 승인 전까지 보류. 
 ## 미적용/주의
 - 운영 Functions 배포는 사용자 승인 후 진행.
 - untracked 파일(scripts/oci/, 일부 worklog)은 이번 작업과 무관해 손대지 않음.
+
+## 추가 진행 (사용자 승인 후, 운영 반영 완료)
+사용자가 zhdlsqpdj@gmail.com + 앱 비밀번호(16자)를 전달하고 "알아서 다 해둬" 승인.
+
+- 앱 비밀번호 검증: nodemailer verify -> VERIFY_OK. 자기 자신에게 테스트 메일 발송 -> SEND_OK.
+  (최초 전달한 일반 계정 비밀번호는 534-5.7.9 Application-specific password required 로 거부됨 -> 앱 비밀번호로 교체)
+- Firebase 시크릿 설정(프로젝트 skct-tool, 로그인 kshcgd28@gmail.com):
+  - EMAIL_USER = zhdlsqpdj@gmail.com (version 1)
+  - EMAIL_APP_PASSWORD = (앱 비밀번호, version 1)
+- firebase deploy --only functions 성공. 4개 함수 모두 update 성공:
+  skctSecureApi / notifyNewSubscriptionRequest / telegramApprovalWebhook / cleanupStaleVisitors.
+  notifyNewSubscriptionRequest 에 EMAIL_USER/EMAIL_APP_PASSWORD secretAccessor 권한 부여 확인.
+- 결과: 이후 새 고급 구독 신청 시 텔레그램 + 운영자 메일함 둘 다 알림이 감.
+
+## skct_tool 저장소 결정
+삭제하지 않고 유지. 옛 주소(agenticlab-sh.github.io/skct_tool/)로 들어오는 사용자가 있을 수 있고,
+저장소를 지우면 GitHub Pages가 죽어 리다이렉트가 사라져 404가 됨. 리다이렉트 타겟을 운영 도메인으로
+고쳐 살려두는 편이 안전. 무료 public이라 유지 비용 없음.
