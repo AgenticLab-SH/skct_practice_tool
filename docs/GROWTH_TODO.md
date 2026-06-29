@@ -5,6 +5,23 @@
 
 > 구분: [나-코드]=코드/배포로 내가 처리 가능 / [너-계정]=네 계정·심사 필요 / [선택]=optional
 
+## 0-A. 도구 사이트 확장 + SEO 강화 (2026-06-29 완료)
+
+- [x] [나-코드] tools 6종 라이브: 연봉 실수령액 / D-Day / 만 나이 / 글자수 세기 / 주식 평단가 / 복리 (전부 값검증)
+- [x] [나-코드] 자동광고 전환: 무효 `data-ad-slot="auto"` 수동블록 제거 → AdSense 자동광고(head 스니펫) 기반
+- [x] [나-코드] 제목 40자 이내(네이버 권고), FAQPage + ItemList + WebApplication 구조화 데이터, favicon
+- [x] [나-코드] sitemap/랜딩/허브 카드 6종 동기화, 9개 URL 라이브 200 검증
+- [ ] [너-계정] 승인 후 AdSense 대시보드에서 자동광고 ON (집중화면 배제는 거기서 토글)
+- [ ] [너-계정] 새 도구 URL 네이버 수집요청(`/average/`, `/compound/` 추가분)
+
+## 0-B. dev/projects 상업화 폴더 평가 (2026-06-29)
+
+세 폴더 조사 결과: 대부분 **서버·DB·결제·인증이 필요한 SaaS형**이라 "정적 + AdSense" 모델과 안 맞고, 하룻밤 자율 배포 위험. 별도 인프라 작업(서버/도메인/결제)으로 분리 필요.
+- `02_trading_automation`: 실거래·키움 자격증명 대형 백엔드 → 정적화 불가. (영감 → 금융 계산기로 전환: 평단가·복리 추가함)
+- `01_YoutubePlaylistsManager`: 백엔드+private 데이터 앱 → 정적화 불가.
+- `03/오르다·biz_diagnostic·grant_matcher·invest_intel`: SaaS형(결제·DB·구독) → 별도 풀배포 프로젝트.
+- 채택 전략: 각 도메인에서 **검색량 크고 정적 완결되는 계산기**를 tools에 계속 추가(현재 6종). 다음 후보: 대출이자(DSR)·부가세·환율·전세대출·퇴직금 계산기.
+
 ## 0. 신규 사이트 런칭 (2026-06-29 완료)
 
 - [x] [나-코드] 루트 허브 `agenticfabworks.com` 제작·배포 (repo: agenticfabworks_hub) — HTTPS 200, AdSense 스니펫+ads.txt+GA
