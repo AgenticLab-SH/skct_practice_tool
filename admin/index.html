@@ -304,6 +304,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
                         <label style="margin:0;">🔒 고급 구독 내역</label>
                         <div style="display:flex; gap:8px;">
+                            <button class="btn btn-ghost btn-sm" id="advancedSubscriptionPlaintextMigrateBtn" type="button" style="padding:4px 10px; font-size:11px;">기존 비밀번호 보강 저장</button>
                             <button class="btn btn-ghost btn-sm" id="advancedSubscriptionAddBtn" type="button" style="padding:4px 10px; font-size:11px;">+ 구독 추가</button>
                             <button class="btn btn-primary btn-sm" id="advancedFeatureSaveBtn" type="button" style="padding:4px 10px; font-size:11px;">고급 구독 저장</button>
                         </div>
@@ -322,7 +323,7 @@
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
                             <strong style="display:block; color:#0f172a;">비밀번호</strong>
-                            저장하면 로그인 검증용 해시와 관리자 확인용 암호문을 함께 갱신합니다. 비워두면 기존 비밀번호를 유지합니다.
+                            관리자 화면에서는 평문으로 봅니다. 신청번호가 연결된 기존 계정은 보강 저장 버튼으로 평문 저장까지 한 번에 처리할 수 있습니다.
                         </div>
                         <div style="padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; font-size:11px; line-height:1.7; color:#334155;">
                             <strong style="display:block; color:#0f172a;">만료일</strong>
@@ -331,6 +332,11 @@
                     </div>
                     <div id="advancedSubscriptionSummary" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-bottom:10px;">
                         <div style="padding:10px 12px; border-radius:8px; background:#eff6ff; border:1px solid #dbeafe; font-size:12px; color:#1e3a8a;">구독 현황을 계산하는 중...</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
+                        <div style="font-size:11px; color:#334155; font-weight:700;">예전 관리자 비밀번호</div>
+                        <input id="legacyAdminPasswordInput" class="form-input" type="password" placeholder="예전 ID/PW 관리자 로그인 때 쓴 비밀번호" style="width:280px; max-width:100%;">
+                        <div style="font-size:11px; color:#64748b; line-height:1.6;">입력 후 `기존 비밀번호 보강 저장`을 누르면 신청번호가 없는 예전 암호문도 복구를 시도합니다.</div>
                     </div>
                     <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc;">
                         <table style="width:100%; min-width:1180px; border-collapse:collapse; font-size:12px;">
@@ -368,122 +374,115 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
                         <label style="margin:0;">🧾 수동 구독 신청 관리</label>
                         <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionBackupBtn" type="button" style="padding:4px 10px; font-size:11px;">전체 백업 다운로드</button>
-                            <label class="btn btn-ghost btn-sm" for="manualSubscriptionBackupUploadInput" style="padding:4px 10px; font-size:11px; cursor:pointer;">백업 업로드</label>
                             <input id="manualSubscriptionBackupUploadInput" type="file" accept=".json,application/json" style="display:none;">
                             <button class="btn btn-primary btn-sm" id="manualSubscriptionSaveBtn" type="button" style="padding:4px 10px; font-size:11px;">💾 신청 설정 저장</button>
                         </div>
                     </div>
-                    <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.7;">
-                        일반 사용자의 신청 상태 확인은 <strong>신청 이메일 + 조회 비밀번호</strong>로 진행되고, 승인 후 고급 로그인은 <strong>신청 이메일 또는 로그인 ID + 비밀번호</strong>로 진행됩니다. 신청 양식은 <strong>후원 닉네임 / 구독권 / 원하는 이용 시작일 / 로그인 ID / 비밀번호 / 닉네임 / 알림 이메일</strong> 기준으로 저장되며, 신청 본문은 브라우저에서 암호화됩니다. 운영자는 <strong>관리자 전용 개인키</strong>가 있어야 전체 비밀글을 열람할 수 있습니다.
+                    <div class="admin-flow-note">
+                        <strong>처리 순서</strong>
+                        <span>신청 목록에 ID, 비밀번호, 알림 이메일이 바로 표시됩니다. 내용을 확인한 뒤 <b>승인 후 라이선스 발급</b>을 누릅니다. Google 관리자 로그인 상태면 폰에서도 같은 방식으로 처리됩니다.</span>
                     </div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:12px;">
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">투네이션 링크</div>
-                            <input id="manualSubscriptionDonationUrl" type="text" class="form-input" placeholder="https://toon.at/donate/...">
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">문의 이메일</div>
-                            <input id="manualSubscriptionSupportEmail" type="text" class="form-input" placeholder="example@example.com">
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">보안 API 기본 URL</div>
-                            <input id="manualSubscriptionSecureApiBaseUrl" type="text" class="form-input" placeholder="https://REGION-PROJECT.cloudfunctions.net/skctSecureApi">
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">3일권 가격</div>
-                            <input id="manualSubscriptionPrice3d" type="number" class="form-input" min="1000" step="100">
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">7일권 가격</div>
-                            <input id="manualSubscriptionPrice7d" type="number" class="form-input" min="1000" step="100">
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">14일권 가격</div>
-                            <input id="manualSubscriptionPrice14d" type="number" class="form-input" min="1000" step="100">
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">30일권 가격</div>
-                            <input id="manualSubscriptionPrice30d" type="number" class="form-input" min="1000" step="100">
-                        </div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                    <div class="manual-subscription-status-row">
                         <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#334155; cursor:pointer;">
                             <input id="manualSubscriptionEnabled" type="checkbox">
                             수동 신청 열기
                         </label>
                         <div id="manualSubscriptionConfigStatus" style="font-size:11px; color:var(--adm-text-muted);"></div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; padding:10px 12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
-                        <div id="localAdminKeyBridgeStatus" style="font-size:11px; color:#475569; line-height:1.7;">
-                            권장 경로는 <strong>`<프로젝트>\apps\skct_practice_tool\private\keys`</strong> (이 PC 기준 <code>C:\Users\kshcg\dev\projects\03_commercialization_products\11_skct_practice_tool\private\keys</code>) 입니다. 프로젝트 내부에 두면 외부 에이전트 폴더 재설치에 영향받지 않고, <code>.gitignore</code>로 GitHub 푸시도 차단됩니다. 먼저 <strong>키 폴더 연결</strong>을 한 번 해두면 다음부터 자동으로 읽습니다.
-                        </div>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionLinkLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">키 폴더 연결</button>
-                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionForgetLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">폴더 연결 해제</button>
-                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionAutoLoadLocalKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">개발용 로컬 브리지</button>
-                        </div>
-                    </div>
-                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; margin-bottom:12px;">
-                        <div style="padding:12px; border-radius:8px; background:#fff7ed; border:1px solid #fed7aa;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                                <div style="font-size:12px; font-weight:700; color:#9a3412;">신청 복호화 키</div>
-                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionDownloadPrivateKeyBtn" type="button" style="padding:4px 10px; font-size:11px;">개인키 다운로드</button>
-                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionGenerateKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">새 키 생성</button>
-                                </div>
-                            </div>
-                            <div id="manualSubscriptionPublicKeyStatus" style="font-size:11px; color:#9a3412; line-height:1.7; margin-bottom:8px;">
-                                아직 신청 암호화 공개키가 없습니다.
-                            </div>
-                            <textarea id="manualSubscriptionPrivateKeyArea" class="form-textarea" rows="5" placeholder="신청 복호화용 개인키를 여기에 붙여넣거나 새로 생성하세요. 브라우저에 자동 저장하지 않습니다."></textarea>
-                            <div style="font-size:11px; color:#9a3412; line-height:1.7; margin-top:6px;">
-                                이 키는 신청 본문 복호화 전용입니다. <strong>개인키를 잃어버리면 기존 신청 본문을 열 수 없습니다.</strong>
-                            </div>
-                        </div>
-                        <div style="padding:12px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                                <div style="font-size:12px; font-weight:700; color:#1d4ed8;">라이선스 서명 키</div>
-                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionDownloadLicensePrivateKeyBtn" type="button" style="padding:4px 10px; font-size:11px;">서명키 다운로드</button>
-                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionGenerateLicenseKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">서명키 생성</button>
-                                </div>
-                            </div>
-                            <div id="manualSubscriptionLicensePublicKeyStatus" style="font-size:11px; color:#1d4ed8; line-height:1.7; margin-bottom:8px;">
-                                아직 라이선스 검증 공개키가 없습니다.
-                            </div>
-                            <textarea id="manualSubscriptionLicensePrivateKeyArea" class="form-textarea" rows="5" placeholder="라이선스 서명용 개인키를 여기에 붙여넣거나 새로 생성하세요. 브라우저에 자동 저장하지 않습니다."></textarea>
-                            <div style="font-size:11px; color:#1e40af; line-height:1.7; margin-top:6px;">
-                                이 키는 고급 라이선스 발급 전용입니다. 공개 페이지에는 검증용 공개키만 저장되고, 발급 권한은 이 개인키가 가진 사람만 가집니다.
-                            </div>
-                        </div>
-                    </div>
-                    <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; margin-bottom:12px; font-size:11px; color:#334155; line-height:1.8;">
-                        <strong style="display:block; color:#0f172a; margin-bottom:4px;">어떤 키를 넣어야 하는지</strong>
-                        <strong>신청 복호화 키</strong>: 사용자가 보낸 신청 본문을 읽을 때 쓰는 개인키입니다. 기존 신청을 계속 열려면 예전 키를 유지해야 합니다.<br>
-                        <strong>라이선스 서명 키</strong>: 승인 순간 고급 라이선스에 전자서명을 넣는 개인키입니다. 공개 페이지에는 이 키의 <strong>검증용 공개키</strong>만 저장됩니다.<br>
-                        현재 이 PC의 표준 저장 위치는 <strong>`<프로젝트>\apps\skct_practice_tool\private\keys\skct-manual-subscription-private-key.pem`</strong> 과 <strong>`<프로젝트>\apps\skct_practice_tool\private\keys\skct-manual-license-signing-private-key.pem`</strong> 입니다 (절대경로: <code>C:\Users\kshcg\dev\projects\03_commercialization_products\11_skct_practice_tool\private\keys\</code>). 프로젝트 내부 + <code>.gitignore</code> 보호.<br>
-                        <strong>새 키 생성</strong>은 앞으로 들어올 신청/새 승인부터 새 키 체계를 쓰겠다는 뜻입니다. 예전 신청이나 예전 승인과는 바로 이어지지 않으니, 특별한 이유가 없으면 기존 키를 유지하는 편이 안전합니다.
-                    </div>
-                    <div style="padding:12px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; margin-bottom:12px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-                            <div style="font-size:12px; font-weight:700; color:#1d4ed8;">로컬 백업 복원</div>
-                            <button class="btn btn-primary btn-sm" id="manualSubscriptionBackupRestoreBtn" type="button" style="padding:4px 10px; font-size:11px;" disabled>업로드한 백업으로 복원</button>
-                        </div>
-                        <div id="manualSubscriptionBackupPreview" style="font-size:11px; color:#1e40af; line-height:1.7;">
-                            아직 업로드한 백업 파일이 없습니다.
-                        </div>
-                        <div style="font-size:11px; color:#475569; line-height:1.7; margin-top:8px;">
-                            복원 버튼을 누르면 <strong>현재 DB 전체 상태를 먼저 로컬 JSON으로 자동 다운로드</strong>한 뒤, 업로드한 백업 내용으로 덮어씁니다.
-                        </div>
-                    </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
-                        <div style="font-size:12px; font-weight:700; color:#0f172a;">신청 목록</div>
+                        <div style="font-size:12px; font-weight:700; color:#0f172a;">승인 대기 목록</div>
                         <button class="btn btn-ghost btn-sm" id="manualSubscriptionRequestRefreshBtn" type="button" style="padding:4px 10px; font-size:11px;">새로고침</button>
                     </div>
-                    <div id="manualSubscriptionRequestContainer" style="display:flex; flex-direction:column; gap:10px; max-height:540px; overflow-y:auto; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px;">
+                    <div id="manualSubscriptionRequestContainer" class="manual-request-container">
                         <div style="font-size:12px; color:#64748b; text-align:center; padding:16px;">신청 목록을 불러오는 중...</div>
                     </div>
+                    <details class="admin-advanced-settings" id="manualSubscriptionAdvancedSettings">
+                        <summary>
+                            <span>요금, 키, 백업 설정</span>
+                            <small>평소 승인 처리에는 거의 열 필요가 없습니다.</small>
+                        </summary>
+                        <div class="admin-advanced-settings-body">
+                            <div class="manual-admin-grid">
+                                <div class="manual-admin-field">
+                                    <div>투네이션 링크</div>
+                                    <input id="manualSubscriptionDonationUrl" type="text" class="form-input" placeholder="https://toon.at/donate/...">
+                                </div>
+                                <div class="manual-admin-field">
+                                    <div>문의 이메일</div>
+                                    <input id="manualSubscriptionSupportEmail" type="text" class="form-input" placeholder="example@example.com">
+                                </div>
+                                <div class="manual-admin-field">
+                                    <div>보안 API 기본 URL</div>
+                                    <input id="manualSubscriptionSecureApiBaseUrl" type="text" class="form-input" placeholder="https://REGION-PROJECT.cloudfunctions.net/skctSecureApi">
+                                </div>
+                                <div class="manual-admin-field">
+                                    <div>3일권 가격</div>
+                                    <input id="manualSubscriptionPrice3d" type="number" class="form-input" min="1000" step="100">
+                                </div>
+                                <div class="manual-admin-field">
+                                    <div>7일권 가격</div>
+                                    <input id="manualSubscriptionPrice7d" type="number" class="form-input" min="1000" step="100">
+                                </div>
+                                <div class="manual-admin-field">
+                                    <div>14일권 가격</div>
+                                    <input id="manualSubscriptionPrice14d" type="number" class="form-input" min="1000" step="100">
+                                </div>
+                                <div class="manual-admin-field">
+                                    <div>30일권 가격</div>
+                                    <input id="manualSubscriptionPrice30d" type="number" class="form-input" min="1000" step="100">
+                                </div>
+                            </div>
+                            <div class="manual-key-tools">
+                                <div id="localAdminKeyBridgeStatus" style="font-size:11px; color:#475569; line-height:1.7;">
+                                    로컬 개인키가 필요할 때만 연결합니다. 폰이나 외부 브라우저에서는 Google 관리자 세션으로 서버 복호화를 사용합니다.
+                                </div>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionLinkLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">키 폴더 연결</button>
+                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionForgetLocalKeyDirBtn" type="button" style="padding:4px 10px; font-size:11px;">폴더 연결 해제</button>
+                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionAutoLoadLocalKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">개발용 로컬 브리지</button>
+                                </div>
+                            </div>
+                            <div class="manual-key-grid">
+                                <div class="manual-key-card warning">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                                        <div style="font-size:12px; font-weight:700; color:#9a3412;">신청 복호화 키</div>
+                                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionDownloadPrivateKeyBtn" type="button" style="padding:4px 10px; font-size:11px;">개인키 다운로드</button>
+                                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionGenerateKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">새 키 생성</button>
+                                        </div>
+                                    </div>
+                                    <div id="manualSubscriptionPublicKeyStatus" style="font-size:11px; color:#9a3412; line-height:1.7; margin-bottom:8px;">
+                                        아직 신청 암호화 공개키가 없습니다.
+                                    </div>
+                                    <textarea id="manualSubscriptionPrivateKeyArea" class="form-textarea" rows="5" placeholder="로컬에서 직접 복호화할 때만 붙여넣습니다."></textarea>
+                                </div>
+                                <div class="manual-key-card info">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+                                        <div style="font-size:12px; font-weight:700; color:#1d4ed8;">라이선스 서명 키</div>
+                                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionDownloadLicensePrivateKeyBtn" type="button" style="padding:4px 10px; font-size:11px;">서명키 다운로드</button>
+                                            <button class="btn btn-ghost btn-sm" id="manualSubscriptionGenerateLicenseKeysBtn" type="button" style="padding:4px 10px; font-size:11px;">서명키 생성</button>
+                                        </div>
+                                    </div>
+                                    <div id="manualSubscriptionLicensePublicKeyStatus" style="font-size:11px; color:#1d4ed8; line-height:1.7; margin-bottom:8px;">
+                                        아직 라이선스 검증 공개키가 없습니다.
+                                    </div>
+                                    <textarea id="manualSubscriptionLicensePrivateKeyArea" class="form-textarea" rows="5" placeholder="로컬에서 라이선스를 직접 발급할 때만 붙여넣습니다."></textarea>
+                                </div>
+                            </div>
+                            <div class="manual-backup-tools">
+                                <div>
+                                    <strong>백업/복원</strong>
+                                    <div id="manualSubscriptionBackupPreview">아직 업로드한 백업 파일이 없습니다.</div>
+                                </div>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <button class="btn btn-ghost btn-sm" id="manualSubscriptionBackupBtn" type="button" style="padding:4px 10px; font-size:11px;">전체 백업 다운로드</button>
+                                    <label class="btn btn-ghost btn-sm" for="manualSubscriptionBackupUploadInput" style="padding:4px 10px; font-size:11px; cursor:pointer;">백업 업로드</label>
+                                    <button class="btn btn-primary btn-sm" id="manualSubscriptionBackupRestoreBtn" type="button" style="padding:4px 10px; font-size:11px;" disabled>업로드한 백업으로 복원</button>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
                 </div>
                 <div class="form-group" style="margin-bottom: 20px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
@@ -1253,7 +1252,8 @@
             passwordCipherIv: String(raw?.passwordCipherIv || '').trim(),
             passwordCipherSalt: String(raw?.passwordCipherSalt || '').trim(),
             note: String(raw?.note || '').trim(),
-            _plainPassword: String(raw?._plainPassword || '').trim(),
+            plainPassword: String(raw?.plainPassword || raw?._plainPassword || '').trim(),
+            _plainPassword: String(raw?.plainPassword || raw?._plainPassword || '').trim(),
             _plainPasswordLocal: String(raw?._plainPasswordLocal || '').trim()
         };
     }
@@ -1394,41 +1394,39 @@
     }
 
     async function revealSubscriptionPassword(subscription) {
-        const localPassword = String(subscription?._plainPasswordLocal || subscription?._plainPassword || '').trim();
+        const localPassword = String(subscription?._plainPasswordLocal || subscription?._plainPassword || subscription?.plainPassword || '').trim();
         if (localPassword) {
             return { password: localPassword, source: 'session' };
+        }
+        const requestId = extractRequestIdFromText(subscription?.note || '');
+        if (requestId) {
+            let record = subscriptionRequestCache[requestId];
+            if (!record) {
+                const snap = await get(ref(db, `subscriptionRequests/${requestId}`));
+                if (!snap.exists()) {
+                    throw new Error(`연결된 신청번호 ${requestId}를 Firebase에서 찾지 못했습니다.`);
+                }
+                record = { ...snap.val(), requestId };
+                subscriptionRequestCache[requestId] = record;
+            }
+            const requestPrivateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
+            const payload = record._payload || await decryptSubscriptionRequestWithAvailableMethod(record, requestPrivateKeyPem);
+            subscriptionRequestCache[requestId] = {
+                ...record,
+                _payload: payload,
+                _payloadError: ''
+            };
+            const password = String(payload?.requestPassword || '').trim();
+            if (!password) {
+                throw new Error(`신청번호 ${requestId} 원본 안에 로그인 비밀번호가 없습니다.`);
+            }
+            return { password, source: 'requestPayload', requestId };
         }
         if (subscription?.passwordCipher && subscription?.passwordCipherIv && subscription?.passwordCipherSalt) {
             const password = await decryptAdminRecoverablePassword(subscription, currentAdminPassword);
             return { password, source: 'adminCipher' };
         }
-        const requestId = extractRequestIdFromText(subscription?.note || '');
-        if (!requestId) {
-            throw new Error('이 계정은 복구용 암호문도 없고 연결된 신청번호도 없어 현재 비밀번호를 확인할 수 없습니다.');
-        }
-        const requestPrivateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
-        if (!requestPrivateKeyPem) {
-            throw new Error('신청 복호화 키가 있어야 수동 신청 원본에서 비밀번호를 확인할 수 있습니다.');
-        }
-        let record = subscriptionRequestCache[requestId];
-        if (!record) {
-            const snap = await get(ref(db, `subscriptionRequests/${requestId}`));
-            if (!snap.exists()) {
-                throw new Error(`연결된 신청번호 ${requestId}를 Firebase에서 찾지 못했습니다.`);
-            }
-            record = { ...snap.val(), requestId };
-            subscriptionRequestCache[requestId] = record;
-        }
-        const payload = record._payload || await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, requestPrivateKeyPem);
-        subscriptionRequestCache[requestId] = {
-            ...record,
-            _payload: payload
-        };
-        const password = String(payload?.requestPassword || '').trim();
-        if (!password) {
-            throw new Error(`신청번호 ${requestId} 원본 안에 조회 비밀번호가 없습니다.`);
-        }
-        return { password, source: 'requestPayload', requestId };
+        throw new Error('이 계정은 평문 비밀번호도 연결된 신청번호도 없어 현재 비밀번호를 확인할 수 없습니다.');
     }
 
     async function loadCurrentAdvancedAccountLicenseMap() {
@@ -1486,7 +1484,7 @@
             const loginIdKey = getAdvancedLoginIdKey(subscription.loginId);
             if (!loginIdKey) continue;
             const overridePassword = passwordOverrides[loginIdKey];
-            const plainPassword = String(overridePassword || subscription._plainPasswordLocal || '').trim();
+            const plainPassword = String(overridePassword || subscription._plainPasswordLocal || subscription._plainPassword || subscription.plainPassword || '').trim();
             if (!plainPassword) {
                 if (existingMap[loginIdKey]) {
                     nextRecords[loginIdKey] = existingMap[loginIdKey];
@@ -1520,11 +1518,12 @@
                 loginId: subscription.loginId,
                 status: subscription.status,
                 passwordSalt: subscription.passwordSalt,
-                passwordHash: subscription.passwordHash,
-                expiresAt: subscription.expiresAt,
-                passwordCipher: subscription.passwordCipher,
-                passwordCipherIv: subscription.passwordCipherIv,
-                passwordCipherSalt: subscription.passwordCipherSalt,
+            passwordHash: subscription.passwordHash,
+            expiresAt: subscription.expiresAt,
+            plainPassword: String(subscription._plainPasswordLocal || subscription._plainPassword || subscription.plainPassword || '').trim(),
+            passwordCipher: subscription.passwordCipher,
+            passwordCipherIv: subscription.passwordCipherIv,
+            passwordCipherSalt: subscription.passwordCipherSalt,
                 note: subscription.note
             }))
         };
@@ -1592,6 +1591,9 @@
             nextSubscription.passwordCipherIv = current.passwordCipherIv || '';
             nextSubscription.passwordCipherSalt = current.passwordCipherSalt || '';
         }
+        nextSubscription.plainPassword = sourcePassword;
+        nextSubscription._plainPassword = sourcePassword;
+        nextSubscription._plainPasswordLocal = sourcePassword;
         if (existingIndex >= 0) {
             config.subscriptions.splice(existingIndex, 1, nextSubscription);
         } else {
@@ -1617,6 +1619,7 @@
             passwordCipher: '',
             passwordCipherIv: '',
             passwordCipherSalt: '',
+            plainPassword: '',
             note: '',
             _plainPassword: '',
             _plainPasswordLocal: ''
@@ -2170,7 +2173,7 @@
         const subscriptionCard = createWorkflowSectionCard(
             'subscriptionOperationsCard',
             '🔐 구독 운영',
-            '고급 구독 계정 관리와 수동 신청 처리 흐름을 한곳에 모았습니다. 기존 신청 본문을 읽을 때는 예전에 저장한 복호화 개인키가 필요합니다.'
+            '새 신청은 아래 목록에서 내용을 확인한 뒤 승인합니다. 키와 백업은 평소에 건드리지 않는 고급 설정으로 접어두었습니다.'
         );
         const contentCard = createWorkflowSectionCard(
             'contentOperationsCard',
@@ -2508,7 +2511,7 @@
     let advancedSubscriptionsSavedWithoutRecoverableCipher = false;
     let localAdminKeyBridgeState = {
         connected: false,
-        lastMessage: '권장 경로는 `<프로젝트>\\apps\\skct_practice_tool\\private\\keys` (이 PC: C:\\dev\\projects\\00_career\\_assets\\_tools\\apps\\skct_practice_tool\\private\\keys) 입니다. 프로젝트 내부 + .gitignore 보호. 먼저 `키 폴더 연결`을 한 번 해두면 다음부터 자동으로 읽습니다.'
+        lastMessage: '로컬 개인키가 필요할 때만 연결합니다. 폰이나 외부 브라우저에서는 Google 관리자 세션으로 서버 복호화를 사용합니다.'
     };
 
     function readStoredAdminTab() {
@@ -2868,19 +2871,19 @@
         const publicKeyStatus = document.getElementById('manualSubscriptionPublicKeyStatus');
         if (publicKeyStatus) {
             publicKeyStatus.textContent = config.adminPublicKeyPem
-                ? '신청 암호화 공개키가 설정되어 있습니다. 기존 신청을 읽으려면 예전에 저장해 둔 복호화 개인키를 현재 화면에 넣어야 합니다.'
+                ? '공개키 설정 완료. 일반 승인 처리는 서버 복호화를 쓰며, 이 개인키 입력은 로컬 직접 복호화가 필요할 때만 사용합니다.'
                 : '아직 신청 암호화 공개키가 없습니다. 먼저 새 키를 생성하고 저장하세요.';
         }
         const licensePublicKeyStatus = document.getElementById('manualSubscriptionLicensePublicKeyStatus');
         if (licensePublicKeyStatus) {
             licensePublicKeyStatus.textContent = config.licensePublicKeyPem
-                ? '라이선스 검증 공개키가 설정되어 있습니다. 같은 공개키 체계를 유지하려면 기존에 내려받은 서명 개인키를 현재 화면에 넣어야 합니다.'
+                ? '라이선스 검증 공개키 설정 완료. 서버 승인 경로에서는 이 칸을 평소에 비워둬도 됩니다.'
                 : '아직 라이선스 검증 공개키가 없습니다. 먼저 서명키를 생성하고 저장하세요.';
         }
         const statusEl = document.getElementById('manualSubscriptionConfigStatus');
         if (statusEl) {
             const fallbackMessage = (config.adminPublicKeyPem && config.licensePublicKeyPem)
-                ? '신청 설정을 바꾸면 저장 버튼을 눌러 반영하세요. 개인키는 브라우저에 자동 저장하지 않습니다.'
+                ? '신청 목록에서 내용을 확인한 뒤 승인하면 됩니다. 가격이나 링크를 바꾼 경우에만 저장하세요.'
                 : '아직 공개키가 부족합니다. 저장 버튼을 누르면 필요한 키를 자동 생성합니다.';
             statusEl.textContent = message || fallbackMessage;
             statusEl.style.color = isError ? '#b91c1c' : ((config.adminPublicKeyPem && config.licensePublicKeyPem) ? 'var(--adm-text-muted)' : '#9a3412');
@@ -3291,7 +3294,7 @@
     async function loadSubscriptionRequests() {
         const container = document.getElementById('manualSubscriptionRequestContainer');
         if (container) {
-            container.innerHTML = '<div style="font-size:12px; color:#64748b; text-align:center; padding:16px;">신청 목록을 불러오는 중...</div>';
+            container.innerHTML = '<div style="font-size:12px; color:#64748b; text-align:center; padding:16px;">신청 목록과 신청 내용을 불러오는 중...</div>';
         }
         try {
             const snap = await get(ref(db, 'subscriptionRequests'));
@@ -3301,6 +3304,7 @@
                     subscriptionRequestCache[child.key] = { ...child.val(), requestId: child.key };
                 });
             }
+            await hydrateSubscriptionRequestPayloads();
             renderSubscriptionRequests();
             focusSubscriptionRequestFromUrl();
         } catch (error) {
@@ -3308,6 +3312,20 @@
             subscriptionRequestCache = {};
             if (container) {
                 container.innerHTML = '<div style="font-size:12px; color:#b91c1c; text-align:center; padding:16px;">신청 목록을 불러오지 못했습니다. 권한 또는 네트워크 상태를 확인한 뒤 새로고침해주세요.</div>';
+            }
+        }
+    }
+
+    async function hydrateSubscriptionRequestPayloads() {
+        const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea')?.value || '').trim();
+        const requests = Object.values(subscriptionRequestCache);
+        for (const record of requests) {
+            if (!record?.requestId || record._payload) continue;
+            try {
+                record._payload = await decryptSubscriptionRequestWithAvailableMethod(record, privateKeyPem);
+                record._payloadError = '';
+            } catch (error) {
+                record._payloadError = error?.message || '신청 내용을 확인하지 못했습니다.';
             }
         }
     }
@@ -3348,6 +3366,7 @@
         };
         container.innerHTML = requests.map((record) => {
             const payload = record._payload;
+            const payloadError = String(record._payloadError || '').trim();
             const statusMeta = statusMetaMap[record.status] || { label: record.status || '대기', color: '#1d4ed8' };
             const plan = getManualPlanByCode(loadedConfig.manualSubscriptionConfig, record.planCode);
             return `
@@ -3361,7 +3380,7 @@
                             </div>
                         </div>
                         <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
-                            <button type="button" class="btn btn-ghost btn-sm" data-request-act="decrypt" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px;">${payload ? '다시 열람' : '복호화'}</button>
+                            ${payload ? '<span style="padding:6px 10px; border-radius:999px; background:#ecfdf5; color:#0f766e; font-size:11px; font-weight:800;">내용 표시됨</span>' : `<button type="button" class="btn btn-ghost btn-sm" data-request-act="reload-content" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px;">다시 불러오기</button>`}
                             <button type="button" class="btn btn-ghost btn-sm" data-request-act="delete" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px; color:#b91c1c; border-color:#fecaca;">삭제</button>
                         </div>
                     </div>
@@ -3388,9 +3407,10 @@
                             <button type="button" class="btn btn-ghost btn-sm" data-request-act="toggle-block" data-request-id="${esc(record.requestId)}" style="color:#b45309; border-color:#fdba74;">${record.status === 'blocked' ? '차단 해제' : '차단'}</button>
                         </div>
                     ` : `
-                        <div style="font-size:11px; color:#64748b; line-height:1.7;">
-                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있고, 필요하면 바로 삭제도 가능합니다.' : '복호화 버튼을 누르면 Google 관리자 세션으로 서버에서 신청 본문을 읽습니다.'}
-                            ${serverApprovalAvailable ? '<br>폰에서는 Firebase 관리자 로그인 후 본문 확인, 승인, 반려를 바로 처리할 수 있습니다.' : ''}
+                        <div style="font-size:11px; color:${payloadError ? '#b91c1c' : '#64748b'}; line-height:1.7;">
+                            ${payloadError
+                                ? `신청 내용을 자동으로 읽지 못했습니다. ${esc(payloadError)}`
+                                : '신청 내용을 자동으로 불러오는 중입니다. 잠시 후 새로고침하거나 다시 불러오기를 눌러주세요.'}
                         </div>
                         ${serverApprovalAvailable && record.status === 'pending' ? `
                             <div style="display:grid; grid-template-columns:minmax(0, 1fr); gap:8px;">
@@ -3410,16 +3430,20 @@
             `;
         }).join('');
 
-        container.querySelectorAll('[data-request-act="decrypt"]').forEach((button) => {
+        container.querySelectorAll('[data-request-act="reload-content"]').forEach((button) => {
             button.addEventListener('click', async () => {
                 const requestId = button.dataset.requestId;
                 const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
                 try {
                     const record = subscriptionRequestCache[requestId];
                     record._payload = await decryptSubscriptionRequestWithAvailableMethod(record, privateKeyPem);
+                    record._payloadError = '';
                     renderSubscriptionRequests();
                 } catch (error) {
-                    renderManualSubscriptionAdminForm(error?.message || '신청 본문 복호화에 실패했습니다.', true);
+                    const record = subscriptionRequestCache[requestId];
+                    if (record) record._payloadError = error?.message || '신청 내용을 불러오지 못했습니다.';
+                    renderSubscriptionRequests();
+                    renderManualSubscriptionAdminForm(error?.message || '신청 내용을 불러오지 못했습니다.', true);
                 }
             });
         });
@@ -3468,7 +3492,7 @@
         const canUseServerApproval = Boolean(getManualSubscriptionSecureApiBaseUrl());
         const expiresAtFromCard = cardEl?.querySelector('[data-field="expiresAt"]')?.value.trim() || '';
         const statusMessageFromCard = cardEl?.querySelector('[data-field="statusMessage"]')?.value.trim() || '';
-        if (record && cardEl && canUseServerApproval && (!privateKeyPem || !signingPrivateKeyPem || !record._payload)) {
+        if (record && cardEl && canUseServerApproval && (!privateKeyPem || !signingPrivateKeyPem)) {
             const result = await postAdminSecureApi('/admin/subscription/approve', {
                 requestId,
                 expiresAt: expiresAtFromCard,
@@ -3545,7 +3569,7 @@
         const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
         const canUseServerApproval = Boolean(getManualSubscriptionSecureApiBaseUrl());
         const statusMessageFromCard = cardEl?.querySelector('[data-field="statusMessage"]')?.value.trim() || '';
-        if (record && cardEl && canUseServerApproval && (!privateKeyPem || !record._payload)) {
+        if (record && cardEl && canUseServerApproval && !privateKeyPem) {
             await postAdminSecureApi('/admin/subscription/reject', {
                 requestId,
                 statusMessage: statusMessageFromCard || '후원 내역 또는 신청 정보 확인이 필요해 반려되었습니다.'
@@ -3668,12 +3692,13 @@
             row.style.borderBottom = '1px solid #e2e8f0';
             const linkedRequestId = extractRequestIdFromText(subscription.note);
             const passwordState = subscription.passwordHash
-                ? (subscription.passwordCipher
-                    ? '<span style="color:#0f766e; font-weight:700;">관리자 비밀번호로 확인 가능</span>'
+                ? (subscription._plainPasswordLocal || subscription._plainPassword || subscription.plainPassword
+                    ? '<span style="color:#0f766e; font-weight:700;">평문 표시 중</span>'
                     : linkedRequestId
-                        ? '<span style="color:#1d4ed8; font-weight:700;">신청 원본에서 확인 가능</span>'
-                        : '<span style="color:#b45309; font-weight:700;">로그인 가능 / 관리자 재확인 불가</span>')
+                        ? '<span style="color:#1d4ed8; font-weight:700;">신청 원본에서 자동 확인</span>'
+                        : '<span style="color:#b45309; font-weight:700;">평문 없음 / 새 비밀번호 입력 필요</span>')
                 : '<span style="color:#b45309; font-weight:700;">새 계정은 비밀번호가 필요합니다</span>';
+            const plainPasswordValue = subscription._plainPasswordLocal || subscription._plainPassword || subscription.plainPassword || '';
             row.innerHTML = `
                 <td style="padding:8px;">
                     <select class="form-select" data-field="status" style="min-width:90px;">
@@ -3688,11 +3713,11 @@
                 <td style="padding:8px;"><input class="form-input" data-field="userIdentity" value="${esc(subscription.userIdentity)}" placeholder="예: 홍길동 / user@example.com"></td>
                 <td style="padding:8px;"><input class="form-input" data-field="loginId" value="${esc(subscription.loginId)}" placeholder="예: sb_user01 또는 me@example.com"></td>
                 <td style="padding:8px;">
-                    <input class="form-input" data-field="newPassword" type="password" value="${esc(subscription._plainPasswordLocal || subscription._plainPassword || '')}" placeholder="새 계정은 필수 / 비워두면 기존 유지">
+                    <input class="form-input" data-field="newPassword" type="text" value="${esc(plainPasswordValue)}" placeholder="비밀번호">
                     <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-top:4px;">
-                        <div style="font-size:10px; color:#64748b;">${passwordState}</div>
+                        <div data-role="passwordState" style="font-size:10px; color:#64748b;">${passwordState}</div>
                         <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                            <button type="button" class="btn btn-ghost btn-sm" data-action="reveal-password" style="padding:2px 8px; font-size:10px;">확인</button>
+                            <button type="button" class="btn btn-ghost btn-sm" data-action="reveal-password" style="padding:2px 8px; font-size:10px;">다시 읽기</button>
                             <button type="button" class="btn btn-ghost btn-sm" data-action="reset-password" style="padding:2px 8px; font-size:10px;">초기화</button>
                             <button type="button" class="btn btn-ghost btn-sm" data-action="generate-password" style="padding:2px 8px; font-size:10px;">예시 생성</button>
                         </div>
@@ -3729,28 +3754,7 @@
                 }
             });
             row.querySelector('[data-action="reveal-password"]').addEventListener('click', async () => {
-                const passwordInput = row.querySelector('[data-field="newPassword"]');
-                try {
-                    const revealResult = await revealSubscriptionPassword(subscription);
-                    const visiblePassword = revealResult.password;
-                    passwordInput.type = 'text';
-                    passwordInput.value = visiblePassword;
-                    subscription._plainPassword = visiblePassword;
-                    subscription._plainPasswordLocal = visiblePassword;
-                    passwordInput.focus();
-                    passwordInput.select();
-                    if (statusEl) {
-                        statusEl.textContent = revealResult.source === 'requestPayload'
-                            ? `계정(${subscription.loginId || '미지정'})의 현재 비밀번호를 연결된 신청 원본에서 표시했습니다. 원하면 저장 버튼으로 관리자 확인용 암호문까지 함께 보강할 수 있습니다.`
-                            : `계정(${subscription.loginId || '미지정'})의 현재 비밀번호를 표시했습니다.`;
-                        statusEl.style.color = '#0f766e';
-                    }
-                } catch (error) {
-                    if (statusEl) {
-                        statusEl.textContent = error.message || '비밀번호 확인 중 오류가 발생했습니다.';
-                        statusEl.style.color = '#b91c1c';
-                    }
-                }
+                await fillSubscriptionPasswordRow(row, subscription, statusEl, { focus: true });
             });
             row.querySelector('[data-action="remove-subscription"]').addEventListener('click', () => {
                 const subs = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig).subscriptions.filter((item) => item.id !== subscription.id);
@@ -3773,7 +3777,103 @@
             });
             syncAdvancedExpiryInput(row);
             tableBody.appendChild(row);
+            if (!plainPasswordValue && subscription.passwordHash) {
+                fillSubscriptionPasswordRow(row, subscription, statusEl).catch(() => {});
+            }
         });
+    }
+
+    async function fillSubscriptionPasswordRow(row, subscription, statusEl, options = {}) {
+        const { focus = false } = options;
+        const passwordInput = row.querySelector('[data-field="newPassword"]');
+        const statusText = row.querySelector('[data-role="passwordState"]');
+        try {
+            const revealResult = await revealSubscriptionPassword(subscription);
+            const visiblePassword = revealResult.password;
+            passwordInput.type = 'text';
+            passwordInput.value = visiblePassword;
+            subscription.plainPassword = visiblePassword;
+            subscription._plainPassword = visiblePassword;
+            subscription._plainPasswordLocal = visiblePassword;
+            const config = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig);
+            const target = config.subscriptions.find((item) => item.id === subscription.id);
+            if (target) {
+                target.plainPassword = visiblePassword;
+                target._plainPassword = visiblePassword;
+                target._plainPasswordLocal = visiblePassword;
+                loadedConfig.advancedFeatureConfig = config;
+            }
+            if (statusText) {
+                statusText.innerHTML = '<span style="color:#0f766e; font-weight:700;">평문 표시 중</span>';
+            }
+            if (focus) {
+                passwordInput.focus();
+                passwordInput.select();
+            }
+            if (statusEl && focus) {
+                statusEl.textContent = revealResult.source === 'requestPayload'
+                    ? `계정(${subscription.loginId || '미지정'})의 비밀번호를 연결된 신청 원본에서 표시했습니다.`
+                    : `계정(${subscription.loginId || '미지정'})의 비밀번호를 표시했습니다.`;
+                statusEl.style.color = '#0f766e';
+            }
+        } catch (error) {
+            if (statusText) {
+                statusText.innerHTML = '<span style="color:#b91c1c; font-weight:700;">자동 표시 실패</span>';
+            }
+            if (statusEl && focus) {
+                statusEl.textContent = error.message || '비밀번호 확인 중 오류가 발생했습니다.';
+                statusEl.style.color = '#b91c1c';
+            }
+            throw error;
+        }
+    }
+
+    async function migrateAdvancedSubscriptionPlainPasswords() {
+        const statusEl = document.getElementById('advancedFeatureSaveStatus');
+        const rows = Array.from(document.querySelectorAll('#advancedSubscriptionTableBody tr'));
+        const legacyAdminPassword = String(document.getElementById('legacyAdminPasswordInput')?.value || '').trim();
+        if (legacyAdminPassword) {
+            currentAdminPassword = legacyAdminPassword;
+        }
+        let filledCount = 0;
+        let failedCount = 0;
+        if (statusEl) {
+            statusEl.textContent = legacyAdminPassword
+                ? '기존 구독 계정 비밀번호를 신청 원본과 예전 관리자 비밀번호로 복구하는 중입니다...'
+                : '기존 구독 계정 비밀번호를 신청 원본에서 읽어오는 중입니다...';
+            statusEl.style.color = '#1d4ed8';
+        }
+        for (const row of rows) {
+            const current = normalizeAdvancedFeatureConfig(loadedConfig.advancedFeatureConfig)
+                .subscriptions
+                .find((item) => item.id === row.dataset.subscriptionId);
+            if (!current) continue;
+            const passwordInput = row.querySelector('[data-field="newPassword"]');
+            if (String(passwordInput?.value || '').trim()) {
+                filledCount += 1;
+                continue;
+            }
+            try {
+                await fillSubscriptionPasswordRow(row, current, statusEl);
+                filledCount += 1;
+            } catch (error) {
+                failedCount += 1;
+            }
+        }
+        if (filledCount > 0) {
+            await saveAdvancedSubscriptions(true, { rethrow: true });
+        }
+        if (statusEl) {
+            statusEl.textContent = failedCount
+                ? `비밀번호 ${filledCount}건은 평문 저장했습니다. ${failedCount}건은 신청번호가 없거나 입력한 예전 관리자 비밀번호가 맞지 않아 자동 복구하지 못했습니다.`
+                : `비밀번호 ${filledCount}건을 평문으로 보강 저장했습니다.`;
+            statusEl.style.color = failedCount ? '#b45309' : '#0f766e';
+        }
+        toast(failedCount
+            ? `⚠️ 평문 보강 저장 완료 (${failedCount}건 확인 필요)`
+            : '✅ 기존 비밀번호 평문 보강 저장 완료',
+            false
+        );
     }
 
     function collectUsefulLinks() {
@@ -3853,13 +3953,15 @@
                 passwordCipher: current.passwordCipher || '',
                 passwordCipherIv: current.passwordCipherIv || '',
                 passwordCipherSalt: current.passwordCipherSalt || '',
+                plainPassword: String(current.plainPassword || current._plainPasswordLocal || current._plainPassword || '').trim(),
                 note,
                 _plainPasswordLocal: String(current._plainPasswordLocal || '').trim()
             };
-            const sourcePassword = newPassword || current._plainPasswordLocal || current._plainPassword || '';
+            const sourcePassword = newPassword || current._plainPasswordLocal || current._plainPassword || current.plainPassword || '';
             if (sourcePassword) {
                 nextRow.passwordSalt = current.passwordSalt || (crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`);
                 nextRow.passwordHash = await hashAdvancedPassword(sourcePassword, nextRow.passwordSalt);
+                nextRow.plainPassword = sourcePassword;
                 nextRow._plainPasswordLocal = sourcePassword;
                 if (currentAdminPassword) {
                     const encrypted = await encryptAdminRecoverablePassword(sourcePassword, currentAdminPassword);
@@ -3870,7 +3972,6 @@
                     nextRow.passwordCipher = '';
                     nextRow.passwordCipherIv = '';
                     nextRow.passwordCipherSalt = '';
-                    savedWithoutRecoverableCipher = true;
                 }
             }
             if (!nextRow.passwordSalt || !nextRow.passwordHash) {
@@ -4235,6 +4336,7 @@
     document.getElementById('manualSubscriptionSaveBtn').addEventListener('click', () => runAdminSaveAction(() => saveManualSubscriptionSettings(false), '수동 구독 설정 저장'));
     document.getElementById('userMessageSendBtn').addEventListener('click', sendUserMessage);
     document.getElementById('userMessageClearBtn').addEventListener('click', clearUserMessage);
+    document.getElementById('advancedSubscriptionPlaintextMigrateBtn').addEventListener('click', () => runAdminSaveAction(() => migrateAdvancedSubscriptionPlainPasswords(), '기존 비밀번호 보강 저장'));
     document.getElementById('advancedFeatureSaveBtn').addEventListener('click', saveAdvancedSubscriptions);
     document.getElementById('manualSubscriptionBackupBtn').addEventListener('click', downloadManualSubscriptionBackup);
     document.getElementById('manualSubscriptionBackupUploadInput').addEventListener('change', async (event) => {

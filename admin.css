@@ -401,6 +401,163 @@ body {
     padding: 20px;
 }
 
+.admin-flow-note {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.admin-flow-note strong {
+    color: #1d4ed8;
+    font-size: 13px;
+}
+
+.manual-subscription-status-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.manual-request-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 620px;
+    overflow-y: auto;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.admin-advanced-settings {
+    margin-top: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.admin-advanced-settings summary {
+    display: block;
+    position: relative;
+    padding: 12px 14px;
+    padding-right: 72px;
+    cursor: pointer;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 800;
+    list-style: none;
+}
+
+.admin-advanced-settings summary::-webkit-details-marker {
+    display: none;
+}
+
+.admin-advanced-settings summary::after {
+    content: "열기";
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 4px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.admin-advanced-settings[open] summary::after {
+    content: "접기";
+}
+
+.admin-advanced-settings summary small {
+    display: block;
+    margin-top: 3px;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.admin-advanced-settings-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 12px 12px;
+}
+
+.manual-admin-grid,
+.manual-key-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.manual-admin-field,
+.manual-key-tools,
+.manual-backup-tools {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.manual-admin-field > div {
+    margin-bottom: 6px;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.manual-key-tools,
+.manual-backup-tools {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.manual-key-card {
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.manual-key-card.warning {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+}
+
+.manual-key-card.info {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.manual-backup-tools {
+    color: #334155;
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.manual-backup-tools strong {
+    display: block;
+    color: #0f172a;
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
 .site-text-editor {
     display: grid;
     grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
