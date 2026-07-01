@@ -17,7 +17,7 @@
         <h1>🔐 SKCT Tool Admin</h1>
         <p class="subtitle">Google 관리자 계정으로 로그인</p>
         <div class="login-form">
-            <button id="googleLoginBtn" type="button">Google로 관리자 로그인</button>
+            <button id="googleLoginBtn" type="button">Google 계정 선택으로 로그인</button>
         </div>
         <div id="loginError" class="login-error">허용된 관리자 Google 계정만 접속할 수 있습니다.</div>
     </div>
@@ -708,7 +708,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction, goOffline, goOnline
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserSessionPersistence, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserSessionPersistence, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { getFirebaseWebConfig } from "./config/firebase-config.mjs";
 
     const app = initializeApp(getFirebaseWebConfig());
@@ -1723,25 +1723,24 @@
     // ── Login ──
     document.getElementById('googleLoginBtn').addEventListener('click', () => doGoogleLogin());
 
+    function formatAuthError(error, fallback = 'Google 로그인에 실패했습니다.') {
+        const code = String(error?.code || '').trim();
+        const message = String(error?.message || '').trim();
+        return `${fallback}${code ? ` (${code})` : ''}${message ? `: ${message}` : ''}`;
+    }
+
     async function doGoogleLogin() {
         try {
-            setAdminSessionStatus('로그인 확인 중...', 'pending');
+            setAdminSessionStatus('Google 계정 선택으로 이동 중...', 'pending');
+            document.getElementById('loginError').style.display = 'none';
             await setPersistence(auth, browserSessionPersistence);
-            await signInWithPopup(auth, googleProvider);
+            await signOut(auth).catch(() => {});
+            await signInWithRedirect(auth, googleProvider);
         } catch (error) {
-            if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
-                try {
-                    await signInWithRedirect(auth, googleProvider);
-                    return;
-                } catch (redirectError) {
-                    console.error('Admin Google redirect failed:', redirectError);
-                }
-            }
-            console.error('Admin auth failed:', error);
+            console.error('Admin Google redirect failed:', error);
             setAdminSessionStatus('로그인 실패', 'error');
-            document.getElementById('loginError').textContent = 'Google 로그인에 실패했거나 허용된 관리자 계정이 아닙니다.';
+            document.getElementById('loginError').textContent = formatAuthError(error, 'Google 로그인 이동에 실패했습니다.');
             document.getElementById('loginError').style.display = 'block';
-            setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
         }
     }
 
@@ -1771,7 +1770,7 @@
 
     getRedirectResult(auth).catch((error) => {
         console.error('Admin Google redirect result failed:', error);
-        document.getElementById('loginError').textContent = 'Google 로그인 결과를 확인하지 못했습니다.';
+        document.getElementById('loginError').textContent = formatAuthError(error, 'Google 로그인 결과를 확인하지 못했습니다.');
         document.getElementById('loginError').style.display = 'block';
     });
 
