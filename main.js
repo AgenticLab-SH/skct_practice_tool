@@ -1114,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         isAdvancedMode
                             ? buildQuickInfoCard(readSiteText('utilityModal.archiveTitle', '자료 보관함'), escapeHtml(readSiteText('utilityModal.archiveDescription', '고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.')))
                             : '',
-                        buildQuickInfoCard(readSiteText('utilityModal.extensionTitle', '별도 테스트 자료'), escapeHtml(readSiteText('utilityModal.extensionDescription', '핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.')))
+                        buildQuickInfoCard(readSiteText('utilityModal.extensionTitle', '확장 안내'), escapeHtml(readSiteText('utilityModal.extensionDescription', '핵심 연습 도구와 분리된 확장 자료 안내 페이지로 이동합니다.')))
                     ].filter(Boolean).join('')
                 };
             case 'advanced-entry':

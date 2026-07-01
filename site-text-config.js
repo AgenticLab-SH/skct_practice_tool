@@ -59,16 +59,16 @@
         },
         utilityModal: {
             title: '⋯ 더보기',
-            descriptionHtml: '연습 밖 기능을 모아 두었습니다. 접속 현황, 커뮤니티, 별도 테스트 자료를 여기서 확인합니다.',
-            descriptionAdvancedHtml: '연습 밖 기능과 자료 보관함을 모아 두었습니다. 접속 현황, 커뮤니티, 자료 보관함, 별도 테스트 자료를 여기서 확인합니다.',
+            descriptionHtml: '연습 밖 기능을 모아 두었습니다. 접속 현황, 커뮤니티, 확장 안내를 여기서 확인합니다.',
+            descriptionAdvancedHtml: '연습 밖 기능과 자료 보관함을 모아 두었습니다. 접속 현황, 커뮤니티, 자료 보관함, 확장 안내를 여기서 확인합니다.',
             statsTitle: '접속 현황',
             statsDescription: '현재 접속 수와 최근 방문 기록을 확인합니다.',
             communityTitle: '커뮤니티',
             communityDescription: '질문, 후기, 개선 요청을 주고받습니다.',
             archiveTitle: '자료 보관함',
             archiveDescription: '고급 모드 전용. 로그인 후 자료를 저장·관리합니다.',
-            extensionTitle: '외부 테스트 자료',
-            extensionDescription: '외부 테스트 자료 안내 페이지로 이동합니다.'
+            extensionTitle: '확장 안내',
+            extensionDescription: '핵심 연습 도구와 분리된 확장 자료 안내 페이지로 이동합니다.'
         },
         statsModal: {
             title: '🔥 접속 현황',
@@ -313,12 +313,12 @@
         'utilityModal.descriptionHtml': [
             '핵심 연습 밖 기능만 모아 둔 공간입니다.',
             '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 운영 후원을 여기서 엽니다.',
-            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.'
+            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 일반 모드에서는 활성 세션 확인, 커뮤니티, 확장 안내, 운영 후원을 여기서 엽니다.'
         ],
         'utilityModal.descriptionAdvancedHtml': [
             '핵심 연습 밖 기능과 보관함을 한곳에서 엽니다.',
             '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 운영 후원을 여기서 엽니다.',
-            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 별도 테스트 자료 안내, 운영 후원을 여기서 엽니다.'
+            '핵심 연습 흐름 밖의 기능을 한곳에 모았습니다. 고급 모드에서는 활성 세션 확인, 커뮤니티, 자료 보관함, 확장 안내, 운영 후원을 여기서 엽니다.'
         ],
         'utilityModal.archiveDescription': ['고급 모드 전용 기능입니다. 로그인한 계정별로 문제 원문, AI 응답, 복기 메모를 저장하고 다시 꺼내 봅니다.', '고급 모드 전용입니다. 자료를 저장하려면 보관함 로그인으로 다시 확인합니다.'],
         'advancedFeature.image1Title': ['1. 상태 바와 우측 실제환경 여백부터 확인', '1. 상단 상태와 우측 여백 확인'],
@@ -500,8 +500,8 @@
         'utilityModal.statsTitle': ['활성 세션 보기'],
         'utilityModal.statsDescription': ['현재 열려 있는 세션과 최근 방문 기록을 확인합니다.', '지금 접속 중인 수와 최근 방문 기록을 봅니다.'],
         'utilityModal.communityDescription': ['공지, 질문, 후기, 개선요청을 한곳에서 확인합니다.', '질문, 후기, 개선 요청을 주고받는 게시판입니다.'],
-        'utilityModal.extensionTitle': ['별도 테스트 자료'],
-        'utilityModal.extensionDescription': ['핵심 연습 도구와 분리된 외부성 테스트 자료 안내 페이지로 이동합니다.', '연습 도구와 별개인 외부 테스트 자료 안내 페이지로 이동합니다.'],
+        'utilityModal.extensionTitle': ['확장 안내'],
+        'utilityModal.extensionDescription': ['핵심 연습 도구와 분리된 확장 자료 안내 페이지로 이동합니다.', '연습 도구와 별개인 확장 자료 안내 페이지로 이동합니다.'],
         'statsModal.title': ['🔥 활성 세션 현황'],
         'statsModal.activeTitle': ['현재 활성 세션', '지금 접속 중'],
         'statsModal.activeHint': ['브라우저 탭 기준으로 실시간 반영됩니다.', '열려 있는 탭 수 기준으로 집계됩니다.'],
@@ -585,8 +585,8 @@
         { key: 'utilityModal.communityDescription', label: '보조 기능: 커뮤니티 설명', category: '보조 기능', selector: '#utilityCommunityDescription', prop: 'text' },
         { key: 'utilityModal.archiveTitle', label: '보조 기능: 자료 보관함 제목', category: '보조 기능', selector: '#utilityArchiveTitle', prop: 'text' },
         { key: 'utilityModal.archiveDescription', label: '보조 기능: 자료 보관함 설명', category: '보조 기능', selector: '#utilityArchiveDescription', prop: 'text' },
-        { key: 'utilityModal.extensionTitle', label: '보조 기능: 별도 테스트 자료 제목', category: '보조 기능', selector: '#utilityExtensionTitle', prop: 'text' },
-        { key: 'utilityModal.extensionDescription', label: '보조 기능: 별도 테스트 자료 설명', category: '보조 기능', selector: '#utilityExtensionDescription', prop: 'text' },
+        { key: 'utilityModal.extensionTitle', label: '보조 기능: 확장 안내 제목', category: '보조 기능', selector: '#utilityExtensionTitle', prop: 'text' },
+        { key: 'utilityModal.extensionDescription', label: '보조 기능: 확장 안내 설명', category: '보조 기능', selector: '#utilityExtensionDescription', prop: 'text' },
         { key: 'statsModal.title', label: '활성 세션 모달 제목', category: '활성 세션', selector: '#statsModalTitle', prop: 'text' },
         { key: 'statsModal.activeTitle', label: '활성 세션: 현재 제목', category: '활성 세션', selector: '#statsActiveLabel', prop: 'text' },
         { key: 'statsModal.activeHint', label: '활성 세션: 현재 설명', category: '활성 세션', selector: '#statsActiveHint', prop: 'text' },
