@@ -10,10 +10,12 @@
 
 const core = require("./issuer-core.js");
 
-// 기본 요금제 표 (config/manualSubscriptionConfig 실제값과 동일: 2026-06-28 확인)
+// 기본 요금제 표 (config/manualSubscriptionConfig fallback 과 동일)
 const DEFAULT_PLANS = {
+    "manual-3d": { label: "3일 이용권", days: 3, price: 2900 },
     "manual-7d": { label: "7일 이용권", days: 7, price: 3900 },
-    "manual-14d": { label: "14일 이용권", days: 14, price: 6900 }
+    "manual-14d": { label: "14일 이용권", days: 14, price: 5900 },
+    "manual-30d": { label: "30일 이용권", days: 30, price: 9900 }
 };
 
 function resolvePlan(planCode, planMap) {

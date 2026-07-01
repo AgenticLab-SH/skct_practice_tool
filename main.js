@@ -132,12 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
         supportEmail: 'zhdlsqpdj@gmail.com',
-        secureApiBaseUrl: '',
+        secureApiBaseUrl: 'https://us-central1-skct-tool.cloudfunctions.net/skctSecureApi',
         adminPublicKeyPem: '',
         licensePublicKeyPem: '',
         plans: [
-            { code: 'manual-7d', label: '7일 이용권', days: 7, price: 4900, enabled: true, highlight: '시험 직전 단기 몰입용' },
-            { code: 'manual-14d', label: '14일 이용권', days: 14, price: 7900, enabled: true, highlight: '가장 추천하는 주력 이용권' }
+            { code: 'manual-3d', label: '3일 이용권', days: 3, price: 2900, enabled: true, highlight: '주말 집중 대비용' },
+            { code: 'manual-7d', label: '7일 이용권', days: 7, price: 3900, enabled: true, highlight: '시험 직전 단기 몰입용' },
+            { code: 'manual-14d', label: '14일 이용권', days: 14, price: 5900, enabled: true, highlight: '7일권 2회보다 1,900원 절약' },
+            { code: 'manual-30d', label: '30일 이용권', days: 30, price: 9900, enabled: true, highlight: '한 달 준비용 최저 단가' }
         ]
     };
     const FIREBASE_RTDB_BASE_URL = 'https://skct-tool-default-rtdb.firebaseio.com';
@@ -397,21 +399,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function normalizeManualSubscriptionConfig(raw) {
-        const sourcePlans = Array.isArray(raw?.plans) ? raw.plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans;
-        const plans = sourcePlans
+        const sourcePlans = Array.isArray(raw?.plans) ? raw.plans : [];
+        const planByCode = new Map(sourcePlans
+            .map((plan) => [String(plan?.code || '').trim(), plan])
+            .filter(([code]) => Boolean(code)));
+        const mergedPlans = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.map((fallback) => ({
+            ...fallback,
+            ...(planByCode.get(fallback.code) || {})
+        }));
+        sourcePlans.forEach((plan) => {
+            const code = String(plan?.code || '').trim();
+            if (code && !DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.some((fallback) => fallback.code === code)) {
+                mergedPlans.push(plan);
+            }
+        });
+        const plans = mergedPlans
             .map((plan, index) => {
                 const fallback = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[index] || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[0];
                 const code = String(plan?.code || fallback.code || '').trim();
                 const label = String(plan?.label || fallback.label || '').trim();
+                const rawPrice = parseInt(plan?.price, 10);
+                const legacyDefaultPrices = {
+                    'manual-7d': [4900],
+                    'manual-14d': [6900, 7900]
+                };
+                const rawHighlight = String(plan?.highlight || '').trim();
+                const legacyDefaultHighlights = {
+                    'manual-14d': ['가장 추천하는 주력 이용권']
+                };
+                const priceSource = legacyDefaultPrices[code]?.includes(rawPrice) ? fallback.price : rawPrice;
+                const highlightSource = legacyDefaultHighlights[code]?.includes(rawHighlight) ? fallback.highlight : rawHighlight;
                 const days = Math.max(1, parseInt(plan?.days, 10) || fallback.days || 7);
-                const price = Math.max(1000, parseInt(plan?.price, 10) || fallback.price || 4900);
+                const price = Math.max(1000, priceSource || fallback.price || 3900);
                 return {
                     code,
                     label,
                     days,
                     price,
                     enabled: plan?.enabled !== false,
-                    highlight: String(plan?.highlight || fallback.highlight || '').trim()
+                    highlight: String(highlightSource || fallback.highlight || '').trim()
                 };
             })
             .filter((plan) => plan.code && plan.label);
@@ -1063,7 +1089,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         buildQuickInfoCard('이 창의 역할', '시간, 채점 기준, 화면 비율, 도구 기본값을 현재 브라우저에 적용합니다. 적용하면 지금 화면에 바로 반영됩니다.'),
                         buildQuickInfoCard(
                             readSiteText('settingsModal.practiceModeTitle', '🎯 모드 설정'),
-                            formatMultilineHtml(readSiteText('settingsModal.practiceModeHint', 'OFF = 실전 모드: 과목 시간 종료 시 자동 잠금 및 다음 과목 강제 전환\nON = 연습 모드: 시간 제한·강제 전환 없이 자유롭게 마킹'))
+                            formatMultilineHtml(readSiteText('settingsModal.practiceModeHint', 'OFF = 실전: 과목 시간이 끝나면 자동으로 잠깁니다.\nON = 자유 풀이: 시간 제한 없이 마킹합니다.'))
                         ),
                         buildQuickInfoCard(
                             readSiteText('settingsModal.scoringTitle', '📊 채점 기준'),
@@ -1105,7 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: '✨ 고급 활용 도움말',
                     body: [
                         buildQuickInfoCard('추천 흐름', '<strong>정답 입력</strong> -> <strong>채점 및 통계</strong> -> <strong>과목별 상세 통계</strong> -> <strong>TXT / 정오표</strong>'),
-                        buildQuickInfoCard('버튼 위치', '<strong>상단 상태</strong>로 권한을 확인하고, <strong>OMR 아래</strong>에서 복기하며, <strong>자료 보관함</strong>은 더보기에서 엽니다.'),
+                        buildQuickInfoCard('버튼 위치', '<strong>상단 상태</strong>로 권한을 확인하고, <strong>OMR 아래</strong>에서 복기하며, <strong>자료 보관함</strong>은 왼쪽 보관함 버튼에서 엽니다.'),
                         `<div class="quick-info-flow">
                             ${buildQuickInfoStep(readSiteText('advancedFeature.feature1Html', '<strong>1. 결과부터 확인</strong><br>맞은 수, 정답률, 건너뜀, 못 푼 문제를 먼저 봅니다.'))}
                             ${buildQuickInfoStep(readSiteText('advancedFeature.feature2Html', '<strong>2. 과목별 약점 확인</strong><br>과목별 상세 통계로 흔들린 영역을 바로 봅니다.'))}
@@ -1170,26 +1196,26 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSettingsBuildInfo();
 
     const DEFAULT_SUPPORT_CONFIG = {
-        modalTitle: "☕ 광고 없이 이어가는 SKCT 연습 공간",
-        modalLead: "이 공간은 공부 흐름을 해치지 않도록 배너 광고나 과한 유도 없이 운영하고 있습니다.",
-        modalBody: "서버비와 관리 시간은 개인이 먼저 부담하고 있습니다.\n연습에 도움이 됐다면 남겨 주시는 한 번의 응원이 오래 운영하는 데 큰 힘이 됩니다.",
-        modalPromise: "후원과 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 금액은 서버비와 유지보수에만 사용합니다.",
-        modalHighlight: "이 도구가 실전 연습에 도움이 됐다면, 편하실 때 한 번 응원해 주세요.\n오래 두고 다시 찾을 수 있는 도구로 꾸준히 관리하겠습니다.",
+        modalTitle: "",
+        modalLead: "고급 구독 없이도 모두가 이용할 수 있도록 하는 것이 제 목적입니다.",
+        modalBody: "다만 서버 비용과 도메인 비용 등은 취준생 개발자가 감당하고 있습니다.\n후원으로 운영에 도움을 주시면 감사드리겠습니다.",
+        modalPromise: "또한 SKCT 합격에 도움이 되셨다면 커뮤니티에 후기를 남겨주시면 아주 보람차답니다.",
+        modalHighlight: "기타 문의사항은 아래 이메일로 보내주세요.",
         breakFooter: "도움이 됐다면 좌측 ☕ 버튼에서 운영 응원을 남길 수 있습니다.",
-        contactText: "",
-        contactUrl: "",
-        buttonLabel: "☕ 운영 응원하기",
+        contactText: "zhdlsqpdj@gmail.com",
+        contactUrl: "zhdlsqpdj@gmail.com",
+        buttonLabel: "후원 페이지 열기",
         buttonUrl: "https://toon.at/donate/foreveryonehappy",
         sponsorTickerSeconds: 4
     };
     const LEGACY_SUPPORT_DEFAULTS = {
-        modalTitle: ["☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!", "☕ 광고 없이 운영되는 SKCT 연습 공간"],
-        modalLead: ["이 공간은 공부 흐름을 해치지 않도록 광고나 과한 유도 없이 운영하고 있습니다.", "배너 광고나 결제 압박 없이 바로 연습에 집중할 수 있게 유지하고 있습니다."],
-        modalBody: ["서버비와 관리 시간은 개인이 먼저 부담하고 있습니다.\n도움이 됐다면 남겨 주시는 응원이 오래 운영하는 데 큰 힘이 됩니다.", "필요한 분들이 바로 연습할 수 있도록 무료 공개를 유지하고 있습니다.\n꾸준히 관리하고 운영하려면 자발적인 응원이 도움이 됩니다."],
-        modalPromise: ["후원과 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 금액은 서버비와 유지보수에만 사용합니다.", "이용 자체는 그대로 열어 두고 있습니다.\n다만 안정적인 운영과 업데이트를 이어가려면 운영비 확보가 필요합니다."],
-        modalHighlight: ["이 도구가 준비에 도움이 됐다면, 편하실 때 한 번 응원해 주세요.\n보내주신 금액은 운영과 유지보수에만 사용됩니다.", "실전 연습에 도움이 됐다면, 무리 없는 범위에서 운영을 응원해 주세요.\n오래 두고 다시 찾을 수 있는 도구로 계속 관리하겠습니다."],
+        modalTitle: ["☕ 광고 없는 SKCT 연습 공간,<br>함께 지켜주세요!", "☕ 광고 없이 운영되는 SKCT 연습 공간", "☕ 광고 없이 이어가는 SKCT 연습 공간", "☕ 우리의 공동 툴,<br>쾌적하게 지켜나가기"],
+        modalLead: ["이 공간은 공부 흐름을 해치지 않도록 광고나 과한 유도 없이 운영하고 있습니다.", "배너 광고나 결제 압박 없이 바로 연습에 집중할 수 있게 유지하고 있습니다.", "이 공간은 공부 흐름을 해치지 않도록 배너 광고나 과한 유도 없이 운영하고 있습니다.", "이 공간은 공부 흐름을 해치지 않도록 배너 광고와 과한 결제 유도 없이 운영하고 있습니다.", "우리가 함께 지켜나가는 <strong>'결제/광고 없는' SKCT 연습 공간</strong>입니다! ✍️"],
+        modalBody: ["서버비와 관리 시간은 개인이 먼저 부담하고 있습니다.\n도움이 됐다면 남겨 주시는 응원이 오래 운영하는 데 큰 힘이 됩니다.", "필요한 분들이 바로 연습할 수 있도록 무료 공개를 유지하고 있습니다.\n꾸준히 관리하고 운영하려면 자발적인 응원이 도움이 됩니다.", "서버비와 관리 시간은 개인이 먼저 부담하고 있습니다.\n연습에 도움이 됐다면 남겨 주시는 한 번의 응원이 오래 운영하는 데 큰 힘이 됩니다.", "서버 비용과 관리 시간은 취준생 개인이 감당하고 있습니다.\n도움이 되셨다면 가볍게 응원해 주시는 마음이 이 공간을 오래 유지하는 데 큰 힘이 됩니다.", "이 공간은 공부 흐름을 해치지 않도록 배너 광고와 과한 결제 유도 없이 운영하고 있습니다.\n\n서버 비용과 관리 시간은 취준생 개인이 감당하고 있습니다.\n도움이 되셨다면 가볍게 응원해 주시는 마음이 이 공간을 오래 유지하는 데 큰 힘이 됩니다.", "저 역시 여러분과 같은 취준생이기에, 연습할 때 방해받지 않고 온전히 집중할 수 있도록 상업적 배너 광고나 결제 유도를 일절 넣지 않고 사비로 <strong>100% 무료 서버</strong>를 가동 중입니다."],
+        modalPromise: ["후원과 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 금액은 서버비와 유지보수에만 사용합니다.", "후원 여부와 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 응원은 서버비와 유지보수에만 사용합니다.", "이용 자체는 그대로 열어 두고 있습니다.\n다만 안정적인 운영과 업데이트를 이어가려면 운영비 확보가 필요합니다.", "최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 커지고 있지만, 끝까지 이 <strong style=\"color:#ef4444;\">'광고 없는 무료 개방'</strong> 원칙을 고수하려 합니다.", "최근 동시 접속자가 늘어나면서 서버 유지의 부담도 조금씩 커지고 있지만, 끝까지 이 <strong style=\"color:#ef4444;\">'광고 없는 무료 개방'</strong> 원칙을 고수하려 합니다."],
+        modalHighlight: ["이 도구가 준비에 도움이 됐다면, 편하실 때 한 번 응원해 주세요.\n보내주신 금액은 운영과 유지보수에만 사용됩니다.", "실전 연습에 도움이 됐다면, 무리 없는 범위에서 운영을 응원해 주세요.\n오래 두고 다시 찾을 수 있는 도구로 계속 관리하겠습니다.", "이 도구가 실전 연습에 도움이 됐다면, 편하실 때 한 번 응원해 주세요.\n오래 두고 다시 찾을 수 있는 도구로 꾸준히 관리하겠습니다.", "실전 연습에 도움이 되었다면, 부담 없는 범위에서 커피 한 잔 정도의 후원을 해주시면 감사드리겠습니다.\n필요할 때 다시 와도 편한 도구로 계속 유지해 보겠습니다.", "만약 이 쾌적한 <strong>'모두의 툴'</strong>이 여러분의 합격 준비에 약간이나마 유용하셨다면, <strong style=\"color:#2563eb;\">투네이션(또는 메일)을 통해 '커피 한 잔 ☕'의 후원에 동참</strong>해 주시길 조심스레 부탁드립니다.<br><br>\n                    이 공간이 다음 달에도 거뜬히 유지되려면 여러분 한 분 한 분의 십시일반 참여가 필수적입니다! 💕"],
         breakFooter: ["도움이 됐다면 좌측 ☕ 버튼에서 운영 응원을 남길 수 있습니다."],
-        buttonLabel: ["☕ 운영 응원하기", "☕ 후원하기", "투네이션 후원하기"]
+        buttonLabel: ["☕ 운영 응원하기", "☕ 후원하기", "투네이션 후원하기", "☕ 커피 한 잔 보태기"]
     };
 
     function migrateLegacySupportConfig(config) {
@@ -1213,7 +1239,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const buttonEl = document.getElementById('donateConfirmBtn');
         const breakHintEl = document.getElementById('breakSupportHint');
 
-        if (titleEl) titleEl.innerHTML = formatInlineHtml(support.modalTitle || DEFAULT_SUPPORT_CONFIG.modalTitle);
+        if (titleEl) {
+            const title = String(support.modalTitle || '').trim();
+            titleEl.innerHTML = title ? formatInlineHtml(title) : '';
+            titleEl.style.display = title ? '' : 'none';
+        }
         if (leadEl) leadEl.innerHTML = formatMultilineHtml(support.modalLead);
         if (bodyEl) bodyEl.innerHTML = formatMultilineHtml(support.modalBody);
         if (promiseEl) promiseEl.innerHTML = formatMultilineHtml(support.modalPromise);
@@ -1250,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
             manualSubscriptionPlanCards.innerHTML = remoteManualSubscriptionConfig.plans
                 .filter((plan) => plan.enabled)
                 .map((plan) => `
-                    <div style="padding:12px; border-radius:8px; background:#ffffff; border:1px solid #fdba74;">
+                    <div class="advanced-guide-plan-card">
                         <div style="font-size:12px; color:#9a3412; font-weight:700;">${escapeHtml(plan.label)}</div>
                         <div style="font-size:20px; font-weight:800; color:#7c2d12; margin-top:4px;">${formatCurrency(plan.price)}</div>
                         <div style="font-size:11px; color:#9a3412; line-height:1.6; margin-top:6px;">${escapeHtml(plan.highlight || `${plan.days}일 사용`)}</div>
@@ -1319,13 +1349,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let advancedUserMessageShown = false;
-    function showAdvancedUserMessageModal(text) {
+    function showAdvancedUserMessageModal(text, options = {}) {
         const overlay = document.createElement('div');
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
         const box = document.createElement('div');
         box.style.cssText = 'max-width:420px;width:100%;background:#fff;border-radius:14px;padding:22px 20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
         const title = document.createElement('div');
-        title.textContent = '📩 안내 메시지';
+        title.textContent = options.title || '📩 안내 메시지';
         title.style.cssText = 'font-weight:800;font-size:16px;color:#0f172a;margin-bottom:10px;';
         const body = document.createElement('div');
         body.textContent = text;
@@ -1334,14 +1364,58 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.type = 'button';
         btn.textContent = '확인';
         btn.style.cssText = 'margin-top:16px;width:100%;padding:10px;border:none;border-radius:8px;background:#0f766e;color:#fff;font-weight:700;cursor:pointer;';
-        btn.addEventListener('click', () => overlay.remove());
-        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+        let closed = false;
+        const close = () => {
+            if (closed) return;
+            closed = true;
+            overlay.remove();
+            if (typeof options.onClose === 'function') options.onClose();
+        };
+        btn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
         box.appendChild(title); box.appendChild(body); box.appendChild(btn);
         overlay.appendChild(box);
         document.body.appendChild(overlay);
     }
 
     // 고급 로그인 사용자에게 운영자가 보낸 개별 안내 메시지를 1회 표시(보조 기능, 실패해도 무시)
+    function getAdvancedWelcomeName(bundle) {
+        const payload = bundle?.payload || {};
+        return String(
+            payload.userIdentity
+            || payload.siteNickname
+            || payload.nickname
+            || payload.displayName
+            || payload.loginId
+            || payload.email
+            || '사용자'
+        ).trim() || '사용자';
+    }
+
+    function maybeShowAdvancedWelcomeMessage() {
+        if (!isAdvancedMode || !verifiedAdvancedLicenseBundle) return false;
+        try {
+            const payload = verifiedAdvancedLicenseBundle.payload || {};
+            const key = getAdvancedLoginIdKey(payload.loginId || payload.email || payload.licenseId || getAdvancedWelcomeName(verifiedAdvancedLicenseBundle));
+            const seenKey = `skct_adv_welcome_seen_${key || 'session'}`;
+            if (sessionStorage.getItem(seenKey) === '1') return false;
+            sessionStorage.setItem(seenKey, '1');
+            const name = getAdvancedWelcomeName(verifiedAdvancedLicenseBundle);
+            const message = readSiteText(
+                'messages.advancedWelcomeBody',
+                '{name}님 이용해주셔서 감사합니다!\nSKCT 준비에 도움이 되셨으면 좋겠고, 불편한 점은 언제든지 zhdlsqpdj@gmail.com으로 문의해주시기 바랍니다.\n응원합니다!',
+                { name }
+            );
+            showAdvancedUserMessageModal(message, {
+                title: readSiteText('messages.advancedWelcomeTitle', '환영합니다'),
+                onClose: () => setTimeout(() => maybeShowAdvancedUserMessage(), 80)
+            });
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     async function maybeShowAdvancedUserMessage() {
         if (advancedUserMessageShown) return;
         try {
@@ -1368,7 +1442,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.toggle('advanced-mode', isAdvancedMode);
         if (isAdvancedMode) {
             document.getElementById('donateToggle')?.classList.remove('attention-active');
-            maybeShowAdvancedUserMessage();
+            const welcomeShown = maybeShowAdvancedWelcomeMessage();
+            if (!welcomeShown) {
+                maybeShowAdvancedUserMessage();
+            }
         }
         document.title = isAdvancedMode
             ? `${document.title.replace(' | 고급버전', '')} | 고급버전`
@@ -1542,11 +1619,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function readAdvancedIdentityLabel(bundle) {
         const payload = bundle?.payload || {};
         return String(
-            payload.loginId
-            || payload.email
-            || payload.requestEmail
+            payload.userIdentity
+            || payload.siteNickname
             || payload.nickname
             || payload.displayName
+            || payload.loginId
+            || payload.email
+            || payload.requestEmail
             || ''
         ).trim();
     }
@@ -1802,11 +1881,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         if (!donationName || !siteNickname || !email || !desiredLoginId || !requestedStartDate || !requestPassword || !requestPasswordConfirm) {
-            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualRequiredFields', '투네이션 이름, 이용 시작일, 닉네임, 이메일, ID, 비밀번호를 모두 입력해주세요.');
+            manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualRequiredFields', '후원 닉네임, 이용 시작일, 닉네임, 알림 이메일, 로그인 ID, 비밀번호를 모두 입력해주세요.');
             return;
         }
         if (!email.includes('@')) {
             manualSubscriptionSubmitStatus.textContent = readSiteText('messages.manualInvalidEmail', '이메일 형식이 올바르지 않습니다.');
+            return;
+        }
+        if (!desiredLoginId.includes('@')) {
+            manualSubscriptionSubmitStatus.textContent = '로그인 ID는 원하는 이메일 주소로 입력해주세요.';
             return;
         }
         if (requestPassword.length < 6) {
@@ -4552,6 +4635,20 @@ document.addEventListener('DOMContentLoaded', () => {
             openAdvancedEntryModal();
         });
     }
+    try {
+        const initialParams = new URLSearchParams(window.location.search || '');
+        if (initialParams.get('open') === 'advanced') {
+            window.setTimeout(() => {
+                openAdvancedEntryModal();
+                initialParams.delete('open');
+                const nextQuery = initialParams.toString();
+                const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash || ''}`;
+                window.history.replaceState({}, document.title, nextUrl);
+            }, 0);
+        }
+    } catch (error) {
+        // Query parsing should never block the core practice tool.
+    }
     if (advancedToggle && advancedFeatureModal) {
         advancedToggle.addEventListener('click', () => {
             if (!isAdvancedMode) return;
@@ -4905,8 +5002,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const helpToggle = document.getElementById('helpToggle');
     const helpModal = document.getElementById('helpModal');
+    const helpNoticeFold = document.getElementById('helpNoticeFold');
+    const helpNoticeToggleBtn = document.getElementById('helpNoticeToggleBtn');
+    const helpNoticeBody = document.getElementById('helpNoticeBody');
     if(helpToggle && helpModal) {
         helpToggle.addEventListener('click', () => helpModal.classList.remove('hidden'));
+    }
+    if (helpNoticeFold && helpNoticeToggleBtn && helpNoticeBody) {
+        helpNoticeToggleBtn.addEventListener('click', () => {
+            const isOpen = helpNoticeFold.classList.toggle('is-open');
+            helpNoticeBody.classList.toggle('hidden', !isOpen);
+            helpNoticeToggleBtn.setAttribute('aria-expanded', String(isOpen));
+        });
     }
     if (helpAdvancedLinkBtn) {
         helpAdvancedLinkBtn.addEventListener('click', () => {
@@ -4962,11 +5069,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderNotice(data) {
         const noticeContainer = document.getElementById('devNotice');
+        const noticeFold = document.getElementById('helpNoticeFold');
         if (!noticeContainer) return;
         if (!data || !data.show) {
             noticeContainer.innerHTML = '';
+            noticeFold?.classList.add('hidden');
+            noticeFold?.classList.remove('is-open');
+            const noticeBody = document.getElementById('helpNoticeBody');
+            const noticeToggle = document.getElementById('helpNoticeToggleBtn');
+            noticeBody?.classList.add('hidden');
+            noticeToggle?.setAttribute('aria-expanded', 'false');
             return;
         }
+        noticeFold?.classList.remove('hidden');
 
         const typeColors = {
             info: { bg: '#eff6ff', border: '#3b82f6', icon: '💡' },
@@ -5092,13 +5207,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const popupBtn = document.getElementById('popupBtn');
-    const popupToggle = document.getElementById('popupToggle');
     if (popupBtn) popupBtn.addEventListener('click', launchPopupMode);
-    if (popupToggle) popupToggle.addEventListener('click', launchPopupMode);
 
     if (window.name === 'skct_popup_mode') {
         if (popupBtn) popupBtn.style.display = 'none';
-        if (popupToggle) popupToggle.style.display = 'none';
     }
 
 });

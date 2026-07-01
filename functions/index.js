@@ -4,6 +4,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getDatabase } = require("firebase-admin/database");
+const { getAuth } = require("firebase-admin/auth");
 const issuerCore = require("./issuer-core.js");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
@@ -12,6 +13,14 @@ initializeApp();
 
 const db = getDatabase();
 const rateLimitStore = new Map();
+const TELEGRAM_BOT_TOKEN = defineSecret("TELEGRAM_BOT_TOKEN");
+const TELEGRAM_CHAT_ID = defineSecret("TELEGRAM_CHAT_ID");
+const TELEGRAM_WEBHOOK_SECRET = defineSecret("TELEGRAM_WEBHOOK_SECRET");
+const ADMIN_RSA_PRIVATE_KEY = defineSecret("ADMIN_RSA_PRIVATE_KEY");
+const LICENSE_SIGNING_PRIVATE_KEY = defineSecret("LICENSE_SIGNING_PRIVATE_KEY");
+const EMAIL_USER = defineSecret("EMAIL_USER");
+const EMAIL_APP_PASSWORD = defineSecret("EMAIL_APP_PASSWORD");
+const ADMIN_ALLOWED_EMAIL = "zhdlsqpdj@gmail.com";
 const ALLOWED_ORIGIN_PATTERNS = [
     /^https:\/\/agenticlab-sh\.github\.io$/i,
     /^https:\/\/([a-z0-9-]+\.)*agenticfabworks\.com$/i,
@@ -30,7 +39,7 @@ function applyCorsHeaders(req, res) {
     if (allowedOrigin) {
         res.set("Access-Control-Allow-Origin", allowedOrigin);
         res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-        res.set("Access-Control-Allow-Headers", "Content-Type");
+        res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
         res.set("Vary", "Origin");
     }
 }
@@ -88,6 +97,24 @@ function sha256Hex(value) {
     return crypto.createHash("sha256").update(String(value || ""), "utf8").digest("hex");
 }
 
+function formatKstDateTime(value) {
+    const date = value ? new Date(value) : new Date();
+    if (!Number.isFinite(date.getTime())) return "-";
+    const parts = new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+    }).formatToParts(date).reduce((acc, part) => {
+        if (part.type !== "literal") acc[part.type] = part.value;
+        return acc;
+    }, {});
+    return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute} KST`;
+}
+
 // 타이밍 공격 완화를 위한 상수시간 hex 비교
 function safeHexEqual(a, b) {
     const bufA = Buffer.from(String(a || ""), "utf8");
@@ -139,6 +166,50 @@ function sendJson(res, status, payload) {
     res.status(status).json(payload);
 }
 
+async function verifyFirebaseAuthRequest(req) {
+    const header = String(req.get("Authorization") || "").trim();
+    const match = header.match(/^Bearer\s+(.+)$/i);
+    if (!match) {
+        const error = new Error("관리자 로그인 토큰이 필요합니다.");
+        error.status = 401;
+        throw error;
+    }
+    try {
+        const decoded = await getAuth().verifyIdToken(match[1]);
+        if (String(decoded.email || "").trim().toLowerCase() !== ADMIN_ALLOWED_EMAIL) {
+            const error = new Error("허용된 관리자 계정이 아닙니다.");
+            error.status = 403;
+            throw error;
+        }
+        return decoded;
+    } catch (cause) {
+        if (cause && cause.status) throw cause;
+        const error = new Error("관리자 로그인 토큰을 확인하지 못했습니다.");
+        error.status = 401;
+        throw error;
+    }
+}
+
+function normalizeOptionalDate(value) {
+    const normalized = String(value || "").trim();
+    if (!normalized) return "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+        const error = new Error("만료일은 YYYY-MM-DD 형식이어야 합니다.");
+        error.status = 400;
+        throw error;
+    }
+    return normalized;
+}
+
+function formatExpiryForEmail(expiresAt) {
+    const normalized = String(expiresAt || "").trim();
+    if (!normalized) return "영구";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+        return `${normalized} 23:59 KST`;
+    }
+    return normalized;
+}
+
 function validateSubscriptionWriteBody(body) {
     const requestId = String(body?.requestId || "").trim();
     const lookupKey = String(body?.lookupKey || "").trim();
@@ -180,7 +251,9 @@ function validateSubscriptionWriteBody(body) {
     return "";
 }
 
-exports.skctSecureApi = onRequest(async (req, res) => {
+exports.skctSecureApi = onRequest(
+    { secrets: [ADMIN_RSA_PRIVATE_KEY, LICENSE_SIGNING_PRIVATE_KEY, EMAIL_USER, EMAIL_APP_PASSWORD] },
+    async (req, res) => {
     applyCorsHeaders(req, res);
     if (req.method === "OPTIONS") {
         res.status(204).send("");
@@ -206,6 +279,35 @@ exports.skctSecureApi = onRequest(async (req, res) => {
     }
 
     try {
+        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject") {
+            if (isRateLimited(route, clientAddress, 30, 10 * 60 * 1000)) {
+                sendJson(res, 429, { ok: false, errorMessage: "관리자 처리 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
+                return;
+            }
+            const decoded = await verifyFirebaseAuthRequest(req);
+            const requestId = String(body.requestId || "").trim();
+            if (!isRequestId(requestId)) {
+                sendJson(res, 400, { ok: false, errorMessage: "requestId 형식이 올바르지 않습니다." });
+                return;
+            }
+            const statusMessage = isShortString(body.statusMessage || " ", 300)
+                ? String(body.statusMessage || "").trim()
+                : "";
+            const handledBy = decoded.email || decoded.uid || "firebase-auth-admin";
+            const result = route.endsWith("/approve")
+                ? await approveRequest(requestId, {
+                    expiresAt: normalizeOptionalDate(body.expiresAt),
+                    statusMessage,
+                    approvedBy: handledBy
+                })
+                : await rejectRequest(requestId, {
+                    statusMessage,
+                    rejectedBy: handledBy
+                });
+            sendJson(res, result.ok ? 200 : 400, { ok: Boolean(result.ok), message: result.msg, ...result });
+            return;
+        }
+
         if (route === "/subscription/request") {
             if (isRateLimited(route, clientAddress, 3, 10 * 60 * 1000)) {
                 sendJson(res, 429, { ok: false, errorMessage: "신청 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
@@ -378,7 +480,7 @@ exports.skctSecureApi = onRequest(async (req, res) => {
         sendJson(res, 404, { ok: false, errorMessage: "지원하지 않는 경로입니다." });
     } catch (error) {
         console.error("[skctSecureApi]", route, error);
-        sendJson(res, 500, { ok: false, errorMessage: "보안 API 처리 중 오류가 발생했습니다." });
+        sendJson(res, error.status || 500, { ok: false, errorMessage: error.status ? error.message : "보안 API 처리 중 오류가 발생했습니다." });
     }
 });
 
@@ -393,21 +495,21 @@ exports.skctSecureApi = onRequest(async (req, res) => {
 //   firebase functions:secrets:set TELEGRAM_BOT_TOKEN
 //   firebase functions:secrets:set TELEGRAM_CHAT_ID
 //   firebase deploy --only functions
-const TELEGRAM_BOT_TOKEN = defineSecret("TELEGRAM_BOT_TOKEN");
-const TELEGRAM_CHAT_ID = defineSecret("TELEGRAM_CHAT_ID");
-const TELEGRAM_WEBHOOK_SECRET = defineSecret("TELEGRAM_WEBHOOK_SECRET");
-const ADMIN_RSA_PRIVATE_KEY = defineSecret("ADMIN_RSA_PRIVATE_KEY");
-const LICENSE_SIGNING_PRIVATE_KEY = defineSecret("LICENSE_SIGNING_PRIVATE_KEY");
-
 // --- 이메일 알림 시크릿 ------------------------------------------------------
 // 구독 신청 시 텔레그램과 병행으로 운영자 메일함에도 알림을 보낸다.
 // Gmail SMTP + 앱 비밀번호 사용. 시크릿 미설정 시 메일은 조용히 건너뛴다.
 //   firebase functions:secrets:set EMAIL_USER          (보내는 Gmail 주소)
 //   firebase functions:secrets:set EMAIL_APP_PASSWORD  (Gmail 앱 비밀번호 16자)
-const EMAIL_USER = defineSecret("EMAIL_USER");
-const EMAIL_APP_PASSWORD = defineSecret("EMAIL_APP_PASSWORD");
 // 알림 수신 주소(운영자 메일함). 고정값.
 const NOTIFY_EMAIL_TO = "zhdlsqpdj@gmail.com";
+const SUPPORT_EMAIL = "zhdlsqpdj@gmail.com";
+const PUBLIC_ADMIN_PAGE_URL = "https://skct.agenticfabworks.com/admin.html";
+const DEFAULT_MANUAL_PLANS = [
+    { code: "manual-3d", label: "3일 이용권", days: 3, price: 2900 },
+    { code: "manual-7d", label: "7일 이용권", days: 7, price: 3900 },
+    { code: "manual-14d", label: "14일 이용권", days: 14, price: 5900 },
+    { code: "manual-30d", label: "30일 이용권", days: 30, price: 9900 }
+];
 
 // --- Telegram API helpers ---------------------------------------------------
 async function tg(token, method, payload) {
@@ -422,7 +524,7 @@ async function tg(token, method, payload) {
 }
 
 function buildRequestNotifyText(requestId, r) {
-    const created = r.createdAt ? new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16) + " UTC" : "-";
+    const created = r.createdAt ? formatKstDateTime(r.createdAt) : "-";
     return [
         "🔔 새 고급 구독 신청이 들어왔습니다",
         `신청번호: ${requestId}`,
@@ -444,11 +546,10 @@ async function sendSubscriptionEmail(requestId, r) {
         console.warn("[sendSubscriptionEmail] 이메일 시크릿 미설정 - 메일 건너뜀");
         return;
     }
-    const created = r.createdAt
-        ? new Date(r.createdAt).toISOString().replace("T", " ").slice(0, 16) + " UTC"
-        : "-";
+    const created = r.createdAt ? formatKstDateTime(r.createdAt) : "-";
     const planText = r.planLabel || r.planCode || "?";
     const requesterText = `${r.requesterMask || "?"} / ${r.emailMask || "?"}`;
+    const adminUrl = `${PUBLIC_ADMIN_PAGE_URL}?subscriptionRequest=${encodeURIComponent(requestId)}`;
     const lines = [
         "새 고급 구독 신청이 들어왔습니다.",
         "",
@@ -457,7 +558,8 @@ async function sendSubscriptionEmail(requestId, r) {
         `신청자(마스크): ${requesterText}`,
         `시각: ${created}`,
         "",
-        "승인/거절은 텔레그램 알림의 버튼으로 처리하세요. (후원 확인 후 승인)"
+        "승인/거절은 텔레그램 알림 버튼 또는 아래 관리자 페이지에서 처리하세요. (후원 확인 후 승인)",
+        adminUrl
     ];
     const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -470,6 +572,38 @@ async function sendSubscriptionEmail(requestId, r) {
         text: lines.join("\n")
     });
     console.log("[sendSubscriptionEmail] 메일 전송 완료:", requestId);
+}
+
+async function sendSubscriptionApprovalEmail({ requestId, payload, planLabel, loginId, expiresAt }) {
+    const user = EMAIL_USER.value();
+    const pass = EMAIL_APP_PASSWORD.value();
+    const to = String(payload && payload.email || "").trim();
+    if (!user || !pass || !to) {
+        console.warn("[sendSubscriptionApprovalEmail] 이메일 시크릿 또는 수신 이메일 없음 - 메일 건너뜀");
+        return;
+    }
+    const lines = [
+        "고급 구독 신청이 승인되었습니다.",
+        "",
+        `신청번호: ${requestId}`,
+        `이용권: ${planLabel || "-"}`,
+        `로그인 ID: ${loginId || "-"}`,
+        `만료일: ${formatExpiryForEmail(expiresAt)}`,
+        "",
+        "구독 신청 때 사용한 ID와 PW로 고급 모드에 로그인해 주세요.",
+        `불편한 점은 언제든지 ${SUPPORT_EMAIL}으로 문의해주시기 바랍니다.`
+    ];
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user, pass }
+    });
+    await transporter.sendMail({
+        from: `"SKCT 구독 알림" <${user}>`,
+        to,
+        subject: `[SKCT] 고급 구독 승인 완료 (${planLabel || "이용권"})`,
+        text: lines.join("\n")
+    });
+    console.log("[sendSubscriptionApprovalEmail] 메일 전송 완료:", requestId);
 }
 
 exports.notifyNewSubscriptionRequest = onValueCreated(
@@ -518,7 +652,7 @@ exports.notifyNewSubscriptionRequest = onValueCreated(
 );
 
 // --- 승인/거절 처리(공용) ---------------------------------------------------
-async function approveRequest(requestId) {
+async function approveRequest(requestId, options = {}) {
     const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
     const signPem = LICENSE_SIGNING_PRIVATE_KEY.value();
     if (!rsaPem || !signPem) throw new Error("개인키 시크릿 미설정");
@@ -535,11 +669,16 @@ async function approveRequest(requestId) {
     // 요금제 일수
     const msc = (await db.ref("config/manualSubscriptionConfig").get()).val() || {};
     const plansRaw = msc.plans || [];
-    const plans = Array.isArray(plansRaw) ? plansRaw : Object.values(plansRaw);
+    const remotePlans = Array.isArray(plansRaw) ? plansRaw : Object.values(plansRaw);
+    const plans = DEFAULT_MANUAL_PLANS.map((fallback) => ({
+        ...fallback,
+        ...(remotePlans.find((p) => p && p.code === fallback.code) || {})
+    }));
     const plan = plans.find((p) => p && p.code === record.planCode);
     const days = plan ? Number(plan.days) : 14;
     const planLabel = record.planLabel || (plan && plan.label) || "14일 이용권";
-    const expiresAt = issuerCore.computeExpiresAtDate(payload.requestedStartDate || "", days);
+    const expiresAt = String(options.expiresAt || "").trim() || issuerCore.computeExpiresAtDate(payload.requestedStartDate || "", days);
+    const statusMessage = String(options.statusMessage || "").trim() || "승인되었습니다.";
 
     // 경로 A
     const subscription = { loginId, userIdentity: payload.siteNickname || payload.donationName || "", planType: planLabel, status: "active", expiresAt };
@@ -549,28 +688,52 @@ async function approveRequest(requestId) {
 
     // 경로 B
     const enc = await issuerCore.buildApprovedRequestPayloadCipher({
-        record, payload, expiresAtDate: expiresAt, signingPrivateKeyPem: signPem, adminPrivateKeyPem: rsaPem, statusMessage: "승인되었습니다."
+        record, payload, expiresAtDate: expiresAt, signingPrivateKeyPem: signPem, adminPrivateKeyPem: rsaPem, statusMessage
     });
-    await reqRef.update({ status: "fulfilled", updatedAt: Date.now(), tgApprovedAt: Date.now(), manualIssuedExpiresAt: expiresAt, payloadCipher: enc.payloadCipher, payloadIv: enc.payloadIv });
+    const now = Date.now();
+    await reqRef.update({
+        status: "fulfilled",
+        updatedAt: now,
+        tgApprovedAt: now,
+        serverApprovedAt: now,
+        serverApprovedBy: options.approvedBy || null,
+        manualIssuedExpiresAt: expiresAt,
+        payloadCipher: enc.payloadCipher,
+        payloadIv: enc.payloadIv
+    });
+    try {
+        await sendSubscriptionApprovalEmail({ requestId, payload, planLabel, loginId, expiresAt });
+    } catch (error) {
+        console.error("[approveRequest] 승인 이메일 오류:", error.message);
+    }
     return { ok: true, msg: `승인 완료: ${loginId} / 만료 ${expiresAt}`, loginId, expiresAt };
 }
 
-async function rejectRequest(requestId) {
+async function rejectRequest(requestId, options = {}) {
     const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
     if (!rsaPem) throw new Error("개인키 시크릿 미설정");
     const reqRef = db.ref(`subscriptionRequests/${requestId}`);
     const record = (await reqRef.get()).val();
     if (!record) return { ok: false, msg: "신청을 찾지 못했습니다." };
     const payload = await issuerCore.crypto.decryptRequestPayloadForAdmin(record, rsaPem);
-    const nextPayload = { ...payload, adminResponse: { ...(payload.adminResponse || {}), statusMessage: "후원 확인이 필요해 거절되었습니다.", rejectedAt: Date.now() } };
+    const statusMessage = String(options.statusMessage || "").trim() || "후원 확인이 필요해 거절되었습니다.";
+    const now = Date.now();
+    const nextPayload = { ...payload, adminResponse: { ...(payload.adminResponse || {}), statusMessage, rejectedAt: now } };
     const enc = await issuerCore.crypto.reencryptRequestPayloadForAdmin(record, nextPayload, rsaPem);
-    await reqRef.update({ status: "rejected", updatedAt: Date.now(), payloadCipher: enc.payloadCipher, payloadIv: enc.payloadIv });
+    await reqRef.update({
+        status: "rejected",
+        updatedAt: now,
+        serverRejectedAt: now,
+        serverRejectedBy: options.rejectedBy || null,
+        payloadCipher: enc.payloadCipher,
+        payloadIv: enc.payloadIv
+    });
     return { ok: true, msg: "거절 처리 완료" };
 }
 
 // --- 텔레그램 콜백 웹훅 (승인/거절 버튼) ------------------------------------
 exports.telegramApprovalWebhook = onRequest(
-    { secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_WEBHOOK_SECRET, ADMIN_RSA_PRIVATE_KEY, LICENSE_SIGNING_PRIVATE_KEY] },
+    { secrets: [TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_WEBHOOK_SECRET, ADMIN_RSA_PRIVATE_KEY, LICENSE_SIGNING_PRIVATE_KEY, EMAIL_USER, EMAIL_APP_PASSWORD] },
     async (req, res) => {
         try {
             if (req.get("X-Telegram-Bot-Api-Secret-Token") !== TELEGRAM_WEBHOOK_SECRET.value()) {
@@ -597,7 +760,7 @@ exports.telegramApprovalWebhook = onRequest(
             await tg(token, "answerCallbackQuery", { callback_query_id: cq.id, text: result.msg.slice(0, 190), show_alert: true });
             if (cq.message) {
                 const base = (cq.message.text || "").split("\n\n")[0];
-                const stamp = new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC";
+                const stamp = formatKstDateTime(Date.now());
                 await tg(token, "editMessageText", {
                     chat_id: cq.message.chat.id,
                     message_id: cq.message.message_id,

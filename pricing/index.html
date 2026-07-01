@@ -34,11 +34,12 @@
     <main class="docs-main">
         <div class="docs-shell">
             <section class="docs-hero">
-                <span class="docs-badge">Pricing</span>
-                <h1>후원과 유료 기능을<br>같이 섞지 않고 설명하는 페이지</h1>
-                <p>메인 연습 도구는 무료 흐름을 유지하고, 추가 기능이 필요한 경우에만 별도 신청과 승인 흐름을 밟는 구조입니다.</p>
+                <span class="docs-badge">Advanced Pack</span>
+                <h1>무료 연습은 그대로,<br>복기 시간이 아까울 때만 고급 복기팩</h1>
+                <p>OMR, 타이머, 메모장, 그림판, 계산기는 계속 무료입니다. 고급 복기팩은 시험 직전 반복 연습에서 상세 통계, CSV 누적, 정오표 입력, 자료 보관함이 필요한 사용자만 신청하는 선택형 기능입니다.</p>
                 <div class="docs-hero-actions">
-                    <a class="docs-button primary" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer">운영 후원하기</a>
+                    <a class="docs-button primary" href="../index.html?open=advanced">고급 복기팩 신청하기</a>
+                    <a class="docs-button secondary" href="https://toon.at/donate/foreveryonehappy" target="_blank" rel="noopener noreferrer">운영 후원하기</a>
                     <a class="docs-button secondary" href="../guide/">기본 기능 먼저 보기</a>
                 </div>
             </section>
@@ -69,31 +70,43 @@
 
             <section class="docs-section">
                 <h2 class="docs-section-title">현재 안내 기준 가격</h2>
-                <div class="docs-card strong">
-                    <table class="docs-table">
-                        <thead>
-                            <tr>
-                                <th>이용권</th>
-                                <th>기간</th>
-                                <th>안내 가격</th>
-                                <th>성격</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>7일 이용권</td>
-                                <td>7일</td>
-                                <td>4,900원</td>
-                                <td>시험 직전 단기 몰입용</td>
-                            </tr>
-                            <tr>
-                                <td>14일 이용권</td>
-                                <td>14일</td>
-                                <td>7,900원</td>
-                                <td>가장 추천하는 주력 이용권</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="pricing-plan-grid">
+                    <article class="pricing-plan-card" data-plan-code="manual-7d">
+                        <div class="pricing-plan-kicker">단기 몰입</div>
+                        <h3 data-plan-label>7일 이용권</h3>
+                        <div class="pricing-plan-price" data-plan-price>4,900원</div>
+                        <p data-plan-description>시험 직전 1주일 동안 실전 회차를 몰아서 풀고, 상세 통계와 정오표로 빠르게 복기하는 용도입니다.</p>
+                        <a class="docs-button primary pricing-plan-button" href="../index.html?open=advanced" data-plan-button>7일권 신청</a>
+                    </article>
+                    <article class="pricing-plan-card featured" data-plan-code="manual-14d">
+                        <div class="pricing-plan-kicker">추천</div>
+                        <h3 data-plan-label>14일 이용권</h3>
+                        <div class="pricing-plan-price" data-plan-price>7,900원</div>
+                        <p data-plan-description>2주 동안 회차별 점수 흐름을 CSV로 누적하고, 자주 틀리는 유형을 정오표로 다시 점검하는 주력 이용권입니다.</p>
+                        <a class="docs-button primary pricing-plan-button" href="../index.html?open=advanced" data-plan-button>14일권 신청</a>
+                    </article>
+                </div>
+                <p class="pricing-fineprint" id="pricingPlanSyncStatus">운영자가 관리자 페이지에서 가격을 조정한 경우, 실제 신청 모달에 표시되는 가격과 승인 안내가 최종 기준입니다.</p>
+            </section>
+
+            <section class="docs-section">
+                <h2 class="docs-section-title">신청부터 사용까지</h2>
+                <div class="pricing-step-list">
+                    <article class="pricing-step">
+                        <strong>1</strong>
+                        <h3>이용권 선택</h3>
+                        <p>메인 앱의 고급 모드 신청서에서 기간, 닉네임, 이메일, 로그인 ID를 입력합니다.</p>
+                    </article>
+                    <article class="pricing-step">
+                        <strong>2</strong>
+                        <h3>후원 메모에 신청번호 입력</h3>
+                        <p>신청 저장 후 표시되는 신청번호를 후원 메모에 붙여 넣으면 확인이 빨라집니다.</p>
+                    </article>
+                    <article class="pricing-step">
+                        <strong>3</strong>
+                        <h3>승인 후 고급 모드 진입</h3>
+                        <p>승인되면 같은 이메일 또는 로그인 ID와 비밀번호로 고급 복기 기능을 열 수 있습니다.</p>
+                    </article>
                 </div>
             </section>
 
@@ -123,5 +136,50 @@
             </footer>
         </div>
     </main>
+    <script>
+        (function () {
+            const configUrl = 'https://skct-tool-default-rtdb.firebaseio.com/config/manualSubscriptionConfig.json';
+            const formatter = new Intl.NumberFormat('ko-KR');
+            const fallbackDescriptions = {
+                'manual-7d': '시험 직전 1주일 동안 실전 회차를 몰아서 풀고, 상세 통계와 정오표로 빠르게 복기하는 용도입니다.',
+                'manual-14d': '2주 동안 회차별 점수 흐름을 CSV로 누적하고, 자주 틀리는 유형을 정오표로 다시 점검하는 주력 이용권입니다.'
+            };
+
+            function setText(root, selector, value) {
+                const el = root.querySelector(selector);
+                if (el && value) el.textContent = value;
+            }
+
+            fetch(configUrl)
+                .then((response) => response.ok ? response.json() : null)
+                .then((config) => {
+                    const plans = Array.isArray(config && config.plans) ? config.plans : [];
+                    plans.forEach((plan) => {
+                        if (!plan || plan.enabled === false || !plan.code) return;
+                        const card = document.querySelector(`[data-plan-code="${plan.code}"]`);
+                        if (!card) return;
+                        const label = String(plan.label || '').trim();
+                        const price = Number(plan.price);
+                        const highlight = String(plan.highlight || '').trim();
+                        setText(card, '[data-plan-label]', label);
+                        if (Number.isFinite(price) && price > 0) {
+                            setText(card, '[data-plan-price]', `${formatter.format(price)}원`);
+                        }
+                        setText(card, '[data-plan-description]', highlight || fallbackDescriptions[plan.code]);
+                        setText(card, '[data-plan-button]', label ? `${label.replace(' 이용권', '')}권 신청` : '신청');
+                    });
+                    const status = document.getElementById('pricingPlanSyncStatus');
+                    if (status && plans.length > 0) {
+                        status.textContent = '현재 가격은 운영 설정을 불러와 표시했습니다. 실제 신청 모달과 승인 안내가 최종 기준입니다.';
+                    }
+                })
+                .catch(() => {
+                    const status = document.getElementById('pricingPlanSyncStatus');
+                    if (status) {
+                        status.textContent = '운영 가격을 불러오지 못해 코드 기본값을 표시합니다. 실제 신청 모달과 승인 안내가 최종 기준입니다.';
+                    }
+                });
+        }());
+    </script>
 </body>
 </html>

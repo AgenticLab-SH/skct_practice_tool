@@ -15,13 +15,11 @@
 <div id="loginScreen" class="login-screen">
     <div class="login-card">
         <h1>🔐 SKCT Tool Admin</h1>
-        <p class="subtitle">Firebase Auth 관리자 계정으로 로그인</p>
-        <form id="loginForm" class="login-form">
-            <input type="email" id="loginEmail" placeholder="관리자 이메일 입력" autocomplete="username">
-            <input type="password" id="loginPw" placeholder="관리자 비밀번호 입력" autocomplete="current-password">
-            <button id="loginBtn" type="submit">로그인</button>
-        </form>
-        <div id="loginError" class="login-error">이메일 또는 비밀번호가 올바르지 않습니다.</div>
+        <p class="subtitle">Google 관리자 계정으로 로그인</p>
+        <div class="login-form">
+            <button id="googleLoginBtn" type="button">Google로 관리자 로그인</button>
+        </div>
+        <div id="loginError" class="login-error">허용된 관리자 Google 계정만 접속할 수 있습니다.</div>
     </div>
 </div>
 
@@ -376,7 +374,7 @@
                         </div>
                     </div>
                     <div style="font-size:11px; color:var(--adm-text-muted); margin-bottom:10px; line-height:1.7;">
-                        일반 사용자의 신청 상태 확인은 <strong>신청 이메일 + 조회 비밀번호</strong>로 진행되고, 승인 후 고급 로그인은 <strong>신청 이메일 또는 로그인 ID + 비밀번호</strong>로 진행됩니다. 신청 양식은 <strong>투네이션 이름 / 구독권 / 이용 시작일 / 로그인 ID / 비밀번호 / 닉네임 / 이메일</strong> 기준으로 저장되며, 신청 본문은 브라우저에서 암호화됩니다. 운영자는 <strong>관리자 전용 개인키</strong>가 있어야 전체 비밀글을 열람할 수 있습니다.
+                        일반 사용자의 신청 상태 확인은 <strong>신청 이메일 + 조회 비밀번호</strong>로 진행되고, 승인 후 고급 로그인은 <strong>신청 이메일 또는 로그인 ID + 비밀번호</strong>로 진행됩니다. 신청 양식은 <strong>후원 닉네임 / 구독권 / 원하는 이용 시작일 / 로그인 ID / 비밀번호 / 닉네임 / 알림 이메일</strong> 기준으로 저장되며, 신청 본문은 브라우저에서 암호화됩니다. 운영자는 <strong>관리자 전용 개인키</strong>가 있어야 전체 비밀글을 열람할 수 있습니다.
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin-bottom:12px;">
                         <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
@@ -392,12 +390,20 @@
                             <input id="manualSubscriptionSecureApiBaseUrl" type="text" class="form-input" placeholder="https://REGION-PROJECT.cloudfunctions.net/skctSecureApi">
                         </div>
                         <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">3일권 가격</div>
+                            <input id="manualSubscriptionPrice3d" type="number" class="form-input" min="1000" step="100">
+                        </div>
+                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
                             <div style="font-size:11px; color:#475569; margin-bottom:6px;">7일권 가격</div>
                             <input id="manualSubscriptionPrice7d" type="number" class="form-input" min="1000" step="100">
                         </div>
                         <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
                             <div style="font-size:11px; color:#475569; margin-bottom:6px;">14일권 가격</div>
                             <input id="manualSubscriptionPrice14d" type="number" class="form-input" min="1000" step="100">
+                        </div>
+                        <div style="padding:12px; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0;">
+                            <div style="font-size:11px; color:#475569; margin-bottom:6px;">30일권 가격</div>
+                            <input id="manualSubscriptionPrice30d" type="number" class="form-input" min="1000" step="100">
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
@@ -695,14 +701,14 @@
 
 <!-- Firebase SDK -->
 <script src="build-info.js?v=202604112208"></script>
-<script src="site-text-config.js?v=202604112208"></script>
+<script src="site-text-config.js?v=202607011930"></script>
 <script src="config/firebase-web-config.js"></script>
 <script src="subscription-crypto.js?v=202604081955"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction, goOffline, goOnline
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserSessionPersistence, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { getFirebaseWebConfig } from "./config/firebase-config.mjs";
 
     const app = initializeApp(getFirebaseWebConfig());
@@ -711,6 +717,10 @@
     const activeVisitorsRef = ref(db, 'active_visitors');
     const PRESENCE_STALE_MS = 150000;
     const ADMIN_DB_RECONNECT_TIMEOUT_MS = 2500;
+    const DEFAULT_SECURE_API_BASE_URL = 'https://us-central1-skct-tool.cloudfunctions.net/skctSecureApi';
+    const ADMIN_ALLOWED_EMAIL = 'zhdlsqpdj@gmail.com';
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
     const buildInfo = window.SKCTBuildInfo || {};
     const adminBuildUpdatedAt = document.getElementById('adminBuildUpdatedAt');
     const adminBuildVersion = document.getElementById('adminBuildVersion');
@@ -778,6 +788,10 @@
         return code.includes('permission-denied') || message.includes('permission denied');
     }
 
+    function isAllowedAdminUser(user) {
+        return String(user?.email || '').trim().toLowerCase() === ADMIN_ALLOWED_EMAIL;
+    }
+
     function buildDbRef(path = '') {
         return path ? ref(db, path) : ref(db);
     }
@@ -814,6 +828,11 @@
             const missingSessionError = new Error('관리자 로그인 세션이 없습니다. 다시 로그인해주세요.');
             missingSessionError.code = 'auth/admin-session-missing';
             throw missingSessionError;
+        }
+        if (!isAllowedAdminUser(user)) {
+            const forbiddenError = new Error(`허용된 관리자 계정(${ADMIN_ALLOWED_EMAIL})으로만 접속할 수 있습니다.`);
+            forbiddenError.code = 'auth/admin-email-not-allowed';
+            throw forbiddenError;
         }
         try {
             await user.getIdToken(forceRefresh);
@@ -874,6 +893,33 @@
 
     async function adminRemoveValue(path, options = {}) {
         return runAdminDatabaseWrite(() => remove(buildDbRef(path)), options);
+    }
+
+    function getManualSubscriptionSecureApiBaseUrl() {
+        const config = normalizeManualSubscriptionConfig(loadedConfig.manualSubscriptionConfig);
+        return String(config.secureApiBaseUrl || DEFAULT_SECURE_API_BASE_URL).trim().replace(/\/+$/, '');
+    }
+
+    async function postAdminSecureApi(path, payload = {}) {
+        const baseUrl = getManualSubscriptionSecureApiBaseUrl();
+        if (!baseUrl) {
+            throw new Error('보안 API 주소가 설정되어 있지 않습니다.');
+        }
+        const user = await ensureAdminWriteSession({ forceRefresh: true });
+        const token = await user.getIdToken();
+        const response = await fetch(`${baseUrl}${path}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok === false) {
+            throw new Error(data.errorMessage || data.message || `보안 API 요청 실패 (${response.status})`);
+        }
+        return data;
     }
 
     async function sendUserMessage() {
@@ -1000,12 +1046,14 @@
         enabled: true,
         donationUrl: 'https://toon.at/donate/foreveryonehappy',
         supportEmail: 'zhdlsqpdj@gmail.com',
-        secureApiBaseUrl: '',
+        secureApiBaseUrl: DEFAULT_SECURE_API_BASE_URL,
         adminPublicKeyPem: '',
         licensePublicKeyPem: '',
         plans: [
-            { code: 'manual-7d', label: '7일 이용권', days: 7, price: 4900, enabled: true, highlight: '시험 직전 단기 몰입용' },
-            { code: 'manual-14d', label: '14일 이용권', days: 14, price: 7900, enabled: true, highlight: '가장 추천하는 주력 이용권' }
+            { code: 'manual-3d', label: '3일 이용권', days: 3, price: 2900, enabled: true, highlight: '주말 집중 대비용' },
+            { code: 'manual-7d', label: '7일 이용권', days: 7, price: 3900, enabled: true, highlight: '시험 직전 단기 몰입용' },
+            { code: 'manual-14d', label: '14일 이용권', days: 14, price: 5900, enabled: true, highlight: '7일권 2회보다 1,900원 절약' },
+            { code: 'manual-30d', label: '30일 이용권', days: 30, price: 9900, enabled: true, highlight: '한 달 준비용 최저 단가' }
         ]
     };
 
@@ -1195,16 +1243,41 @@
     }
 
     function normalizeManualSubscriptionConfig(raw) {
-        const sourcePlans = Array.isArray(raw?.plans) ? raw.plans : DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans;
-        const plans = sourcePlans.map((plan, index) => {
+        const sourcePlans = Array.isArray(raw?.plans) ? raw.plans : [];
+        const planByCode = new Map(sourcePlans
+            .map((plan) => [String(plan?.code || '').trim(), plan])
+            .filter(([code]) => Boolean(code)));
+        const mergedPlans = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.map((fallback) => ({
+            ...fallback,
+            ...(planByCode.get(fallback.code) || {})
+        }));
+        sourcePlans.forEach((plan) => {
+            const code = String(plan?.code || '').trim();
+            if (code && !DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans.some((fallback) => fallback.code === code)) {
+                mergedPlans.push(plan);
+            }
+        });
+        const plans = mergedPlans.map((plan, index) => {
             const fallback = DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[index] || DEFAULT_MANUAL_SUBSCRIPTION_CONFIG.plans[0];
+            const code = String(plan?.code || fallback.code).trim();
+            const rawPrice = parseInt(plan?.price, 10);
+            const legacyDefaultPrices = {
+                'manual-7d': [4900],
+                'manual-14d': [6900, 7900]
+            };
+            const rawHighlight = String(plan?.highlight || '').trim();
+            const legacyDefaultHighlights = {
+                'manual-14d': ['가장 추천하는 주력 이용권']
+            };
+            const priceSource = legacyDefaultPrices[code]?.includes(rawPrice) ? fallback.price : rawPrice;
+            const highlightSource = legacyDefaultHighlights[code]?.includes(rawHighlight) ? fallback.highlight : rawHighlight;
             return {
-                code: String(plan?.code || fallback.code).trim(),
+                code,
                 label: String(plan?.label || fallback.label).trim(),
                 days: Math.max(1, parseInt(plan?.days, 10) || fallback.days),
-                price: Math.max(1000, parseInt(plan?.price, 10) || fallback.price),
+                price: Math.max(1000, priceSource || fallback.price),
                 enabled: plan?.enabled !== false,
-                highlight: String(plan?.highlight || fallback.highlight || '').trim()
+                highlight: String(highlightSource || fallback.highlight || '').trim()
             };
         }).filter((plan) => plan.code && plan.label);
         return {
@@ -1648,31 +1721,25 @@
     const BASE_YESTERDAY_VISITS = 380;
 
     // ── Login ──
-    document.getElementById('loginForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        doLogin();
-    });
-    document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-    document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('googleLoginBtn').addEventListener('click', () => doGoogleLogin());
 
-    async function doLogin() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const pw = document.getElementById('loginPw').value.trim();
-        if (!email || !pw) {
-            setAdminSessionStatus('로그인 정보 입력 필요', 'pending');
-            document.getElementById('loginError').textContent = '이메일과 비밀번호를 모두 입력해주세요.';
-            document.getElementById('loginError').style.display = 'block';
-            return;
-        }
+    async function doGoogleLogin() {
         try {
             setAdminSessionStatus('로그인 확인 중...', 'pending');
             await setPersistence(auth, browserSessionPersistence);
-            await signInWithEmailAndPassword(auth, email, pw);
-            currentAdminPassword = pw;
+            await signInWithPopup(auth, googleProvider);
         } catch (error) {
+            if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
+                try {
+                    await signInWithRedirect(auth, googleProvider);
+                    return;
+                } catch (redirectError) {
+                    console.error('Admin Google redirect failed:', redirectError);
+                }
+            }
             console.error('Admin auth failed:', error);
             setAdminSessionStatus('로그인 실패', 'error');
-            document.getElementById('loginError').textContent = '이메일 또는 비밀번호가 올바르지 않거나 Firebase Auth 설정이 준비되지 않았습니다.';
+            document.getElementById('loginError').textContent = 'Google 로그인에 실패했거나 허용된 관리자 계정이 아닙니다.';
             document.getElementById('loginError').style.display = 'block';
             setTimeout(() => document.getElementById('loginError').style.display = 'none', 3000);
         }
@@ -1693,8 +1760,6 @@
         currentAdminPassword = '';
         document.getElementById('dashboard').classList.remove('active');
         document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('loginEmail').value = '';
-        document.getElementById('loginPw').value = '';
         setAdminSessionStatus('로그인 필요', 'pending');
         setAdminSaveStatus('아직 저장 작업 없음');
     }
@@ -1704,12 +1769,25 @@
         leaveDashboard();
     });
 
+    getRedirectResult(auth).catch((error) => {
+        console.error('Admin Google redirect result failed:', error);
+        document.getElementById('loginError').textContent = 'Google 로그인 결과를 확인하지 못했습니다.';
+        document.getElementById('loginError').style.display = 'block';
+    });
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
+                if (!isAllowedAdminUser(user)) {
+                    await signOut(auth).catch(() => {});
+                    document.getElementById('loginError').textContent = `허용된 관리자 계정(${ADMIN_ALLOWED_EMAIL})으로만 접속할 수 있습니다.`;
+                    document.getElementById('loginError').style.display = 'block';
+                    setAdminSessionStatus('관리자 계정 아님', 'error');
+                    leaveDashboard();
+                    return;
+                }
                 await syncAdminDatabaseAuth({ expectedUser: user, reconnectDatabase: true });
                 document.getElementById('loginError').style.display = 'none';
-                document.getElementById('loginEmail').value = user.email || '';
                 enterDashboard();
                 return;
             } catch (error) {
@@ -2440,15 +2518,15 @@
     }
 
     const DEFAULT_SUPPORT_CONFIG = {
-        modalTitle: "☕ 광고 없이 이어가는 SKCT 연습 공간",
-        modalLead: "이 공간은 공부 흐름을 해치지 않도록 배너 광고나 과한 유도 없이 운영하고 있습니다.",
-        modalBody: "서버비와 관리 시간은 개인이 먼저 부담하고 있습니다.\n연습에 도움이 됐다면 남겨 주시는 한 번의 응원이 오래 운영하는 데 큰 힘이 됩니다.",
-        modalPromise: "후원과 관계없이 핵심 기능은 그대로 사용할 수 있습니다.\n보내주신 금액은 서버비와 유지보수에만 사용합니다.",
-        modalHighlight: "이 도구가 실전 연습에 도움이 됐다면, 편하실 때 한 번 응원해 주세요.\n오래 두고 다시 찾을 수 있는 도구로 꾸준히 관리하겠습니다.",
+        modalTitle: "",
+        modalLead: "고급 구독 없이도 모두가 이용할 수 있도록 하는 것이 제 목적입니다.",
+        modalBody: "다만 서버 비용과 도메인 비용 등은 취준생 개발자가 감당하고 있습니다.\n후원으로 운영에 도움을 주시면 감사드리겠습니다.",
+        modalPromise: "또한 SKCT 합격에 도움이 되셨다면 커뮤니티에 후기를 남겨주시면 아주 보람차답니다.",
+        modalHighlight: "기타 문의사항은 아래 이메일로 보내주세요.",
         breakFooter: "도움이 됐다면 좌측 ☕ 버튼에서 운영 응원을 남길 수 있습니다.",
-        contactText: "",
-        contactUrl: "",
-        buttonLabel: "☕ 운영 응원하기",
+        contactText: "zhdlsqpdj@gmail.com",
+        contactUrl: "zhdlsqpdj@gmail.com",
+        buttonLabel: "후원 페이지 열기",
         buttonUrl: "https://toon.at/donate/foreveryonehappy",
         sponsorTickerSeconds: 4
     };
@@ -2706,8 +2784,10 @@
         document.getElementById('manualSubscriptionDonationUrl').value = config.donationUrl || '';
         document.getElementById('manualSubscriptionSupportEmail').value = config.supportEmail || '';
         document.getElementById('manualSubscriptionSecureApiBaseUrl').value = config.secureApiBaseUrl || '';
+        document.getElementById('manualSubscriptionPrice3d').value = getManualPlanByCode(config, 'manual-3d').price;
         document.getElementById('manualSubscriptionPrice7d').value = getManualPlanByCode(config, 'manual-7d').price;
         document.getElementById('manualSubscriptionPrice14d').value = getManualPlanByCode(config, 'manual-14d').price;
+        document.getElementById('manualSubscriptionPrice30d').value = getManualPlanByCode(config, 'manual-30d').price;
         const publicKeyStatus = document.getElementById('manualSubscriptionPublicKeyStatus');
         if (publicKeyStatus) {
             publicKeyStatus.textContent = config.adminPublicKeyPem
@@ -2867,12 +2947,20 @@
             licensePublicKeyPem: current.licensePublicKeyPem || '',
             plans: [
                 {
+                    ...getManualPlanByCode(current, 'manual-3d'),
+                    price: Math.max(1000, parseInt(document.getElementById('manualSubscriptionPrice3d').value, 10) || 2900)
+                },
+                {
                     ...getManualPlanByCode(current, 'manual-7d'),
-                    price: Math.max(1000, parseInt(document.getElementById('manualSubscriptionPrice7d').value, 10) || 4900)
+                    price: Math.max(1000, parseInt(document.getElementById('manualSubscriptionPrice7d').value, 10) || 3900)
                 },
                 {
                     ...getManualPlanByCode(current, 'manual-14d'),
-                    price: Math.max(1000, parseInt(document.getElementById('manualSubscriptionPrice14d').value, 10) || 7900)
+                    price: Math.max(1000, parseInt(document.getElementById('manualSubscriptionPrice14d').value, 10) || 5900)
+                },
+                {
+                    ...getManualPlanByCode(current, 'manual-30d'),
+                    price: Math.max(1000, parseInt(document.getElementById('manualSubscriptionPrice30d').value, 10) || 9900)
                 }
             ]
         };
@@ -3137,6 +3225,7 @@
                 });
             }
             renderSubscriptionRequests();
+            focusSubscriptionRequestFromUrl();
         } catch (error) {
             console.error('Subscription requests load failed:', error);
             subscriptionRequestCache = {};
@@ -3144,6 +3233,22 @@
                 container.innerHTML = '<div style="font-size:12px; color:#b91c1c; text-align:center; padding:16px;">신청 목록을 불러오지 못했습니다. 권한 또는 네트워크 상태를 확인한 뒤 새로고침해주세요.</div>';
             }
         }
+    }
+
+    function focusSubscriptionRequestFromUrl() {
+        const requestId = String(new URLSearchParams(window.location.search).get('subscriptionRequest') || '').trim();
+        if (!requestId) return;
+        const card = document.querySelector(`[data-request-card="${CSS.escape(requestId)}"]`);
+        if (!card) return;
+        const subscriptionPanel = document.querySelector('[data-admin-tab-panel="subscription"]');
+        if (subscriptionPanel) {
+            activateAdminTab('subscription');
+        }
+        card.style.outline = '2px solid #2563eb';
+        card.style.outlineOffset = '2px';
+        requestAnimationFrame(() => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
     }
 
     function renderSubscriptionRequests() {
@@ -3155,6 +3260,8 @@
             return;
         }
         const privateKeyAvailable = Boolean((document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim());
+        const signingKeyAvailable = Boolean((document.getElementById('manualSubscriptionLicensePrivateKeyArea').value || '').trim());
+        const serverApprovalAvailable = Boolean(getManualSubscriptionSecureApiBaseUrl());
         const statusMetaMap = {
             pending: { label: '승인 대기', color: '#1d4ed8' },
             approved: { label: '승인 완료', color: '#0f766e' },
@@ -3204,8 +3311,22 @@
                         </div>
                     ` : `
                         <div style="font-size:11px; color:#64748b; line-height:1.7;">
-                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있고, 필요하면 바로 삭제도 가능합니다.' : '현재 화면에 신청 복호화 개인키가 없어 본문을 열 수 없습니다. 그래도 이 카드의 삭제 버튼으로 개별 삭제는 가능합니다.'}
+                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있고, 필요하면 바로 삭제도 가능합니다.' : '현재 화면에 신청 복호화 개인키가 없어 본문을 열 수 없습니다.'}
+                            ${serverApprovalAvailable ? '<br>폰에서는 Firebase 관리자 로그인 후 서버 승인 버튼으로 바로 처리할 수 있습니다.' : ''}
                         </div>
+                        ${serverApprovalAvailable && record.status === 'pending' ? `
+                            <div style="display:grid; grid-template-columns:minmax(0, 1fr); gap:8px;">
+                                <input class="form-input" data-field="expiresAt" type="date" value="" title="비워두면 신청한 시작일과 요금제로 자동 계산">
+                                <input class="form-input" data-field="statusMessage" value="" placeholder="처리 메모">
+                            </div>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button type="button" class="btn btn-primary btn-sm" data-request-act="approve" data-request-id="${esc(record.requestId)}">서버 승인</button>
+                                <button type="button" class="btn btn-ghost btn-sm" data-request-act="reject" data-request-id="${esc(record.requestId)}" style="color:#b91c1c; border-color:#fecaca;">서버 반려</button>
+                            </div>
+                        ` : ''}
+                        ${!serverApprovalAvailable && (!privateKeyAvailable || !signingKeyAvailable) ? `
+                            <div style="font-size:11px; color:#b45309; line-height:1.7;">로컬 키가 없는 기기에서 승인하려면 신청 설정의 보안 API 주소가 필요합니다.</div>
+                        ` : ''}
                     `}
                 </div>
             `;
@@ -3270,12 +3391,26 @@
         const record = subscriptionRequestCache[requestId];
         const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
         const signingPrivateKeyPem = (document.getElementById('manualSubscriptionLicensePrivateKeyArea').value || '').trim();
+        const canUseServerApproval = Boolean(getManualSubscriptionSecureApiBaseUrl());
+        const expiresAtFromCard = cardEl?.querySelector('[data-field="expiresAt"]')?.value.trim() || '';
+        const statusMessageFromCard = cardEl?.querySelector('[data-field="statusMessage"]')?.value.trim() || '';
+        if (record && cardEl && canUseServerApproval && (!privateKeyPem || !signingPrivateKeyPem || !record._payload)) {
+            const result = await postAdminSecureApi('/admin/subscription/approve', {
+                requestId,
+                expiresAt: expiresAtFromCard,
+                statusMessage: statusMessageFromCard || '투네이션 확인 후 승인되었습니다.'
+            });
+            await loadSubscriptionRequests();
+            renderManualSubscriptionAdminForm(`${requestId} 신청을 서버에서 승인했습니다. ${result.expiresAt ? `만료일: ${result.expiresAt}` : ''}`);
+            toast('✅ 서버 승인 완료');
+            return;
+        }
         if (!record || !privateKeyPem || !signingPrivateKeyPem || !cardEl) {
             throw new Error('승인 처리에 필요한 신청 정보, 복호화 키, 서명 키가 모두 준비되어야 합니다.');
         }
         const payload = record._payload || await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
-        const expiresAt = cardEl.querySelector('[data-field="expiresAt"]').value.trim();
-        const statusMessage = cardEl.querySelector('[data-field="statusMessage"]').value.trim() || '투네이션 확인 후 승인되었습니다.';
+        const expiresAt = expiresAtFromCard;
+        const statusMessage = statusMessageFromCard || '투네이션 확인 후 승인되었습니다.';
         if (!expiresAt) {
             throw new Error('만료일을 입력해야 라이선스를 발급할 수 있습니다.');
         }
@@ -3334,11 +3469,23 @@
     async function rejectSubscriptionRequest(requestId, cardEl) {
         const record = subscriptionRequestCache[requestId];
         const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
+        const canUseServerApproval = Boolean(getManualSubscriptionSecureApiBaseUrl());
+        const statusMessageFromCard = cardEl?.querySelector('[data-field="statusMessage"]')?.value.trim() || '';
+        if (record && cardEl && canUseServerApproval && (!privateKeyPem || !record._payload)) {
+            await postAdminSecureApi('/admin/subscription/reject', {
+                requestId,
+                statusMessage: statusMessageFromCard || '후원 내역 또는 신청 정보 확인이 필요해 반려되었습니다.'
+            });
+            await loadSubscriptionRequests();
+            renderManualSubscriptionAdminForm(`${requestId} 신청을 서버에서 반려 처리했습니다.`);
+            toast('✅ 서버 반려 처리 완료');
+            return;
+        }
         if (!record || !privateKeyPem || !cardEl) {
             throw new Error('반려 처리에 필요한 신청 정보 또는 개인키가 없습니다.');
         }
         const payload = record._payload || await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
-        const statusMessage = cardEl.querySelector('[data-field="statusMessage"]').value.trim() || '후원 내역 또는 신청 정보 확인이 필요해 반려되었습니다.';
+        const statusMessage = statusMessageFromCard || '후원 내역 또는 신청 정보 확인이 필요해 반려되었습니다.';
         const nextPayload = {
             ...payload,
             adminResponse: {

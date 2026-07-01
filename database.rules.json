@@ -28,8 +28,8 @@
       }
     },
     "config": {
-      ".read": "auth != null",
-      ".write": "auth != null",
+      ".read": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
       "appName": {
         ".read": true
       },
@@ -87,40 +87,40 @@
       },
       "advancedFeatureConfig": {
         ".read": false,
-        ".write": "auth != null"
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'"
       },
       "$key": {
-        ".write": "auth != null"
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'"
       }
     },
     "subscriptionRequests": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
       "$requestId": {
         ".read": true,
-        ".write": "auth != null || (!data.exists() && newData.child('requestId').val() === $requestId && newData.child('status').val() === 'pending')"
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || (!data.exists() && newData.child('requestId').val() === $requestId && newData.child('status').val() === 'pending')"
       }
     },
     "subscriptionRequestLookup": {
       ".read": false,
       "$lookupKey": {
         ".read": true,
-        ".write": "auth != null || ($lookupKey.matches(/^[a-f0-9]{64}$/) && newData.hasChildren(['requestId', 'createdAt']) && newData.child('requestId').isString() && newData.child('createdAt').isNumber())"
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || ($lookupKey.matches(/^[a-f0-9]{64}$/) && newData.hasChildren(['requestId', 'createdAt']) && newData.child('requestId').isString() && newData.child('createdAt').isNumber())"
       }
     },
     "advancedAccountLicenses": {
-      ".read": "auth != null",
-      ".write": "auth != null",
+      ".read": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
       "$loginIdKey": {
         ".read": true,
-        ".write": "auth != null"
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'"
       }
     },
     "advancedUserMessages": {
-      ".read": "auth != null",
-      ".write": "auth != null",
+      ".read": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
       "$loginIdKey": {
         ".read": true,
-        ".write": "auth != null"
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'"
       }
     },
     "userStudyLibrary": {
@@ -138,34 +138,34 @@
     "posts": {
       ".read": true,
       "$postId": {
-        ".write": "auth != null || newData.exists()",
+        ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.exists()",
         ".validate": "newData.hasChildren(['category', 'nickname', 'passwordHash', 'content', 'timestamp', 'likes', 'replyCount', 'deleted', 'pinned'])",
         "category": {
-          ".validate": "newData.isString() && newData.val().matches(/^(qna|tip|review|improvement|faq)$/) && (!data.exists() || auth != null || newData.val() == data.val())"
+          ".validate": "newData.isString() && newData.val().matches(/^(qna|tip|review|improvement|faq)$/) && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
         },
         "nickname": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20 && (!data.exists() || auth != null || newData.val() == data.val())"
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20 && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
         },
         "passwordHash": {
-          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/) && (!data.exists() || auth != null || newData.val() == data.val())"
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/) && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
         },
         "content": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000 && (!data.exists() || auth != null || newData.val() == data.val())"
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000 && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
         },
         "timestamp": {
-          ".validate": "newData.isNumber() && (!data.exists() || auth != null || newData.val() == data.val())"
+          ".validate": "newData.isNumber() && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
         },
         "likes": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() ? newData.val() == 0 : (auth != null || (data.isNumber() && newData.val() >= data.val() - 1 && newData.val() <= data.val() + 1)))"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() ? newData.val() == 0 : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || (data.isNumber() && newData.val() >= data.val() - 1 && newData.val() <= data.val() + 1)))"
         },
         "replyCount": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() ? newData.val() == 0 : (auth != null || (data.isNumber() && newData.val() >= data.val() - 1 && newData.val() <= data.val() + 1)))"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() ? newData.val() == 0 : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || (data.isNumber() && newData.val() >= data.val() - 1 && newData.val() <= data.val() + 1)))"
         },
         "deleted": {
-          ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null || newData.val() == data.val()))"
+          ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val()))"
         },
         "pinned": {
-          ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null || newData.val() == data.val()))"
+          ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val()))"
         },
         "editedAt": {
           ".validate": "!newData.exists() || newData.isNumber()"
@@ -182,28 +182,28 @@
       ".read": true,
       "$postId": {
         "$replyId": {
-          ".write": "auth != null || newData.exists()",
+          ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.exists()",
           ".validate": "newData.hasChildren(['nickname', 'passwordHash', 'content', 'timestamp', 'isAdmin', 'pinned', 'deleted'])",
           "nickname": {
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20"
           },
           "passwordHash": {
-            ".validate": "newData.isString() && (auth != null ? newData.val().length <= 64 : newData.val().matches(/^[a-f0-9]{64}$/)) && (!data.exists() || auth != null || newData.val() == data.val())"
+            ".validate": "newData.isString() && (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' ? newData.val().length <= 64 : newData.val().matches(/^[a-f0-9]{64}$/)) && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
           },
           "content": {
-            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000 && (!data.exists() || auth != null || newData.val() == data.val())"
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 1000 && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
           },
           "timestamp": {
-            ".validate": "newData.isNumber() && (!data.exists() || auth != null || newData.val() == data.val())"
+            ".validate": "newData.isNumber() && (!data.exists() || auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val())"
           },
           "isAdmin": {
-            ".validate": "newData.isBoolean() && (!data.exists() ? (auth != null || newData.val() == false) : (auth != null || newData.val() == data.val()))"
+            ".validate": "newData.isBoolean() && (!data.exists() ? (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == false) : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val()))"
           },
           "pinned": {
-            ".validate": "newData.isBoolean() && (!data.exists() ? (auth != null || newData.val() == false) : (auth != null || newData.val() == data.val()))"
+            ".validate": "newData.isBoolean() && (!data.exists() ? (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == false) : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val()))"
           },
           "deleted": {
-            ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null || newData.val() == data.val()))"
+            ".validate": "newData.isBoolean() && (!data.exists() ? newData.val() == false : (auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.val() == data.val()))"
           },
           "editedAt": {
             ".validate": "!newData.exists() || newData.isNumber()"
@@ -247,7 +247,7 @@
         }
       },
       "config": {
-        ".read": "auth != null",
+        ".read": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'",
         "appName": {
           ".read": true
         },
@@ -305,10 +305,10 @@
         },
         "advancedFeatureConfig": {
           ".read": false,
-          ".write": "auth != null"
+          ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'"
         },
         "$key": {
-          ".write": "auth != null"
+          ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com'"
         }
       },
       "userStudyLibrary": {
