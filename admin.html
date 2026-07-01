@@ -708,12 +708,13 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
     import { getDatabase, ref, onValue, get, set, update, remove, push, runTransaction, goOffline, goOnline
     } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
-    import { getAuth, onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserSessionPersistence, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserSessionPersistence, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
     import { getFirebaseWebConfig } from "./config/firebase-config.mjs";
 
     const app = initializeApp(getFirebaseWebConfig());
     const db = getDatabase(app);
     const auth = getAuth(app);
+    auth.languageCode = 'ko';
     const activeVisitorsRef = ref(db, 'active_visitors');
     const PRESENCE_STALE_MS = 150000;
     const ADMIN_DB_RECONNECT_TIMEOUT_MS = 2500;
@@ -737,6 +738,20 @@
             second: '2-digit',
             hour12: false
         });
+    }
+
+    function getKstDateKey(offsetDays = 0) {
+        const date = new Date(Date.now() + offsetDays * 86400000);
+        const parts = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Seoul',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).formatToParts(date).reduce((acc, part) => {
+            if (part.type !== 'literal') acc[part.type] = part.value;
+            return acc;
+        }, {});
+        return `${parts.year}-${parts.month}-${parts.day}`;
     }
 
     function setAdminSessionStatus(message, tone = 'pending') {
@@ -1757,12 +1772,33 @@
         return `현재 로그인한 Google 계정은 ${signedInEmail}입니다. 관리자 계정은 ${ADMIN_ALLOWED_EMAIL}만 허용됩니다. Google 계정 선택 화면에서 이 계정을 선택해주세요.`;
     }
 
+    function shouldFallbackToRedirect(error) {
+        const code = String(error?.code || '').toLowerCase();
+        return code.includes('popup-blocked')
+            || code.includes('operation-not-supported')
+            || code.includes('cancelled-popup-request');
+    }
+
     async function doGoogleLogin() {
         try {
             setAdminSessionStatus('Google 계정 선택으로 이동 중...', 'pending');
             hideLoginError();
             await setPersistence(auth, browserSessionPersistence);
             await signOut(auth).catch(() => {});
+            try {
+                setAdminSessionStatus('Google 로그인 창 확인 중...', 'pending');
+                const result = await signInWithPopup(auth, googleProvider);
+                if (result?.user) {
+                    setAdminSessionStatus('Google 로그인 확인 중...', 'pending');
+                }
+                return;
+            } catch (popupError) {
+                if (!shouldFallbackToRedirect(popupError)) {
+                    throw popupError;
+                }
+                console.warn('Admin Google popup failed, falling back to redirect:', popupError);
+            }
+            setAdminSessionStatus('Google 계정 선택으로 이동 중...', 'pending');
             await signInWithRedirect(auth, googleProvider);
         } catch (error) {
             console.error('Admin Google redirect failed:', error);
@@ -2165,16 +2201,13 @@
         // ── Analytics (Today & Total) ──
         async function fetchAdminAnalytics() {
             try {
+                const todayKey = getKstDateKey();
                 const [totalRes, dailyRes] = await Promise.all([
                     fetch('https://skct-tool-default-rtdb.firebaseio.com/total_visits.json'),
-                    fetch('https://skct-tool-default-rtdb.firebaseio.com/daily_visits.json')
+                    fetch(`https://skct-tool-default-rtdb.firebaseio.com/daily_visits/${todayKey}.json`)
                 ]);
                 const totalVisits = await totalRes.json() || 0;
-                const dailyVisits = await dailyRes.json() || {};
-                
-                const d = new Date();
-                const todayKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                const todayVisits = dailyVisits[todayKey] || 0;
+                const todayVisits = await dailyRes.json() || 0;
 
                 document.getElementById('statToday').textContent = todayVisits.toLocaleString() + ' 명';
                 document.getElementById('statTotal').textContent = totalVisits.toLocaleString() + ' 명';

@@ -2,7 +2,7 @@
 // SKCT Tool Community System v2 - DCInside Style (ES Module)
 // ============================================================
 import { getApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
-import { getDatabase, ref, push, set, get, update, onValue, off, runTransaction
+import { getDatabase, ref, push, set, get, update, onValue, off, runTransaction, query, orderByChild, limitToLast
 } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
 
 const db = getDatabase(getApp());
@@ -15,6 +15,8 @@ let replyCache = {}; // 댓글 캐시
 let expandedPost = null;
 let isAdmin = false;
 let postsListener = null;
+const COMMUNITY_POST_LIMIT = 120;
+const COMMUNITY_REPLY_LIMIT = 80;
 
 // Session ID for likes (anonymous, per-browser)
 const sessionId = localStorage.getItem('skct_sid') || (() => {
@@ -277,7 +279,7 @@ async function adminPinReply(pid, rid) { if (!isAdmin) return; const s = await g
 // ── Data Loading ──
 async function loadPostsOnce() {
     try {
-        const snap = await get(ref(db, 'posts'));
+        const snap = await get(query(ref(db, 'posts'), orderByChild('timestamp'), limitToLast(COMMUNITY_POST_LIMIT)));
         allPosts = {};
         if (snap.exists()) {
             snap.forEach(c => { const p = c.val(); p.id = c.key; allPosts[c.key] = p; });
@@ -394,7 +396,7 @@ async function doToggleReplies(pid, forceReload = false) {
     }
     
     section.innerHTML = '<div class="cm-loading">로딩 중...</div>';
-    const snap = await get(ref(db, `replies/${pid}`));
+    const snap = await get(query(ref(db, `replies/${pid}`), orderByChild('timestamp'), limitToLast(COMMUNITY_REPLY_LIMIT)));
     let replies = [];
     if (snap.exists()) snap.forEach(c => { const r = c.val(); r.id = c.key; replies.push(r); });
     replies.sort((a, b) => { if (a.pinned && !b.pinned) return -1; if (!a.pinned && b.pinned) return 1; return a.timestamp - b.timestamp; });

@@ -503,7 +503,7 @@ exports.skctSecureApi = onRequest(
 // 알림 수신 주소(운영자 메일함). 고정값.
 const NOTIFY_EMAIL_TO = "zhdlsqpdj@gmail.com";
 const SUPPORT_EMAIL = "zhdlsqpdj@gmail.com";
-const PUBLIC_ADMIN_PAGE_URL = "https://skct.agenticfabworks.com/admin.html";
+const PUBLIC_ADMIN_PAGE_URL = "https://skct.agenticfabworks.com/admin/";
 const DEFAULT_MANUAL_PLANS = [
     { code: "manual-3d", label: "3일 이용권", days: 3, price: 2900 },
     { code: "manual-7d", label: "7일 이용권", days: 7, price: 3900 },

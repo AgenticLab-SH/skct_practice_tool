@@ -137,6 +137,7 @@
     },
     "posts": {
       ".read": true,
+      ".indexOn": ["timestamp"],
       "$postId": {
         ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.exists()",
         ".validate": "newData.hasChildren(['category', 'nickname', 'passwordHash', 'content', 'timestamp', 'likes', 'replyCount', 'deleted', 'pinned'])",
@@ -181,6 +182,7 @@
     "replies": {
       ".read": true,
       "$postId": {
+        ".indexOn": ["timestamp"],
         "$replyId": {
           ".write": "auth != null && auth.token.email == 'zhdlsqpdj@gmail.com' || newData.exists()",
           ".validate": "newData.hasChildren(['nickname', 'passwordHash', 'content', 'timestamp', 'isAdmin', 'pinned', 'deleted'])",
@@ -326,3 +328,4 @@
     }
   }
 }
+

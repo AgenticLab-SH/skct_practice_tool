@@ -105,9 +105,9 @@
                     <span class="sidebar-shortcut-icon">🗂</span>
                     <span class="sidebar-shortcut-label compact" id="sidebarArchiveLabel">보관함</span>
                 </div>
-                <a class="extension-info-toggle sidebar-shortcut" id="extensionInfoLink" href="extension-info.html" target="_blank" rel="noopener noreferrer nofollow" title="별도 테스트 자료 열기">
+                <a class="extension-info-toggle sidebar-shortcut" id="extensionInfoLink" href="extension-info.html" target="_blank" rel="noopener noreferrer nofollow" title="외부 테스트 안내 열기">
                     <span class="sidebar-shortcut-icon">🔗</span>
-                    <span class="sidebar-shortcut-label compact" id="sidebarExtensionLabel">자료</span>
+                    <span class="sidebar-shortcut-label compact" id="sidebarExtensionLabel">테스트</span>
                 </a>
             </div>
             <div class="omr-content hidden" id="omrContent">
@@ -993,27 +993,51 @@
             }
         };
 
+        function getKstDateKey(offsetDays = 0) {
+            const date = new Date(Date.now() + offsetDays * 86400000);
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Seoul',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).formatToParts(date).reduce((acc, part) => {
+                if (part.type !== 'literal') acc[part.type] = part.value;
+                return acc;
+            }, {});
+            return `${parts.year}-${parts.month}-${parts.day}`;
+        }
+
+        function buildLast7KstDateKeys() {
+            const LAUNCH_DATE = '2026-04-03';
+            const keys = [];
+            for (let i = 6; i >= 0; i -= 1) {
+                const key = getKstDateKey(-i);
+                keys.push({
+                    key,
+                    label: key < LAUNCH_DATE ? '' : key.slice(5),
+                    active: key >= LAUNCH_DATE
+                });
+            }
+            return keys;
+        }
+
         // ============================================
-        // 📊 일일 방문자 카운터 (하루 1회, LocalStorage 기반 중복 방지)
+        // 📊 일일 방문자 카운터 (KST 기준, 하루 1회)
         // ============================================
-        (function incrementDailyVisit() {
-            const d = new Date();
-            const year = d.getFullYear();
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const date = String(d.getDate()).padStart(2, '0');
-            const today = `${year}-${month}-${date}`;
+        (async function incrementDailyVisit() {
+            const today = getKstDateKey();
             const lastVisitDate = localStorage.getItem('skct_last_visit_date');
             if (lastVisitDate === today) return; // 오늘 이미 카운트됨
 
-            localStorage.setItem('skct_last_visit_date', today);
-
-            // daily_visits/{today} +1
-            const dailyRef = ref(db, 'daily_visits/' + today);
-            runTransaction(dailyRef, (current) => (current || 0) + 1).catch(e => {});
-
-            // total_visits +1
-            const totalRef = ref(db, 'total_visits');
-            runTransaction(totalRef, (current) => (current || 0) + 1).catch(e => {});
+            try {
+                await Promise.all([
+                    runTransaction(ref(db, 'daily_visits/' + today), (current) => (current || 0) + 1),
+                    runTransaction(ref(db, 'total_visits'), (current) => (current || 0) + 1)
+                ]);
+                localStorage.setItem('skct_last_visit_date', today);
+            } catch (e) {
+                console.error('incrementDailyVisit error:', e);
+            }
         })();
 
         // ============================================
@@ -1021,31 +1045,23 @@
         // ============================================
         async function fetchVisitorStats() {
             try {
-                const [totalRes, dailyRes] = await Promise.all([
+                const dateKeys = buildLast7KstDateKeys();
+                const [totalRes, ...dailyResponses] = await Promise.all([
                     fetch('https://skct-tool-default-rtdb.firebaseio.com/total_visits.json'),
-                    fetch('https://skct-tool-default-rtdb.firebaseio.com/daily_visits.json')
+                    ...dateKeys.map(({ key, active }) => active
+                        ? fetch(`https://skct-tool-default-rtdb.firebaseio.com/daily_visits/${key}.json`)
+                        : Promise.resolve(null))
                 ]);
                 const totalVisits = await totalRes.json() || 0;
-                const dailyVisits = await dailyRes.json() || {};
-
-                // 최근 7일 데이터 구성 (서버 오픈일: 2026-04-03 이후만)
-                const LAUNCH_DATE = '2026-04-03';
-                const today = new Date();
-                const last7days = [];
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date(today);
-                    d.setDate(d.getDate() - i);
-                    const year = d.getFullYear();
-                    const month = String(d.getMonth() + 1).padStart(2, '0');
-                    const date = String(d.getDate()).padStart(2, '0');
-                    const key = `${year}-${month}-${date}`;
-                    if (key < LAUNCH_DATE) {
-                        last7days.push({ date: '', users: null });
-                        continue;
-                    }
-                    const label = month + '-' + date;
-                    last7days.push({ date: label, users: dailyVisits[key] || 0 });
-                }
+                const dailyCounts = await Promise.all(dailyResponses.map(async (response) => {
+                    if (!response) return null;
+                    const value = await response.json();
+                    return Number(value) || 0;
+                }));
+                const last7days = dateKeys.map((entry, index) => ({
+                    date: entry.label,
+                    users: entry.active ? dailyCounts[index] : null
+                }));
 
                 return { totalUsersApprox: totalVisits, last7days };
             } catch (e) {
