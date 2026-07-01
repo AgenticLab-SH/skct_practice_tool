@@ -939,6 +939,25 @@
         return data;
     }
 
+    async function decryptSubscriptionRequestWithAvailableMethod(record, privateKeyPem = '') {
+        if (!record?.requestId) {
+            throw new Error('신청번호를 확인할 수 없습니다.');
+        }
+        if (privateKeyPem) {
+            return await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
+        }
+        if (!getManualSubscriptionSecureApiBaseUrl()) {
+            throw new Error('서버 복호화 API 주소가 설정되어 있지 않습니다.');
+        }
+        const result = await postAdminSecureApi('/admin/subscription/decrypt', {
+            requestId: record.requestId
+        });
+        if (!result?.payload) {
+            throw new Error('서버에서 신청 본문을 읽지 못했습니다.');
+        }
+        return result.payload;
+    }
+
     async function sendUserMessage() {
         const status = document.getElementById('userMessageStatus');
         const loginId = (document.getElementById('userMessageLoginId').value || '').trim();
@@ -3353,6 +3372,7 @@
                             <div><strong>이용 시작일</strong>: ${esc(payload.requestedStartDate || '-')}</div>
                             <div><strong>신청번호</strong>: ${esc(record.requestId || '-')}</div>
                             <div><strong>희망 ID</strong>: ${esc(payload.desiredLoginId || '-')}</div>
+                            <div><strong>로그인 비밀번호</strong>: <code style="padding:2px 6px; border-radius:6px; background:#e2e8f0; color:#0f172a;">${esc(payload.requestPassword || '-')}</code></div>
                             <div><strong>표시 닉네임</strong>: ${esc(payload.siteNickname || '-')}</div>
                             <div><strong>이메일</strong>: ${esc(payload.email || '-')}</div>
                             <div><strong>신청 메모</strong>: ${esc(payload.memo || '-')}</div>
@@ -3369,8 +3389,8 @@
                         </div>
                     ` : `
                         <div style="font-size:11px; color:#64748b; line-height:1.7;">
-                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있고, 필요하면 바로 삭제도 가능합니다.' : '현재 화면에 신청 복호화 개인키가 없어 본문을 열 수 없습니다.'}
-                            ${serverApprovalAvailable ? '<br>폰에서는 Firebase 관리자 로그인 후 서버 승인 버튼으로 바로 처리할 수 있습니다.' : ''}
+                            ${privateKeyAvailable ? '복호화 버튼을 누르면 실제 신청 본문을 읽을 수 있고, 필요하면 바로 삭제도 가능합니다.' : '복호화 버튼을 누르면 Google 관리자 세션으로 서버에서 신청 본문을 읽습니다.'}
+                            ${serverApprovalAvailable ? '<br>폰에서는 Firebase 관리자 로그인 후 본문 확인, 승인, 반려를 바로 처리할 수 있습니다.' : ''}
                         </div>
                         ${serverApprovalAvailable && record.status === 'pending' ? `
                             <div style="display:grid; grid-template-columns:minmax(0, 1fr); gap:8px;">
@@ -3394,16 +3414,12 @@
             button.addEventListener('click', async () => {
                 const requestId = button.dataset.requestId;
                 const privateKeyPem = (document.getElementById('manualSubscriptionPrivateKeyArea').value || '').trim();
-                if (!privateKeyPem) {
-                    renderManualSubscriptionAdminForm('개인키가 없어 신청 본문을 열 수 없습니다.', true);
-                    return;
-                }
                 try {
                     const record = subscriptionRequestCache[requestId];
-                    record._payload = await window.SKCTSubscriptionCrypto.decryptRequestPayloadForAdmin(record, privateKeyPem);
+                    record._payload = await decryptSubscriptionRequestWithAvailableMethod(record, privateKeyPem);
                     renderSubscriptionRequests();
                 } catch (error) {
-                    renderManualSubscriptionAdminForm('개인키가 맞지 않거나 신청 본문 복호화에 실패했습니다.', true);
+                    renderManualSubscriptionAdminForm(error?.message || '신청 본문 복호화에 실패했습니다.', true);
                 }
             });
         });

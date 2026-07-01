@@ -279,7 +279,7 @@ exports.skctSecureApi = onRequest(
     }
 
     try {
-        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject") {
+        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject" || route === "/admin/subscription/decrypt") {
             if (isRateLimited(route, clientAddress, 30, 10 * 60 * 1000)) {
                 sendJson(res, 429, { ok: false, errorMessage: "관리자 처리 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
                 return;
@@ -293,6 +293,11 @@ exports.skctSecureApi = onRequest(
             const statusMessage = isShortString(body.statusMessage || " ", 300)
                 ? String(body.statusMessage || "").trim()
                 : "";
+            if (route.endsWith("/decrypt")) {
+                const result = await decryptRequestForAdmin(requestId);
+                sendJson(res, result.ok ? 200 : 400, result);
+                return;
+            }
             const handledBy = decoded.email || decoded.uid || "firebase-auth-admin";
             const result = route.endsWith("/approve")
                 ? await approveRequest(requestId, {
@@ -707,6 +712,29 @@ async function approveRequest(requestId, options = {}) {
         console.error("[approveRequest] 승인 이메일 오류:", error.message);
     }
     return { ok: true, msg: `승인 완료: ${loginId} / 만료 ${expiresAt}`, loginId, expiresAt };
+}
+
+async function decryptRequestForAdmin(requestId) {
+    const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
+    if (!rsaPem) throw new Error("개인키 시크릿 미설정");
+    const reqRef = db.ref(`subscriptionRequests/${requestId}`);
+    const record = (await reqRef.get()).val();
+    if (!record) return { ok: false, errorMessage: "신청을 찾지 못했습니다." };
+    const payload = await issuerCore.crypto.decryptRequestPayloadForAdmin(record, rsaPem);
+    return {
+        ok: true,
+        requestId,
+        payload: {
+            donationName: String(payload.donationName || ""),
+            requestedStartDate: String(payload.requestedStartDate || ""),
+            desiredLoginId: String(payload.desiredLoginId || ""),
+            requestPassword: String(payload.requestPassword || ""),
+            siteNickname: String(payload.siteNickname || ""),
+            email: String(payload.email || ""),
+            memo: String(payload.memo || ""),
+            adminResponse: payload.adminResponse || null
+        }
+    };
 }
 
 async function rejectRequest(requestId, options = {}) {
