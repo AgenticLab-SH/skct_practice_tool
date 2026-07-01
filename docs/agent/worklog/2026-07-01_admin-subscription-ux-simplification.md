@@ -84,6 +84,10 @@
   - Firebase Functions 운영 배포 완료.
   - `skctSecureApi/health` 정상 응답 확인.
   - 인증 없는 `/admin/subscription/sync-ledger` 호출은 401로 거부됨 확인.
+  - GitHub Pages 배포 성공 확인.
+  - 운영 관리자 페이지 `/admin.html`, `/admin/`에서 `sync-ledger`와 `구독 내역 반영` 문자열 로드 확인.
+  - 운영 RTDB 확인: `REQ-MR1RE0SP-HW1O`, `REQ-MQVYF5UR-29GU`는 모두 `fulfilled`이나 `config/advancedFeatureConfig`에는 아직 신청번호가 없음.
 - 반영 범위:
   - Firebase Functions는 운영 배포 완료.
-  - 정적 관리자 페이지는 GitHub Pages `main` 반영 대상으로 기록.
+  - 정적 관리자 페이지는 GitHub Pages `main` 커밋 `34d71f85301acd021681f06c2d10278740a39492`로 반영 완료.
+  - 기존 두 승인건의 실제 장부 반영은 관리자 Google 로그인 후 각 카드의 `구독 내역 반영` 버튼을 눌러 실행해야 한다.
