@@ -720,6 +720,7 @@
     const ADMIN_DB_RECONNECT_TIMEOUT_MS = 2500;
     const DEFAULT_SECURE_API_BASE_URL = 'https://us-central1-skct-tool.cloudfunctions.net/skctSecureApi';
     const ADMIN_ALLOWED_EMAIL = 'zhdlsqpdj@gmail.com';
+    const ADMIN_LOGIN_FLASH_KEY = 'skct_admin_login_error';
     const googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
     const buildInfo = window.SKCTBuildInfo || {};
@@ -1730,18 +1731,44 @@
         return `${fallback}${code ? ` (${code})` : ''}${message ? `: ${message}` : ''}`;
     }
 
+    function showLoginError(message, persist = false) {
+        const loginErrorEl = document.getElementById('loginError');
+        if (!loginErrorEl) return;
+        loginErrorEl.textContent = message;
+        loginErrorEl.style.display = 'block';
+        if (persist) {
+            sessionStorage.setItem(ADMIN_LOGIN_FLASH_KEY, message);
+        }
+    }
+
+    function hideLoginError() {
+        const loginErrorEl = document.getElementById('loginError');
+        if (!loginErrorEl) return;
+        loginErrorEl.style.display = 'none';
+        sessionStorage.removeItem(ADMIN_LOGIN_FLASH_KEY);
+    }
+
+    function showStoredLoginError() {
+        const message = sessionStorage.getItem(ADMIN_LOGIN_FLASH_KEY);
+        if (message) showLoginError(message);
+    }
+
+    function buildNotAllowedAdminMessage(user) {
+        const signedInEmail = String(user?.email || '').trim() || '확인 불가';
+        return `현재 로그인한 Google 계정은 ${signedInEmail}입니다. 관리자 계정은 ${ADMIN_ALLOWED_EMAIL}만 허용됩니다. Google 계정 선택 화면에서 이 계정을 선택해주세요.`;
+    }
+
     async function doGoogleLogin() {
         try {
             setAdminSessionStatus('Google 계정 선택으로 이동 중...', 'pending');
-            document.getElementById('loginError').style.display = 'none';
+            hideLoginError();
             await setPersistence(auth, browserSessionPersistence);
             await signOut(auth).catch(() => {});
             await signInWithRedirect(auth, googleProvider);
         } catch (error) {
             console.error('Admin Google redirect failed:', error);
             setAdminSessionStatus('로그인 실패', 'error');
-            document.getElementById('loginError').textContent = formatAuthError(error, 'Google 로그인 이동에 실패했습니다.');
-            document.getElementById('loginError').style.display = 'block';
+            showLoginError(formatAuthError(error, 'Google 로그인 이동에 실패했습니다.'), true);
         }
     }
 
@@ -1771,34 +1798,32 @@
 
     getRedirectResult(auth).catch((error) => {
         console.error('Admin Google redirect result failed:', error);
-        document.getElementById('loginError').textContent = formatAuthError(error, 'Google 로그인 결과를 확인하지 못했습니다.');
-        document.getElementById('loginError').style.display = 'block';
+        showLoginError(formatAuthError(error, 'Google 로그인 결과를 확인하지 못했습니다.'), true);
     });
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             try {
                 if (!isAllowedAdminUser(user)) {
+                    showLoginError(buildNotAllowedAdminMessage(user), true);
                     await signOut(auth).catch(() => {});
-                    document.getElementById('loginError').textContent = `허용된 관리자 계정(${ADMIN_ALLOWED_EMAIL})으로만 접속할 수 있습니다.`;
-                    document.getElementById('loginError').style.display = 'block';
                     setAdminSessionStatus('관리자 계정 아님', 'error');
                     leaveDashboard();
                     return;
                 }
                 await syncAdminDatabaseAuth({ expectedUser: user, reconnectDatabase: true });
-                document.getElementById('loginError').style.display = 'none';
+                hideLoginError();
                 enterDashboard();
                 return;
             } catch (error) {
                 console.error('Admin session bootstrap failed:', error);
-                document.getElementById('loginError').textContent = '로그인 상태를 복원하지 못했습니다. 다시 로그인해주세요.';
-                document.getElementById('loginError').style.display = 'block';
+                showLoginError('로그인 상태를 복원하지 못했습니다. 다시 로그인해주세요.', true);
                 setAdminSessionStatus('세션 복원 실패', 'error');
                 await signOut(auth).catch(() => {});
             }
         }
         leaveDashboard();
+        showStoredLoginError();
     });
 
     const sitePreviewLink = document.getElementById('sitePreviewLink');
