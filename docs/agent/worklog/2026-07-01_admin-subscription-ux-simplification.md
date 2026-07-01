@@ -91,3 +91,23 @@
   - Firebase Functions는 운영 배포 완료.
   - 정적 관리자 페이지는 GitHub Pages `main` 커밋 `34d71f85301acd021681f06c2d10278740a39492`로 반영 완료.
   - 기존 두 승인건의 실제 장부 반영은 관리자 Google 로그인 후 각 카드의 `구독 내역 반영` 버튼을 눌러 실행해야 한다.
+
+## 2026-07-02 승인 시 구독 내역 자동 반영 고정
+
+- 요청: `구독 내역 반영`을 별도 버튼으로 누르는 구조가 아니라 승인 시 자동으로 고급 구독 내역에 반영되도록 수정.
+- 변경:
+  - 관리자 UI의 `구독 내역 반영` 버튼 제거.
+  - 관리자 승인은 서버 보안 API가 있으면 로컬 키 보유 여부와 무관하게 서버 승인 경로를 우선 사용하도록 변경.
+  - 서버 승인 API는 기존처럼 `advancedAccountLicenses`와 `config/advancedFeatureConfig`를 함께 갱신한다.
+  - `subscriptionRequests/{requestId}`가 `fulfilled/approved` 상태로 기록되면 서버 DB 트리거가 자동으로 장부 동기화를 수행하도록 `syncApprovedSubscriptionRequestLedger` 추가.
+  - 관리자 페이지 로드 시 `fulfilled/approved`인데 `ledgerSyncedAt`이 없는 신청은 `/admin/subscription/sync-approved-ledgers`로 자동 보강한다.
+  - 만료일 문구를 `정오 12:00`에서 `선택한 날짜 23:59까지 사용 (다음 날 00:00 전)`으로 통일.
+  - 승인 메일 만료 문구도 `YYYY-MM-DD 한국시간 23:59까지 (다음날 00:00 전까지)` 형식으로 변경.
+- 운영 반영:
+  - Firebase Functions 배포 완료.
+  - 기존 누락 승인건 `REQ-MR1RE0SP-HW1O`, `REQ-MQVYF5UR-29GU`에 더미 갱신을 넣어 서버 트리거로 장부 반영 완료.
+- 검증:
+  - `node --check functions/index.js` 통과.
+  - `admin.html`, `admin/index.html` 모듈 스크립트 추출 후 `node --check` 통과.
+  - `정오 12:00`, `syncApprovedRequestToLedger`, `canSyncLedger` 잔여 검색 결과 없음.
+  - 운영 RTDB 확인: 두 신청 모두 `ledgerSynced=true`, `config/advancedFeatureConfig`에 두 신청번호 포함, 구독 장부 13건.

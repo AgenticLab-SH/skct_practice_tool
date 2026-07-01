@@ -1,5 +1,5 @@
 const { onRequest } = require("firebase-functions/v2/https");
-const { onValueCreated } = require("firebase-functions/v2/database");
+const { onValueCreated, onValueWritten } = require("firebase-functions/v2/database");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
@@ -272,7 +272,10 @@ function formatExpiryForEmail(expiresAt) {
     const normalized = String(expiresAt || "").trim();
     if (!normalized) return "영구";
     if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
-        return `${normalized} 23:59 KST`;
+        const [year, month, day] = normalized.split("-").map((part) => Number(part));
+        const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
+        const nextDayText = `${nextDay.getUTCFullYear()}-${pad2(nextDay.getUTCMonth() + 1)}-${pad2(nextDay.getUTCDate())}`;
+        return `${normalized} 한국시간 23:59까지 (${nextDayText} 00:00 전까지)`;
     }
     return normalized;
 }
@@ -346,13 +349,18 @@ exports.skctSecureApi = onRequest(
     }
 
     try {
-        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject" || route === "/admin/subscription/decrypt" || route === "/admin/subscription/sync-ledger") {
+        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject" || route === "/admin/subscription/decrypt" || route === "/admin/subscription/sync-ledger" || route === "/admin/subscription/sync-approved-ledgers") {
             const adminLimit = route.endsWith("/decrypt") ? 300 : 60;
             if (isRateLimited(route, clientAddress, adminLimit, 10 * 60 * 1000)) {
                 sendJson(res, 429, { ok: false, errorMessage: "관리자 처리 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
                 return;
             }
             const decoded = await verifyFirebaseAuthRequest(req);
+            if (route.endsWith("/sync-approved-ledgers")) {
+                const result = await syncApprovedRequestsToAdvancedLedger({ limit: Number(body.limit || 20) });
+                sendJson(res, result.ok ? 200 : 400, result);
+                return;
+            }
             const requestId = String(body.requestId || "").trim();
             if (!isRequestId(requestId)) {
                 sendJson(res, 400, { ok: false, errorMessage: "requestId 형식이 올바르지 않습니다." });
@@ -729,6 +737,32 @@ exports.notifyNewSubscriptionRequest = onValueCreated(
     }
 );
 
+exports.syncApprovedSubscriptionRequestLedger = onValueWritten(
+    {
+        ref: "/subscriptionRequests/{requestId}",
+        instance: "skct-tool-default-rtdb",
+        secrets: [ADMIN_RSA_PRIVATE_KEY, LICENSE_SIGNING_PRIVATE_KEY]
+    },
+    async (event) => {
+        const after = event.data?.after?.val() || null;
+        if (!after) return;
+        const requestId = event.params.requestId;
+        const status = String(after.status || "");
+        if (!["fulfilled", "approved"].includes(status)) return;
+        if (after.ledgerSyncedAt) return;
+        try {
+            const result = await syncApprovedRequestToAdvancedLedger(requestId);
+            if (result?.ok) {
+                console.log("[syncApprovedSubscriptionRequestLedger] 장부 자동 반영 완료:", requestId);
+            } else {
+                console.warn("[syncApprovedSubscriptionRequestLedger] 장부 자동 반영 실패:", requestId, result?.errorMessage || result?.message || "");
+            }
+        } catch (error) {
+            console.error("[syncApprovedSubscriptionRequestLedger] 오류:", requestId, error.message);
+        }
+    }
+);
+
 // --- 승인/거절 처리(공용) ---------------------------------------------------
 async function approveRequest(requestId, options = {}) {
     const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
@@ -827,6 +861,44 @@ async function syncApprovedRequestToAdvancedLedger(requestId) {
         ledgerSyncedAt: Date.now()
     });
     return { ok: true, message: "구독 내역 반영 완료", loginId, expiresAt, ledgerSynced: true, subscriptionCount: ledgerResult.subscriptionCount };
+}
+
+async function syncApprovedRequestsToAdvancedLedger(options = {}) {
+    const limit = Math.min(Math.max(Number(options.limit) || 20, 1), 50);
+    const snap = await db.ref("subscriptionRequests").get();
+    const candidates = [];
+    if (snap.exists()) {
+        snap.forEach((child) => {
+            const record = child.val() || {};
+            const status = String(record.status || "");
+            if (!["fulfilled", "approved"].includes(status)) return;
+            if (record.ledgerSyncedAt) return;
+            candidates.push({
+                requestId: child.key,
+                sortAt: Number(record.updatedAt || record.createdAt || 0)
+            });
+        });
+    }
+    candidates.sort((a, b) => b.sortAt - a.sortAt);
+    const synced = [];
+    const errors = [];
+    for (const item of candidates.slice(0, limit)) {
+        try {
+            const result = await syncApprovedRequestToAdvancedLedger(item.requestId);
+            if (result.ok) synced.push({ requestId: item.requestId, loginId: result.loginId, expiresAt: result.expiresAt });
+            else errors.push({ requestId: item.requestId, errorMessage: result.errorMessage || result.message || "동기화 실패" });
+        } catch (error) {
+            errors.push({ requestId: item.requestId, errorMessage: error?.message || "동기화 실패" });
+        }
+    }
+    return {
+        ok: true,
+        checkedCount: candidates.length,
+        syncedCount: synced.length,
+        remainingCount: Math.max(candidates.length - limit, 0),
+        synced,
+        errors
+    };
 }
 
 async function decryptRequestForAdmin(requestId) {
