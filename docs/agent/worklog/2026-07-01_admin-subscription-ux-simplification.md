@@ -65,3 +65,25 @@
   - in-app Browser에서 `http://127.0.0.1:8787/admin/?v=plain-lists-local` 로드 및 콘솔 오류 없음 확인.
 - 반영 범위:
   - 로컬 파일만 수정. 운영 배포는 하지 않음.
+
+## 2026-07-02 승인건 구독 내역 누락 복구
+
+- 요청: 최근 승인한 `REQ-MR1RE0SP-HW1O`, `REQ-MQVYF5UR-29GU` 신청이 실제 로그인에는 문제 없어야 하는데 관리자 `고급 구독 내역`에는 보이지 않는 원인 파악.
+- 원인:
+  - 서버/텔레그램 승인 경로가 `advancedAccountLicenses/{loginIdKey}` 로그인 라이선스는 생성했지만, 관리자 표가 읽는 `config/advancedFeatureConfig` 장부를 갱신하지 않았다.
+  - 그래서 사용자의 고급 로그인 가능성과 관리자 구독 목록 표시가 분리될 수 있었다.
+- 변경:
+  - 서버 승인 함수가 승인 즉시 `config/advancedFeatureConfig.subscriptions`에 ID, 평문 비밀번호, 해시, 만료일, 신청번호 메모를 함께 upsert하도록 변경.
+  - 이미 승인된 신청을 다시 장부에 반영하는 `/admin/subscription/sync-ledger` 보안 API 추가.
+  - 관리자 신청 카드의 `발급 완료/승인 완료` 상태에 `구독 내역 반영` 버튼 추가.
+  - 버튼은 신청 본문 자동 표시 실패 여부와 무관하게 서버가 직접 복호화/장부 반영을 수행한다.
+  - 관리자 복호화 API 제한은 신청 목록 자동 표시를 고려해 완화하고, 승인/반려/장부 동기화는 별도 제한을 유지했다.
+- 검증:
+  - `node --check functions/index.js` 통과.
+  - `admin.html`, `admin/index.html` 모듈 스크립트 추출 후 `node --check` 통과.
+  - Firebase Functions 운영 배포 완료.
+  - `skctSecureApi/health` 정상 응답 확인.
+  - 인증 없는 `/admin/subscription/sync-ledger` 호출은 401로 거부됨 확인.
+- 반영 범위:
+  - Firebase Functions는 운영 배포 완료.
+  - 정적 관리자 페이지는 GitHub Pages `main` 반영 대상으로 기록.

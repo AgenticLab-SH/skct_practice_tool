@@ -72,6 +72,73 @@ function isRateLimited(routeKey, clientAddress, limit, windowMs) {
     return false;
 }
 
+function buildAdvancedPasswordSalt() {
+    return crypto.randomUUID ? crypto.randomUUID() : `salt-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+}
+
+function normalizeAdvancedFeatureConfig(raw) {
+    const subscriptions = Array.isArray(raw?.subscriptions) ? raw.subscriptions : [];
+    return {
+        subscriptions: subscriptions
+            .filter((item) => item && typeof item === "object")
+            .map((item, index) => ({
+                id: String(item.id || `subscription-${index + 1}`),
+                planType: String(item.planType || item.planName || issuerCore.DEFAULT_ADVANCED_PLAN_TYPE),
+                userIdentity: String(item.userIdentity || item.memberLabel || ""),
+                loginId: String(item.loginId || item.externalId || "").trim(),
+                status: ["active", "paused", "expired"].includes(String(item.status || "")) ? String(item.status) : "active",
+                passwordSalt: String(item.passwordSalt || ""),
+                passwordHash: String(item.passwordHash || ""),
+                expiresAt: String(item.expiresAt || ""),
+                plainPassword: String(item.plainPassword || item._plainPassword || ""),
+                passwordCipher: String(item.passwordCipher || ""),
+                passwordCipherIv: String(item.passwordCipherIv || ""),
+                passwordCipherSalt: String(item.passwordCipherSalt || ""),
+                note: String(item.note || "")
+            }))
+    };
+}
+
+function appendApprovalNote(baseNote, requestId, email) {
+    const nextNote = `수동 신청 승인 ${requestId}${email ? ` (${email})` : ""}`;
+    if (!String(baseNote || "").trim()) return nextNote;
+    return String(baseNote).includes(requestId) ? String(baseNote) : `${String(baseNote).trim()} | ${nextNote}`;
+}
+
+async function upsertAdvancedFeatureConfigFromApprovedRequest({ requestId, record, payload, planLabel, expiresAt }) {
+    const loginId = String(payload?.desiredLoginId || "").trim();
+    const plainPassword = String(payload?.requestPassword || "").trim();
+    if (!loginId || !plainPassword) {
+        throw new Error("장부 반영에 필요한 ID/비밀번호가 없습니다.");
+    }
+    const configRef = db.ref("config/advancedFeatureConfig");
+    const currentRaw = (await configRef.get()).val() || {};
+    const config = normalizeAdvancedFeatureConfig(currentRaw);
+    const loginIdKey = issuerCore.encodeAdvancedLoginIdKey(loginId);
+    const existingIndex = config.subscriptions.findIndex((item) => issuerCore.encodeAdvancedLoginIdKey(item.loginId) === loginIdKey);
+    const current = existingIndex >= 0 ? config.subscriptions[existingIndex] : {};
+    const passwordSalt = current.passwordSalt || buildAdvancedPasswordSalt();
+    const nextSubscription = {
+        id: current.id || (crypto.randomUUID ? crypto.randomUUID() : `subscription-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`),
+        planType: planLabel || record?.planLabel || issuerCore.DEFAULT_ADVANCED_PLAN_TYPE,
+        userIdentity: String(payload?.siteNickname || payload?.donationName || payload?.email || loginId).trim(),
+        loginId,
+        status: "active",
+        passwordSalt,
+        passwordHash: sha256Hex(`${passwordSalt}::${plainPassword}`),
+        expiresAt: String(expiresAt || ""),
+        plainPassword,
+        passwordCipher: current.passwordCipher || "",
+        passwordCipherIv: current.passwordCipherIv || "",
+        passwordCipherSalt: current.passwordCipherSalt || "",
+        note: appendApprovalNote(current.note, requestId, payload?.email || "")
+    };
+    if (existingIndex >= 0) config.subscriptions.splice(existingIndex, 1, nextSubscription);
+    else config.subscriptions.push(nextSubscription);
+    await configRef.set({ subscriptions: config.subscriptions });
+    return { loginId, loginIdKey, subscriptionCount: config.subscriptions.length };
+}
+
 function isPlainObject(value) {
     return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
@@ -279,8 +346,9 @@ exports.skctSecureApi = onRequest(
     }
 
     try {
-        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject" || route === "/admin/subscription/decrypt") {
-            if (isRateLimited(route, clientAddress, 30, 10 * 60 * 1000)) {
+        if (route === "/admin/subscription/approve" || route === "/admin/subscription/reject" || route === "/admin/subscription/decrypt" || route === "/admin/subscription/sync-ledger") {
+            const adminLimit = route.endsWith("/decrypt") ? 300 : 60;
+            if (isRateLimited(route, clientAddress, adminLimit, 10 * 60 * 1000)) {
                 sendJson(res, 429, { ok: false, errorMessage: "관리자 처리 요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
                 return;
             }
@@ -295,6 +363,11 @@ exports.skctSecureApi = onRequest(
                 : "";
             if (route.endsWith("/decrypt")) {
                 const result = await decryptRequestForAdmin(requestId);
+                sendJson(res, result.ok ? 200 : 400, result);
+                return;
+            }
+            if (route.endsWith("/sync-ledger")) {
+                const result = await syncApprovedRequestToAdvancedLedger(requestId);
                 sendJson(res, result.ok ? 200 : 400, result);
                 return;
             }
@@ -690,6 +763,7 @@ async function approveRequest(requestId, options = {}) {
     const licenseRecord = await issuerCore.buildAdvancedAccountLicenseRecord(subscription, pw, signPem);
     const loginIdKey = issuerCore.encodeAdvancedLoginIdKey(loginId);
     await db.ref(`advancedAccountLicenses/${loginIdKey}`).set(licenseRecord);
+    const ledgerResult = await upsertAdvancedFeatureConfigFromApprovedRequest({ requestId, record, payload, planLabel, expiresAt });
 
     // 경로 B
     const enc = await issuerCore.buildApprovedRequestPayloadCipher({
@@ -711,7 +785,48 @@ async function approveRequest(requestId, options = {}) {
     } catch (error) {
         console.error("[approveRequest] 승인 이메일 오류:", error.message);
     }
-    return { ok: true, msg: `승인 완료: ${loginId} / 만료 ${expiresAt}`, loginId, expiresAt };
+    return { ok: true, msg: `승인 완료: ${loginId} / 만료 ${expiresAt}`, loginId, expiresAt, ledgerSynced: true, subscriptionCount: ledgerResult.subscriptionCount };
+}
+
+async function syncApprovedRequestToAdvancedLedger(requestId) {
+    const rsaPem = ADMIN_RSA_PRIVATE_KEY.value();
+    const signPem = LICENSE_SIGNING_PRIVATE_KEY.value();
+    if (!rsaPem || !signPem) throw new Error("개인키 시크릿 미설정");
+    const reqRef = db.ref(`subscriptionRequests/${requestId}`);
+    const record = (await reqRef.get()).val();
+    if (!record) return { ok: false, errorMessage: "신청을 찾지 못했습니다." };
+    if (!["fulfilled", "approved"].includes(String(record.status || ""))) {
+        return { ok: false, errorMessage: "승인 완료 상태의 신청만 구독 내역에 반영할 수 있습니다." };
+    }
+    const payload = await issuerCore.crypto.decryptRequestPayloadForAdmin(record, rsaPem);
+    const loginId = String(payload.desiredLoginId || "").trim();
+    const pw = String(payload.requestPassword || "").trim();
+    if (!loginId || !pw) return { ok: false, errorMessage: "신청 본문에 ID/비밀번호가 없습니다." };
+    const msc = (await db.ref("config/manualSubscriptionConfig").get()).val() || {};
+    const plansRaw = msc.plans || [];
+    const remotePlans = Array.isArray(plansRaw) ? plansRaw : Object.values(plansRaw);
+    const plans = DEFAULT_MANUAL_PLANS.map((fallback) => ({
+        ...fallback,
+        ...(remotePlans.find((p) => p && p.code === fallback.code) || {})
+    }));
+    const plan = plans.find((p) => p && p.code === record.planCode);
+    const days = plan ? Number(plan.days) : 14;
+    const planLabel = record.planLabel || (plan && plan.label) || "14일 이용권";
+    const expiresAt = String(record.manualIssuedExpiresAt || payload.adminResponse?.expiresAt || "").trim()
+        || issuerCore.computeExpiresAtDate(payload.requestedStartDate || "", days);
+    const licenseRecord = await issuerCore.buildAdvancedAccountLicenseRecord(
+        { loginId, userIdentity: payload.siteNickname || payload.donationName || "", planType: planLabel, status: "active", expiresAt },
+        pw,
+        signPem
+    );
+    const loginIdKey = issuerCore.encodeAdvancedLoginIdKey(loginId);
+    await db.ref(`advancedAccountLicenses/${loginIdKey}`).set(licenseRecord);
+    const ledgerResult = await upsertAdvancedFeatureConfigFromApprovedRequest({ requestId, record, payload, planLabel, expiresAt });
+    await reqRef.update({
+        updatedAt: Date.now(),
+        ledgerSyncedAt: Date.now()
+    });
+    return { ok: true, message: "구독 내역 반영 완료", loginId, expiresAt, ledgerSynced: true, subscriptionCount: ledgerResult.subscriptionCount };
 }
 
 async function decryptRequestForAdmin(requestId) {

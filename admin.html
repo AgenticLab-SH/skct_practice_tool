@@ -3368,6 +3368,7 @@
             const payloadError = String(record._payloadError || '').trim();
             const statusMeta = statusMetaMap[record.status] || { label: record.status || '대기', color: '#1d4ed8' };
             const plan = getManualPlanByCode(loadedConfig.manualSubscriptionConfig, record.planCode);
+            const canSyncLedger = serverApprovalAvailable && ['approved', 'fulfilled'].includes(String(record.status || ''));
             return `
                 <div data-request-card="${esc(record.requestId)}" style="padding:12px; border-radius:10px; background:#ffffff; border:1px solid #e2e8f0; display:flex; flex-direction:column; gap:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
@@ -3380,6 +3381,7 @@
                         </div>
                         <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
                             ${payload ? '<span style="padding:6px 10px; border-radius:999px; background:#ecfdf5; color:#0f766e; font-size:11px; font-weight:800;">내용 표시됨</span>' : `<button type="button" class="btn btn-ghost btn-sm" data-request-act="reload-content" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px;">다시 불러오기</button>`}
+                            ${canSyncLedger ? `<button type="button" class="btn btn-ghost btn-sm" data-request-act="sync-ledger" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px; color:#0f766e; border-color:#99f6e4;">구독 내역 반영</button>` : ''}
                             <button type="button" class="btn btn-ghost btn-sm" data-request-act="delete" data-request-id="${esc(record.requestId)}" style="padding:4px 10px; font-size:11px; color:#b91c1c; border-color:#fecaca;">삭제</button>
                         </div>
                     </div>
@@ -3456,6 +3458,15 @@
             });
         });
 
+        container.querySelectorAll('[data-request-act="sync-ledger"]').forEach((button) => {
+            button.addEventListener('click', async () => {
+                await runManualSubscriptionRequestAction(
+                    '구독 내역 반영',
+                    () => syncApprovedRequestToLedger(button.dataset.requestId)
+                );
+            });
+        });
+
         container.querySelectorAll('[data-request-act="reject"]').forEach((button) => {
             button.addEventListener('click', async () => {
                 await runManualSubscriptionRequestAction(
@@ -3482,6 +3493,16 @@
                 );
             });
         });
+    }
+
+    async function syncApprovedRequestToLedger(requestId) {
+        const result = await postAdminSecureApi('/admin/subscription/sync-ledger', { requestId });
+        const cfgSnap = await get(ref(db, 'config/advancedFeatureConfig'));
+        loadedConfig.advancedFeatureConfig = normalizeAdvancedFeatureConfig(cfgSnap.exists() ? cfgSnap.val() : null);
+        renderAdvancedFeatureForm();
+        await loadSubscriptionRequests();
+        renderManualSubscriptionAdminForm(`${requestId} 신청을 고급 구독 내역에 반영했습니다. ${result.expiresAt ? `만료일: ${result.expiresAt}` : ''}`);
+        toast('✅ 구독 내역 반영 완료');
     }
 
     async function approveSubscriptionRequest(requestId, cardEl) {
